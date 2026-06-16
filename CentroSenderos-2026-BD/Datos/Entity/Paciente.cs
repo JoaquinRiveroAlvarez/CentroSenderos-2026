@@ -32,9 +32,11 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         [MaxLength(30, ErrorMessage = "Maxima cant. caracteres 30")]
         public required string Domicilio { get; set; }
 
+        public int TipoObraSocialId { get; set; }
+        public TipoObraSocial? TipoObraSociales { get; set; }
 
-        //fk
-        public int IdObraSocial { get; set; }
-        public int IdDiagnostico { get; set; }
+        public int TipoDiagnosticoId { get; set; }
+        public TipoDiagnostico? TipoDiagnosticos { get; set; }
+        
     }
 }

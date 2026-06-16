@@ -15,8 +15,8 @@ namespace CentroSenderos_2026_BD
     {
         //public DbSet <TipoProducto> TipoProductos { get; set; }
         public DbSet<Paciente> Pacientes { get; set; }
-        public DbSet<ObraSocial> ObrasSociales { get; set; }
-        public DbSet<Diagnostico> Diagnosticos { get; set; }
+        public DbSet<TipoObraSocial> TipoObrasSociales { get; set; }
+        public DbSet<TipoDiagnostico> TipoDiagnosticos { get; set; }
 
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {
