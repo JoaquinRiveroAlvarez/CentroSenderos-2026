@@ -3,13 +3,6 @@ using CentroSenderos_2026_BD.Datos.Entity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CentroSenderos_2026_BD.Datos.Entity;
-
 namespace CentroSenderos_2026_BD
 {
     public class ApplicationDbContext : IdentityDbContext<MiUsuario>
