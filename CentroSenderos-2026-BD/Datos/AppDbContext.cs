@@ -8,10 +8,17 @@ namespace CentroSenderos_2026_BD
     public class ApplicationDbContext : IdentityDbContext<MiUsuario>
     {
         public DbSet<Paciente> Pacientes { get; set; }
-        public DbSet<TipoObraSocial> TipoObrasSociales { get; set; }
-        public DbSet<TipoDiagnostico> TipoDiagnosticos { get; set; }
         public DbSet<Profesional> Profesionales { get; set; }
-        public DbSet<Profesional> TipoProductos { get; set; }
+        public DbSet<TipoConsultorio> TipoConsultorios { get; set; }
+        public DbSet<TipoDiagnostico> TipoDiagnosticos { get; set; }
+        public DbSet<TipoDocumento> TipoDocumentos { get; set; }
+        public DbSet<TipoGasto> TipoGastos { get; set; }
+        public DbSet<TipoModalidad> TipoModalidades { get; set; }
+        public DbSet<TipoObraSocial> TipoObrasSociales { get; set; }
+        public DbSet<TipoPlanilla> TipoPlanillas { get; set; }
+        public DbSet<TipoPrestacion> TipoPrestaciones { get; set; }
+
+        public DbSet<TipoTurno> TipoTurnos { get; set; }
 
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {
