@@ -20,8 +20,4 @@
     <ProjectReference Include="..\CentroSenderos-2026-Shared\CentroSenderos-2026-Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Datos\Entity\" />
-  </ItemGroup>
-
 </Project>
