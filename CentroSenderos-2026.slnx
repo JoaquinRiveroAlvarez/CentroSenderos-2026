@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="CentroSenderos-2026-BD/CentroSenderos-2026-BD.csproj" />
+  <Project Path="CentroSenderos-2026-Repositorio/CentroSenderos-2026-Repositorio.csproj" />
+  <Project Path="CentroSenderos-2026-Server/CentroSenderos-2026-Server.Client/CentroSenderos-2026-Server.Client.csproj" />
+  <Project Path="CentroSenderos-2026-Server/CentroSenderos-2026-Server/CentroSenderos-2026-Server.csproj" />
+  <Project Path="CentroSenderos-2026-Servicio/CentroSenderos-2026-Servicio.csproj" />
+  <Project Path="CentroSenderos-2026-Shared/CentroSenderos-2026-Shared.csproj" />
+</Solution>
