@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using CentroSenderos_2026_BD.Datos;
+using CentroSenderos_2026_BD.Datos.Entity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using CentroSenderos_2026_BD.Datos;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +14,10 @@ namespace CentroSenderos_2026_BD
 {
     public class ApplicationDbContext : IdentityDbContext<MiUsuario>
     {
-        public DbSet <Profesional> Profesionales { get; set; }
+        public DbSet<Paciente> Pacientes { get; set; }
+        public DbSet<TipoObraSocial> TipoObrasSociales { get; set; }
+        public DbSet<TipoDiagnostico> TipoDiagnosticos { get; set; }
+        public DbSet<Profesional> Profesionales { get; set; }
         public DbSet<Profesional> TipoProductos { get; set; }
 
         public ApplicationDbContext(DbContextOptions options) : base(options)
