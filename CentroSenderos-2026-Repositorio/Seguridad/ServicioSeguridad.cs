@@ -1,4 +1,5 @@
 ﻿using CentroSenderos_2026_BD;
+using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

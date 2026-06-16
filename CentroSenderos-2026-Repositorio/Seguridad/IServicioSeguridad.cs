@@ -1,4 +1,5 @@
-﻿using CentroSenderos_2026_Shared.Enum;
+﻿using CentroSenderos_2026_Shared.DTO;
+using CentroSenderos_2026_Shared.Enum;
 
 namespace Modelado2025_1.Repositorio.Seguridad;
 
