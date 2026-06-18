@@ -1,4 +1,5 @@
 ﻿using CentroSenderos_2026_BD;
+using System.Linq.Expressions;
 
 namespace Modelado2025_1Repositorio.Repositorios
 {
@@ -9,6 +10,7 @@ namespace Modelado2025_1Repositorio.Repositorios
         Task<List<E>> Select();
         Task<E?> SelectById(int id);
         Task<bool> Update(int id, E entidad);
-        Task<bool> Delete(int id, E entidad);
+        Task<bool> Delete(int id);
+        Task<bool> ExistePredi(Expression<Func<E, bool>> predicate);
     }
 }

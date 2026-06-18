@@ -1,5 +1,6 @@
 using CentroSenderos_2026_BD;
 using CentroSenderos_2026_BD.Datos;
+using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Server.Client.Pages;
 using CentroSenderos_2026_Server.Components;
 using CentroSenderos_2026_Server.Components.Account;
@@ -24,9 +25,9 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Modelado2025-1 API",
+        Title = "CentroSenderos-2026 API",
         Version = "v1",
-        Description = "API de gestión de Provincias",
+        Description = "API de gestión",
     });
 });
 var StrConn = builder.Configuration.GetConnectionString("ConSql")
@@ -35,7 +36,7 @@ var StrConn = builder.Configuration.GetConnectionString("ConSql")
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
               options.UseSqlServer(StrConn));
 
-//builder.Services.AddScoped<IDetallePedidoRepositorio, DetallePedidoRepositorio>();
+builder.Services.AddScoped<IProfesionalRepositorio, ProfesionalRepositorio>();
 //builder.Services.AddScoped<IPedidoRepositorio, PedidoRepositorio>();
 
 
@@ -83,7 +84,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Modelado2025-1 API v1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CentroSenderos-2026 API v1");
         c.RoutePrefix = "swagger"; // Swagger en /swagger
     });
 }

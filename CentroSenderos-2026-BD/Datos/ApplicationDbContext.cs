@@ -17,7 +17,6 @@ namespace CentroSenderos_2026_BD
         public DbSet<TipoObraSocial> TipoObrasSociales { get; set; }
         public DbSet<TipoPlanilla> TipoPlanillas { get; set; }
         public DbSet<TipoPrestacion> TipoPrestaciones { get; set; }
-
         public DbSet<TipoTurno> TipoTurnos { get; set; }
 
         public ApplicationDbContext(DbContextOptions options) : base(options)
