@@ -14,7 +14,7 @@ namespace CentroSenderos_2026_Shared.DTO
         public required int HistoriaClinica { get; set; }
         public int TipoDiagnosticoId { get; set; }
         public int ProfesionalId { get; set; }
-        public required string Telefono { get; set; }
+        public required int Telefono { get; set; }
         public required string Domicilio { get; set; }
         public required string CorreoElectronico { get; set; }
         public EnumEstadoRegistro EstadoRegistro { get; set; }

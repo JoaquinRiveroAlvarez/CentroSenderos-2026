@@ -1,18 +1,15 @@
 ﻿using CentroSenderos_2026_BD;
 using CentroSenderos_2026_BD.Datos.Entity;
 using CentroSenderos_2026_Shared.DTO;
-using CentroSenderos_2026_Shared.Enum;
 using Microsoft.EntityFrameworkCore;
-using Modelado2025_1Repositorio.Repositorios;
-using System.Linq.Expressions;
 
 namespace CentroSenderos_2026_Repositorio.Repositorios
 {
-    public class PacienteRepositorio : Repositorio<Paciente>, IPacienteRepositorio
+    public class PacienteRepositorio : IPacienteRepositorio
     {
         private readonly ApplicationDbContext context;
 
-        public PacienteRepositorio(ApplicationDbContext context) : base(context)
+        public PacienteRepositorio(ApplicationDbContext context)
         {
             this.context = context;
         }
@@ -56,8 +53,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .FirstOrDefaultAsync();
         }
 
-        // Insertar paciente con validaciones
-        public async Task<int> InsertarPaciente(PacienteCrearDTO dto)
+        // Crear paciente con código único de historia clínica
+        public async Task<int> CrearPaciente(PacienteCrearDTO dto)
         {
             var historiaClinica = await GenerarCodigoUnico();
 
@@ -76,33 +73,17 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 Telefono = dto.Telefono,
                 Domicilio = dto.Domicilio,
                 CorreoElectronico = dto.CorreoElectronico,
-                EstadoRegistro = EnumEstadoRegistro.EnGrabacion // valor por defecto
+                EstadoRegistro = dto.EstadoRegistro
             };
 
             context.Pacientes.Add(paciente);
-
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                if (ex.InnerException?.Message.Contains("Paciente_DNI_UQ") == true)
-                {
-                    throw new ApplicationException($"Ya existe un paciente con el DNI '{dto.DNI}'.");
-                }
-                if (ex.InnerException?.Message.Contains("Paciente_Correo_UQ") == true)
-                {
-                    throw new ApplicationException($"Ya existe un paciente con el correo '{dto.CorreoElectronico}'.");
-                }
-                throw;
-            }
+            await context.SaveChangesAsync();
 
             return paciente.Id;
         }
 
         // Actualizar paciente
-        public async Task<bool> UpdatePaciente(int id, PacienteEditarDTO dto)
+        public async Task<bool> UpdatePacienteActualizar(int id, PacienteEditarDTO dto)
         {
             var paciente = await context.Pacientes.FindAsync(id);
             if (paciente == null) return false;
@@ -121,9 +102,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         }
 
         // Eliminar paciente
-        public async Task<bool> DeletePaciente(int id)
+        public async Task<bool> Delete(int id)
         {
-            var paciente = await context.Pacientes.FirstOrDefaultAsync(p => p.Id == id);
+            var paciente = await context.Pacientes.FindAsync(id);
             if (paciente == null) return false;
 
             context.Pacientes.Remove(paciente);
@@ -146,5 +127,37 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             return historiaClinica;
         }
+
+        #region Interfaz implementada
+        public Task<bool> Existe(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> Insert(Paciente entidad)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<Paciente>> Select()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Paciente?> SelectById(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> Update(int id, Paciente entidad)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> Delete(int id, Paciente entidad)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }

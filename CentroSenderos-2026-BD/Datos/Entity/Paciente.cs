@@ -31,11 +31,11 @@ namespace CentroSenderos_2026_BD.Datos.Entity
 
         [Required(ErrorMessage = "La Historia Clinica es obligatoria")]
         [MaxLength(30, ErrorMessage = "Maxima cant. caracteres 30")]
-        public int HistoriaClinica { get; set; }
+        public required int HistoriaClinica { get; set; }
 
         [Required(ErrorMessage = "El Telefono es obligatorio")]
         [MaxLength(30, ErrorMessage = "Maxima cant. caracteres 30")]
-        public required string Telefono { get; set; }
+        public required int Telefono { get; set; }
 
         [Required(ErrorMessage = "El Domicilio es obligatorio")]
         [MaxLength(30, ErrorMessage = "Maxima cant. caracteres 30")]
