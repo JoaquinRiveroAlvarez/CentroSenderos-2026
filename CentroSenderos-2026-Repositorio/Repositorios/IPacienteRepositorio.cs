@@ -9,9 +9,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
     public interface IPacienteRepositorio : IRepositorio<Paciente>
     {
         Task<List<PacienteResumenDTO>> SelectListaPaciente();
-        //Task<PacienteResumenDTO?> SelectPorId(int pacienteId);
-        Task<int> CrearPaciente(PacienteCrearDTO dto);
-        Task<bool> UpdatePacienteActualizar(int id, PacienteEditarDTO dto);
-        Task<bool> Delete(int id);
+        Task<PacienteResumenDTO?> SelectPorId(int pacienteId);
+        Task<int> InsertarPaciente(PacienteCrearDTO dto);
+        Task<bool> UpdatePaciente(int id, PacienteEditarDTO dto);
+        Task<bool> DeletePaciente(int id);
     }
 }

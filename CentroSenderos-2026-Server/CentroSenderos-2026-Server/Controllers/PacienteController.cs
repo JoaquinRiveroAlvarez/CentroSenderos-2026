@@ -1,6 +1,8 @@
-﻿using CentroSenderos_2026_Repositorio.Repositorios;
+﻿using CentroSenderos_2026_BD.Datos.Entity;
+using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
+
 
 namespace CentroSenderos_2026_Server.Controllers
 {
@@ -30,34 +32,23 @@ namespace CentroSenderos_2026_Server.Controllers
             return Ok(lista);
         }
 
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<PacienteResumenDTO>> GetPacientePorId(int id)
-        //{
-        //    var paciente = await repositorio.SelectPorId(id);
-        //    if (paciente == null)
-        //    {
-        //        return NotFound(new { message = $"No se encontró el paciente con id {id}" });
-        //    }
-        //    return Ok(paciente);
-        //}
-
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdatePaciente(int id, [FromBody] PacienteEditarDTO dto)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<PacienteDetalleDTO>> GetPacientePorId(int id)
         {
-            var result = await repositorio.UpdatePacienteActualizar(id, dto);
-
-            if (!result)
+            var paciente = await repositorio.SelectPorId(id);
+            if (paciente == null)
+            {
                 return NotFound(new { message = $"No se encontró el paciente con id {id}" });
-
-            return Ok(new { message = $"Paciente {id} actualizado correctamente" });
+            }
+            return Ok(paciente);
         }
 
-        [HttpPost("crear")]
-        public async Task<ActionResult> CrearPaciente([FromBody] PacienteCrearDTO dto)
+        [HttpPost("insertar")]
+        public async Task<ActionResult> InsertarPaciente([FromBody] PacienteCrearDTO dto)
         {
             try
             {
-                var id = await repositorio.CrearPaciente(dto);
+                var id = await repositorio.InsertarPaciente(dto);
                 return Ok(new { message = $"Paciente creado correctamente con Id {id}" });
             }
             catch (Exception ex)
@@ -66,10 +57,43 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<ActionResult> Delete(int id)
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult> Put(int id, [FromBody] PacienteEditarDTO dto)
         {
-            var resultado = await repositorio.Delete(id);
+            var entidad = new Paciente
+            {
+                Id = id,
+                Nombre = dto.Nombre,
+                DNI = dto.DNI,
+                Genero = dto.Genero,
+                FechaNacimiento = dto.FechaNacimiento,
+                TipoObraSocialId = dto.TipoObraSocialId,
+                NumeroAfiliado = dto.NumeroAfiliado,
+                TipoDiagnosticoId = dto.TipoDiagnosticoId,
+                ProfesionalId = dto.ProfesionalId,
+                Telefono = dto.Telefono,
+                Domicilio = dto.Domicilio,
+                CorreoElectronico = dto.CorreoElectronico,
+                TipoDocumentoId = dto.TipoDocumentoId,
+                EstadoRegistro = dto.EstadoRegistro
+            };
+
+            var resultado = await repositorio.Update(id, entidad);
+
+            if (!resultado)
+            {
+                return BadRequest("Datos no válidos");
+            }
+
+            return Ok($"El registro con el id: {id} fue actualizado correctamente.");
+        }
+
+
+
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult> DeletePaciente(int id)
+        {
+            var resultado = await repositorio.DeletePaciente(id);
             if (!resultado)
             {
                 return BadRequest("Datos no válidos");
