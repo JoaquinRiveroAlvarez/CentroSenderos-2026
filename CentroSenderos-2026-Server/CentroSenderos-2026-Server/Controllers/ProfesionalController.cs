@@ -26,13 +26,13 @@ namespace CentroSenderos_2026_Server.Controllers
             return Ok(lista);
         }
 
-        [HttpGet("Id/{id:int}")]
-        public async Task<ActionResult<ProfesionalListadoDTO>> GetById(int id)
+        [HttpGet("Cuit/{cod}")]
+        public async Task<ActionResult<ProfesionalListadoDTO>> SelectByCuit(string cod)
         {
-            var tipoProvincia = await repositorio.SelectById(id);
+            var tipoProvincia = await repositorio.SelectByCuit(cod);
             if (tipoProvincia is null)
             {
-                return NotFound($"No existe el registro con el id: {id}.");
+                return NotFound($"No existe el registro con el cuit: {cod}.");
             }
 
             return Ok(tipoProvincia);
@@ -59,27 +59,28 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(int id, ProfesionalListadoDTO DTO)
+        public async Task<ActionResult> Put(int id, ProfesionalDTO dto)
         {
-            var entidad = new Profesional
+            try
             {
-                Id = id,
-                Nombre = DTO.Nombre,
-                Area = DTO.Area,
-                Cuit = DTO.Cuit,
-                MP = DTO.MP,
-                RNP = DTO.RNP,
-                Telefono = DTO.Telefono
-            };
+                var resultado = await repositorio.ActualizarProfesional(id, dto);
+                if (!resultado)
+                {
+                    return NotFound($"No existe el profesional con el id: {id}.");
+                }
 
-            var resultado = await repositorio.Update(id, entidad);
-
-            if (!resultado)
-            {
-                return BadRequest("Datos no válidos");
+                return Ok($"El registro con el id: {id} fue actualizado correctamente.");
             }
-
-            return Ok($"El registro con el id: {id} fue actualizado correctamente.");
+            catch (ApplicationException ex)
+            {
+                // Esto devuelve el mensaje controlado al cliente
+                return BadRequest(new { mensaje = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Errores no esperados
+                return StatusCode(500, new { mensaje = "Error interno del servidor", detalle = ex.Message });
+            }
         }
 
         [HttpDelete("{id:int}")]

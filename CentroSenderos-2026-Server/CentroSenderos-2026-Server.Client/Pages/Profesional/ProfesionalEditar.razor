@@ -1,0 +1,123 @@
+﻿@page "/profesionales/editar/{id:int}"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Editar Profesional</h3>
+
+@if (cargando)
+{
+    <p>Cargando datos del profesional...</p>
+}
+else if (modelo == null)
+{
+    <p>No se encontró el profesional.</p>
+}
+else
+{
+    <EditForm Model="@modelo" OnValidSubmit="Grabar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <h5>Datos Personales</h5>
+        <div class="form-group">
+            <label>ID</label>
+            <InputNumber class="form-control" @bind-Value="modelo.Id" disabled />
+        </div>
+
+        <div class="form-group">
+            <label>Nombre Completo</label>
+            <InputText class="form-control" @bind-Value="modelo.Nombre" placeholder="Ej: Lic. Juan Carlos López" />
+            <ValidationMessage For="@(() => modelo.Nombre)" />
+        </div>
+
+        <div class="form-group">
+            <label>Área/Profesión</label>
+            <InputText class="form-control" @bind-Value="modelo.Area" placeholder="Ej: Fisioterapeuta, Psicólogo, etc." />
+            <ValidationMessage For="@(() => modelo.Area)" />
+        </div>
+
+        <h5>Datos Profesionales</h5>
+        <div class="form-group">
+            <label>CUIT</label>
+            <InputText class="form-control" @bind-Value="modelo.Cuit" placeholder="Ej: 20-12345678-9" />
+            <ValidationMessage For="@(() => modelo.Cuit)" />
+        </div>
+
+        <div class="form-group">
+            <label>Matrícula Profesional (MP)</label>
+            <InputText class="form-control" @bind-Value="modelo.MP" placeholder="Ej: MP-001" />
+            <ValidationMessage For="@(() => modelo.MP)" />
+        </div>
+
+        <div class="form-group">
+            <label>Registro Nacional Profesional (RNP)</label>
+            <InputText class="form-control" @bind-Value="modelo.RNP" placeholder="Ej: RNP-10001" />
+            <ValidationMessage For="@(() => modelo.RNP)" />
+        </div>
+
+        <div class="form-group">
+            <label>Teléfono de Contacto</label>
+            <InputText class="form-control" @bind-Value="modelo.Telefono" placeholder="Ej: +54 11 2345-6789" />
+            <ValidationMessage For="@(() => modelo.Telefono)" />
+        </div>
+
+        <br />
+        <button class="btn btn-primary" type="submit">Guardar Cambios</button>
+        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private ProfesionalListadoDTO? modelo;
+    private bool cargando = true;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarProfesional();
+    }
+
+    private async Task CargarProfesional()
+    {
+        cargando = true;
+        var resp = await Http.Get<ProfesionalListadoDTO>($"api/profesional/Id/{Id}");
+        if (!resp.Error)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+        cargando = false;
+    }
+
+    private async Task Grabar()
+    {
+        if (modelo == null) return;
+
+        var resp = await Http.Put<ProfesionalListadoDTO, string>($"api/profesional/{Id}", modelo);
+        if (!resp.Error)
+        {
+            Mensaje = "Profesional actualizado correctamente.";
+            await Task.Delay(500);
+            Nav.NavigateTo("/profesionales", forceLoad: true);
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/profesionales");
+    }
+}

@@ -9,5 +9,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         Task<List<ProfesionalListadoDTO>> SelectListaProfesional();
         Task<ProfesionalListadoDTO?> SelectByCuit(string cod);
         Task<int> InsertarProfesional(ProfesionalDTO dto);
+        Task<bool> ActualizarProfesional(int id, ProfesionalDTO dto);
     }
 }

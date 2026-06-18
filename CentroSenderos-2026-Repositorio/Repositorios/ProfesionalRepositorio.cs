@@ -109,5 +109,57 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
+        public async Task<bool> ActualizarProfesional(int id, ProfesionalDTO dto)
+        {
+            var profesional = await context.Profesionales
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (profesional == null)
+                return false;
+
+            // Validar que el CUIT no tenga prefijo duplicado
+            var cuitLimpio = dto.Cuit.StartsWith("CUIT: ") ? dto.Cuit.Substring(6) : dto.Cuit;
+
+            // Verificar si el CUIT, MP o RNP ya existe (en otro registro)
+            var cuitExiste = await context.Profesionales
+                .AnyAsync(p => p.Cuit == cuitLimpio && p.Id != id);
+            if (cuitExiste)
+                throw new ApplicationException($"Ya existe un profesional con el CUIT '{cuitLimpio}'.");
+
+            var mpExiste = await context.Profesionales
+                .AnyAsync(p => p.MP == dto.MP && p.Id != id);
+            if (mpExiste)
+                throw new ApplicationException($"Ya existe un profesional con la Matrícula Profesional '{dto.MP}'.");
+
+            var rnpExiste = await context.Profesionales
+                .AnyAsync(p => p.RNP == dto.RNP && p.Id != id);
+            if (rnpExiste)
+                throw new ApplicationException($"Ya existe un profesional con el RNP '{dto.RNP}'.");
+
+            // Actualizar los datos
+            profesional.Nombre = dto.Nombre;
+            profesional.Area = dto.Area;
+            profesional.Cuit = cuitLimpio;
+            profesional.MP = dto.MP;
+            profesional.RNP = dto.RNP;
+            profesional.Telefono = dto.Telefono;
+
+            try
+            {
+                context.Profesionales.Update(profesional);
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateException ex)
+            {
+                if (ex.InnerException?.Message.Contains("Profesional_Cuit_UQ") == true)
+                    throw new ApplicationException($"Ya existe un profesional con el CUIT '{cuitLimpio}'.");
+                if (ex.InnerException?.Message.Contains("Profesional_MP_UQ") == true)
+                    throw new ApplicationException($"Ya existe un profesional con la Matrícula Profesional '{dto.MP}'.");
+                if (ex.InnerException?.Message.Contains("Profesional_RNP_UQ") == true)
+                    throw new ApplicationException($"Ya existe un profesional con el RNP '{dto.RNP}'.");
+                throw;
+            }
+        }
     }
 }

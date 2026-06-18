@@ -4,6 +4,7 @@ using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Server.Client.Pages;
 using CentroSenderos_2026_Server.Components;
 using CentroSenderos_2026_Server.Components.Account;
+using CentroSenderos_2026_Servicio.ServiciosHttp;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,7 @@ builder.Services.AddScoped(sp => new HttpClient
 });
 // Add services to the container.
 
-//builder.Services.AddScoped<IHttpServicio, HttpServicio>();
+builder.Services.AddScoped<IHttpServicio, HttpServicio>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -1,0 +1,97 @@
+﻿@page "/profesionales/crear"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Crear Nuevo Profesional</h3>
+
+@if (cargando)
+{
+    <p>Cargando datos...</p>
+}
+else
+{
+    <EditForm Model="@modelo" OnValidSubmit="Grabar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <h5>Datos Personales</h5>
+        <div class="form-group">
+            <label>Nombre Completo</label>
+            <InputText class="form-control" @bind-Value="modelo.Nombre" placeholder="Ej: Lic. Juan Carlos López" />
+            <ValidationMessage For="@(() => modelo.Nombre)" />
+        </div>
+
+        <div class="form-group">
+            <label>Área/Profesión</label>
+            <InputText class="form-control" @bind-Value="modelo.Area" placeholder="Ej: Fisioterapeuta, Psicólogo, etc." />
+            <ValidationMessage For="@(() => modelo.Area)" />
+        </div>
+
+        <h5>Datos Profesionales</h5>
+        <div class="form-group">
+            <label>CUIT</label>
+            <InputText class="form-control" @bind-Value="modelo.Cuit" placeholder="Ej: 20-12345678-9" />
+            <ValidationMessage For="@(() => modelo.Cuit)" />
+        </div>
+
+        <div class="form-group">
+            <label>Matrícula Profesional (MP)</label>
+            <InputText class="form-control" @bind-Value="modelo.MP" placeholder="Ej: MP-001" />
+            <ValidationMessage For="@(() => modelo.MP)" />
+        </div>
+
+        <div class="form-group">
+            <label>Registro Nacional Profesional (RNP)</label>
+            <InputText class="form-control" @bind-Value="modelo.RNP" placeholder="Ej: RNP-10001" />
+            <ValidationMessage For="@(() => modelo.RNP)" />
+        </div>
+
+        <div class="form-group">
+            <label>Teléfono de Contacto</label>
+            <InputText class="form-control" @bind-Value="modelo.Telefono" placeholder="Ej: +54 11 2345-6789" />
+            <ValidationMessage For="@(() => modelo.Telefono)" />
+        </div>
+
+        <br />
+        <button class="btn btn-primary" type="submit">Guardar Profesional</button>
+        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    private ProfesionalDTO modelo = new ProfesionalDTO
+    {
+        Nombre = string.Empty,
+        Area = string.Empty,
+        Cuit = string.Empty,
+        MP = string.Empty,
+        RNP = string.Empty,
+        Telefono = string.Empty
+    };
+    private bool cargando = false;
+    private string Mensaje = "";
+
+    private async Task Grabar()
+    {
+        var resp = await Http.Post<ProfesionalDTO, int>("api/profesional", modelo);
+        if (!resp.Error)
+        {
+            Mensaje = "Profesional guardado correctamente.";
+            await Task.Delay(500);
+            Nav.NavigateTo("/profesionales", forceLoad: true);
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/profesionales");
+    }
+}

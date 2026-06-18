@@ -1,0 +1,113 @@
+﻿@page "/profesionales"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveAuto
+
+<h3>Listado de Profesionales</h3>
+
+<div class="mb-3">
+    <a href="/profesionales/crear" class="btn btn-primary">
+        <span class="oi oi-plus"></span> Nuevo Profesional
+    </a>
+</div>
+
+@if (cargando)
+{
+    <p>Cargando profesionales...</p>
+}
+else if (listaProfesionales == null || listaProfesionales.Count == 0)
+{
+    <p>No hay profesionales registrados.</p>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Área/Profesión</th>
+                <th>CUIT</th>
+                <th>Matrícula (MP)</th>
+                <th>RNP</th>
+                <th>Teléfono</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var profesional in listaProfesionales)
+            {
+                <tr>
+                    <td>@profesional.Id</td>
+                    <td>@profesional.Nombre</td>
+                    <td>@profesional.Area</td>
+                    <td>@profesional.Cuit</td>
+                    <td>@profesional.MP</td>
+                    <td>@profesional.RNP</td>
+                    <td>@profesional.Telefono</td>
+                    <td>
+                        <a href="/profesionales/editar/@profesional.Id" class="btn btn-sm btn-warning">
+                            <span class="oi oi-pencil"></span> Editar
+                        </a>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(profesional.Id)">
+                            <span class="oi oi-delete"></span> Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    private List<ProfesionalListadoDTO> listaProfesionales = new();
+    private bool cargando = true;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarProfesionales();
+    }
+
+    private async Task CargarProfesionales()
+    {
+        cargando = true;
+        var resp = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
+        if (!resp.Error)
+        {
+            listaProfesionales = resp.Respuesta ?? new();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+        cargando = false;
+    }
+
+    private async Task Eliminar(int id)
+    {
+        if (await Confirm("¿Está seguro que desea eliminar este profesional?"))
+        {
+            var resp = await Http.Delete($"api/profesional/{id}");
+            if (!resp.Error)
+            {
+                Mensaje = "Profesional eliminado correctamente.";
+                await Task.Delay(500);
+                await CargarProfesionales();
+            }
+            else
+            {
+                Mensaje = resp.ObtenerError();
+            }
+        }
+    }
+
+    private async Task<bool> Confirm(string mensaje)
+    {
+        return await JSRuntime.InvokeAsync<bool>("confirm", mensaje);
+    }
+}
