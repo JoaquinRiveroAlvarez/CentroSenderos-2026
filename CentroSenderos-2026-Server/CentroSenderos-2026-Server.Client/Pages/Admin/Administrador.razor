@@ -1,0 +1,61 @@
+﻿@page "/admin"
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h2>Panel de Administración</h2>
+<p>Seleccione la sección que desea administrar:</p>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm border-primary">
+            <div class="card-body text-center">
+                <h5 class="card-title text-primary">Tipos de Obra Social</h5>
+                <p class="card-text">Gestione las obras sociales disponibles.</p>
+                <button class="btn btn-outline-primary" @onclick="IrAObraSocial">
+                    Ir a Obra Social
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm border-success">
+            <div class="card-body text-center">
+                <h5 class="card-title text-success">Tipos de Prestación</h5>
+                <p class="card-text">Gestione las prestaciones y sus montos.</p>
+                <button class="btn btn-outline-success" @onclick="IrAPrestacion">
+                    Ir a Prestaciones
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm border-warning">
+            <div class="card-body text-center">
+                <h5 class="card-title text-warning">Tipos de Turno</h5>
+                <p class="card-text">Gestione los turnos y sus duraciones.</p>
+                <button class="btn btn-outline-warning" @onclick="IrATurnos">
+                    Ir a Turnos
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private void IrAObraSocial()
+    {
+        Nav.NavigateTo("/tipoobrasocial", true);
+    }
+
+    private void IrAPrestacion()
+    {
+        Nav.NavigateTo("/tipoprestacion", true);
+    }
+
+    private void IrATurnos()
+    {
+        Nav.NavigateTo("/tipoturno", true);
+    }
+}

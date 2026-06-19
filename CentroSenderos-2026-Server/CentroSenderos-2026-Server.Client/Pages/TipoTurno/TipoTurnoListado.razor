@@ -1,0 +1,79 @@
+﻿@page "/tipoturno"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveAuto
+
+<h3>Listado de Tipos de Turno</h3>
+
+<div class="mb-3">
+    <a href="/tipoturno/crear" class="btn btn-primary">Nuevo Tipo de Turno</a>
+</div>
+
+@if (cargando)
+{
+    <p>Cargando registros...</p>
+}
+else if (lista == null || lista.Count == 0)
+{
+    <p>No hay tipos de turno registrados.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Descripción</th>
+                <th>Duración (min)</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in lista)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Tipo</td>
+                    <td>@item.Descripcion</td>
+                    <td>@item.DuracionMinutos</td>
+                    <td>
+                        <a href="/tipoturno/editar/@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(item.Id)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    private List<TipoTurnoListadoDTO> lista = new();
+    private bool cargando = true;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar()
+    {
+        var resp = await Http.Get<List<TipoTurnoListadoDTO>>("api/tipoturno/ListaTipoTurno");
+        lista = resp.Error ? new() : resp.Respuesta ?? new();
+        Mensaje = resp.Error ? resp.ObtenerError() : "";
+        cargando = false;
+    }
+
+    private async Task Eliminar(int id)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar registro?"))
+        {
+            var resp = await Http.Delete($"api/tipoturno/{id}");
+            Mensaje = resp.Error ? resp.ObtenerError() : "Eliminado correctamente.";
+            await Cargar();
+        }
+    }
+}
+

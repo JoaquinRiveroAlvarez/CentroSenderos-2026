@@ -1,0 +1,72 @@
+﻿@page "/tipoprestacion/editar/{id:int}"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Editar Tipo de Prestación</h3>
+
+@if (cargando)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <EditForm Model="@modelo" OnValidSubmit="Grabar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>Tipo</label>
+            <InputText class="form-control" @bind-Value="modelo.Tipo" />
+        </div>
+        <div class="form-group">
+            <label>Descripción</label>
+            <InputText class="form-control" @bind-Value="modelo.Descripcion" />
+        </div>
+        <div class="form-group">
+            <label>Código</label>
+            <InputText class="form-control" @bind-Value="modelo.Cod" />
+        </div>
+        <div class="form-group">
+            <label>Monto Sesión</label>
+            <InputNumber class="form-control" @bind-Value="modelo.MontoSesion" />
+        </div>
+
+        <button class="btn btn-primary" type="submit">Actualizar</button>
+        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    [Parameter] public int id { get; set; }
+    private TipoPrestacionDTO modelo = new TipoPrestacionDTO
+    {
+        Tipo = string.Empty,
+        Descripcion = string.Empty,
+        Cod = string.Empty,
+        MontoSesion = 0
+    };
+    private bool cargando = true;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resp = await Http.Get<TipoPrestacionDTO>($"api/tipoprestacion/Tipo/{id}");
+        modelo = resp.Error ? new TipoPrestacionDTO { Tipo = string.Empty, Descripcion = string.Empty, Cod = string.Empty, MontoSesion = 0 }
+                            : resp.Respuesta ?? new TipoPrestacionDTO { Tipo = string.Empty, Descripcion = string.Empty, Cod = string.Empty, MontoSesion = 0 };
+        Mensaje = resp.Error ? resp.ObtenerError() : "";
+        cargando = false;
+    }
+
+    private async Task Grabar()
+    {
+        var resp = await Http.Put<TipoPrestacionDTO, string>($"api/tipoprestacion/{id}", modelo);
+        Mensaje = resp.Error ? resp.ObtenerError() : "Actualizado correctamente.";
+        if (!resp.Error) Nav.NavigateTo("/tipoprestacion", true);
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/tipoprestacion");
+}

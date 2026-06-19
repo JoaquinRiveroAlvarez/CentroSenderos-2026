@@ -1,0 +1,77 @@
+﻿@page "/tipoobrasocial"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveAuto
+
+<h3>Listado de Tipos de Obra Social</h3>
+
+<div class="mb-3">
+    <a href="/tipoobrasocial/crear" class="btn btn-primary">Nueva Obra Social</a>
+</div>
+
+@if (cargando)
+{
+    <p>Cargando registros...</p>
+}
+else if (lista == null || lista.Count == 0)
+{
+    <p>No hay obras sociales registradas.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in lista)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Tipo</td>
+                    <td>@item.Descripcion</td>
+                    <td>
+                        <a href="/tipoobrasocial/editar/@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(item.Id)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    private List<TipoListadoDTO> lista = new();
+    private bool cargando = true;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar()
+    {
+        var resp = await Http.Get<List<TipoListadoDTO>>("api/tipoobrasocial/ListaTipoObraSocial");
+        lista = resp.Error ? new() : resp.Respuesta ?? new();
+        Mensaje = resp.Error ? resp.ObtenerError() : "";
+        cargando = false;
+    }
+
+    private async Task Eliminar(int id)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar registro?"))
+        {
+            var resp = await Http.Delete($"api/tipoobrasocial/{id}");
+            Mensaje = resp.Error ? resp.ObtenerError() : "Eliminado correctamente.";
+            await Cargar();
+        }
+    }
+}
+

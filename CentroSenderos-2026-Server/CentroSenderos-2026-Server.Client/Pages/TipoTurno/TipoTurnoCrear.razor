@@ -1,0 +1,50 @@
+﻿@page "/tipoturno/crear"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Crear Tipo de Turno</h3>
+
+<EditForm Model="@modelo" OnValidSubmit="Grabar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Tipo</label>
+        <InputText class="form-control" @bind-Value="modelo.Tipo" />
+    </div>
+    <div class="form-group">
+        <label>Descripción</label>
+        <InputText class="form-control" @bind-Value="modelo.Descripcion" />
+    </div>
+    <div class="form-group">
+        <label>Duración (minutos)</label>
+        <InputNumber class="form-control" @bind-Value="modelo.DuracionMinutos" />
+    </div>
+
+    <button class="btn btn-primary" type="submit">Guardar</button>
+    <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+<p>@Mensaje</p>
+
+@code {
+    private TipoTurnoDTO modelo = new TipoTurnoDTO
+    {
+        Tipo = string.Empty,
+        Descripcion = string.Empty,
+        DuracionMinutos = 0
+    };
+    private string Mensaje = "";
+
+    private async Task Grabar()
+    {
+        var resp = await Http.Post<TipoTurnoDTO, int>("api/tipoturno", modelo);
+        Mensaje = resp.Error ? resp.ObtenerError() : "Guardado correctamente.";
+        if (!resp.Error) Nav.NavigateTo("/tipoturno", true);
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/tipoturno");
+}
+

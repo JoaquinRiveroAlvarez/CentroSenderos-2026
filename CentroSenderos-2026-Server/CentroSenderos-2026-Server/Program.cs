@@ -38,7 +38,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
               options.UseSqlServer(StrConn));
 
 builder.Services.AddScoped<IProfesionalRepositorio, ProfesionalRepositorio>();
-//builder.Services.AddScoped<IPedidoRepositorio, PedidoRepositorio>();
+builder.Services.AddScoped<IPacienteRepositorio, PacienteRepositorio>();
+builder.Services.AddScoped<ITipoObraSocialRepositorio, TipoObraSocialRepositorio>();
+builder.Services.AddScoped<ITipoTurnoRepositorio, TipoTurnoRepositorio>();
+builder.Services.AddScoped<ITipoPrestacionRepositorio, TipoPrestacionRepositorio>();
+
 
 
 // Add services to the container.
