@@ -1,0 +1,136 @@
+﻿@page "/pacientes/editar/{id:int}"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Editar Paciente</h3>
+
+@if (cargando)
+{
+    <p>Cargando datos del paciente...</p>
+}
+else if (modelo == null)
+{
+    <p>No se encontró el paciente.</p>
+}
+else
+{
+    <EditForm Model="@modelo" OnValidSubmit="Grabar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <h5>Datos Personales</h5>
+        <div class="form-group">
+            <label>ID</label>
+            <InputNumber class="form-control" @bind-Value="modelo.Id" disabled />
+        </div>
+
+        <div class="form-group">
+            <label>Nombre Completo</label>
+            <InputText class="form-control" @bind-Value="modelo.Nombre" />
+            <ValidationMessage For="@(() => modelo.Nombre)" />
+        </div>
+
+        <div class="form-group">
+            <label>DNI</label>
+            <InputText class="form-control" @bind-Value="modelo.DNI" />
+            <ValidationMessage For="@(() => modelo.DNI)" />
+        </div>
+
+        <div class="form-group">
+            <label>Número de Afiliado</label>
+            <InputNumber class="form-control" @bind-Value="modelo.NumeroAfiliado" />
+            <ValidationMessage For="@(() => modelo.NumeroAfiliado)" />
+        </div>
+
+        <div class="form-group">
+            <label>Teléfono</label>
+            <InputText class="form-control" @bind-Value="modelo.Telefono" />
+            <ValidationMessage For="@(() => modelo.Telefono)" />
+        </div>
+
+        <div class="form-group">
+            <label>Domicilio</label>
+            <InputText class="form-control" @bind-Value="modelo.Domicilio" />
+            <ValidationMessage For="@(() => modelo.Domicilio)" />
+        </div>
+
+        <h5>Datos Médicos</h5>
+        <div class="form-group">
+            <label>Obra Social</label>
+            <InputNumber class="form-control" @bind-Value="modelo.TipoObraSocialId" />
+        </div>
+
+        <div class="form-group">
+            <label>Diagnóstico</label>
+            <InputNumber class="form-control" @bind-Value="modelo.TipoDiagnosticoId" />
+        </div>
+
+        <div class="form-group">
+            <label>Estado Registro</label>
+            <InputSelect class="form-control" @bind-Value="modelo.EstadoRegistro">
+                <option value="0">EnGrabacion</option>
+                <option value="1">Activo</option>
+                <option value="2">Inactivo</option>
+            </InputSelect>
+        </div>
+
+        <br />
+        <button class="btn btn-primary" type="submit">Guardar Cambios</button>
+        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private PacienteDTO? modelo;
+    private bool cargando = true;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarPaciente();
+    }
+
+    private async Task CargarPaciente()
+    {
+        cargando = true;
+        var resp = await Http.Get<PacienteDTO>($"api/paciente/{Id}");
+        if (!resp.Error)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+        cargando = false;
+    }
+
+    private async Task Grabar()
+    {
+        if (modelo == null) return;
+
+        var resp = await Http.Put<PacienteDTO, string>($"api/paciente/{Id}", modelo);
+        if (!resp.Error)
+        {
+            Mensaje = "Paciente actualizado correctamente.";
+            await Task.Delay(500);
+            Nav.NavigateTo("/pacientes", forceLoad: true);
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/pacientes");
+    }
+}

@@ -1,0 +1,103 @@
+﻿@page "/pacientes/crear"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Crear Nuevo Paciente</h3>
+
+@if (cargando)
+{
+    <p>Cargando datos...</p>
+}
+else
+{
+    <EditForm Model="@modelo" OnValidSubmit="Grabar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <h5>Datos Personales</h5>
+        <div class="form-group">
+            <label>Nombre Completo</label>
+            <InputText class="form-control" @bind-Value="modelo.Nombre"/>
+            <ValidationMessage For="@(() => modelo.Nombre)" />
+        </div>
+
+        <div class="form-group">
+            <label>DNI</label>
+            <InputText class="form-control" @bind-Value="modelo.DNI" />
+            <ValidationMessage For="@(() => modelo.DNI)" />
+        </div>
+
+        <div class="form-group">
+            <label>Número de Afiliado</label>
+            <InputNumber class="form-control" @bind-Value="modelo.NumeroAfiliado" />
+            <ValidationMessage For="@(() => modelo.NumeroAfiliado)" />
+        </div>
+
+        <div class="form-group">
+            <label>Teléfono</label>
+            <InputText class="form-control" @bind-Value="modelo.Telefono" />
+            <ValidationMessage For="@(() => modelo.Telefono)" />
+        </div>
+
+        <div class="form-group">
+            <label>Domicilio</label>
+            <InputText class="form-control" @bind-Value="modelo.Domicilio"/>
+            <ValidationMessage For="@(() => modelo.Domicilio)" />
+        </div>
+
+        <h5>Datos Médicos</h5>
+        <div class="form-group">
+            <label>Obra Social</label>
+            <InputNumber class="form-control" @bind-Value="modelo.TipoObraSocialId" />
+        </div>
+
+        <div class="form-group">
+            <label>Diagnóstico</label>
+            <InputNumber class="form-control" @bind-Value="modelo.TipoDiagnosticoId" />
+        </div>
+
+        <br />
+        <button class="btn btn-primary" type="submit">Guardar Paciente</button>
+        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    private PacienteCrearDTO modelo = new PacienteCrearDTO
+    {
+        Nombre = string.Empty,
+        DNI = string.Empty,
+        NumeroAfiliado = 0,
+        Telefono = string.Empty,
+        Domicilio = string.Empty,
+        TipoObraSocialId = 0,
+        TipoDiagnosticoId = 0,
+    };
+
+    private bool cargando = false;
+    private string Mensaje = "";
+
+    private async Task Grabar()
+    {
+        var resp = await Http.Post<PacienteCrearDTO, int>("api/paciente/insertar", modelo);
+        if (!resp.Error)
+        {
+            Mensaje = "Paciente guardado correctamente.";
+            await Task.Delay(500);
+            Nav.NavigateTo("/pacientes", forceLoad: true);
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/pacientes");
+    }
+}

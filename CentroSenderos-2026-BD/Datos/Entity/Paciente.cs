@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CentroSenderos_2026_Shared.Enum;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -17,16 +18,14 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         [MaxLength(10, ErrorMessage ="Maxima cant. caracteres 10")]
         public required string DNI { get; set; }
 
-        [Required(ErrorMessage ="La Fecha de Nacimiento es obligatoria")]
-        public required DateTime FechaNacimiento { get; set; }
 
         [Required(ErrorMessage = "El NroAfiliado es obligatorio")]
         [MaxLength(30, ErrorMessage = "Maxima cant. caracteres 30")]
-        public required int NroAfiliado { get; set; }
+        public required int NumeroAfiliado { get; set; }
 
         [Required(ErrorMessage = "El Telefono es obligatorio")]
         [MaxLength(30, ErrorMessage = "Maxima cant. caracteres 30")]
-        public required int Telefono { get; set; }
+        public required string Telefono { get; set; }
 
         [Required(ErrorMessage = "El Domicilio es obligatorio")]
         [MaxLength(30, ErrorMessage = "Maxima cant. caracteres 30")]
