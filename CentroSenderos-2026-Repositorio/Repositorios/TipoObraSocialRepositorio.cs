@@ -18,6 +18,19 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             this.context = context;
         }
+        public async Task<TipoDTO?> SelectPorId(int id)
+        {
+            return await context.TipoObrasSociales
+                .Where(p => p.Id == id)
+                .Select(p => new TipoDTO
+                {
+                    Tipo = p.Tipo,
+                    Descripcion = p.Descripcion,
+                    EstadoRegistro = p.EstadoRegistro
+                })
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<TipoListadoDTO?> SelectByTipoObraSocial(string tipo)
         {
             TipoListadoDTO? entidad = await context.TipoObrasSociales

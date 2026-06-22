@@ -9,5 +9,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         Task<int> InsertarTipoObraSocial(TipoDTO dto);
         Task<bool> DeleteTipoObraSocial(int id);
         Task<bool> ActualizarTipoObraSocial(int id, TipoDTO dto);
+        Task<TipoDTO?> SelectPorId(int id);
     }
 }

@@ -15,6 +15,15 @@ namespace CentroSenderos_2026_Server.Controllers
             this.repositorio = repositorio;
         }
 
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<TipoDTO>> GetById(int id)
+        {
+            var entidad = await repositorio.SelectPorId(id);
+            if (entidad == null) return NotFound($"No existe obra social con id {id}.");
+            return Ok(entidad);
+        }
+
+
         [HttpGet("ListaTipoObraSocial")]
         public async Task<IActionResult> GetListaTipoObraSocial()
         {
@@ -67,8 +76,8 @@ namespace CentroSenderos_2026_Server.Controllers
                 {
                     return NotFound($"No existe el tipo de obra social con el id: {id}.");
                 }
-
-                return Ok($"El registro con el id: {id} fue actualizado correctamente.");
+                return Ok(new { mensaje = "Actualizado correctamente", id, datos = dto });
+                //return Ok($"El registro con el id: {id} fue actualizado correctamente.");
             }
             catch (ApplicationException ex)
             {
@@ -90,7 +99,7 @@ namespace CentroSenderos_2026_Server.Controllers
             {
                 return BadRequest("Datos no validos");
             }
-            return Ok($"El registro con el id: {id} fue eliminado correctamente.");
+            return Ok(new { mensaje = "Eliminado correctamente", id });
         }
 
         //[HttpGet("ListaProfesionales")]
