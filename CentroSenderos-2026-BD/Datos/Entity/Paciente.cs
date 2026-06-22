@@ -20,7 +20,6 @@ namespace CentroSenderos_2026_BD.Datos.Entity
 
 
         [Required(ErrorMessage = "El NroAfiliado es obligatorio")]
-        [MaxLength(30, ErrorMessage = "Maxima cant. caracteres 30")]
         public required int NumeroAfiliado { get; set; }
 
         [Required(ErrorMessage = "El Telefono es obligatorio")]
@@ -36,6 +35,7 @@ namespace CentroSenderos_2026_BD.Datos.Entity
 
         public int TipoDiagnosticoId { get; set; }
         public TipoDiagnostico? TipoDiagnosticos { get; set; }
-        
+
+        public List<DetalleLiquidacion> DetalleLiquidaciones { get; set; } = new();
     }
 }
