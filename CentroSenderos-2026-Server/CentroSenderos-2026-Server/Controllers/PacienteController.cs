@@ -72,22 +72,21 @@ namespace CentroSenderos_2026_Server.Controllers
                 var resultado = await repositorio.ActualizarPaciente(id, dto);
                 if (!resultado)
                 {
-                    return NotFound($"No existe el paciente con el id: {id}.");
+                    return NotFound(new { mensaje = $"No existe el paciente con el id: {id}." });
                 }
 
-                return Ok($"El registro con el id: {id} fue actualizado correctamente.");
+                return Ok(new { mensaje = $"El paciente con el id: {id} fue actualizado correctamente." });
             }
             catch (ApplicationException ex)
             {
-                // Esto devuelve el mensaje controlado al cliente
                 return BadRequest(new { mensaje = ex.Message });
             }
             catch (Exception ex)
             {
-                // Errores no esperados
                 return StatusCode(500, new { mensaje = "Error interno del servidor", detalle = ex.Message });
             }
         }
+
 
 
 

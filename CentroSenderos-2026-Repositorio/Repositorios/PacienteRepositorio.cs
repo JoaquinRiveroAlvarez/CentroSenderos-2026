@@ -35,25 +35,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .ToListAsync();
         }
 
-        // Obtener un paciente por Id
-        public async Task<PacienteResumenDTO?> SelectPorDni(int pacienteId)
-        {
-            PacienteResumenDTO? entidad = await context.Pacientes
-                .Select(p => new PacienteResumenDTO
-                {
-                    Id = p.Id,
-                    Nombre = p.Nombre,
-                    DNI = p.DNI,
-
-                    TipoObraSocialId = p.TipoObraSocialId,
-                    NumeroAfiliado = p.NumeroAfiliado,
-                    TipoDiagnosticoId = p.TipoDiagnosticoId,
-                    EstadoRegistro = p.EstadoRegistro
-                })
-                .FirstOrDefaultAsync(x => x.Id == pacienteId);
-            return entidad;
-        }
-
         // Insertar paciente con validaciones
         public async Task<int> InsertarPaciente(PacienteCrearDTO dto)
         {
@@ -70,7 +51,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 Telefono = dto.Telefono,
                 Domicilio = dto.Domicilio,
 
-                EstadoRegistro = EnumEstadoRegistro.EnGrabacion // valor por defecto
+                EstadoRegistro = EnumEstadoRegistro.EnGrabacion
             };
 
             context.Pacientes.Add(paciente);
@@ -93,23 +74,39 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         }
 
         // Actualizar paciente
-        public async Task<bool> UpdatePaciente(int id, PacienteDTO dto)
+        public async Task<bool> ActualizarPaciente(int id, PacienteDTO dto)
         {
             var paciente = await context.Pacientes.FirstOrDefaultAsync(p => p.Id == id);
             if (paciente == null) return false;
 
-      
+            var dniExiste = await context.Pacientes
+            .AnyAsync(p => p.DNI == dto.DNI && p.Id != id);
+            if (dniExiste)
+            throw new ApplicationException($"Ya existe un paciente con el DNI '{dto.DNI}'.");
+
             paciente.Nombre = dto.Nombre;
             paciente.DNI = dto.DNI;
             paciente.TipoObraSocialId = dto.TipoObraSocialId;
             paciente.NumeroAfiliado = dto.NumeroAfiliado;
             paciente.TipoDiagnosticoId = dto.TipoDiagnosticoId;
             paciente.Telefono = dto.Telefono;
+            paciente.Domicilio = dto.Domicilio;
             paciente.EstadoRegistro = dto.EstadoRegistro;
 
-            await context.SaveChangesAsync();
-            return true;
+            try
+            {
+                context.Pacientes.Update(paciente);
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateException ex)
+            {
+                if (ex.InnerException?.Message.Contains("Paciente_DNI_UQ") == true)
+                    throw new ApplicationException($"Ya existe un paciente con el DNI '{dto.DNI}'.");
+                throw;
+            }
         }
+
 
         // Eliminar paciente
         public async Task<bool> DeletePaciente(int id)
@@ -123,17 +120,25 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
-        public Task<PacienteResumenDTO?> SelectPorId(int pacienteId)
-        {
-            throw new NotImplementedException();
-        }
 
-        
-
-        public Task<bool> ActualizarPaciente(int id, PacienteDTO dto)
+        public async Task<PacienteDTO?> SelectPorId(int pacienteId)
         {
-            throw new NotImplementedException();
+            return await context.Pacientes
+                .Where(p => p.Id == pacienteId)
+                .Select(p => new PacienteDTO
+                {
+                    Id = p.Id,
+                    Nombre = p.Nombre,
+                    DNI = p.DNI,
+                    TipoObraSocialId = p.TipoObraSocialId,
+                    NumeroAfiliado = p.NumeroAfiliado,
+                    TipoDiagnosticoId = p.TipoDiagnosticoId,
+                    Telefono = p.Telefono ?? string.Empty,
+                    Domicilio = p.Domicilio ?? string.Empty,
+                    EstadoRegistro = p.EstadoRegistro
+                })
+                .FirstOrDefaultAsync();
         }
     }
-    }
+}
 

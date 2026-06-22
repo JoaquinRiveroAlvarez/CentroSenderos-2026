@@ -1,5 +1,6 @@
 ﻿@page "/pacientes/editar/{id:int}"
 @using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Enum
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
@@ -28,13 +29,13 @@ else
 
         <div class="form-group">
             <label>Nombre Completo</label>
-            <InputText class="form-control" @bind-Value="modelo.Nombre" />
+            <InputText class="form-control" @bind-Value="modelo.Nombre" placeholder = "Ej: Juan Pérez" />
             <ValidationMessage For="@(() => modelo.Nombre)" />
         </div>
 
         <div class="form-group">
             <label>DNI</label>
-            <InputText class="form-control" @bind-Value="modelo.DNI" />
+            <InputText class="form-control" @bind-Value="modelo.DNI" placeholder="Ej: 12345678" />
             <ValidationMessage For="@(() => modelo.DNI)" />
         </div>
 
@@ -46,25 +47,46 @@ else
 
         <div class="form-group">
             <label>Teléfono</label>
-            <InputText class="form-control" @bind-Value="modelo.Telefono" />
+            <InputText class="form-control" @bind-Value="modelo.Telefono" placeholder="Ej: +54 351 555-1234" />
             <ValidationMessage For="@(() => modelo.Telefono)" />
         </div>
 
         <div class="form-group">
             <label>Domicilio</label>
-            <InputText class="form-control" @bind-Value="modelo.Domicilio" />
+            <InputText class="form-control" @bind-Value="modelo.Domicilio" placeholder="Ej: Av. Siempre Viva 742" />
             <ValidationMessage For="@(() => modelo.Domicilio)" />
         </div>
 
         <h5>Datos Médicos</h5>
         <div class="form-group">
             <label>Obra Social</label>
-            <InputNumber class="form-control" @bind-Value="modelo.TipoObraSocialId" />
+            <InputSelect class="form-control" @bind-Value="modelo.TipoObraSocialId">
+                <option value="1">OSDE</option>
+                <option value="2">IOMA</option>
+                <option value="3">SURA</option>
+                <option value="4">Swiss Medical</option>
+                <option value="5">Medifé</option>
+                <option value="6">Galeno</option>
+                <option value="7">BMI</option>
+                <option value="8">Accord Salud</option>
+                <option value="9">Particular</option>
+            </InputSelect>
         </div>
 
         <div class="form-group">
             <label>Diagnóstico</label>
-            <InputNumber class="form-control" @bind-Value="modelo.TipoDiagnosticoId" />
+            <InputSelect class="form-control" @bind-Value="modelo.TipoDiagnosticoId">
+                <option value="1">Trastorno del Espectro Autista (TEA)</option>
+                <option value="2">Parálisis Cerebral</option>
+                <option value="3">Síndrome de Down</option>
+                <option value="4">Discapacidad Intelectual</option>
+                <option value="5">Dislexia</option>
+                <option value="6">Dispraxia</option>
+                <option value="7">Trastorno del Lenguaje</option>
+                <option value="8">TDAH</option>
+                <option value="9">TGD</option>
+                <option value="10">Hipoacusia</option>
+            </InputSelect>
         </div>
 
         <div class="form-group">
@@ -88,7 +110,17 @@ else
     [Parameter]
     public int Id { get; set; }
 
-    private PacienteDTO? modelo;
+    private PacienteDTO modelo = new PacienteDTO
+    {
+        Nombre = string.Empty,
+        DNI = string.Empty,
+        Telefono = string.Empty,
+        Domicilio = string.Empty,
+        NumeroAfiliado = 0,
+        TipoObraSocialId = 1,
+        TipoDiagnosticoId = 1,
+        EstadoRegistro = EnumEstadoRegistro.EnGrabacion
+    };
     private bool cargando = true;
     private string Mensaje = "";
 
@@ -112,22 +144,22 @@ else
         cargando = false;
     }
 
+
     private async Task Grabar()
     {
         if (modelo == null) return;
 
-        var resp = await Http.Put<PacienteDTO, string>($"api/paciente/{Id}", modelo);
+        var resp = await Http.Put<PacienteDTO, RespuestaDTO>($"api/paciente/{Id}", modelo);
+        Mensaje = resp.Error ? resp.ObtenerError() : resp.Respuesta?.mensaje!;
+
         if (!resp.Error)
         {
-            Mensaje = "Paciente actualizado correctamente.";
             await Task.Delay(500);
-            Nav.NavigateTo("/pacientes", forceLoad: true);
-        }
-        else
-        {
-            Mensaje = resp.ObtenerError();
+            Nav.NavigateTo("/pacientes", true);
         }
     }
+
+
 
     private void Cancelar()
     {
