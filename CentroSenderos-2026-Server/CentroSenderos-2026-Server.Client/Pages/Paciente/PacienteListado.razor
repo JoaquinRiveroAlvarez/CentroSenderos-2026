@@ -45,9 +45,10 @@ else
                     <td>@paciente.NumeroAfiliado</td>
                     <td>@paciente.EstadoRegistro</td>
                     <td>
-                        <a href="/pacientes/detalle/@paciente.Id" class="btn btn-sm btn-info">
+                        <button class="btn btn-sm btn-info" @onclick="() => MostrarDetalle(paciente.Id)">
                             <span class="oi oi-eye"></span> Detalle
-                        </a>
+                        </button>
+
                         <a href="/pacientes/editar/@paciente.Id" class="btn btn-sm btn-warning">
                             <span class="oi oi-pencil"></span> Editar
                         </a>
@@ -61,11 +62,50 @@ else
     </table>
 }
 
+@if (mostrarModal)
+{
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detalle Paciente</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (detallePaciente != null)
+                    {
+                        <p><strong>ID:</strong> @detallePaciente.Id</p>
+                        <p><strong>Nombre:</strong> @detallePaciente.Nombre</p>
+                        <p><strong>DNI:</strong> @detallePaciente.DNI</p>
+                        @* <p><strong>Fecha Nacimiento:</strong> @detallePaciente.FechaNacimiento.ToShortDateString()</p> *@
+                        <p><strong>Número Afiliado:</strong> @detallePaciente.NumeroAfiliado</p>
+                        <p><strong>Teléfono:</strong> @detallePaciente.Telefono</p>
+                        <p><strong>Domicilio:</strong> @detallePaciente.Domicilio</p>
+                        @* <p><strong>Correo Electrónico:</strong> @detallePaciente.CorreoElectronico</p> *@
+                        <p><strong>Obra Social:</strong> @detallePaciente.TipoObraSocialId</p>
+                        <p><strong>Diagnóstico:</strong> @detallePaciente.TipoDiagnosticoId</p>
+                        <p><strong>Estado Registro:</strong> @detallePaciente.EstadoRegistro</p>
+                    }
+                    else
+                    {
+                        <p>Cargando detalle...</p>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CerrarModal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <p>@Mensaje</p>
 @code {
     private List<PacienteResumenDTO> listaPacientes = new();
     private bool cargando = true;
     private string Mensaje = "";
+    private bool mostrarModal = false;
+    private PacienteDTO? detallePaciente;
 
     protected override async Task OnInitializedAsync()
     {
@@ -85,6 +125,26 @@ else
             Mensaje = resp.ObtenerError();
         }
         cargando = false;
+    }
+
+    private async Task MostrarDetalle(int id)
+    {
+        var resp = await Http.Get<PacienteDTO>($"api/paciente/{id}");
+        if (!resp.Error)
+        {
+            detallePaciente = resp.Respuesta;
+            mostrarModal = true;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+    private void CerrarModal()
+    {
+        mostrarModal = false;
+        detallePaciente = null;
     }
 
     private async Task Eliminar(int id)
