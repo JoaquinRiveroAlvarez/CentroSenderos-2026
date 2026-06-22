@@ -22,6 +22,23 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             this.context = context;
         }
+        public async Task<ProfesionalDTO?> SelectPorId(int id)
+        {
+            return await context.Profesionales
+                .Where(p => p.Id == id)
+                .Select(p => new ProfesionalDTO
+                {
+                    Id = p.Id,
+                    Nombre = p.Nombre,
+                    Area = p.Area,
+                    Cuit = p.Cuit,
+                    MP = p.MP,
+                    RNP = p.RNP,
+                    Telefono = p.Telefono,
+                    EstadoRegistro = p.EstadoRegistro
+                })
+                .FirstOrDefaultAsync();
+        }
         public async Task<ProfesionalListadoDTO?> SelectByCuit(string cod)
         {
             ProfesionalListadoDTO? entidad = await context.Profesionales

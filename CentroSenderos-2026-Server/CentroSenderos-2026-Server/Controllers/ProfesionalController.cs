@@ -16,6 +16,15 @@ namespace CentroSenderos_2026_Server.Controllers
             this.repositorio = repositorio;
         }
 
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<ProfesionalDTO>> GetById(int id)
+        {
+            var entidad = await repositorio.SelectPorId(id);
+            if (entidad == null) return NotFound($"No existe profesional con id {id}.");
+            return Ok(entidad);
+        }
+
+
         [HttpGet("ListaProfesional")]
         public async Task<IActionResult> GetListaProfesionales()
         {

@@ -3,7 +3,6 @@
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
-
 <h3>Crear Tipo de Prestación</h3>
 
 <EditForm Model="@modelo" OnValidSubmit="Grabar">
@@ -18,6 +17,7 @@
         <label>Descripción</label>
         <InputText class="form-control" @bind-Value="modelo.Descripcion" />
     </div>
+
     <div class="form-group">
         <label>Código</label>
         <InputText class="form-control" @bind-Value="modelo.Cod" />
@@ -52,4 +52,5 @@
 
     private void Cancelar() => Nav.NavigateTo("/tipoprestacion");
 }
+
 

@@ -8,11 +8,7 @@
 
 @if (cargando)
 {
-    <p>Cargando datos del profesional...</p>
-}
-else if (modelo == null)
-{
-    <p>No se encontró el profesional.</p>
+    <p>Cargando...</p>
 }
 else
 {
@@ -21,11 +17,6 @@ else
         <ValidationSummary />
 
         <h5>Datos Personales</h5>
-        <div class="form-group">
-            <label>ID</label>
-            <InputNumber class="form-control" @bind-Value="modelo.Id" disabled />
-        </div>
-
         <div class="form-group">
             <label>Nombre Completo</label>
             <InputText class="form-control" @bind-Value="modelo.Nombre" placeholder="Ej: Lic. Juan Carlos López" />
@@ -43,16 +34,18 @@ else
             <label>CUIT</label>
             <InputText class="form-control" @bind-Value="modelo.Cuit" placeholder="Ej: 20-12345678-9" />
             <ValidationMessage For="@(() => modelo.Cuit)" />
+@*             <InputText class="form-control" @bind-Value="modelo.Cuit" disabled /> *@
+
         </div>
 
         <div class="form-group">
-            <label>Matrícula Profesional (MP)</label>
+            <label>MP</label>
             <InputText class="form-control" @bind-Value="modelo.MP" placeholder="Ej: MP-001" />
             <ValidationMessage For="@(() => modelo.MP)" />
         </div>
 
         <div class="form-group">
-            <label>Registro Nacional Profesional (RNP)</label>
+            <label>RNP</label>
             <InputText class="form-control" @bind-Value="modelo.RNP" placeholder="Ej: RNP-10001" />
             <ValidationMessage For="@(() => modelo.RNP)" />
         </div>
@@ -72,52 +65,30 @@ else
 <p>@Mensaje</p>
 
 @code {
-    [Parameter]
-    public int Id { get; set; }
-
-    private ProfesionalListadoDTO? modelo;
+    [Parameter] public int id { get; set; }
+    private ProfesionalDTO modelo = new ProfesionalDTO { Nombre = string.Empty, Area = string.Empty, Cuit = string.Empty, MP = string.Empty, RNP = string.Empty, Telefono = string.Empty };
     private bool cargando = true;
     private string Mensaje = "";
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarProfesional();
-    }
+        var resp = await Http.Get<ProfesionalDTO>($"api/profesional/{id}");
+        modelo = resp.Error ? new ProfesionalDTO { Nombre = string.Empty, Area = string.Empty, Cuit = string.Empty, MP = string.Empty, RNP = string.Empty, Telefono = string.Empty }
+                            : resp.Respuesta ?? new ProfesionalDTO { Nombre = string.Empty, Area = string.Empty, Cuit = string.Empty, MP = string.Empty, RNP = string.Empty, Telefono = string.Empty };
+        Mensaje = resp.Error ? resp.ObtenerError() : "";
 
-    private async Task CargarProfesional()
-    {
-        cargando = true;
-        var resp = await Http.Get<ProfesionalListadoDTO>($"api/profesional/Id/{Id}");
-        if (!resp.Error)
-        {
-            modelo = resp.Respuesta;
-        }
-        else
-        {
-            Mensaje = resp.ObtenerError();
-        }
         cargando = false;
+
     }
 
     private async Task Grabar()
     {
-        if (modelo == null) return;
+        var resp = await Http.Put<ProfesionalDTO, RespuestaDTO>($"api/profesional/{id}", modelo);
+        Mensaje = resp.Error ? resp.ObtenerError() : resp.Respuesta?.mensaje!;
 
-        var resp = await Http.Put<ProfesionalListadoDTO, string>($"api/profesional/{Id}", modelo);
-        if (!resp.Error)
-        {
-            Mensaje = "Profesional actualizado correctamente.";
-            await Task.Delay(500);
-            Nav.NavigateTo("/profesionales", forceLoad: true);
-        }
-        else
-        {
-            Mensaje = resp.ObtenerError();
-        }
+        if (!resp.Error) Nav.NavigateTo("/profesionales", true);
     }
 
-    private void Cancelar()
-    {
-        Nav.NavigateTo("/profesionales");
-    }
+    private void Cancelar() => Nav.NavigateTo("/profesionales");
+
 }
