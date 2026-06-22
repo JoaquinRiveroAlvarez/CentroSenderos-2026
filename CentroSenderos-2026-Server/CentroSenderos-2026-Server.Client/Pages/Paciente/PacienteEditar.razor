@@ -16,7 +16,7 @@ else if (modelo == null)
 }
 else
 {
-    <EditForm Model="@modelo" OnValidSubmit="Grabar">
+    <EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="EditarPacienteForm">
         <DataAnnotationsValidator />
         <ValidationSummary />
 

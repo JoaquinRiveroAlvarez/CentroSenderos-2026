@@ -12,7 +12,7 @@
 }
 else
 {
-    <EditForm Model="@modelo" OnValidSubmit="Grabar">
+    <EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="CrearPacienteForm">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
@@ -47,16 +47,37 @@ else
             <ValidationMessage For="@(() => modelo.Domicilio)" />
         </div>
 
-        <h5>Datos Médicos</h5>
         <div class="form-group">
             <label>Obra Social</label>
-            <InputNumber class="form-control" @bind-Value="modelo.TipoObraSocialId" />
+            <InputSelect class="form-control" @bind-Value="modelo.TipoObraSocialId">
+                <option value="1">OSDE</option>
+                <option value="2">IOMA</option>
+                <option value="3">SURA</option>
+                <option value="4">Swiss Medical</option>
+                <option value="5">Medifé</option>
+                <option value="6">Galeno</option>
+                <option value="7">BMI</option>
+                <option value="8">Accord Salud</option>
+                <option value="9">Particular</option>
+            </InputSelect>
         </div>
 
         <div class="form-group">
             <label>Diagnóstico</label>
-            <InputNumber class="form-control" @bind-Value="modelo.TipoDiagnosticoId" />
+            <InputSelect class="form-control" @bind-Value="modelo.TipoDiagnosticoId">
+                <option value="1">Trastorno del Espectro Autista (TEA)</option>
+                <option value="2">Parálisis Cerebral</option>
+                <option value="3">Síndrome de Down</option>
+                <option value="4">Discapacidad Intelectual</option>
+                <option value="5">Dislexia</option>
+                <option value="6">Dispraxia</option>
+                <option value="7">Trastorno del Lenguaje</option>
+                <option value="8">TDAH</option>
+                <option value="9">TGD</option>
+                <option value="10">Hipoacusia</option>
+            </InputSelect>
         </div>
+
 
         <br />
         <button class="btn btn-primary" type="submit">Guardar Paciente</button>
@@ -74,8 +95,8 @@ else
         NumeroAfiliado = 0,
         Telefono = string.Empty,
         Domicilio = string.Empty,
-        TipoObraSocialId = 0,
-        TipoDiagnosticoId = 0,
+        TipoObraSocialId = 1,
+        TipoDiagnosticoId = 1,
     };
 
     private bool cargando = false;

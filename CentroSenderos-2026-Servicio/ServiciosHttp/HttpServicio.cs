@@ -94,24 +94,37 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
         private async Task<T?> DesSerializar<T>(HttpResponseMessage response)
         {
             var respStr = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(respStr,
-                new JsonSerializerOptions
+
+            if (string.IsNullOrWhiteSpace(respStr))
+                return default;
+
+            var trimmed = respStr.TrimStart();
+
+            // Comprobar tokens JSON comunes: objeto, array, string, number, true/false, null (minúsculas)
+            if (trimmed.StartsWith("{") ||
+                trimmed.StartsWith("[") ||
+                trimmed.StartsWith("\"") ||
+                char.IsDigit(trimmed, 0) ||
+                trimmed.StartsWith("-") ||
+                trimmed.StartsWith("true", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.StartsWith("false", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.StartsWith("null", StringComparison.OrdinalIgnoreCase))
+            {
+                try
                 {
-                    PropertyNameCaseInsensitive = true
-                });
-            //Joaquin
-            //if (string.IsNullOrWhiteSpace(respStr))
-            //    return default;
+                    return JsonSerializer.Deserialize<T>(respStr,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                catch (JsonException ex)
+                {
+                    // registrar ex + respStr para diagnóstico
+                    // (aquí puede usar ILogger)
+                    throw new InvalidOperationException("Respuesta JSON mal formada", ex);
+                }
+            }
 
-            //// Si empieza con '{' o '[', asumimos que es JSON
-            //if (respStr.TrimStart().StartsWith("{") || respStr.TrimStart().StartsWith("["))
-            //{
-            //    return JsonSerializer.Deserialize<T>(respStr,
-            //        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            //}
-
-            //// Si no es JSON, devolvemos default (no error)
-            //return default;
+            // No es JSON: registrar respStr si es necesario y devolver default
+            return default;
         }
     }
 }
