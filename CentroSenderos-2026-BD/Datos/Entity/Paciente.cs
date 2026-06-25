@@ -30,11 +30,17 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         [MaxLength(30, ErrorMessage = "Maxima cant. caracteres 30")]
         public required string Domicilio { get; set; }
 
+        [Required(ErrorMessage = "La obra social es obligatoria")]
         public int TipoObraSocialId { get; set; }
         public TipoObraSocial? TipoObraSociales { get; set; }
 
         public int TipoDiagnosticoId { get; set; }
         public TipoDiagnostico? TipoDiagnosticos { get; set; }
+
+        public int DocumentoId { get; set; }
+        public Documento? Documentos { get; set; }
+
+        public List<TurnoPaciente> TurnoPacientes { get; set; } = new();
 
         public List<DetalleLiquidacion> DetalleLiquidaciones { get; set; } = new();
     }

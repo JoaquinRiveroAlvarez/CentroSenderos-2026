@@ -36,8 +36,7 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         [MaxLength(30, ErrorMessage = "El Teléfono no puede exceder los 20 caracteres")]
         public required string Telefono { get; set; } = string.Empty;
 
-
-
+        public List<TurnoProfesional> TurnoProfesionales { get; set; } = new();
 
         public List<Socio> Socios { get; set; } = new();
         public List<Liquidacion> Liquidaciones { get; set; } = new();
