@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CentroSenderos_2026_BD.Datos.Entity
 {
-    public class TurnoPaciente
+    public class TurnoPaciente : EntityBase
     {
         [Required(ErrorMessage = "El turno es obligatorio")]
         public int TurnoId { get; set; }

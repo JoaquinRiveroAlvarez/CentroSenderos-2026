@@ -15,7 +15,6 @@ namespace CentroSenderos_2026_BD.Datos.Entity
 
         [Required(ErrorMessage = "La fecha de fin es obligatoria")]
         public DateTime FechaFin { get; set; } = DateTime.MinValue;
-        public int NroLiquidacion { get; set; } = 0;
 
         [Required(ErrorMessage = "El tipo de turno es obligatorio")]
         public int TipoTurnoId { get; set; }

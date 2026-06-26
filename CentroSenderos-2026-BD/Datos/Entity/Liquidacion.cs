@@ -1,9 +1,12 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Net;
 
 namespace CentroSenderos_2026_BD.Datos.Entity
 {
+    [Index(nameof(NumeroLiquidacion), Name = "NumeroLiquidacion_UQ", IsUnique = true)]
     public class Liquidacion : EntityBase
     {
         [Required(ErrorMessage = "La Fecha Desde es obligatoria")]

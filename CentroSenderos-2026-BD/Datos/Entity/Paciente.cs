@@ -8,6 +8,7 @@ using System.Text;
 namespace CentroSenderos_2026_BD.Datos.Entity
 {
     [Index(nameof(DNI), Name = "DNI_UQ", IsUnique = true)]
+    [Index(nameof(NumeroAfiliado), Name = "NumeroAfiliado_UQ", IsUnique = true)]
     public class Paciente : EntityBase
     {
         [Required(ErrorMessage = "El Nombre es obligatorio")]

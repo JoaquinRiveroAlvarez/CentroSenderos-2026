@@ -7,6 +7,7 @@ using System.Text;
 namespace CentroSenderos_2026_BD.Datos.Entity
 {
     [Index(nameof(Tipo), Name = "TipoPrestacion_Tipo_UQ", IsUnique = true)]
+    [Index(nameof(Cod), Name = "TipoPrestacion_Cod_UQ", IsUnique = true)]
     public class TipoPrestacion : EntityTipoBase
     {
         [Required(ErrorMessage = "El Código es obligatorio")]

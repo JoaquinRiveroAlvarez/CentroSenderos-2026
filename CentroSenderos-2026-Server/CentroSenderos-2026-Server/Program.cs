@@ -31,11 +31,23 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API de gestión",
     });
 });
-var StrConn = builder.Configuration.GetConnectionString("ConSql")
-                                 ?? throw new InvalidOperationException(
-                                    "El string de conexion no existe.");
+//var StrConn = builder.Configuration.GetConnectionString("ConSql")
+//                                 ?? throw new InvalidOperationException(
+//                                    "El string de conexion no existe.");
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//              options.UseSqlServer(StrConn));
+
+//var strConn = builder.Configuration.GetConnectionString("postgresql");
+
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseNpgsql(strConn));
+
+var strConn = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("La cadena de conexión no existe.");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-              options.UseSqlServer(StrConn));
+    options.UseNpgsql(strConn));
+
 
 builder.Services.AddScoped<IProfesionalRepositorio, ProfesionalRepositorio>();
 builder.Services.AddScoped<IPacienteRepositorio, PacienteRepositorio>();
@@ -62,9 +74,9 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseNpgsql(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<MiUsuario>(options =>
