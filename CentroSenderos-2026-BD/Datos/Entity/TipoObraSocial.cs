@@ -9,6 +9,6 @@ namespace CentroSenderos_2026_BD.Datos.Entity
     [Index(nameof(Tipo), Name = "TipoObraSocial_Tipo_UQ", IsUnique = true)]
     public class TipoObraSocial : EntityTipoBase
     {
-       
+        public List<Paciente> Pacientes { get; set; } = new();
     }
 }

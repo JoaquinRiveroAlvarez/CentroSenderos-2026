@@ -38,11 +38,10 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         public int TipoDiagnosticoId { get; set; }
         public TipoDiagnostico? TipoDiagnosticos { get; set; }
 
-        public int DocumentoId { get; set; }
+        public int? DocumentoId { get; set; }
         public Documento? Documentos { get; set; }
 
         public List<TurnoPaciente> TurnoPacientes { get; set; } = new();
 
-        public List<DetalleLiquidacion> DetalleLiquidaciones { get; set; } = new();
     }
 }

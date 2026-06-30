@@ -3,7 +3,6 @@ using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 
-
 namespace CentroSenderos_2026_Server.Controllers
 {
     [ApiController]
@@ -53,16 +52,20 @@ namespace CentroSenderos_2026_Server.Controllers
             }
             catch (ApplicationException ex)
             {
-                // Esto devuelve el mensaje controlado al cliente
+                // Errores controlados (ej: DNI duplicado, obra social inexistente)
                 return BadRequest(new { mensaje = ex.Message });
             }
             catch (Exception ex)
             {
-                // Errores no esperados
-                return StatusCode(500, new { mensaje = "Error interno del servidor", detalle = ex.Message });
+                // Errores no esperados: mostramos detalle e inner exception
+                return StatusCode(500, new
+                {
+                    mensaje = "Error interno del servidor",
+                    detalle = ex.Message,
+                    inner = ex.InnerException?.Message
+                });
             }
         }
-
 
         [HttpPut("{id:int}")]
         public async Task<ActionResult> Put(int id, PacienteDTO dto)
@@ -83,12 +86,14 @@ namespace CentroSenderos_2026_Server.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error interno del servidor", detalle = ex.Message });
+                return StatusCode(500, new
+                {
+                    mensaje = "Error interno del servidor",
+                    detalle = ex.Message,
+                    inner = ex.InnerException?.Message
+                });
             }
         }
-
-
-
 
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)

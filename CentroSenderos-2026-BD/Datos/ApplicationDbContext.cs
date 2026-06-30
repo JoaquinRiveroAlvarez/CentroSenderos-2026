@@ -11,6 +11,7 @@ namespace CentroSenderos_2026_BD
         public DbSet<Profesional> Profesionales { get; set; }
         public DbSet<TipoConsultorio> TipoConsultorios { get; set; }
         public DbSet<TipoDiagnostico> TipoDiagnosticos { get; set; }
+
         public DbSet<TipoDocumento> TipoDocumentos { get; set; }
         public DbSet<TipoGasto> TipoGastos { get; set; }
         public DbSet<TipoModalidad> TipoModalidades { get; set; }
@@ -38,6 +39,18 @@ namespace CentroSenderos_2026_BD
             {
                 fk.DeleteBehavior = DeleteBehavior.Restr­ict;
             }
+
+
+            modelBuilder.Entity<Paciente>()
+                    .HasOne(p => p.TipoObraSociales)
+                    .WithMany(o => o.Pacientes)
+                    .HasForeignKey(p => p.TipoObraSocialId);
+
+            modelBuilder.Entity<Paciente>()
+                .HasOne(p => p.TipoDiagnosticos)
+                .WithMany(d => d.Pacientes)
+                .HasForeignKey(p => p.TipoDiagnosticoId);
+
         }
     }
 }

@@ -38,19 +38,31 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         // Insertar paciente con validaciones
         public async Task<int> InsertarPaciente(PacienteCrearDTO dto)
         {
+            // Validar obra social
+            var obraSocialExiste = await context.TipoObrasSociales.AnyAsync(o => o.Id == dto.TipoObraSocialId);
+            if (!obraSocialExiste)
+                throw new ApplicationException("La obra social seleccionada no existe.");
+
+            // Validar diagnóstico
+            var diagnosticoExiste = await context.TipoDiagnosticos.AnyAsync(d => d.Id == dto.TipoDiagnosticoId);
+            if (!diagnosticoExiste)
+                throw new ApplicationException("El diagnóstico seleccionado no existe.");
+
+            //// Validar documento (si lo usás)
+            //var documentoExiste = await context.Documentos.AnyAsync(d => d.Id == dto.DocumentoId);
+            //if (!documentoExiste)
+            //    throw new ApplicationException("El tipo de documento seleccionado no existe.");
 
             var paciente = new Paciente
             {
                 Nombre = dto.Nombre,
                 DNI = dto.DNI,
-
-                TipoObraSocialId = dto.TipoObraSocialId,
                 NumeroAfiliado = dto.NumeroAfiliado,
-                TipoDiagnosticoId = dto.TipoDiagnosticoId,
-
                 Telefono = dto.Telefono,
                 Domicilio = dto.Domicilio,
-
+                TipoObraSocialId = dto.TipoObraSocialId,
+                TipoDiagnosticoId = dto.TipoDiagnosticoId,
+                //DocumentoId = dto.DocumentoId,
                 EstadoRegistro = EnumEstadoRegistro.EnGrabacion
             };
 
@@ -63,15 +75,17 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             catch (DbUpdateException ex)
             {
                 if (ex.InnerException?.Message.Contains("Paciente_DNI_UQ") == true)
-                {
                     throw new ApplicationException($"Ya existe un paciente con el DNI '{dto.DNI}'.");
-                }
-                
+
+                if (ex.InnerException?.Message.Contains("NumeroAfiliado_UQ") == true)
+                    throw new ApplicationException($"Ya existe un paciente con el número de afiliado '{dto.NumeroAfiliado}'.");
+
                 throw;
             }
 
             return paciente.Id;
         }
+
 
         // Actualizar paciente
         public async Task<bool> ActualizarPaciente(int id, PacienteDTO dto)

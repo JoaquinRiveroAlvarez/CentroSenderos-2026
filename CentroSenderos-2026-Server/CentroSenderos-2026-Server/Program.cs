@@ -54,6 +54,7 @@ builder.Services.AddScoped<IPacienteRepositorio, PacienteRepositorio>();
 builder.Services.AddScoped<ITipoObraSocialRepositorio, TipoObraSocialRepositorio>();
 builder.Services.AddScoped<ITipoTurnoRepositorio, TipoTurnoRepositorio>();
 builder.Services.AddScoped<ITipoPrestacionRepositorio, TipoPrestacionRepositorio>();
+builder.Services.AddScoped<ITipoDiagnosticoRepositorio, TipoDiagnosticoRepositorio>();
 
 
 
@@ -96,6 +97,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseWebAssemblyDebugging();
     app.UseMigrationsEndPoint();
     app.UseSwagger();

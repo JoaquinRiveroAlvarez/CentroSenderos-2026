@@ -4,6 +4,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
+
 <h3>Crear Nuevo Paciente</h3>
 
 @if (cargando)
@@ -48,35 +49,37 @@ else
         </div>
 
         <div class="form-group">
-            <label>Obra Social</label>
-            <InputSelect class="form-control" @bind-Value="modelo.TipoObraSocialId">
-                <option value="1">OSDE</option>
-                <option value="2">IOMA</option>
-                <option value="3">SURA</option>
-                <option value="4">Swiss Medical</option>
-                <option value="5">Medifé</option>
-                <option value="6">Galeno</option>
-                <option value="7">BMI</option>
-                <option value="8">Accord Salud</option>
-                <option value="9">Particular</option>
+            <label for="obraSocial">Obra Social</label>
+            <InputSelect id="obraSocial" class="form-control" @bind-Value="modelo.TipoObraSocialId">
+                <ValidationMessage For="@(() => modelo.TipoObraSocialId)" />
+                <option value="0">-- Seleccione una obra social --</option>
+                @if (tiposObraSocial != null)
+                {
+                    @foreach (var obra in tiposObraSocial)
+                    {
+                        <option value="@obra.Id">@obra.Tipo</option>
+                    }
+                }
             </InputSelect>
         </div>
 
         <div class="form-group">
-            <label>Diagnóstico</label>
-            <InputSelect class="form-control" @bind-Value="modelo.TipoDiagnosticoId">
-                <option value="1">Trastorno del Espectro Autista (TEA)</option>
-                <option value="2">Parálisis Cerebral</option>
-                <option value="3">Síndrome de Down</option>
-                <option value="4">Discapacidad Intelectual</option>
-                <option value="5">Dislexia</option>
-                <option value="6">Dispraxia</option>
-                <option value="7">Trastorno del Lenguaje</option>
-                <option value="8">TDAH</option>
-                <option value="9">TGD</option>
-                <option value="10">Hipoacusia</option>
+            <label for="diagnostico">Diagnóstico</label>
+            <InputSelect id="diagnostico" class="form-control" @bind-Value="modelo.TipoDiagnosticoId">
+                <option value="0">-- Seleccione un diagnóstico --</option>
+                @if (tiposDiagnostico != null)
+                {
+                    @foreach (var diag in tiposDiagnostico)
+                    {
+                        <option value="@diag.Id">@diag.Tipo</option>
+                    }
+                }
             </InputSelect>
         </div>
+
+
+
+
 
 
         <br />
@@ -95,12 +98,39 @@ else
         NumeroAfiliado = 0,
         Telefono = string.Empty,
         Domicilio = string.Empty,
-        TipoObraSocialId = 10,
-        TipoDiagnosticoId = 11,
+        TipoObraSocialId = 0,
+        TipoDiagnosticoId = 0
     };
+
+    private List<TipoDTO> tiposObraSocial = new();
+    private List<TipoDTO> tiposDiagnostico = new();
 
     private bool cargando = false;
     private string Mensaje = "";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        cargando = true;
+
+        var respObra = await Http.Get<List<TipoDTO>>("api/tipoobrasocial/ListaTipoObraSocial");
+        if (!respObra.Error && respObra.Respuesta != null)
+            tiposObraSocial = respObra.Respuesta;
+        else
+            Mensaje = respObra.ObtenerError();
+
+        var respDiag = await Http.Get<List<TipoDTO>>("api/tipodiagnostico/ListaTipoDiagnostico");
+        if (!respDiag.Error && respDiag.Respuesta != null)
+            tiposDiagnostico = respDiag.Respuesta;
+        else
+            Mensaje = respDiag.ObtenerError();
+
+        cargando = false;
+    }
+
+
+    
+
 
     private async Task Grabar()
     {
