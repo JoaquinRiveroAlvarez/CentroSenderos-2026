@@ -21,16 +21,19 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         public async Task<List<PacienteResumenDTO>> SelectListaPaciente()
         {
             return await context.Pacientes
+                .Include(p => p.TipoObraSociales)
+                .Include(p => p.TipoDiagnosticos)
                 .Select(p => new PacienteResumenDTO
                 {
                     Id = p.Id,
                     Nombre = p.Nombre,
                     DNI = p.DNI,
-
-                    TipoObraSocialId = p.TipoObraSocialId,
                     NumeroAfiliado = p.NumeroAfiliado,
+                    EstadoRegistro = p.EstadoRegistro,
+                    TipoObraSocialId = p.TipoObraSocialId,
+                    TipoObraSocialNombre = p.TipoObraSociales.Tipo,
                     TipoDiagnosticoId = p.TipoDiagnosticoId,
-                    EstadoRegistro = p.EstadoRegistro
+                    TipoDiagnosticoNombre = p.TipoDiagnosticos.Tipo
                 })
                 .ToListAsync();
         }
@@ -138,21 +141,27 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         public async Task<PacienteDTO?> SelectPorId(int pacienteId)
         {
             return await context.Pacientes
+                .Include(p => p.TipoObraSociales)
+                .Include(p => p.TipoDiagnosticos)
                 .Where(p => p.Id == pacienteId)
                 .Select(p => new PacienteDTO
                 {
                     Id = p.Id,
                     Nombre = p.Nombre,
                     DNI = p.DNI,
-                    TipoObraSocialId = p.TipoObraSocialId,
                     NumeroAfiliado = p.NumeroAfiliado,
-                    TipoDiagnosticoId = p.TipoDiagnosticoId,
                     Telefono = p.Telefono ?? string.Empty,
                     Domicilio = p.Domicilio ?? string.Empty,
-                    EstadoRegistro = p.EstadoRegistro
+                    EstadoRegistro = p.EstadoRegistro,
+
+                    TipoObraSocialId = p.TipoObraSocialId,
+                    TipoObraSocialNombre = p.TipoObraSociales.Tipo,
+                    TipoDiagnosticoId = p.TipoDiagnosticoId,
+                    TipoDiagnosticoNombre = p.TipoDiagnosticos.Tipo
                 })
                 .FirstOrDefaultAsync();
         }
+
     }
 }
 
