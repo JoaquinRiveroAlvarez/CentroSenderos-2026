@@ -41,6 +41,18 @@
             </div>
         </div>
     </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm border-warning">
+            <div class="card-body text-center">
+                <h5 class="card-title text-warning">Socios</h5>
+                <p class="card-text">Gestione los socios y sus datos.</p>
+                <button class="btn btn-outline-warning" @onclick="IrASocios">
+                    Ir a Socios
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {
@@ -57,5 +69,9 @@
     private void IrATurnos()
     {
         Nav.NavigateTo("/tipoturno", true);
+    }
+    private void IrASocios()
+    {
+        Nav.NavigateTo("/socio", true);
     }
 }

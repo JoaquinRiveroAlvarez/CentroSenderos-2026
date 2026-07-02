@@ -1,0 +1,114 @@
+﻿@page "/socio/editar/{id:int}"
+@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Enum
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Socio</h3>
+
+@if (cargando)
+{
+    <p>Cargando datos del socio...</p>
+}
+else if (modelo == null)
+{
+    <p>No se encontró el socio.</p>
+}
+else
+{
+    <EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="EditarSocioForm">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>ID</label>
+            <InputNumber class="form-control" @bind-Value="modelo.Id" disabled />
+        </div>
+
+        <div class="form-group">
+            <label>Profesional</label>
+            <InputSelect class="form-control" @bind-Value="modelo.ProfesionalId">
+                <option value="0">-- Seleccione un profesional --</option>
+                @foreach (var prof in profesionales)
+                {
+                    <option value="@prof.Id">@prof.Nombre (@prof.Area)</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => modelo.ProfesionalId)" />
+        </div>
+
+        <div class="form-group">
+            <label>Observación</label>
+            <InputText class="form-control" @bind-Value="modelo.Observacion" />
+            <ValidationMessage For="@(() => modelo.Observacion)" />
+        </div>
+
+        <div class="form-group">
+            <label>Estado Registro</label>
+            <InputSelect class="form-control" @bind-Value="modelo.EstadoRegistro">
+                @foreach (EnumEstadoRegistro estado in Enum.GetValues(typeof(EnumEstadoRegistro)))
+                {
+                    <option value="@estado">@estado</option>
+                }
+            </InputSelect>
+        </div>
+
+        <br />
+        <button class="btn btn-primary" type="submit">Guardar Cambios</button>
+        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private SocioDTO? modelo;
+    private bool cargando = true;
+    private string Mensaje = "";
+
+    private List<ProfesionalListadoDTO> profesionales = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        cargando = true;
+
+        // cargar lista de profesionales
+        var respProf = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
+        if (!respProf.Error && respProf.Respuesta != null)
+            profesionales = respProf.Respuesta;
+        else
+            Mensaje = respProf.ObtenerError();
+
+        // cargar socio
+        var respSocio = await Http.Get<SocioDTO>($"api/socio/{id}");
+        if (!respSocio.Error)
+            modelo = respSocio.Respuesta;
+        else
+            Mensaje = respSocio.ObtenerError();
+
+        cargando = false;
+    }
+
+    private async Task Grabar()
+    {
+        if (modelo == null) return;
+
+        var resp = await Http.Put<SocioDTO, RespuestaDTO>($"api/socio/{id}", modelo);
+        Mensaje = resp.Error ? resp.ObtenerError() : resp.Respuesta?.mensaje!;
+
+        if (!resp.Error)
+        {
+            await Task.Delay(500);
+            Nav.NavigateTo("/socio", true);
+        }
+    }
+
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/socio");
+    }
+}

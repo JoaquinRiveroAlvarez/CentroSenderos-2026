@@ -55,6 +55,7 @@ builder.Services.AddScoped<ITipoObraSocialRepositorio, TipoObraSocialRepositorio
 builder.Services.AddScoped<ITipoTurnoRepositorio, TipoTurnoRepositorio>();
 builder.Services.AddScoped<ITipoPrestacionRepositorio, TipoPrestacionRepositorio>();
 builder.Services.AddScoped<ITipoDiagnosticoRepositorio, TipoDiagnosticoRepositorio>();
+builder.Services.AddScoped<ISocioRepositorio, SocioRepositorio>();
 
 
 

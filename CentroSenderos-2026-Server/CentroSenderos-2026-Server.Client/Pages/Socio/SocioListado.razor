@@ -1,0 +1,69 @@
+﻿@page "/socio"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Listado de Socios</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="IrACrear">Nuevo Socio</button>
+</div>
+
+@if (cargando)
+{
+    <p>Cargando registros...</p>
+}
+else if (lista == null || lista.Count == 0)
+{
+    <p>No hay socios registrados.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Profesional</th>
+                <th>Observación</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in lista)
+            {
+                <tr style="cursor:pointer" @onclick="() => IrAEditar(item.Id)">
+                    <td>@item.Profesional</td>
+                    <td>@item.Observacion</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    private List<SocioListadoDTO> lista = new();
+    private bool cargando = true;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar()
+    {
+        var resp = await Http.Get<List<SocioListadoDTO>>("api/socio/ListaSocio");
+        lista = resp.Error ? new() : resp.Respuesta ?? new();
+        Mensaje = resp.Error ? resp.ObtenerError() : "";
+        cargando = false;
+    }
+
+    private void IrAEditar(int id)
+    {
+        Nav.NavigateTo($"/socio/editar/{id}");
+    }
+
+    private void IrACrear()
+    {
+        Nav.NavigateTo("/socio/crear");
+    }
+}
+

@@ -1,0 +1,93 @@
+﻿@page "/socio/crear"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Crear Nuevo Socio</h3>
+
+@if (cargando)
+{
+    <p>Cargando datos...</p>
+}
+else
+{
+    <EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="CrearSocioForm">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="profesional">Profesional</label>
+            <InputSelect id="profesional" class="form-control" @bind-Value="modelo.ProfesionalId">
+                <option value="0">-- Seleccione un profesional --</option>
+                @if (profesionales != null)
+                {
+                    @foreach (var prof in profesionales)
+                    {
+                        <option value="@prof.Id">@prof.Nombre (@prof.Area)</option>
+                    }
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => modelo.ProfesionalId)" />
+        </div>
+
+        <div class="form-group">
+            <label>Observación</label>
+            <InputText class="form-control" @bind-Value="modelo.Observacion" />
+            <ValidationMessage For="@(() => modelo.Observacion)" />
+        </div>
+
+        <br />
+        <button class="btn btn-primary" type="submit">Guardar Socio</button>
+        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    private SocioDTO modelo = new SocioDTO
+    {
+        ProfesionalId = 0,
+        Observacion = string.Empty,
+        EstadoRegistro = EnumEstadoRegistro.EnGrabacion
+    };
+
+    private List<ProfesionalListadoDTO> profesionales = new();
+    private bool cargando = false;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        cargando = true;
+
+        // Cargar lista de profesionales
+        var respProf = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
+        if (!respProf.Error && respProf.Respuesta != null)
+            profesionales = respProf.Respuesta;
+        else
+            Mensaje = respProf.ObtenerError();
+
+        cargando = false;
+    }
+
+    private async Task Grabar()
+    {
+        var resp = await Http.Post<SocioDTO, int>("api/socio/insertar", modelo);
+        if (!resp.Error)
+        {
+            Mensaje = "Socio guardado correctamente.";
+            await Task.Delay(500);
+            Nav.NavigateTo("/socio", forceLoad: true);
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/socio");
+    }
+}

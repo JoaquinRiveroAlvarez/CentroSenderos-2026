@@ -40,6 +40,5 @@ namespace CentroSenderos_2026_BD.Datos.Entity
 
         public List<Socio> Socios { get; set; } = new();
         public List<Liquidacion> Liquidaciones { get; set; } = new();
-        public List<DetalleLiquidacion> DetalleLiquidaciones { get; set; } = new();
     }
 }
