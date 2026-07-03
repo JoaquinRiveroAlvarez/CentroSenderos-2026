@@ -59,12 +59,14 @@ else
         <br />
         <button class="btn btn-primary" type="submit">Guardar Cambios</button>
         <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
     </EditForm>
 }
 
 <p>@Mensaje</p>
 
 @code {
+    [Inject] IJSRuntime JSRuntime { get; set; } = default!;
     [Parameter] public int id { get; set; }
     private ProfesionalDTO modelo = new ProfesionalDTO { Nombre = string.Empty, Area = string.Empty, Cuit = string.Empty, MP = string.Empty, RNP = string.Empty, Telefono = string.Empty };
     private bool cargando = true;
@@ -87,6 +89,23 @@ else
         Mensaje = resp.Error ? resp.ObtenerError() : resp.Respuesta?.mensaje!;
 
         if (!resp.Error) Nav.NavigateTo("/profesionales", true);
+    }
+
+    private async Task Eliminar()
+    {
+        // confirmación con JavaScript
+        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Está seguro que desea eliminar este profesional?");
+        if (confirmar)
+        {
+            var resp = await Http.Delete($"api/profesional/{id}");
+            Mensaje = resp.Error ? resp.ObtenerError() : "Profesional eliminado correctamente.";
+
+            if (!resp.Error)
+            {
+                await Task.Delay(500);
+                Nav.NavigateTo("/profesionales", true);
+            }
+        }
     }
 
     private void Cancelar() => Nav.NavigateTo("/profesionales");

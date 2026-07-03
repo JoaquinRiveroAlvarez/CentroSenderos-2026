@@ -18,6 +18,20 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             this.context = context;
         }
+
+        public async Task<TipoTurnoDTO?> SelectPorId(int id)
+        {
+            return await context.TipoTurnos
+                .Where(p => p.Id == id)
+                .Select(p => new TipoTurnoDTO
+                {
+                    Tipo = p.Tipo,
+                    Descripcion = p.Descripcion,
+                    EstadoRegistro = p.EstadoRegistro,
+                    DuracionMinutos = p.DuracionMinutos
+                })
+                .FirstOrDefaultAsync();
+        }
         public async Task<TipoTurnoListadoDTO?> SelectByTipoTurno(string tipo)
         {
             TipoTurnoListadoDTO? entidad = await context.TipoTurnos
@@ -34,6 +48,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         public async Task<List<TipoTurnoListadoDTO>> SelectListaTipoTurno()
         {
             var lista = await context.TipoTurnos
+                .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
                 .Select(p => new TipoTurnoListadoDTO
                 {
                     Id = p.Id,
@@ -53,7 +68,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             {
                 Tipo = dto.Tipo,
                 Descripcion = dto.Descripcion,
-                DuracionMinutos = dto.DuracionMinutos
+                DuracionMinutos = dto.DuracionMinutos,
+                EstadoRegistro = dto.EstadoRegistro = EnumEstadoRegistro.activo
             };
 
             context.TipoTurnos.Add(tipoTurno);
@@ -80,8 +96,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (tipoTurno == null)
                 return false;
 
-            // Finalmente eliminar el tipo de prestación
-            context.TipoTurnos.Remove(tipoTurno);
+            tipoTurno.EstadoRegistro = EnumEstadoRegistro.borrado;
 
             await context.SaveChangesAsync();
             return true;
@@ -107,7 +122,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             // Actualizar los datos
             tipoTurno.Tipo = dto.Tipo;
             tipoTurno.Descripcion = dto.Descripcion;
-            tipoTurno.EstadoRegistro = dto.EstadoRegistro;
+            tipoTurno.DuracionMinutos = dto.DuracionMinutos;
+            //tipoTurno.EstadoRegistro = dto.EstadoRegistro;
 
             try
             {

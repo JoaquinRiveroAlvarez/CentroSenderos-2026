@@ -32,6 +32,6 @@ namespace CentroSenderos_2026_Shared.DTO
         [Required(ErrorMessage = "El Teléfono es obligatorio")]
         [MaxLength(30, ErrorMessage = "El Teléfono no puede exceder los 20 caracteres")]
         public required string Telefono { get; set; } = string.Empty;
-        public EnumEstadoRegistro EstadoRegistro { get; set; } = EnumEstadoRegistro.EnGrabacion;
+        public EnumEstadoRegistro EstadoRegistro { get; set; }
     }
 }

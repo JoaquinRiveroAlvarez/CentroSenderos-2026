@@ -35,12 +35,14 @@ else
 
         <button class="btn btn-primary" type="submit">Actualizar</button>
         <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
     </EditForm>
 }
 
 <p>@Mensaje</p>
 
 @code {
+    [Inject] IJSRuntime JSRuntime { get; set; } = default!;
     [Parameter] public int id { get; set; }
     private TipoPrestacionDTO modelo = new TipoPrestacionDTO
     {
@@ -58,10 +60,9 @@ else
         modelo = resp.Error ? new TipoPrestacionDTO { Tipo = string.Empty, Descripcion = string.Empty, Cod = string.Empty, MontoSesion = 0 }
                             : resp.Respuesta ?? new TipoPrestacionDTO { Tipo = string.Empty, Descripcion = string.Empty, Cod = string.Empty, MontoSesion = 0 };
         Mensaje = resp.Error ? resp.ObtenerError() : "";
-
         cargando = false;
-
     }
+
 
     private async Task Grabar()
     {
@@ -70,6 +71,19 @@ else
 
         if (!resp.Error) Nav.NavigateTo("/tipoprestacion", true);
     }
+
+    private async Task Eliminar()
+    {
+        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar esta prestación?");
+        if (confirmar)
+        {
+            var resp = await Http.Delete($"api/tipoprestacion/{id}");
+            Mensaje = resp.Error ? resp.ObtenerError() : "Prestación eliminada correctamente.";
+            if (!resp.Error) Nav.NavigateTo("/tipoprestacion", true);
+        }
+    }
+
+
 
     private void Cancelar() => Nav.NavigateTo("/tipoprestacion");
 

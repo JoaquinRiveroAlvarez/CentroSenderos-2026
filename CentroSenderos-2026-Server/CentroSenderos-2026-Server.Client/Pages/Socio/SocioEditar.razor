@@ -44,26 +44,20 @@ else
             <ValidationMessage For="@(() => modelo.Observacion)" />
         </div>
 
-        <div class="form-group">
-            <label>Estado Registro</label>
-            <InputSelect class="form-control" @bind-Value="modelo.EstadoRegistro">
-                @foreach (EnumEstadoRegistro estado in Enum.GetValues(typeof(EnumEstadoRegistro)))
-                {
-                    <option value="@estado">@estado</option>
-                }
-            </InputSelect>
-        </div>
 
         <br />
         <button class="btn btn-primary" type="submit">Guardar Cambios</button>
         <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
     </EditForm>
 }
 
 <p>@Mensaje</p>
 
 @code {
+    [Inject] IJSRuntime JSRuntime { get; set; } = default!;
     [Parameter]
+
     public int id { get; set; }
 
     private SocioDTO? modelo;
@@ -104,6 +98,17 @@ else
         {
             await Task.Delay(500);
             Nav.NavigateTo("/socio", true);
+        }
+    }
+
+    private async Task Eliminar()
+    {
+        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar este socio?");
+        if (confirmar)
+        {
+            var resp = await Http.Delete($"api/socio/{id}");
+            Mensaje = resp.Error ? resp.ObtenerError() : "Socio eliminado correctamente.";
+            if (!resp.Error) Nav.NavigateTo("/socio", true);
         }
     }
 

@@ -11,5 +11,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         Task<int> InsertarProfesional(ProfesionalDTO dto);
         Task<bool> ActualizarProfesional(int id, ProfesionalDTO dto);
         Task<ProfesionalDTO?> SelectPorId(int id);
+        Task<bool> DeleteProfesional(int id);
     }
 }

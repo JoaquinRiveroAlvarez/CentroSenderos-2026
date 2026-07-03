@@ -75,7 +75,7 @@ else
                 }
             </InputSelect>
         </div>
-
+@* 
         <div class="form-group">
             <label>Estado Registro</label>
             <InputSelect class="form-control" @bind-Value="modelo.EstadoRegistro">
@@ -84,17 +84,19 @@ else
                     <option value="@estado">@estado</option>
                 }
             </InputSelect>
-        </div>
+        </div> *@
 
         <br />
         <button class="btn btn-primary" type="submit">Guardar Cambios</button>
         <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
     </EditForm>
 }
 
 <p>@Mensaje</p>
 
 @code {
+    [Inject] IJSRuntime JSRuntime { get; set; } = default!;
     [Parameter]
     public int Id { get; set; }
 
@@ -141,6 +143,24 @@ else
             Nav.NavigateTo("/pacientes", true);
         }
     }
+
+    private async Task Eliminar()
+    {
+        // confirmación con JavaScript
+        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Está seguro que desea eliminar este paciente?");
+        if (confirmar)
+        {
+            var resp = await Http.Delete($"api/paciente/{Id}");
+            Mensaje = resp.Error ? resp.ObtenerError() : "Paciente eliminado correctamente.";
+
+            if (!resp.Error)
+            {
+                await Task.Delay(500);
+                Nav.NavigateTo("/pacientes", true);
+            }
+        }
+    }
+
 
     private void Cancelar()
     {

@@ -50,6 +50,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         public async Task<List<TipoListadoDTO>> SelectListaTipoDiagnostico()
         {
             return await context.TipoDiagnosticos
+                .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
                 .Select(p => new TipoListadoDTO
                 {
                     Id = p.Id,
@@ -67,7 +68,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             {
                 Tipo = dto.Tipo,
                 Descripcion = dto.Descripcion,
-                EstadoRegistro = EnumEstadoRegistro.EnGrabacion
+                EstadoRegistro = EnumEstadoRegistro.activo
             };
 
             context.TipoDiagnosticos.Add(entidad);
@@ -81,7 +82,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var entidad = await context.TipoDiagnosticos.FirstOrDefaultAsync(p => p.Id == id);
             if (entidad == null) return false;
 
-            context.TipoDiagnosticos.Remove(entidad);
+            entidad.EstadoRegistro = EnumEstadoRegistro.borrado;
             await context.SaveChangesAsync();
             return true;
         }
@@ -93,7 +94,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             entidad.Tipo = dto.Tipo;
             entidad.Descripcion = dto.Descripcion;
-            entidad.EstadoRegistro = dto.EstadoRegistro;
+            //entidad.EstadoRegistro = dto.EstadoRegistro;
 
             context.TipoDiagnosticos.Update(entidad);
             await context.SaveChangesAsync();

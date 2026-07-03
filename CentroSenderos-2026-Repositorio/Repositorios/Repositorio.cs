@@ -72,7 +72,8 @@ namespace Modelado2025_1Repositorio.Repositorios
             if (entidad is null) return false;
             try
             {
-                context.Set<E>().Remove(entidad);
+                entidad.EstadoRegistro = EnumEstadoRegistro.borrado;
+                context.Set<E>().Update(entidad);
                 await context.SaveChangesAsync();
                 return true;
             }

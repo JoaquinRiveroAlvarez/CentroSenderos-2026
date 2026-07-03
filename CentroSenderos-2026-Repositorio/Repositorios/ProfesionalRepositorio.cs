@@ -58,6 +58,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         public async Task<List<ProfesionalListadoDTO>> SelectListaProfesional()
         {
             var lista = await context.Profesionales
+                .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
                 .Select(p => new ProfesionalListadoDTO
                 {
                     Id = p.Id,
@@ -119,8 +120,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (profesional == null)
                 return false;
 
-            // Finalmente eliminar el profesional
-            context.Profesionales.Remove(profesional);
+            profesional.EstadoRegistro = EnumEstadoRegistro.borrado;
 
             await context.SaveChangesAsync();
             return true;

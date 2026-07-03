@@ -16,11 +16,35 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             this.context = context;
         }
+        public async Task<PacienteDTO?> SelectPorId(int pacienteId)
+        {
+            return await context.Pacientes
+                .Include(p => p.TipoObraSociales)
+                .Include(p => p.TipoDiagnosticos)
+                .Where(p => p.Id == pacienteId)
+                .Select(p => new PacienteDTO
+                {
+                    Id = p.Id,
+                    Nombre = p.Nombre,
+                    DNI = p.DNI,
+                    NumeroAfiliado = p.NumeroAfiliado,
+                    Telefono = p.Telefono ?? string.Empty,
+                    Domicilio = p.Domicilio ?? string.Empty,
+                    EstadoRegistro = p.EstadoRegistro,
+
+                    TipoObraSocialId = p.TipoObraSocialId,
+                    TipoObraSocialNombre = p.TipoObraSociales!.Tipo,
+                    TipoDiagnosticoId = p.TipoDiagnosticoId,
+                    TipoDiagnosticoNombre = p.TipoDiagnosticos!.Tipo
+                })
+                .FirstOrDefaultAsync();
+        }
 
         // Obtener lista completa de pacientes
         public async Task<List<PacienteResumenDTO>> SelectListaPaciente()
         {
             return await context.Pacientes
+                .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
                 .Include(p => p.TipoObraSociales)
                 .Include(p => p.TipoDiagnosticos)
                 .Select(p => new PacienteResumenDTO
@@ -31,9 +55,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     NumeroAfiliado = p.NumeroAfiliado,
                     EstadoRegistro = p.EstadoRegistro,
                     TipoObraSocialId = p.TipoObraSocialId,
-                    TipoObraSocialNombre = p.TipoObraSociales.Tipo,
+                    TipoObraSocialNombre = p.TipoObraSociales!.Tipo,
                     TipoDiagnosticoId = p.TipoDiagnosticoId,
-                    TipoDiagnosticoNombre = p.TipoDiagnosticos.Tipo
+                    TipoDiagnosticoNombre = p.TipoDiagnosticos!.Tipo
                 })
                 .ToListAsync();
         }
@@ -66,7 +90,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 TipoObraSocialId = dto.TipoObraSocialId,
                 TipoDiagnosticoId = dto.TipoDiagnosticoId,
                 //DocumentoId = dto.DocumentoId,
-                EstadoRegistro = EnumEstadoRegistro.EnGrabacion
+                EstadoRegistro = EnumEstadoRegistro.activo
             };
 
             context.Pacientes.Add(paciente);
@@ -106,9 +130,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             paciente.TipoObraSocialId = dto.TipoObraSocialId;
             paciente.NumeroAfiliado = dto.NumeroAfiliado;
             paciente.TipoDiagnosticoId = dto.TipoDiagnosticoId;
-            paciente.Telefono = dto.Telefono;
-            paciente.Domicilio = dto.Domicilio;
-            paciente.EstadoRegistro = dto.EstadoRegistro;
+            paciente.Telefono = dto.Telefono!;
+            paciente.Domicilio = dto.Domicilio!;
+            //paciente.EstadoRegistro = dto.EstadoRegistro;
 
             try
             {
@@ -132,34 +156,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .FirstOrDefaultAsync(p => p.Id == id);
             if (paciente == null) return false;
 
-            context.Pacientes.Remove(paciente);
+            paciente.EstadoRegistro = EnumEstadoRegistro.borrado;
             await context.SaveChangesAsync();
             return true;
-        }
-
-
-        public async Task<PacienteDTO?> SelectPorId(int pacienteId)
-        {
-            return await context.Pacientes
-                .Include(p => p.TipoObraSociales)
-                .Include(p => p.TipoDiagnosticos)
-                .Where(p => p.Id == pacienteId)
-                .Select(p => new PacienteDTO
-                {
-                    Id = p.Id,
-                    Nombre = p.Nombre,
-                    DNI = p.DNI,
-                    NumeroAfiliado = p.NumeroAfiliado,
-                    Telefono = p.Telefono ?? string.Empty,
-                    Domicilio = p.Domicilio ?? string.Empty,
-                    EstadoRegistro = p.EstadoRegistro,
-
-                    TipoObraSocialId = p.TipoObraSocialId,
-                    TipoObraSocialNombre = p.TipoObraSociales.Tipo,
-                    TipoDiagnosticoId = p.TipoDiagnosticoId,
-                    TipoDiagnosticoNombre = p.TipoDiagnosticos.Tipo
-                })
-                .FirstOrDefaultAsync();
         }
 
     }

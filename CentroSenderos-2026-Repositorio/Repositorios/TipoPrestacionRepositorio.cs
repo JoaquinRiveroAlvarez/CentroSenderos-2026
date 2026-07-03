@@ -18,6 +18,21 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             this.context = context;
         }
+
+        public async Task<TipoPrestacionDTO?> SelectPorId(int id)
+        {
+            return await context.TipoPrestaciones
+                .Where(p => p.Id == id)
+                .Select(p => new TipoPrestacionDTO
+                {
+                    Tipo = p.Tipo,
+                    Descripcion = p.Descripcion,
+                    Cod = p.Cod,
+                    MontoSesion = p.MontoSesion,
+                    EstadoRegistro = p.EstadoRegistro
+                })
+                .FirstOrDefaultAsync();
+        }
         public async Task<TipoPrestacionListadoDTO?> SelectByCod(string cod)
         {
             TipoPrestacionListadoDTO? entidad = await context.TipoPrestaciones
@@ -35,6 +50,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         public async Task<List<TipoPrestacionListadoDTO>> SelectListaTipoPrestacion()
         {
             var lista = await context.TipoPrestaciones
+                .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
                 .Select(p => new TipoPrestacionListadoDTO
                 {
                     Id = p.Id,
@@ -57,7 +73,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 Descripcion = dto.Descripcion,
                 Cod = codlimpio,
                 MontoSesion = dto.MontoSesion,
-                EstadoRegistro = EnumEstadoRegistro.EnGrabacion
+                EstadoRegistro = EnumEstadoRegistro.activo
             };
 
             context.TipoPrestaciones.Add(tipoPrestacion);
@@ -84,8 +100,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (tipoPrestacion == null)
                 return false;
 
-            // Finalmente eliminar el tipo de prestación
-            context.TipoPrestaciones.Remove(tipoPrestacion);
+            tipoPrestacion.EstadoRegistro = EnumEstadoRegistro.borrado;
 
             await context.SaveChangesAsync();
             return true;
@@ -113,7 +128,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             tipoPrestacion.Descripcion = dto.Descripcion;
             tipoPrestacion.Cod = codlimpio;
             tipoPrestacion.MontoSesion = dto.MontoSesion;
-            tipoPrestacion.EstadoRegistro = dto.EstadoRegistro;
+            //tipoPrestacion.EstadoRegistro = dto.EstadoRegistro;
 
             try
             {

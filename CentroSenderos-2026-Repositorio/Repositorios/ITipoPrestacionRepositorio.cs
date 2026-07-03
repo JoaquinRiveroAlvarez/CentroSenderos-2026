@@ -9,5 +9,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         Task<int> InsertarTipoPrestacion(TipoPrestacionDTO dto);
         Task<bool> DeleteTipoPrestacion(int id);
         Task<bool> ActualizarTipoPrestacion(int id, TipoPrestacionDTO dto);
+        Task<TipoPrestacionDTO?> SelectPorId(int id);
     }
 }

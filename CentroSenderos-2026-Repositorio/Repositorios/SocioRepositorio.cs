@@ -23,7 +23,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             return await context.Socios
                 .Where(s => s.Id == id)
-                .Where(s => s.EstadoRegistro == EnumEstadoRegistro.activo)
                 .Select(s => new SocioListadoDTO
                 {
                     Id = s.Id,
@@ -38,7 +37,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             return await context.Socios
                 .Where(s => s.ProfesionalId == profesionalId)
-                .Where(s => s.EstadoRegistro == EnumEstadoRegistro.activo)
                 .Select(s => new SocioListadoDTO
                 {
                     Id = s.Id,
@@ -95,7 +93,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var socio = await context.Socios.FirstOrDefaultAsync(s => s.Id == id);
             if (socio == null) return false;
 
-            context.Socios.Remove(socio);
+            socio.EstadoRegistro = EnumEstadoRegistro.borrado;
             await context.SaveChangesAsync();
             return true;
         }
@@ -107,7 +105,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             socio.ProfesionalId = dto.ProfesionalId;
             socio.Observacion = dto.Observacion;
-            socio.EstadoRegistro = dto.EstadoRegistro;
+            //socio.EstadoRegistro = dto.EstadoRegistro;
 
             context.Socios.Update(socio);
             await context.SaveChangesAsync();

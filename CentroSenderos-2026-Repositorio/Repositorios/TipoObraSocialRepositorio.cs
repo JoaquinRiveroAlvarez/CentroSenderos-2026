@@ -46,6 +46,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         public async Task<List<TipoListadoDTO>> SelectListaTipoObrasocial()
         {
             var lista = await context.TipoObrasSociales
+                .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
                 .Select(p => new TipoListadoDTO
                 {
                     Id = p.Id,
@@ -64,7 +65,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             {
                 Tipo = dto.Tipo,
                 Descripcion = dto.Descripcion,
-                EstadoRegistro = EnumEstadoRegistro.EnGrabacion
+                EstadoRegistro = EnumEstadoRegistro.activo
             };
 
             context.TipoObrasSociales.Add(tipoObraSocial);
@@ -91,8 +92,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (tipoObraSocial == null)
                 return false;
 
-            // Finalmente eliminar el tipo de prestación
-            context.TipoObrasSociales.Remove(tipoObraSocial);
+            tipoObraSocial.EstadoRegistro = EnumEstadoRegistro.borrado;
 
             await context.SaveChangesAsync();
             return true;

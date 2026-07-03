@@ -15,6 +15,14 @@ namespace CentroSenderos_2026_Server.Controllers
             this.repositorio = repositorio;
         }
 
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<TipoPrestacionDTO>> GetById(int id)
+        {
+            var entidad = await repositorio.SelectPorId(id);
+            if (entidad == null) return NotFound($"No existe el tipo de prestación con id {id}.");
+            return Ok(entidad);
+        }
+
         [HttpGet("ListaTipoPrestacion")]
         public async Task<IActionResult> GetListaTipoPrestacion()
         {

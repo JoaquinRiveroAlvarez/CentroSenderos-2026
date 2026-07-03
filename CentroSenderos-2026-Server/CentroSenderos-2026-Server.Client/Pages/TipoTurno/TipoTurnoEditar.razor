@@ -31,12 +31,15 @@ else
 
         <button class="btn btn-primary" type="submit">Actualizar</button>
         <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
+
     </EditForm>
 }
 
 <p>@Mensaje</p>
 
 @code {
+    [Inject] IJSRuntime JSRuntime { get; set; } = default!;
     [Parameter] public int id { get; set; }
     private TipoTurnoDTO modelo = new TipoTurnoDTO
     {
@@ -49,12 +52,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var resp = await Http.Get<TipoTurnoDTO>($"api/tipoturno/Tipo/{id}");
-        modelo = resp.Error ? new TipoTurnoDTO { Tipo = string.Empty, DuracionMinutos = 0 }
-                    : resp.Respuesta ?? new TipoTurnoDTO { Tipo = string.Empty, DuracionMinutos = 0 };
+        var resp = await Http.Get<TipoTurnoDTO>($"api/tipoturno/{id}");
+        modelo = resp.Error ? new TipoTurnoDTO { Tipo = string.Empty, Descripcion = string.Empty, DuracionMinutos = 0 }
+                            : resp.Respuesta ?? new TipoTurnoDTO { Tipo = string.Empty, Descripcion = string.Empty, DuracionMinutos = 0 };
         Mensaje = resp.Error ? resp.ObtenerError() : "";
         cargando = false;
     }
+
 
     private async Task Grabar()
     {
@@ -64,6 +68,18 @@ else
         if (!resp.Error) Nav.NavigateTo("/tipoturno", true);
     }
 
+     private async Task Eliminar()
+    {
+        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar este tipo de turno?");
+        if (confirmar)
+        {
+            var resp = await Http.Delete($"api/tipoturno/{id}");
+            Mensaje = resp.Error ? resp.ObtenerError() : "Tipo de turno eliminado correctamente.";
+            if (!resp.Error) Nav.NavigateTo("/tipoturno", true);
+        }
+    }
+
+ 
     private void Cancelar() => Nav.NavigateTo("/tipoturno");
 }
 

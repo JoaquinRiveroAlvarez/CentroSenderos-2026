@@ -9,5 +9,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         Task<int> InsertarTipoTurno(TipoTurnoDTO dto);
         Task<bool> DeleteTipoTurno(int id);
         Task<bool> ActualizarTipoTurno(int id, TipoTurnoDTO dto);
+        Task<TipoTurnoDTO?> SelectPorId(int id);
     }
 }

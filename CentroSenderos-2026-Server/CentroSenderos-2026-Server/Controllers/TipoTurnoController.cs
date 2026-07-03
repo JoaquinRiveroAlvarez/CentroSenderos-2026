@@ -15,6 +15,14 @@ namespace CentroSenderos_2026_Server.Controllers
             this.repositorio = repositorio;
         }
 
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<TipoTurnoDTO>> GetById(int id)
+        {
+            var entidad = await repositorio.SelectPorId(id);
+            if (entidad == null) return NotFound($"No existe tipo de turno con id {id}.");
+            return Ok(entidad);
+        }
+
         [HttpGet("ListaTipoTurno")]
         public async Task<IActionResult> GetListaTipoTurno()
         {

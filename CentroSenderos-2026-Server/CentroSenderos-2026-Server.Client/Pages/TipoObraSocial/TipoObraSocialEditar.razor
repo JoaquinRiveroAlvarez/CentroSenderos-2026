@@ -27,12 +27,14 @@ else
 
         <button class="btn btn-primary" type="submit">Actualizar</button>
         <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
     </EditForm>
 }
 
 <p>@Mensaje</p>
 
 @code {
+    [Inject] IJSRuntime JSRuntime { get; set; } = default!;
     [Parameter] public int id { get; set; }
     private TipoDTO modelo = new TipoDTO { Tipo = string.Empty, Descripcion = string.Empty };
     private bool cargando = true;
@@ -40,13 +42,11 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var resp = await Http.Get<TipoDTO>($"api/tipoobrasocial/Tipo/{id}");
+        var resp = await Http.Get<TipoDTO>($"api/tipoobrasocial/{id}");
         modelo = resp.Error ? new TipoDTO { Tipo = string.Empty, Descripcion = string.Empty }
                             : resp.Respuesta ?? new TipoDTO { Tipo = string.Empty, Descripcion = string.Empty };
         Mensaje = resp.Error ? resp.ObtenerError() : "";
-
         cargando = false;
-
     }
 
     private async Task Grabar()
@@ -56,6 +56,18 @@ else
 
         if (!resp.Error) Nav.NavigateTo("/tipoobrasocial", true);
     }
+
+    private async Task Eliminar()
+    {
+        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar esta obra social?");
+        if (confirmar)
+        {
+            var resp = await Http.Delete($"api/tipoobrasocial/{id}");
+            Mensaje = resp.Error ? resp.ObtenerError() : "Obra social eliminada correctamente.";
+            if (!resp.Error) Nav.NavigateTo("/tipoobrasocial", true);
+        }
+    }
+
 
     private void Cancelar() => Nav.NavigateTo("/tipoobrasocial");
 

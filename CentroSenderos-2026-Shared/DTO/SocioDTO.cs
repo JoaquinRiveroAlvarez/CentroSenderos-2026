@@ -11,7 +11,7 @@ namespace CentroSenderos_2026_Shared.DTO
         public int ProfesionalId { get; set; }
         public string Profesional { get; set; } = string.Empty;
         public string Observacion { get; set; } = string.Empty;
-        public EnumEstadoRegistro EstadoRegistro { get; set; } = EnumEstadoRegistro.activo;
+        public EnumEstadoRegistro EstadoRegistro { get; set; }
     }
 
 }

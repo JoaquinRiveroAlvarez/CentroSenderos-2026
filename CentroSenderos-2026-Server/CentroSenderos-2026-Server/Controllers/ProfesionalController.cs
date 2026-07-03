@@ -93,9 +93,9 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> DeleteProfesional(int id)
         {
-            var resultado = await repositorio.Delete(id);
+            var resultado = await repositorio.DeleteProfesional(id);
             if (!resultado)
             {
                 return BadRequest("Datos no validos");

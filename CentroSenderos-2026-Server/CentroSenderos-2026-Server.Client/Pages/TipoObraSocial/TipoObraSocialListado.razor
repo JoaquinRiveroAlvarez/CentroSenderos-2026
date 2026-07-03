@@ -2,13 +2,12 @@
 @using CentroSenderos_2026_Shared.DTO
 @inject IHttpServicio Http
 @inject NavigationManager Nav
-@inject IJSRuntime JSRuntime
 @rendermode InteractiveAuto
 
 <h3>Listado de Tipos de Obra Social</h3>
 
 <div class="mb-3">
-    <a href="/tipoobrasocial/crear" class="btn btn-primary">Nueva Obra Social</a>
+    <button class="btn btn-primary" @onclick="IrACrear">Nueva Obra Social</button>
 </div>
 
 @if (cargando)
@@ -21,26 +20,21 @@ else if (lista == null || lista.Count == 0)
 }
 else
 {
-    <table class="table table-striped">
+    <table class="table table-striped table-hover">
         <thead class="table-dark">
             <tr>
                 <th>ID</th>
                 <th>Tipo</th>
                 <th>Descripción</th>
-                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var item in lista)
             {
-                <tr>
+                <tr style="cursor:pointer" @onclick="() => IrAEditar(item.Id)">
                     <td>@item.Id</td>
                     <td>@item.Tipo</td>
                     <td>@item.Descripcion</td>
-                    <td>
-                        <a href="/tipoobrasocial/editar/@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                        <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(item.Id)">Eliminar</button>
-                    </td>
                 </tr>
             }
         </tbody>
@@ -64,14 +58,13 @@ else
         cargando = false;
     }
 
-    private async Task Eliminar(int id)
+    private void IrAEditar(int id)
     {
-        if (await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar registro?"))
-        {
-            var resp = await Http.Delete($"api/tipoobrasocial/{id}");
-            Mensaje = resp.Error ? resp.ObtenerError() : "Eliminado correctamente.";
-            await Cargar();
-        }
+        Nav.NavigateTo($"/tipoobrasocial/editar/{id}");
+    }
+
+    private void IrACrear()
+    {
+        Nav.NavigateTo("/tipoobrasocial/crear");
     }
 }
-
