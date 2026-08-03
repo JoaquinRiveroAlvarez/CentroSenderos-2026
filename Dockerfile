@@ -9,8 +9,8 @@ WORKDIR /src
 # Copiamos toda la solución
 COPY . .
 
-# Publicamos SOLO el proyecto Server
-RUN dotnet publish ./CentroSenderos-2026-Server/CentroSenderos-2026-Server.csproj -c Release -o /app/publish
+# Publicamos el proyecto Server en la ruta correcta
+RUN dotnet publish ./CentroSenderos-2026-Server/CentroSenderos-2026-Server/CentroSenderos-2026-Server.csproj -c Release -o /app/publish
 
 # Imagen final con el runtime
 FROM base AS final
