@@ -124,7 +124,7 @@ else
             tiposDiagnostico = respDiag.Respuesta;
         else
             Mensaje = respDiag.ObtenerError();
-
+        await Task.Delay(200);
         cargando = false;
     }
 

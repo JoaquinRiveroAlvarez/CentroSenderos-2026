@@ -126,7 +126,7 @@ else
             modelo = respPac.Respuesta;
         else
             Mensaje = respPac.ObtenerError();
-
+        await Task.Delay(200);
         cargando = false;
     }
 
