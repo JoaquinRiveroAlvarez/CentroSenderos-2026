@@ -35,7 +35,7 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
                 switch (statuscode)
                 {
                     case HttpStatusCode.NotFound:
-                        return "Recurso no encontrado.";
+                        return "No hay datos disponibles.";
                     case HttpStatusCode.Unauthorized:
                         return "No está logueado.";
                     case HttpStatusCode.Forbidden:

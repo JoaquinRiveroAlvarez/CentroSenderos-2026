@@ -64,12 +64,26 @@ else
     private async Task CargarProfesionales()
     {
         cargando = true;
+
         var resp = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
-        listaProfesionales = resp.Error ? new() : resp.Respuesta ?? new();
-        await Task.Delay(200);
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
-        cargando = false;
+
+        if (resp.Error && resp.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+        // Si la API devuelve 404, tratamos como lista vacía sin mostrar mensaje de error
+        listaProfesionales = new();
+        Mensaje = "";
     }
+    else
+    {
+        // Para otros casos, mantenemos tu lógica original
+        listaProfesionales = resp.Error ? new() : resp.Respuesta ?? new();
+        Mensaje = resp.Error ? resp.ObtenerError() : "";
+    }
+
+    await Task.Delay(200); // opcional para suavizar el renderizado
+    cargando = false;
+}
+
 
     private void IrAEditar(int id)
     {
