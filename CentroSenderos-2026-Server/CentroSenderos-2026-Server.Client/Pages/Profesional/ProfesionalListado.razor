@@ -18,7 +18,11 @@ else if (listaProfesionales == null)
 {
     <p>Error al cargar profesionales.</p>
 }
-else if (listaProfesionales.Count != 0)
+@* else if (listaProfesionales.Count == 0)
+{
+    <p>No hay profesionales registrados.</p>
+} *@
+else
 {
     <table class="table table-striped table-hover">
         <thead class="table-dark">
