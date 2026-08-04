@@ -139,6 +139,11 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapControllers();
 
+//Capaz se no hace falta esto, pero lo dejo por las dudas
+//app.UseBlazorFrameworkFiles();
+//app.UseStaticFiles();
+//app.MapFallbackToFile("index.html");
+
 app.MapAdditionalIdentityEndpoints();
 
 app.Run();
