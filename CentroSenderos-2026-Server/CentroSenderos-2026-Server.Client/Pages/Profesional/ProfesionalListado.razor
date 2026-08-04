@@ -14,11 +14,11 @@
 {
     <p>Cargando profesionales...</p>
 }
-else if (listaProfesionales == null || listaProfesionales.Count == 0)
+else if (listaProfesionales != null && listaProfesionales.Count == 0)
 {
     <p>No hay profesionales registrados.</p>
 }
-else
+else if (listaProfesionales != null)
 {
     <table class="table table-striped table-hover">
         <thead class="table-dark">
