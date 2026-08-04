@@ -12,15 +12,25 @@ using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
+    ?? throw new InvalidOperationException("ApiBaseUrl no está configurado.");
+
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("https://localhost:7069/")
+    BaseAddress = new Uri(apiBaseUrl)
 });
+
+//builder.Services.AddScoped(sp => new HttpClient
+//{
+//    BaseAddress = new Uri("https://localhost:7069/")
+//});
+
 // Add services to the container.
 
 builder.Services.AddScoped<IHttpServicio, HttpServicio>();
 
 builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
