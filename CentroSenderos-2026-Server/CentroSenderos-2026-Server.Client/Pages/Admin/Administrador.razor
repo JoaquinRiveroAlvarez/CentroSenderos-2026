@@ -53,6 +53,18 @@
             </div>
         </div>
     </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm border-warning">
+            <div class="card-body text-center">
+                <h5 class="card-title text-warning">Tipos de Planillas</h5>
+                <p class="card-text">Gestione las planillas.</p>
+                <button class="btn btn-outline-warning" @onclick="IrAPlanillas">
+                    Ir a Planillas
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {
@@ -73,5 +85,9 @@
     private void IrASocios()
     {
         Nav.NavigateTo("/socio", true);
+    }
+    private void IrAPlanillas()
+    {
+        Nav.NavigateTo("/tipoplanillas", true);
     }
 }
