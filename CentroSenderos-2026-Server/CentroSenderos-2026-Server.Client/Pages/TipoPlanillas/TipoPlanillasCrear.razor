@@ -1,0 +1,48 @@
+﻿@page "/tipoplanillas/crear"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Crear Tipo de Planillas</h3>
+
+<EditForm Model="@modelo" OnValidSubmit="Grabar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Tipo</label>
+        <InputText class="form-control" @bind-Value="modelo.Tipo" />
+    </div>
+    <div class="form-group">
+        <label>Descripción</label>
+        <InputText class="form-control" @bind-Value="modelo.Descripcion" />
+    </div>
+
+    <button class="btn btn-primary" type="submit">Guardar</button>
+    <button class="btn btn-secondary" type="button" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+<p>@Mensaje</p>
+
+@code {
+    private TipoDTO modelo = new TipoDTO
+    {
+        Tipo = string.Empty,
+        Descripcion = string.Empty
+    };
+    private string Mensaje = "";
+
+    private async Task Grabar()
+    {
+        var resp = await Http.Post<TipoDTO, int>("api/tipoplanillas", modelo);
+        Mensaje = resp.Error ? resp.ObtenerError() : $"Guardado correctamente. ID: {resp.Respuesta}";
+        if (!resp.Error) Nav.NavigateTo("/tipoplanillas", true);
+
+
+
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/tipoplanillas");
+}
+

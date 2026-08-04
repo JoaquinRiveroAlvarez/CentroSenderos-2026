@@ -1,0 +1,71 @@
+﻿@page "/tipoplanillas"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Listado de Tipos de Planillas</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="IrACrear">Nueva Planilla</button>
+</div>
+
+@if (cargando)
+{
+    <p>Cargando registros...</p>
+}
+else if (lista == null || lista.Count == 0)
+{
+    <p>No hay planillas registradas.</p>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in lista)
+            {
+                <tr style="cursor:pointer" @onclick="() => IrAEditar(item.Id)">
+                    <td>@item.Id</td>
+                    <td>@item.Tipo</td>
+                    <td>@item.Descripcion</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    private List<TipoListadoDTO> lista = new();
+    private bool cargando = true;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar()
+    {
+        var resp = await Http.Get<List<TipoListadoDTO>>("api/tipoplanillas/ListaTipoPlanillas");
+        lista = resp.Error ? new() : resp.Respuesta ?? new();
+        Mensaje = resp.Error ? resp.ObtenerError() : "";
+        cargando = false;
+    }
+
+
+    private void IrAEditar(int id)
+    {
+        Nav.NavigateTo($"/tipoplanillas/editar/{id}");
+    }
+
+    private void IrACrear()
+    {
+        Nav.NavigateTo("/tipoplanillas/crear");
+    }
+}
