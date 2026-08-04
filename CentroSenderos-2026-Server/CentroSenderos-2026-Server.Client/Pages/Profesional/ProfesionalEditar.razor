@@ -77,8 +77,8 @@ else
         var resp = await Http.Get<ProfesionalDTO>($"api/profesional/{id}");
         modelo = resp.Error ? new ProfesionalDTO { Nombre = string.Empty, Area = string.Empty, Cuit = string.Empty, MP = string.Empty, RNP = string.Empty, Telefono = string.Empty }
                             : resp.Respuesta ?? new ProfesionalDTO { Nombre = string.Empty, Area = string.Empty, Cuit = string.Empty, MP = string.Empty, RNP = string.Empty, Telefono = string.Empty };
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
         await Task.Delay(200);
+        Mensaje = resp.Error ? resp.ObtenerError() : "";
         cargando = false;
 
     }
