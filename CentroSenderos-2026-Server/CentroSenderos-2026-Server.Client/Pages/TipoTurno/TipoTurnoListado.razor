@@ -57,6 +57,7 @@ else
         var resp = await Http.Get<List<TipoTurnoListadoDTO>>("api/tipoturno/ListaTipoTurno");
         lista = resp.Error ? new() : resp.Respuesta ?? new();
         Mensaje = resp.Error ? resp.ObtenerError() : "";
+        await Task.Delay(200);
         cargando = false;
     }
 

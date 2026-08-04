@@ -59,6 +59,7 @@ else
         var resp = await Http.Get<List<TipoPrestacionListadoDTO>>("api/tipoprestacion/ListaTipoPrestacion");
         lista = resp.Error ? new() : resp.Respuesta ?? new();
         Mensaje = resp.Error ? resp.ObtenerError() : "";
+        await Task.Delay(200);
         cargando = false;
     }
 

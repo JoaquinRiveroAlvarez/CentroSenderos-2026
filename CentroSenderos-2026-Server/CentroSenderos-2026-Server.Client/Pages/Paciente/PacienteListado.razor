@@ -63,6 +63,7 @@ else
         var resp = await Http.Get<List<PacienteResumenDTO>>("api/paciente/ListaPaciente");
         listaPacientes = resp.Error ? new() : resp.Respuesta ?? new();
         Mensaje = resp.Error ? resp.ObtenerError() : "";
+        await Task.Delay(200);
         cargando = false;
     }
 

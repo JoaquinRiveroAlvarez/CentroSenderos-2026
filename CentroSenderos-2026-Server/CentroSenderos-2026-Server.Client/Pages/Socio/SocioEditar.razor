@@ -83,7 +83,7 @@ else
             modelo = respSocio.Respuesta;
         else
             Mensaje = respSocio.ObtenerError();
-
+        await Task.Delay(200);
         cargando = false;
     }
 

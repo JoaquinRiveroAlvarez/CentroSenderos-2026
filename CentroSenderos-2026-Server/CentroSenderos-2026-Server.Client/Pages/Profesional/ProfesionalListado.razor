@@ -67,6 +67,7 @@ else
         var resp = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
         listaProfesionales = resp.Error ? new() : resp.Respuesta ?? new();
         Mensaje = resp.Error ? resp.ObtenerError() : "";
+        await Task.Delay(200);
         cargando = false;
     }
 

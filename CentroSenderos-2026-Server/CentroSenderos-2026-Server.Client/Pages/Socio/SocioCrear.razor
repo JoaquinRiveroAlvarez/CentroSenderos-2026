@@ -67,7 +67,7 @@ else
             profesionales = respProf.Respuesta;
         else
             Mensaje = respProf.ObtenerError();
-
+        await Task.Delay(200);
         cargando = false;
     }
 

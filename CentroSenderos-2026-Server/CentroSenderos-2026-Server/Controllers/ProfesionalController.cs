@@ -1,6 +1,7 @@
 ﻿using CentroSenderos_2026_BD.Datos.Entity;
 using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
+using CentroSenderos_2026_Shared.Enum;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CentroSenderos_2026_Server.Controllers

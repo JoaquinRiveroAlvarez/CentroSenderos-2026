@@ -60,6 +60,7 @@ else
         modelo = resp.Error ? new TipoPrestacionDTO { Tipo = string.Empty, Descripcion = string.Empty, Cod = string.Empty, MontoSesion = 0 }
                             : resp.Respuesta ?? new TipoPrestacionDTO { Tipo = string.Empty, Descripcion = string.Empty, Cod = string.Empty, MontoSesion = 0 };
         Mensaje = resp.Error ? resp.ObtenerError() : "";
+        await Task.Delay(200);
         cargando = false;
     }
 

@@ -85,7 +85,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 MP = dto.MP,
                 RNP = dto.RNP,
                 Telefono = dto.Telefono,
-                EstadoRegistro = EnumEstadoRegistro.EnGrabacion
+                EstadoRegistro = EnumEstadoRegistro.activo
             };
 
             context.Profesionales.Add(profesional);
