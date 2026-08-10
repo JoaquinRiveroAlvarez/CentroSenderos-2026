@@ -16,8 +16,8 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         [Required(ErrorMessage = "La fecha de fin es obligatoria")]
         public DateTime FechaFin { get; set; } = DateTime.MinValue;
 
-        [Required(ErrorMessage = "El tipo de turno es obligatorio")]
-        public int TipoTurnoId { get; set; }
+        // FK nullable para permitir “Otro”
+        public int? TipoTurnoId { get; set; }
         public TipoTurno? TipoTurnos { get; set; }
 
         [Required(ErrorMessage = "El tipo de consultorio es obligatorio")]
@@ -25,9 +25,8 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         public TipoConsultorio? TipoConsultorios { get; set; }
 
         public List<TurnoProfesional> TurnoProfesionales { get; set; } = new();
-
         public List<TurnoPaciente> TurnoPacientes { get; set; } = new();
-
         public List<TurnoTipoPrestacion> TurnoTipoPrestaciones { get; set; } = new();
     }
 }
+

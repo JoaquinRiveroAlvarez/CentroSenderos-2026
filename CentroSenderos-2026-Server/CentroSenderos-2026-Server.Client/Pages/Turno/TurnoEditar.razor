@@ -1,0 +1,119 @@
+﻿@page "/turnos/editar/{id:int}"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Editar Turno</h3>
+
+@if (cargando)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <EditForm Model="@modelo" OnValidSubmit="Grabar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <!-- Fecha -->
+        <div class="form-group">
+            <label>Fecha</label>
+            <InputDate class="form-control" @bind-Value="modelo.Fecha" />
+        </div>
+
+        <!-- Hora -->
+        <div class="form-group">
+            <label>Hora</label>
+            <input type="time" class="form-control" @bind="modelo.Hora" />
+        </div>
+
+        <!-- Tipo de Turno -->
+        <div class="form-group">
+            <label>Tipo de Turno</label>
+            <InputSelect class="form-control" @bind-Value="modelo.TipoTurnoId">
+                <option value="0">-- Seleccione un tipo de turno --</option>
+                @foreach (var tipo in tiposTurno)
+                {
+                    <option value="@tipo.Id">@tipo.Tipo (@tipo.DuracionMinutos min)</option>
+                }
+                <option value="-1">Otro</option>
+            </InputSelect>
+        </div>
+
+        @if (modelo.TipoTurnoId == -1)
+        {
+            <div class="form-group">
+                <label>Duración personalizada (minutos)</label>
+                <InputNumber class="form-control" @bind-Value="modelo.DuracionPersonalizada" />
+            </div>
+        }
+
+        <!-- Consultorio -->
+        <div class="form-group">
+            <label>Tipo de Consultorio</label>
+            <InputSelect class="form-control" @bind-Value="modelo.TipoConsultorioId">
+                <option value="0">-- Seleccione un consultorio --</option>
+                @foreach (var cons in consultorios)
+                {
+                    <option value="@cons.Id">@cons.Tipo</option>
+                }
+            </InputSelect>
+        </div>
+
+        <br />
+        <button class="btn btn-primary" type="submit">Guardar Cambios</button>@* 
+        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button> *@
+        <button class="btn btn-secondary" type="button" @onclick="Cancelar">Cancelar</button>
+        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
+    </EditForm>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    [Parameter] public int id { get; set; }
+    private TurnoDTO modelo = new TurnoDTO();
+    private List<TipoTurnoListadoDTO> tiposTurno = new();
+    private List<TipoConsultorioListadoDTO> consultorios = new();
+    private bool cargando = true;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resp = await Http.Get<TurnoDTO>($"api/turno/{id}");
+        modelo = resp.Error ? new TurnoDTO() : resp.Respuesta ?? new TurnoDTO();
+
+        var respTurno = await Http.Get<List<TipoTurnoListadoDTO>>("api/tipoturno/ListaTipoTurno");
+        if (!respTurno.Error && respTurno.Respuesta != null)
+            tiposTurno = respTurno.Respuesta;
+
+        var respCons = await Http.Get<List<TipoConsultorioListadoDTO>>("api/tipoconsultorio/ListaTipoConsultorio");
+        if (!respCons.Error && respCons.Respuesta != null)
+            consultorios = respCons.Respuesta;
+
+        Mensaje = resp.Error ? resp.ObtenerError() : "";
+        await Task.Delay(200);
+        cargando = false;
+    }
+
+    private async Task Grabar()
+    {
+        var resp = await Http.Put<TurnoDTO, RespuestaDTO>($"api/turno/{id}", modelo);
+        Mensaje = resp.Error ? resp.ObtenerError() : resp.Respuesta?.mensaje!;
+        if (!resp.Error) Nav.NavigateTo("/turnos", true);
+    }
+
+    private async Task Eliminar()
+    {
+        var resp = await Http.Delete($"api/turno/{id}");
+        Mensaje = resp.Error ? resp.ObtenerError() : "Turno eliminado correctamente.";
+        if (!resp.Error)
+        {
+            await Task.Delay(500);
+            Nav.NavigateTo("/turnos", true);
+        }
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/turnos");
+}

@@ -1,0 +1,119 @@
+﻿@page "/turnos/crear"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Crear Nuevo Turno</h3>
+
+@if (cargando)
+{
+    <p>Cargando datos...</p>
+}
+else
+{
+    <EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="CrearTurnoForm">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <!-- Fecha -->
+        <div class="form-group">
+            <label for="fecha">Fecha</label>
+            <InputDate id="fecha" class="form-control" @bind-Value="modelo.Fecha" />
+        </div>
+
+        <!-- Hora -->
+        <div class="form-group">
+            <label for="hora">Hora</label>
+            <input type="time" id="hora" class="form-control" @bind="modelo.Hora" />
+        </div>
+
+        <!-- Tipo de Turno -->
+        <div class="form-group">
+            <label for="tipoTurno">Tipo de Turno</label>
+            <InputSelect id="tipoTurno" class="form-control" @bind-Value="modelo.TipoTurnoId">
+                <option value="0">-- Seleccione un tipo de turno --</option>
+                @foreach (var tipo in tiposTurno)
+                {
+                    <option value="@tipo.Id">@tipo.Tipo (@tipo.DuracionMinutos min)</option>
+                }
+                <option value="-1">Otro</option>
+            </InputSelect>
+        </div>
+
+        <!-- Duración personalizada -->
+        @if (modelo.TipoTurnoId == -1)
+        {
+            <div class="form-group">
+                <label>Duración personalizada (minutos)</label>
+                <InputNumber class="form-control" @bind-Value="modelo.DuracionPersonalizada" />
+            </div>
+        }
+
+        <!-- Consultorio -->
+        <div class="form-group">
+            <label for="tipoConsultorio">Tipo de Consultorio</label>
+            <InputSelect id="tipoConsultorio" class="form-control" @bind-Value="modelo.TipoConsultorioId">
+                <option value="0">-- Seleccione un consultorio --</option>
+                @foreach (var cons in consultorios)
+                {
+                    <option value="@cons.Id">@cons.Tipo</option>
+                }
+            </InputSelect>
+        </div>
+
+        <br />
+        <button class="btn btn-primary" type="submit">Guardar Turno</button>
+        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    private TurnoDTO modelo = new TurnoDTO
+    {
+        TipoTurnoId = 0,
+        TipoConsultorioId = 0,
+        EstadoTurno = EnumEstadoTurno.disponible
+    };
+
+    private List<TipoTurnoListadoDTO> tiposTurno = new();
+    private List<TipoConsultorioListadoDTO> consultorios = new();
+
+    private bool cargando = false;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        cargando = true;
+
+        var respTurno = await Http.Get<List<TipoTurnoListadoDTO>>("api/tipoturno/ListaTipoTurno");
+        if (!respTurno.Error && respTurno.Respuesta != null)
+            tiposTurno = respTurno.Respuesta;
+
+        var respCons = await Http.Get<List<TipoConsultorioListadoDTO>>("api/tipoconsultorio/ListaTipoConsultorio");
+        if (!respCons.Error && respCons.Respuesta != null)
+            consultorios = respCons.Respuesta;
+
+        await Task.Delay(200);
+        cargando = false;
+    }
+
+    private async Task Grabar()
+    {
+        var resp = await Http.Post<TurnoDTO, int>("api/turno", modelo);
+        if (!resp.Error)
+        {
+            Mensaje = "Turno guardado correctamente.";
+            await Task.Delay(500);
+            Nav.NavigateTo("/turnos", forceLoad: true);
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/turnos");
+}
