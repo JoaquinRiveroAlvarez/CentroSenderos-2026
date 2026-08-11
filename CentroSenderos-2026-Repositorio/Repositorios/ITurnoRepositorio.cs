@@ -10,6 +10,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         Task<List<TurnoListadoDTO>> SelectListaTurnos(); // Para listados
         Task<int> InsertarTurno(TurnoDTO dto);
         Task<bool> ActualizarTurno(int id, TurnoDTO dto);
+        Task<List<TimeOnly>> HorariosDisponibles(DateOnly fecha, int tipoTurnoId, int consultorioId);
         Task<bool> DeleteTurno(int id);
     }
 }

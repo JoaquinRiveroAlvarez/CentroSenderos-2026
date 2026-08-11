@@ -12,26 +12,34 @@
 }
 else
 {
-    <EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="CrearTurnoForm">
+    <EditForm Model="@modelo" OnValidSubmit="Grabar">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
         <!-- Fecha -->
         <div class="form-group">
-            <label for="fecha">Fecha</label>
-            <InputDate id="fecha" class="form-control" @bind-Value="modelo.Fecha" />
+            <label>Fecha</label>
+            <InputDate class="form-control" @bind-Value="modelo.Fecha" />
+            <ValidationMessage For="@(() => modelo.Fecha)" />
         </div>
 
-        <!-- Hora -->
+        <!-- Consultorio -->
         <div class="form-group">
-            <label for="hora">Hora</label>
-            <input type="time" id="hora" class="form-control" @bind="modelo.Hora" />
+            <label>Consultorio</label>
+            <InputSelect class="form-control" @bind-Value="modelo.TipoConsultorioId">
+                <option value="0">-- Seleccione un consultorio --</option>
+                @foreach (var cons in consultorios)
+                {
+                    <option value="@cons.Id">@cons.Tipo</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => modelo.TipoConsultorioId)" />
         </div>
 
         <!-- Tipo de Turno -->
         <div class="form-group">
-            <label for="tipoTurno">Tipo de Turno</label>
-            <InputSelect id="tipoTurno" class="form-control" @bind-Value="modelo.TipoTurnoId">
+            <label>Tipo de Turno</label>
+            <InputSelect class="form-control" @bind-Value="modelo.TipoTurnoId">
                 <option value="0">-- Seleccione un tipo de turno --</option>
                 @foreach (var tipo in tiposTurno)
                 {
@@ -39,32 +47,30 @@ else
                 }
                 <option value="-1">Otro</option>
             </InputSelect>
+            <ValidationMessage For="@(() => modelo.TipoTurnoId)" />
         </div>
 
-        <!-- Duración personalizada -->
-        @if (modelo.TipoTurnoId == -1)
-        {
-            <div class="form-group">
-                <label>Duración personalizada (minutos)</label>
-                <InputNumber class="form-control" @bind-Value="modelo.DuracionPersonalizada" />
-            </div>
-        }
+        <!-- Botón para cargar horas -->
+        <button type="button" class="btn btn-info" @onclick="CargarHorasDisponibles">
+            Cargar horas disponibles
+        </button>
 
-        <!-- Consultorio -->
-        <div class="form-group">
-            <label for="tipoConsultorio">Tipo de Consultorio</label>
-            <InputSelect id="tipoConsultorio" class="form-control" @bind-Value="modelo.TipoConsultorioId">
-                <option value="0">-- Seleccione un consultorio --</option>
-                @foreach (var cons in consultorios)
+        <!-- Lista de horas disponibles -->
+        <div class="form-group mt-2">
+            <label>Horas disponibles</label>
+            <InputSelect class="form-control" TValue="string" @bind-Value="horaSeleccionada" @onchange="OnHoraSeleccionada">
+                <option value="">-- Seleccione una hora --</option>
+                @foreach (var h in horasDisponibles)
                 {
-                    <option value="@cons.Id">@cons.Tipo</option>
+                    <option value="@h">@h</option>
                 }
             </InputSelect>
+            <ValidationMessage For="@(() => modelo.Hora)" />
         </div>
 
         <br />
         <button class="btn btn-primary" type="submit">Guardar Turno</button>
-        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+        <button class="btn btn-secondary" type="button" @onclick="Cancelar">Cancelar</button>
     </EditForm>
 }
 
@@ -73,14 +79,16 @@ else
 @code {
     private TurnoDTO modelo = new TurnoDTO
     {
-        TipoTurnoId = 0,
-        TipoConsultorioId = 0,
-        EstadoTurno = EnumEstadoTurno.disponible
+        EstadoTurno = EnumEstadoTurno.disponible,
+        Fecha = DateOnly.FromDateTime(DateTime.Today),
+        Hora = TimeOnly.MinValue
     };
 
     private List<TipoTurnoListadoDTO> tiposTurno = new();
     private List<TipoConsultorioListadoDTO> consultorios = new();
+    private List<string> horasDisponibles = new();
 
+    private string horaSeleccionada = "";
     private bool cargando = false;
     private string Mensaje = "";
 
@@ -96,12 +104,44 @@ else
         if (!respCons.Error && respCons.Respuesta != null)
             consultorios = respCons.Respuesta;
 
-        await Task.Delay(200);
         cargando = false;
+    }
+
+    private async Task CargarHorasDisponibles()
+    {
+        if (modelo.Fecha != DateOnly.MinValue && modelo.TipoTurnoId > 0 && modelo.TipoConsultorioId > 0)
+        {
+            var resp = await Http.Get<List<string>>(
+                $"api/turno/Disponibles?fecha={modelo.Fecha}&tipoTurnoId={modelo.TipoTurnoId}&consultorioId={modelo.TipoConsultorioId}"
+            );
+            if (!resp.Error && resp.Respuesta != null)
+            {
+                horasDisponibles = resp.Respuesta;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void OnHoraSeleccionada(ChangeEventArgs e)
+    {
+        var horaStr = e.Value?.ToString();
+        if (!string.IsNullOrEmpty(horaStr))
+        {
+            horaSeleccionada = horaStr;
+            modelo.Hora = TimeOnly.ParseExact(horaStr, "HH:mm"); // conversión segura
+        }
     }
 
     private async Task Grabar()
     {
+        if (string.IsNullOrEmpty(horaSeleccionada))
+        {
+            Mensaje = "Debe seleccionar una hora válida.";
+            return;
+        }
+
+        modelo.Hora = TimeOnly.ParseExact(horaSeleccionada, "HH:mm");
+
         var resp = await Http.Post<TurnoDTO, int>("api/turno", modelo);
         if (!resp.Error)
         {
@@ -114,6 +154,7 @@ else
             Mensaje = resp.ObtenerError();
         }
     }
+
 
     private void Cancelar() => Nav.NavigateTo("/turnos");
 }

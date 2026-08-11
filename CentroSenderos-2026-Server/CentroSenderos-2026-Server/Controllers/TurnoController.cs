@@ -32,6 +32,14 @@ namespace CentroSenderos_2026_Server.Controllers
             return Ok(lista);
         }
 
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Put(int id, [FromBody] TurnoDTO dto)
+        {
+            var resultado = await repositorio.ActualizarTurno(id, dto);
+            if (!resultado) return NotFound($"No existe turno con id {id}.");
+            return Ok($"Turno {id} actualizado correctamente.");
+        }
+
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] TurnoDTO dto)
         {
@@ -46,13 +54,24 @@ namespace CentroSenderos_2026_Server.Controllers
                 }
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put(int id, [FromBody] TurnoDTO dto)
+        [HttpGet("Disponibles")]
+        public async Task<ActionResult<List<string>>> GetDisponibles(DateOnly fecha, int tipoTurnoId, int consultorioId)
         {
-            var resultado = await repositorio.ActualizarTurno(id, dto);
-            if (!resultado) return NotFound($"No existe turno con id {id}.");
-            return Ok($"Turno {id} actualizado correctamente.");
+            try
+            {
+                var horarios = await repositorio.HorariosDisponibles(fecha, tipoTurnoId, consultorioId);
+
+                // Convertimos a string "HH:mm" para que Blazor los pueda bindear fácilmente
+                var lista = horarios.Select(h => h.ToString("HH:mm")).ToList();
+
+                return Ok(lista);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
+
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)

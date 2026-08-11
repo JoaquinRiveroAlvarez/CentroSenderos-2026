@@ -38,8 +38,8 @@ else
                 var duracion = (turno.FechaFin - turno.FechaInicio).TotalMinutes;
                 <tr style="cursor:pointer" @onclick="() => IrAEditar(turno.Id)">
                     <td>@turno.Id</td>
-                    <td>@turno.FechaInicio.ToString("dd/MM/yyyy HH:mm")</td>
-                    <td>@turno.FechaFin.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@turno.FechaInicio.AddHours(-3).ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@turno.FechaFin.AddHours(-3).ToString("dd/MM/yyyy HH:mm")</td>
                     <td>@duracion</td>
                     <td>@turno.EstadoTurno</td>
                     <td>@turno.NombreTipoTurno</td>
