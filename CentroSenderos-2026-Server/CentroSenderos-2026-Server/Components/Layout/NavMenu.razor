@@ -1,13 +1,39 @@
 ﻿@implements IDisposable
 @inject NavigationManager NavigationManager
 
+
 <div class="sidebar">
 
     <!-- Header -->
     <div class="sidebar-header">
             <img src="imagenes/logo-senderos.png" alt="Logo Senderos" />
-        </div>
 
+@* <div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="turnos">Centro Integral Senderos</a>
+    </div>
+</div> *@
+    </div>
+
+@* <input type="checkbox" title="Navigation menu" class="navbar-toggler" /> *@
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+
+        @*      <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                </NavLink>
+            </div> *@
+
+        @* <div class="nav-item px-3">
+            <NavLink class="nav-link" href="turnos">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Turnos
+            </NavLink>
+        </div> *@
+
+    </nav>
+</div>
 
     <!-- Menú -->
     <nav class="sidebar-nav">
@@ -35,6 +61,11 @@
         <AuthorizeView>
 
             <Authorized>
+
+                <NavLink href="turnos" class="sidebar-link">
+                    <i class="bi bi-calendar"></i>
+                    <span>Turnos</span>
+                </NavLink>
 
                 <NavLink href="profesionales" class="sidebar-link">
                     <i class="bi bi-person-workspace"></i>
