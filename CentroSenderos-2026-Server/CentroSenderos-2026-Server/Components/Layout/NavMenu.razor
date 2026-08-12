@@ -1,92 +1,136 @@
 ﻿@implements IDisposable
-
 @inject NavigationManager NavigationManager
 
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">CentroSenderos-2026-Server</a>
-    </div>
-</div>
+<div class="sidebar">
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
+    <!-- Header -->
+    <div class="sidebar-header">
+            <img src="imagenes/logo-senderos.png" alt="Logo Senderos" />
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
+    <!-- Menú -->
+    <nav class="sidebar-nav">
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="auth">
-                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Auth Required
-            </NavLink>
-        </div>
+        <NavLink href="/" Match="NavLinkMatch.All" class="sidebar-link">
+            <i class="bi bi-house-door"></i>
+            <span>Inicio</span>
+        </NavLink>
+
+@*         <NavLink href="counter" class="sidebar-link">
+            <i class="bi bi-plus-square"></i>
+            <span>Counter</span>
+        </NavLink>
+
+        <NavLink href="weather" class="sidebar-link">
+            <i class="bi bi-cloud-sun"></i>
+            <span>Weather</span>
+        </NavLink> *@
+
+        <NavLink href="auth" class="sidebar-link">
+            <i class="bi bi-lock"></i>
+            <span>Auth</span>
+        </NavLink>
 
         <AuthorizeView>
+
             <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="profesionales">
-                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Profesionales
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="pacientes">
-                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Pacientes
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="admin">
-                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Admin
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <a class="nav-link" href="/swagger" target="_blank">
-                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Swagger
-                    </a>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <form action="Account/Logout" method="post">
-                        <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-                        </button>
-                    </form>
-                </div>
+
+                <NavLink href="profesionales" class="sidebar-link">
+                    <i class="bi bi-person-workspace"></i>
+                    <span>Profesionales</span>
+                </NavLink>
+
+                <NavLink href="pacientes" class="sidebar-link">
+                    <i class="bi bi-people"></i>
+                    <span>Pacientes</span>
+                </NavLink>
+
+                <NavLink href="admin" class="sidebar-link">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>Administración</span>
+                </NavLink>
+
+                <a href="/swagger"
+                   target="_blank"
+                   class="sidebar-link">
+
+                    <i class="bi bi-journal-code"></i>
+
+                    <span>Swagger</span>
+
+                </a>
+
             </Authorized>
-            <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
-                    </NavLink>
-                </div>
-            </NotAuthorized>
+
         </AuthorizeView>
+
     </nav>
+
+    <!-- Footer -->
+
+    <div class="sidebar-footer">
+
+        <AuthorizeView>
+
+            <Authorized>
+
+                <NavLink href="Account/Manage"
+                         class="sidebar-link">
+
+                    <i class="bi bi-person-circle"></i>
+
+                    @* <span>@context.User.Identity?.Name</span> *@
+
+                </NavLink>
+
+                <form action="Account/Logout" method="post">
+
+                    <AntiforgeryToken />
+
+                    <input type="hidden"
+                           name="ReturnUrl"
+                           value="@currentUrl" />
+
+                    <button type="submit"
+                            class="sidebar-link logout-button">
+
+                        <i class="bi bi-box-arrow-left"></i>
+
+                        @* <span>Cerrar sesión</span> *@
+
+                    </button>
+
+                </form>
+
+            </Authorized>
+
+            <NotAuthorized>
+
+                <NavLink href="Account/Login"
+                         class="sidebar-link">
+
+                    <i class="bi bi-box-arrow-in-right"></i>
+
+                    <span>Ingresar</span>
+
+                </NavLink>
+
+                <NavLink href="Account/Register"
+                         class="sidebar-link">
+
+                    <i class="bi bi-person-plus"></i>
+
+                    <span>Registrarse</span>
+
+                </NavLink>
+
+            </NotAuthorized>
+
+        </AuthorizeView>
+
+    </div>
+
 </div>
 
 @code {

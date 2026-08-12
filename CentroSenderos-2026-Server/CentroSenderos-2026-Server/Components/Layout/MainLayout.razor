@@ -1,19 +1,21 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<div class="layout">
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+    <NavMenu />
+
+    <main class="main-content">
+
+        <div class="top-row">
+            <!-- Se mantiene la barra superior original -->
         </div>
 
-        <article class="content px-4">
+        <div class="page-content">
             @Body
-        </article>
+        </div>
+
     </main>
+
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
