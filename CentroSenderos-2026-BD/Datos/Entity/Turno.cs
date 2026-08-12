@@ -8,7 +8,7 @@ namespace CentroSenderos_2026_BD.Datos.Entity
 {
     public class Turno : EntityBase
     {
-        public EnumEstadoTurno EstadoTurno { get; set; } = EnumEstadoTurno.reservado;
+        public EnumEstadoTurno EstadoTurno { get; set; } = EnumEstadoTurno.disponible;
 
         [Required(ErrorMessage = "La fecha de inicio es obligatoria")]
         public DateTime FechaInicio { get; set; } = DateTime.MinValue;

@@ -11,12 +11,13 @@ public class TurnoDTO
 
     [Required(ErrorMessage = "La hora es obligatoria")]
     public TimeOnly Hora { get; set; }
+    public EnumEstadoTurno EstadoTurno { get; set; }
 
     public DateTime FechaInicio => Fecha.ToDateTime(Hora);
     public DateTime FechaFin { get; set; }
 
     [Required(ErrorMessage = "El estado del turno es obligatorio")]
-    public EnumEstadoTurno EstadoTurno { get; set; } = EnumEstadoTurno.reservado;
+    //public EnumEstadoTurno EstadoTurno { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un tipo de turno válido")]
     public int TipoTurnoId { get; set; }

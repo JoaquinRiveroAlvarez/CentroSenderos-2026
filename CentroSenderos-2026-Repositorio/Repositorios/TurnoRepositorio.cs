@@ -99,10 +99,11 @@ using Modelado2025_1Repositorio.Repositorios;
                 {
                     FechaInicio = fechaInicioUtc,
                     FechaFin = fechaFinUtc,
-                    EstadoTurno = dto.EstadoTurno,
+                    EstadoTurno = EnumEstadoTurno.reservado,
                     TipoTurnoId = tipoTurnoId,
                     TipoConsultorioId = dto.TipoConsultorioId,
-                    EstadoRegistro = EnumEstadoRegistro.activo
+                    EstadoRegistro = EnumEstadoRegistro.activo,
+                   
                 };
 
                 context.Turnos.Add(turno);
@@ -183,7 +184,7 @@ using Modelado2025_1Repositorio.Repositorios;
 
                 turno.FechaInicio = fechaInicioUtc;
                 turno.FechaFin = fechaFinUtc;
-                turno.EstadoTurno = dto.EstadoTurno;
+                turno.EstadoTurno = EnumEstadoTurno.reservado;
                 turno.TipoTurnoId = tipoTurnoId;
                 turno.TipoConsultorioId = dto.TipoConsultorioId;
 
