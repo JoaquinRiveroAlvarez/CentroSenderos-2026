@@ -1,0 +1,258 @@
+/* CSS for Register component */
+/* ===========================================
+   PÁGINA REGISTER
+=========================================== */
+
+.register-page {
+    width: calc(100% + 70px);
+    min-height: calc(100% + 70px);
+    margin: -35px;
+    background-image: url('/imagenes/fondo-iniciosesion.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    box-sizing: border-box;
+}
+
+
+/* ===========================================
+   CONTENEDOR
+=========================================== */
+
+.register-content {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+/* ===========================================
+   LOGO
+=========================================== */
+
+.register-logo {
+    width: 170px;
+    height: auto;
+    object-fit: contain;
+    margin-bottom: 30px;
+}
+
+
+/* ===========================================
+   TARJETA
+=========================================== */
+
+.register-card {
+    width: 100%;
+    padding: 28px 36px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.93);
+    border: 1px solid #d9d9d9;
+    border-radius: 18px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+
+/* ===========================================
+   CAMPOS
+=========================================== */
+
+.register-field {
+    position: relative;
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+
+/* ===========================================
+   INPUTS
+=========================================== */
+
+::deep input.register-input {
+    width: 100% !important;
+    height: 44px !important;
+    box-sizing: border-box !important;
+    padding-left: 42px !important;
+    padding-right: 14px !important;
+    background: #ffffff !important;
+    border: 1px solid #d8ddd7 !important;
+    border-radius: 8px !important;
+    color: #234b27 !important;
+    font-size: 13px !important;
+    outline: none !important;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+
+    /* Placeholder */
+
+    ::deep input.register-input::placeholder {
+        color: #668069 !important;
+        opacity: 1;
+    }
+
+
+    /* Focus */
+
+    ::deep input.register-input:focus {
+        border-color: #729474 !important;
+        box-shadow: 0 0 0 3px rgba(114, 148, 116, 0.15) !important;
+    }
+
+
+/* ===========================================
+   ICONOS IZQUIERDOS
+=========================================== */
+
+.field-icon-left {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    font-size: 16px;
+    color: #668069;
+    pointer-events: none;
+    z-index: 5;
+}
+
+
+/* ===========================================
+   CONTRASEÑAS
+=========================================== */
+
+.password-field ::deep input.register-input {
+    padding-right: 42px !important;
+}
+
+.password-icon {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-size: 16px;
+    color: #668069;
+    cursor: pointer;
+    z-index: 5;
+}
+
+    .password-icon:hover {
+        color: #315d34;
+    }
+
+
+/* ===========================================
+   BOTÓN
+=========================================== */
+
+.register-button {
+    width: 100%;
+    height: 44px;
+    box-sizing: border-box;
+    margin-top: 2px;
+    border: none;
+    border-radius: 8px;
+    background: #729474;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+    .register-button:hover {
+        background: #5f8061;
+    }
+
+    .register-button:active {
+        transform: scale(0.99);
+    }
+
+
+/* ===========================================
+   LINK A LOGIN
+=========================================== */
+
+.register-login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin-top: 18px;
+    color: #668069;
+    font-size: 12px;
+}
+
+    .register-login a {
+        color: #315d34;
+        font-weight: 600;
+        text-decoration: underline;
+    }
+
+        .register-login a:hover {
+            color: #0f420b;
+        }
+
+
+/* ===========================================
+   VALIDACIONES
+=========================================== */
+
+.validation-message {
+    display: block;
+    margin-top: 4px;
+    color: #c0392b;
+    font-size: 11px;
+}
+
+.validation-summary {
+    margin-bottom: 10px;
+    color: #c0392b;
+    font-size: 12px;
+}
+
+
+/* ===========================================
+   RESPONSIVE
+=========================================== */
+
+@media (max-width: 768px) {
+
+    .register-page {
+        padding: 20px;
+    }
+
+    .register-content {
+        max-width: 380px;
+    }
+
+    .register-logo {
+        width: 150px;
+        margin-bottom: 24px;
+    }
+
+    .register-card {
+        padding: 26px 28px;
+    }
+}
+
+
+@media (max-width: 480px) {
+
+    .register-page {
+        padding: 16px;
+    }
+
+    .register-logo {
+        width: 135px;
+        margin-bottom: 20px;
+    }
+
+    .register-card {
+        padding: 24px 20px;
+        border-radius: 14px;
+    }
+}

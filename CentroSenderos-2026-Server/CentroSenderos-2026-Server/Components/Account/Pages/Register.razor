@@ -15,43 +15,105 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Register</PageTitle>
+<PageTitle>Registrarse</PageTitle>
 
-<h1>Register</h1>
+<div class="register-page">
 
-<div class="row">
-    <div class="col-lg-6">
-        <StatusMessage Message="@Message" />
-        <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
-            <DataAnnotationsValidator />
-            <h2>Create a new account.</h2>
-            <hr />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label for="Input.Email">Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.Password">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.ConfirmPassword">Confirm Password</label>
-                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </EditForm>
-    </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            <ExternalLoginPicker />
+    <div class="register-content">
+
+        <img src="/imagenes/logo-senderos.png"
+             alt="Senderos"
+             class="register-logo" />
+
+        <section class="register-card">
+
+            <StatusMessage Message="@Message" />
+
+            <EditForm Model="Input"
+                      method="post"
+                      OnValidSubmit="RegisterUser"
+                      FormName="register">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="text-danger validation-summary"
+                                   role="alert" />
+
+                <div class="register-field">
+
+                    <i class="bi bi-envelope field-icon-left"></i>
+
+                    <InputText @bind-Value="Input.Email"
+                               id="Input.Email"
+                               class="form-control register-input"
+                               autocomplete="username"
+                               aria-required="true"
+                               placeholder="Correo electrónico" />
+
+                    <ValidationMessage For="() => Input.Email"
+                                       class="text-danger validation-message" />
+
+                </div>
+
+                <div class="register-field password-field">
+
+                    <i class="bi bi-lock field-icon-left"></i>
+
+                    <InputText type="password"
+                               @bind-Value="Input.Password"
+                               id="Input.Password"
+                               class="form-control register-input"
+                               autocomplete="new-password"
+                               aria-required="true"
+                               placeholder="Contraseña" />
+
+                    <i class="bi bi-eye password-icon"></i>
+
+                    <ValidationMessage For="() => Input.Password"
+                                       class="text-danger validation-message" />
+
+                </div>
+
+                <div class="register-field password-field">
+
+                    <i class="bi bi-shield-lock field-icon-left"></i>
+
+                    <InputText type="password"
+                               @bind-Value="Input.ConfirmPassword"
+                               id="Input.ConfirmPassword"
+                               class="form-control register-input"
+                               autocomplete="new-password"
+                               aria-required="true"
+                               placeholder="Confirmar contraseña" />
+
+                    <i class="bi bi-eye password-icon"></i>
+
+                    <ValidationMessage For="() => Input.ConfirmPassword"
+                                       class="text-danger validation-message" />
+
+                </div>
+
+                <button type="submit"
+                        class="register-button">
+                    Registrarse
+                </button>
+
+                <div class="register-login">
+
+                    <span>¿Ya tenés una cuenta?</span>
+
+                    <a href="Account/Login">
+                        Iniciar sesión
+                    </a>
+
+                </div>
+
+            </EditForm>
+
         </section>
+
     </div>
+
 </div>
 
 @code {
