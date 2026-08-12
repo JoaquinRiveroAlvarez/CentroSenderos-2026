@@ -1,0 +1,76 @@
+﻿@page "/turnos"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Listado de Turnos</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="IrACrear">Nuevo Turno</button>
+</div>
+
+@if (cargando)
+{
+    <p>Cargando turnos...</p>
+}
+else if (listaTurnos == null || listaTurnos.Count == 0)
+{
+    <p>No hay turnos disponibles.</p>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Inicio</th>
+                <th>Fin</th>
+                <th>Duración (min)</th>
+                <th>Estado</th>
+                <th>Tipo Turno</th>
+                <th>Consultorio</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var turno in listaTurnos)
+            {
+                var duracion = (turno.FechaFin - turno.FechaInicio).TotalMinutes;
+                <tr style="cursor:pointer" @onclick="() => IrAEditar(turno.Id)">
+                    <td>@turno.Id</td>
+                    <td>@turno.FechaInicio.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@turno.FechaFin.ToString("dd/MM/yyyy HH:mm")</td>
+@*                     <td>@turno.FechaInicio.AddHours(-3).ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@turno.FechaFin.AddHours(-3).ToString("dd/MM/yyyy HH:mm")</td> *@
+                    <td>@duracion</td>
+                    <td>@turno.EstadoTurno</td>
+                    <td>@turno.NombreTipoTurno</td>
+                    <td>@turno.NombreTipoConsultorio</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    private List<TurnoListadoDTO>? listaTurnos;
+    private bool cargando = true;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync() => await CargarTurnos();
+
+    private async Task CargarTurnos()
+    {
+        cargando = true;
+        var resp = await Http.Get<List<TurnoListadoDTO>>("api/turno/ListaTurnos");
+        listaTurnos = resp.Error ? new() : resp.Respuesta ?? new();
+        Mensaje = resp.Error ? resp.ObtenerError() : "";
+        await Task.Delay(200);
+        cargando = false;
+    }
+
+    private void IrAEditar(int id) => Nav.NavigateTo($"/turnos/editar/{id}");
+    private void IrACrear() => Nav.NavigateTo("/turnos/crear");
+}

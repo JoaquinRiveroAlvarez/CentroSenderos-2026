@@ -1,0 +1,55 @@
+﻿@page "/tipoconsultorio/crear"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Crear Tipo de Consultorio</h3>
+
+<EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="CrearTipoConsultorioForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Tipo</label>
+        <InputText class="form-control" @bind-Value="modelo.Tipo" />
+        <ValidationMessage For="@(() => modelo.Tipo)" />
+    </div>
+
+    <div class="form-group">
+        <label>Descripción</label>
+        <InputText class="form-control" @bind-Value="modelo.Descripcion" />
+        <ValidationMessage For="@(() => modelo.Descripcion)" />
+    </div>
+
+    <div class="form-group">
+        <label>Dirección</label>
+        <InputText class="form-control" @bind-Value="modelo.Direccion" />
+        <ValidationMessage For="@(() => modelo.Direccion)" />
+    </div>
+
+    <button class="btn btn-primary" type="submit">Guardar</button>
+    <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+<p>@Mensaje</p>
+
+@code {
+    private TipoConsultorioDTO modelo = new TipoConsultorioDTO
+    {
+        Tipo = string.Empty,
+        Descripcion = string.Empty,
+        Direccion = string.Empty
+    };
+    private string Mensaje = "";
+
+    private async Task Grabar()
+    {
+        var resp = await Http.Post<TipoConsultorioDTO, int>("api/tipoconsultorio", modelo);
+        Mensaje = resp.Error ? resp.ObtenerError() : "Guardado correctamente.";
+        if (!resp.Error) Nav.NavigateTo("/tipoconsultorio", true);
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/tipoconsultorio");
+}
+

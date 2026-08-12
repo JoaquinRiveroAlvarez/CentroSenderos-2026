@@ -3,6 +3,7 @@ using System;
 using CentroSenderos_2026_BD;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CentroSenderos_2026_BD.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260810181524_NullableTipoTurnoId")]
+    partial class NullableTipoTurnoId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -670,10 +673,10 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Property<int>("EstadoTurno")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset>("FechaFin")
+                    b.Property<DateTime>("FechaFin")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTimeOffset>("FechaInicio")
+                    b.Property<DateTime>("FechaInicio")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Observacion")

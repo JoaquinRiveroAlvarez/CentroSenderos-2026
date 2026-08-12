@@ -1,0 +1,159 @@
+﻿@page "/turnos/crear"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<h3>Crear Nuevo Turno</h3>
+
+@if (cargando)
+{
+    <p>Cargando datos...</p>
+}
+else
+{
+    <EditForm Model="@modelo" OnValidSubmit="Grabar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <!-- Fecha -->
+        <div class="form-group">
+            <label>Fecha</label>
+            <InputDate class="form-control" @bind-Value="modelo.Fecha" />
+            <ValidationMessage For="@(() => modelo.Fecha)" />
+        </div>
+
+        <!-- Consultorio -->
+        <div class="form-group">
+            <label>Consultorio</label>
+            <InputSelect class="form-control" @bind-Value="modelo.TipoConsultorioId">
+                <option value="0">-- Seleccione un consultorio --</option>
+                @foreach (var cons in consultorios)
+                {
+                    <option value="@cons.Id">@cons.Tipo</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => modelo.TipoConsultorioId)" />
+        </div>
+
+        <!-- Tipo de Turno -->
+        <div class="form-group">
+            <label>Tipo de Turno</label>
+            <InputSelect class="form-control" @bind-Value="modelo.TipoTurnoId">
+                <option value="0">-- Seleccione un tipo de turno --</option>
+                @foreach (var tipo in tiposTurno)
+                {
+                    <option value="@tipo.Id">@tipo.Tipo (@tipo.DuracionMinutos min)</option>
+                }
+                <option value="-1">Otro</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => modelo.TipoTurnoId)" />
+        </div>
+
+        <!-- Botón para cargar horas -->
+        <button type="button" class="btn btn-info" @onclick="CargarHorasDisponibles">
+            Cargar horas disponibles
+        </button>
+
+        <!-- Lista de horas disponibles -->
+        <div class="form-group mt-2">
+            <label>Horas disponibles</label>
+            <InputSelect class="form-control" TValue="string" @bind-Value="horaSeleccionada" @onchange="OnHoraSeleccionada">
+                <option value="">-- Seleccione una hora --</option>
+                @foreach (var h in horasDisponibles)
+                {
+                    <option value="@h">@h</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => modelo.Hora)" />
+        </div>
+
+        <br />
+        <button class="btn btn-primary" type="submit">Guardar Turno</button>
+        <button class="btn btn-secondary" type="button" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+}
+
+<p>@Mensaje</p>
+
+@code {
+    private TurnoDTO modelo = new TurnoDTO
+    {
+        EstadoTurno = EnumEstadoTurno.reservado,
+        Fecha = DateTime.Today,   // ✅ ahora DateTime
+        Hora = TimeOnly.MinValue
+    };
+
+    private List<TipoTurnoListadoDTO> tiposTurno = new();
+    private List<TipoConsultorioListadoDTO> consultorios = new();
+    private List<string> horasDisponibles = new();
+
+    private string horaSeleccionada = "";
+    private bool cargando = false;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        cargando = true;
+
+        var respTurno = await Http.Get<List<TipoTurnoListadoDTO>>("api/tipoturno/ListaTipoTurno");
+        if (!respTurno.Error && respTurno.Respuesta != null)
+            tiposTurno = respTurno.Respuesta;
+
+        var respCons = await Http.Get<List<TipoConsultorioListadoDTO>>("api/tipoconsultorio/ListaTipoConsultorio");
+        if (!respCons.Error && respCons.Respuesta != null)
+            consultorios = respCons.Respuesta;
+
+        cargando = false;
+    }
+
+    private async Task CargarHorasDisponibles()
+    {
+        if (modelo.Fecha != DateTime.MinValue && modelo.TipoTurnoId > 0 && modelo.TipoConsultorioId > 0)
+        {
+            var resp = await Http.Get<List<string>>(
+                $"api/turno/Disponibles?fecha={modelo.Fecha:yyyy-MM-dd}&tipoTurnoId={modelo.TipoTurnoId}&consultorioId={modelo.TipoConsultorioId}"
+            );
+            if (!resp.Error && resp.Respuesta != null)
+            {
+                horasDisponibles = resp.Respuesta;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void OnHoraSeleccionada(ChangeEventArgs e)
+    {
+        var horaStr = e.Value?.ToString();
+        if (!string.IsNullOrEmpty(horaStr))
+        {
+            horaSeleccionada = horaStr;
+            modelo.Hora = TimeOnly.ParseExact(horaStr, "HH:mm");
+        }
+    }
+
+    private async Task Grabar()
+    {
+        if (string.IsNullOrEmpty(horaSeleccionada))
+        {
+            Mensaje = "Debe seleccionar una hora válida.";
+            return;
+        }
+
+        modelo.Hora = TimeOnly.ParseExact(horaSeleccionada, "HH:mm");
+
+        var resp = await Http.Post<TurnoDTO, int>("api/turno", modelo);
+        if (!resp.Error)
+        {
+            Mensaje = "Turno guardado correctamente.";
+            await Task.Delay(500);
+            Nav.NavigateTo("/turnos", forceLoad: true);
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/turnos");
+}
