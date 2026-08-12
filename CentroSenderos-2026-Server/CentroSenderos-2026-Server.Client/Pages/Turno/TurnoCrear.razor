@@ -80,7 +80,7 @@ else
     private TurnoDTO modelo = new TurnoDTO
     {
         EstadoTurno = EnumEstadoTurno.reservado,
-        Fecha = DateOnly.FromDateTime(DateTime.Today),
+        Fecha = DateTime.Today,   // ✅ ahora DateTime
         Hora = TimeOnly.MinValue
     };
 
@@ -109,10 +109,10 @@ else
 
     private async Task CargarHorasDisponibles()
     {
-        if (modelo.Fecha != DateOnly.MinValue && modelo.TipoTurnoId > 0 && modelo.TipoConsultorioId > 0)
+        if (modelo.Fecha != DateTime.MinValue && modelo.TipoTurnoId > 0 && modelo.TipoConsultorioId > 0)
         {
             var resp = await Http.Get<List<string>>(
-                $"api/turno/Disponibles?fecha={modelo.Fecha}&tipoTurnoId={modelo.TipoTurnoId}&consultorioId={modelo.TipoConsultorioId}"
+                $"api/turno/Disponibles?fecha={modelo.Fecha:yyyy-MM-dd}&tipoTurnoId={modelo.TipoTurnoId}&consultorioId={modelo.TipoConsultorioId}"
             );
             if (!resp.Error && resp.Respuesta != null)
             {
@@ -128,7 +128,7 @@ else
         if (!string.IsNullOrEmpty(horaStr))
         {
             horaSeleccionada = horaStr;
-            modelo.Hora = TimeOnly.ParseExact(horaStr, "HH:mm"); // conversión segura
+            modelo.Hora = TimeOnly.ParseExact(horaStr, "HH:mm");
         }
     }
 
@@ -154,7 +154,6 @@ else
             Mensaje = resp.ObtenerError();
         }
     }
-
 
     private void Cancelar() => Nav.NavigateTo("/turnos");
 }
