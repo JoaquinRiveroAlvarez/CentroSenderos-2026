@@ -4,72 +4,232 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Editar Tipo de Obra Social</h3>
+<div class="editar-planilla-page">
 
-@if (cargando)
-{
-    <p>Cargando...</p>
-}
-else
-{
-    <EditForm Model="@modelo" OnValidSubmit="Grabar">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    @if (cargando)
+    {
+        <p class="estado-mensaje">Cargando...</p>
+    }
+    else
+    {
+        <div class="planilla-card">
 
-        <div class="form-group">
-            <label>Tipo</label>
-            <InputText class="form-control" @bind-Value="modelo!.Tipo" />
+            <div class="planilla-card-header">
+
+                <div>
+                    <h1>Editar Planilla</h1>
+                    <p>Modifique los datos del tipo de planilla</p>
+                </div>
+
+                <button type="button"
+                        class="close-button"
+                        @onclick="Cancelar">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+            </div>
+
+            <EditForm Model="@modelo"
+                      OnValidSubmit="Grabar"
+                      class="planilla-form">
+
+                <DataAnnotationsValidator />
+                <ValidationSummary class="validation-summary" />
+
+                <div class="field-group">
+                    <label>Tipo de planilla</label>
+
+                    <InputText class="form-input"
+                               @bind-Value="modelo.Tipo"
+                               placeholder="Tipo de planilla" />
+                </div>
+
+                <div class="field-group">
+                    <label>Descripción</label>
+
+                    <InputTextArea class="form-textarea"
+                                   @bind-Value="modelo.Descripcion"
+                                   placeholder="Descripción" />
+                </div>
+
+                <div class="form-actions">
+
+                    <button type="button"
+                            class="delete-button"
+                            @onclick="AbrirConfirmacionEliminar">
+
+                        <i class="bi bi-trash"></i>
+                        <span>Eliminar</span>
+
+                    </button>
+
+                    <div class="form-actions-right">
+
+                        <button type="button"
+                                class="cancel-button"
+                                @onclick="Cancelar">
+                            Cancelar
+                        </button>
+
+                        <button type="submit"
+                                class="save-button">
+                            Guardar
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </EditForm>
+
         </div>
-        <div class="form-group">
-            <label>Descripción</label>
-            <InputText class="form-control" @bind-Value="modelo!.Descripcion" />
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <p class="estado-mensaje">@Mensaje</p>
+    }
+
+</div>
+
+
+@if (mostrarConfirmacionEliminar)
+{
+    <div class="modal-overlay">
+
+        <div class="delete-modal">
+
+            <div class="delete-warning-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+            <h2>¿Estás seguro que querés eliminar?</h2>
+
+            <p>
+                Confirmá que deseás eliminar definitivamente
+                este tipo de planilla.
+            </p>
+
+            <div class="delete-modal-actions">
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        @onclick="ConfirmarEliminar">
+                    Eliminar
+                </button>
+
+                <button type="button"
+                        class="modal-cancel-button"
+                        @onclick="CerrarConfirmacionEliminar">
+                    Cancelar
+                </button>
+
+            </div>
+
         </div>
 
-        <button class="btn btn-primary" type="submit">Actualizar</button>
-        <button class="btn btn-secondary" type="button" @onclick="Cancelar">Cancelar</button>
-        <button class="btn btn-danger" type="button" @onclick="Eliminar">Eliminar</button>
-    </EditForm>
+    </div>
 }
 
 <p>@Mensaje</p>
 
-@code {
-    [Inject] IJSRuntime JSRuntime { get; set; } = default!;
-    [Parameter] public int id { get; set; }
-    private TipoDTO modelo = new TipoDTO { Tipo = string.Empty, Descripcion = string.Empty };
-    private bool cargando = true;
-    private string Mensaje = "";
+    @code {
+        [Parameter]
+        public int id { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        var resp = await Http.Get<TipoDTO>($"api/tipoplanillas/{id}");
-        modelo = resp.Error ? new TipoDTO { Tipo = string.Empty, Descripcion = string.Empty }
-                            : resp.Respuesta ?? new TipoDTO { Tipo = string.Empty, Descripcion = string.Empty };
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
-        cargando = false;
-    }
-
-    private async Task Grabar()
-    {
-        var resp = await Http.Put<TipoDTO, RespuestaDTO>($"api/tipoplanillas/{id}", modelo);
-        Mensaje = resp.Error ? resp.ObtenerError() : resp.Respuesta?.mensaje!;
-
-        if (!resp.Error) Nav.NavigateTo("/tipoplanillas", true);
-    }
-
-    private async Task Eliminar()
-    {
-        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar esta planilla?");
-        if (confirmar)
+        private TipoDTO modelo = new TipoDTO
         {
-            var resp = await Http.Delete($"api/tipoplanillas/{id}");
-            Mensaje = resp.Error ? resp.ObtenerError() : "Planilla eliminada correctamente.";
-            if (!resp.Error) Nav.NavigateTo("/tipoplanillas", true);
+            Tipo = string.Empty,
+            Descripcion = string.Empty
+        };
+
+        private bool cargando = true;
+        private bool mostrarConfirmacionEliminar = false;
+
+        private string Mensaje = "";
+
+        protected override async Task OnInitializedAsync()
+        {
+            var resp =
+                await Http.Get<TipoDTO>(
+                    $"api/tipoplanillas/{id}");
+
+            modelo =
+                resp.Error
+                    ? new TipoDTO
+                    {
+                        Tipo = string.Empty,
+                        Descripcion = string.Empty
+                    }
+                    : resp.Respuesta
+                        ?? new TipoDTO
+                        {
+                            Tipo = string.Empty,
+                            Descripcion = string.Empty
+                        };
+
+            Mensaje =
+                resp.Error
+                    ? resp.ObtenerError()
+                    : "";
+
+            cargando = false;
+        }
+
+        private async Task Grabar()
+        {
+            var resp =
+                await Http.Put<TipoDTO, RespuestaDTO>(
+                    $"api/tipoplanillas/{id}",
+                    modelo);
+
+            Mensaje =
+                resp.Error
+                    ? resp.ObtenerError()
+                    : resp.Respuesta?.mensaje!;
+
+            if (!resp.Error)
+            {
+                Nav.NavigateTo(
+                    "/tipoplanillas",
+                    true);
+            }
+        }
+
+        private void AbrirConfirmacionEliminar()
+        {
+            mostrarConfirmacionEliminar = true;
+        }
+
+        private void CerrarConfirmacionEliminar()
+        {
+            mostrarConfirmacionEliminar = false;
+        }
+
+        private async Task ConfirmarEliminar()
+        {
+            var resp =
+                await Http.Delete(
+                    $"api/tipoplanillas/{id}");
+
+            Mensaje =
+                resp.Error
+                    ? resp.ObtenerError()
+                    : "Planilla eliminada correctamente.";
+
+            if (!resp.Error)
+            {
+                mostrarConfirmacionEliminar = false;
+
+                Nav.NavigateTo(
+                    "/tipoplanillas",
+                    true);
+            }
+        }
+
+        private void Cancelar()
+        {
+            Nav.NavigateTo("/tipoplanillas");
         }
     }
-
-
-    private void Cancelar() => Nav.NavigateTo("/tipoplanillas");
-
-}
 

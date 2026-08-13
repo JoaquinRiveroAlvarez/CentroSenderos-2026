@@ -4,24 +4,94 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Crear Tipo de Planillas</h3>
+<div class="crear-planilla-page">
 
-<EditForm Model="@modelo" OnValidSubmit="Grabar">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+    <div class="planilla-card">
 
-    <div class="form-group">
-        <label>Tipo</label>
-        <InputText class="form-control" @bind-Value="modelo.Tipo" />
+        <div class="planilla-card-header">
+
+            <div>
+                <h1>Nueva Planilla</h1>
+
+                <p>
+                    Complete los detalles del tipo de planilla
+                </p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    @onclick="Cancelar">
+
+                <i class="bi bi-x-lg"></i>
+
+            </button>
+
+        </div>
+
+
+        <EditForm Model="@modelo"
+                  OnValidSubmit="Grabar"
+                  class="planilla-form">
+
+            <DataAnnotationsValidator />
+
+            <ValidationSummary class="validation-summary" />
+
+
+            <div class="field-group">
+
+                <label>Tipo de planilla</label>
+
+                <InputText class="form-input"
+                           @bind-Value="modelo.Tipo"
+                           placeholder="Ingresar tipo de planilla" />
+
+            </div>
+
+
+            <div class="field-group">
+
+                <label>Descripción</label>
+
+                <InputTextArea class="form-textarea"
+                               @bind-Value="modelo.Descripcion"
+                               placeholder="Ingresar descripción" />
+
+            </div>
+
+
+            <div class="form-actions">
+
+                <button type="button"
+                        class="cancel-button"
+                        @onclick="Cancelar">
+
+                    Cancelar
+
+                </button>
+
+                <button type="submit"
+                        class="save-button">
+
+                    Guardar
+
+                </button>
+
+            </div>
+
+        </EditForm>
+
     </div>
-    <div class="form-group">
-        <label>Descripción</label>
-        <InputText class="form-control" @bind-Value="modelo.Descripcion" />
-    </div>
 
-    <button class="btn btn-primary" type="submit">Guardar</button>
-    <button class="btn btn-secondary" type="button" @onclick="Cancelar">Cancelar</button>
-</EditForm>
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <p class="form-message">
+            @Mensaje
+        </p>
+    }
+
+</div>
 
 <p>@Mensaje</p>
 

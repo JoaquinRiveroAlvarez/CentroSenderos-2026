@@ -1,0 +1,327 @@
+/* CSS for TipoPlanillasListado component */
+/* ===========================================
+   PÁGINA
+=========================================== */
+
+.planillas-page {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 30px 40px;
+}
+
+
+/* ===========================================
+   HEADER
+=========================================== */
+
+.planillas-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 45px;
+    margin-bottom: 26px;
+}
+
+
+/* ===========================================
+   BUSCADOR
+=========================================== */
+
+.search-box {
+    width: 320px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1px solid #dedede;
+    border-radius: 18px;
+}
+
+    .search-box i {
+        color: #777777;
+        font-size: 12px;
+    }
+
+    .search-box input {
+        flex: 1;
+        min-width: 0;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 12px;
+    }
+
+        .search-box input::placeholder {
+            color: #999999;
+        }
+
+
+/* ===========================================
+   NUEVA PLANILLA
+=========================================== */
+
+.new-planilla-button {
+    height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 14px;
+    background: #6f8f6d;
+    border: none;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+    .new-planilla-button:hover {
+        background: #5e7a5c;
+    }
+
+
+/* ===========================================
+   CONTENIDO
+=========================================== */
+
+.planillas-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 40px;
+}
+
+
+/* ===========================================
+   LISTADO
+=========================================== */
+
+.tipos-planilla-list {
+    width: 170px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #a9bea6;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
+
+
+.tipo-planilla-card {
+    width: 100%;
+    padding: 9px 10px;
+    border: none;
+    border-radius: 5px;
+    background: #d78f91;
+    color: #ffffff;
+    font-size: 11px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+
+    .tipo-planilla-card:hover {
+        background: #c77e80;
+    }
+
+
+    .tipo-planilla-card:active {
+        transform: scale(0.98);
+    }
+
+
+    .tipo-planilla-card.selected {
+        background: #b86f72;
+    }
+
+
+/* ===========================================
+   DETALLE
+=========================================== */
+
+.tipo-detalle {
+    width: 100%;
+    max-width: 520px;
+    padding: 22px 24px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #e5e2dc;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+}
+
+
+/* ===========================================
+   HEADER DEL DETALLE
+=========================================== */
+
+.detalle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+
+    .detalle-header h2 {
+        margin: 0;
+        color: #556f4f;
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+
+/* ===========================================
+   CERRAR DETALLE
+=========================================== */
+
+.close-detail-button {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: #777777;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+
+    .close-detail-button:hover {
+        background: #f0f0ed;
+        color: #444444;
+    }
+
+
+/* ===========================================
+   CAMPOS
+=========================================== */
+
+.detalle-field {
+    margin-bottom: 18px;
+}
+
+
+    .detalle-field label {
+        display: block;
+        margin-bottom: 7px;
+        color: #777777;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+
+.detalle-value {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 9px 14px;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1px solid #e0e2dc;
+    border-radius: 10px;
+    color: #444444;
+    font-size: 12px;
+}
+
+
+.detalle-description {
+    min-height: 80px;
+    align-items: flex-start;
+    line-height: 1.5;
+}
+
+
+.sin-descripcion {
+    color: #aaaaaa;
+    font-style: italic;
+}
+
+
+/* ===========================================
+   ACCIONES
+=========================================== */
+
+.detalle-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 22px;
+}
+
+
+.edit-button {
+    min-width: 100px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 16px;
+    background: #647b5b;
+    border: none;
+    border-radius: 18px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+
+    .edit-button:hover {
+        background: #52694a;
+    }
+
+
+/* ===========================================
+   MENSAJES
+=========================================== */
+
+.planillas-mensaje {
+    margin-top: 20px;
+    color: #6d746c;
+    font-size: 12px;
+}
+
+
+/* ===========================================
+   RESPONSIVE
+=========================================== */
+
+@media (max-width: 800px) {
+
+    .planillas-page {
+        padding: 22px;
+    }
+
+    .planillas-header {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .search-box {
+        flex: 1;
+    }
+
+    .planillas-content {
+        flex-direction: column;
+    }
+
+    .tipos-planilla-list {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .tipo-detalle {
+        max-width: none;
+    }
+}

@@ -1,0 +1,275 @@
+/* CSS for TipoPlanillasCrear component */
+/* ===========================================
+   PÁGINA
+=========================================== */
+
+.crear-planilla-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 30px;
+}
+
+
+/* ===========================================
+   TARJETA
+=========================================== */
+
+.planilla-card {
+    width: 100%;
+    max-width: 520px;
+    box-sizing: border-box;
+    padding: 24px 26px;
+    background: #fffdf9;
+    border: 1px solid #e5e1db;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+}
+
+
+/* ===========================================
+   HEADER
+=========================================== */
+
+.planilla-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+    .planilla-card-header h1 {
+        margin: 0 0 4px;
+        color: #556f4f;
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .planilla-card-header p {
+        margin: 0;
+        color: #888888;
+        font-size: 11px;
+    }
+
+
+/* ===========================================
+   CERRAR
+=========================================== */
+
+.close-button {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: #888888;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+    .close-button:hover {
+        background: #f0eeea;
+        color: #555555;
+    }
+
+
+/* ===========================================
+   FORMULARIO
+=========================================== */
+
+.planilla-form {
+    width: 100%;
+}
+
+
+/* ===========================================
+   CAMPOS
+=========================================== */
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 18px;
+}
+
+    .field-group label {
+        margin: 0 0 7px 2px;
+        color: #666666;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+
+/* ===========================================
+   INPUT
+=========================================== */
+
+::deep .form-input {
+    width: 100%;
+    height: 42px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    background: #ffffff;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    color: #444444;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+    ::deep .form-input::placeholder {
+        color: #a2a2a2;
+        opacity: 1;
+    }
+
+    ::deep .form-input:focus {
+        border-color: #789175;
+        box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
+    }
+
+
+/* ===========================================
+   DESCRIPCIÓN
+=========================================== */
+
+::deep .form-textarea {
+    width: 100%;
+    min-height: 100px;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    resize: vertical;
+    background: #ffffff;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    color: #444444;
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+    ::deep .form-textarea::placeholder {
+        color: #a2a2a2;
+        opacity: 1;
+    }
+
+    ::deep .form-textarea:focus {
+        border-color: #789175;
+        box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
+    }
+
+
+/* ===========================================
+   BOTONES
+=========================================== */
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 26px;
+}
+
+
+/* Cancelar */
+
+.cancel-button {
+    min-width: 100px;
+    height: 38px;
+    padding: 0 18px;
+    background: transparent;
+    border: none;
+    border-radius: 19px;
+    color: #666666;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+    .cancel-button:hover {
+        background: #f0eeea;
+    }
+
+
+/* Guardar */
+
+.save-button {
+    min-width: 110px;
+    height: 38px;
+    padding: 0 20px;
+    background: #647b5b;
+    border: none;
+    border-radius: 19px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+    .save-button:hover {
+        background: #52694a;
+    }
+
+    .save-button:active {
+        transform: scale(0.98);
+    }
+
+
+/* ===========================================
+   VALIDACIONES / MENSAJE
+=========================================== */
+
+.validation-summary {
+    margin-bottom: 16px;
+    color: #b54b43;
+    font-size: 11px;
+}
+
+.form-message {
+    margin-top: 12px;
+    color: #657461;
+    font-size: 12px;
+}
+
+
+/* ===========================================
+   RESPONSIVE
+=========================================== */
+
+@media (max-width: 600px) {
+
+    .crear-planilla-page {
+        padding: 18px;
+    }
+
+    .planilla-card {
+        padding: 22px 20px;
+        border-radius: 14px;
+    }
+
+    .planilla-card-header h1 {
+        font-size: 21px;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .cancel-button,
+    .save-button {
+        width: 100%;
+    }
+}
