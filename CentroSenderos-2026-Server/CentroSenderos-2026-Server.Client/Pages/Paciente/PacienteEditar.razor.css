@@ -1,6 +1,5 @@
-/* CSS for PacienteEditar component */
 /* ===========================================
-   PÁGINA
+   PÁGINA EDITAR PACIENTE
 =========================================== */
 
 .editar-paciente-page {
@@ -17,7 +16,7 @@
 
 
 /* ===========================================
-   FORMULARIO
+   FORMULARIO PRINCIPAL
 =========================================== */
 
 .paciente-form {
@@ -104,7 +103,7 @@
 
 
 /* ===========================================
-   INPUTS / SELECTS
+   INPUTS Y SELECTS
 =========================================== */
 
 ::deep .form-input {
@@ -138,7 +137,7 @@
 
 
 /* ===========================================
-   ACCIONES
+   ACCIONES DEL FORMULARIO
 =========================================== */
 
 .form-actions {
@@ -156,7 +155,9 @@
 }
 
 
-/* Eliminar */
+/* ===========================================
+   BOTÓN ELIMINAR PACIENTE
+=========================================== */
 
 .delete-button {
     min-width: 145px;
@@ -165,7 +166,7 @@
     background: #ef4545;
     border: none;
     border-radius: 22px;
-    color: white;
+    color: #ffffff;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
@@ -181,7 +182,9 @@
     }
 
 
-/* Cancelar */
+/* ===========================================
+   BOTÓN CANCELAR
+=========================================== */
 
 .cancel-button {
     min-width: 120px;
@@ -194,14 +197,18 @@
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
 }
 
     .cancel-button:hover {
         background: #f5f5f3;
+        border-color: #777770;
     }
 
 
-/* Guardar */
+/* ===========================================
+   BOTÓN GUARDAR
+=========================================== */
 
 .save-button {
     min-width: 150px;
@@ -227,7 +234,7 @@
 
 
 /* ===========================================
-   VALIDACIONES / MENSAJES
+   VALIDACIONES
 =========================================== */
 
 .validation-summary {
@@ -242,6 +249,11 @@
     font-size: 10px;
 }
 
+
+/* ===========================================
+   MENSAJES / CARGANDO
+=========================================== */
+
 .editar-loading,
 .editar-mensaje {
     margin-top: 12px;
@@ -251,7 +263,165 @@
 
 
 /* ===========================================
-   RESPONSIVE
+   MODAL - FONDO OSCURO
+=========================================== */
+
+.modal-overlay {
+    position: fixed;
+    /*
+       inset: 0 equivale a:
+       top: 0;
+       right: 0;
+       bottom: 0;
+       left: 0;
+    */
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.60);
+    /*
+       Tiene que ser mayor al z-index
+       del sidebar y del header.
+    */
+    z-index: 9999;
+}
+
+
+/* ===========================================
+   MODAL - TARJETA
+=========================================== */
+
+.delete-modal {
+    width: 100%;
+    max-width: 400px;
+    padding: 28px 30px 24px;
+    box-sizing: border-box;
+    background: #fffdfa;
+    border: 1px solid #e7e2dd;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+}
+
+
+/* ===========================================
+   MODAL - ICONO ADVERTENCIA
+=========================================== */
+
+.delete-warning-icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffd8ca;
+    border-radius: 50%;
+    color: #8b5c51;
+    font-size: 22px;
+}
+
+    .delete-warning-icon i {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+/* ===========================================
+   MODAL - TÍTULO
+=========================================== */
+
+.delete-modal h2 {
+    margin: 0 0 14px;
+    color: #242424;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+
+/* ===========================================
+   MODAL - DESCRIPCIÓN
+=========================================== */
+
+.delete-modal p {
+    max-width: 320px;
+    margin: 0 auto 24px;
+    color: #777777;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+
+/* ===========================================
+   MODAL - CONTENEDOR DE BOTONES
+=========================================== */
+
+.delete-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+
+/* ===========================================
+   MODAL - CONFIRMAR ELIMINACIÓN
+=========================================== */
+
+.confirm-delete-button {
+    flex: 1;
+    height: 42px;
+    padding: 0 20px;
+    background: #ef4545;
+    border: none;
+    border-radius: 22px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+    .confirm-delete-button:hover {
+        background: #d93c3c;
+    }
+
+    .confirm-delete-button:active {
+        transform: scale(0.98);
+    }
+
+
+/* ===========================================
+   MODAL - CANCELAR
+=========================================== */
+
+.modal-cancel-button {
+    flex: 1;
+    height: 42px;
+    padding: 0 20px;
+    background: #efedeb;
+    border: none;
+    border-radius: 22px;
+    color: #555555;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+    .modal-cancel-button:hover {
+        background: #dfdcda;
+    }
+
+
+/* ===========================================
+   RESPONSIVE - TABLET
 =========================================== */
 
 @media (max-width: 900px) {
@@ -262,7 +432,15 @@
 }
 
 
+/* ===========================================
+   RESPONSIVE - CELULAR
+=========================================== */
+
 @media (max-width: 650px) {
+
+    .editar-paciente-page h1 {
+        font-size: 24px;
+    }
 
     .paciente-form {
         padding: 20px;
@@ -287,5 +465,32 @@
     .cancel-button,
     .save-button {
         width: 100%;
+    }
+}
+
+
+/* ===========================================
+   RESPONSIVE - MODAL
+=========================================== */
+
+@media (max-width: 480px) {
+
+    .delete-modal {
+        max-width: 360px;
+        padding: 26px 20px 22px;
+    }
+
+        .delete-modal h2 {
+            font-size: 21px;
+        }
+
+    .delete-modal-actions {
+        flex-direction: column;
+    }
+
+    .confirm-delete-button,
+    .modal-cancel-button {
+        width: 100%;
+        flex: none;
     }
 }

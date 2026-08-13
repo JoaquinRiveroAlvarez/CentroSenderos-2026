@@ -5,6 +5,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
+
 <div class="editar-paciente-page">
 
     <h1>Editar Paciente</h1>
@@ -177,7 +178,7 @@
 
                 <button type="button"
                         class="delete-button"
-                        @onclick="Eliminar">
+                        @onclick="AbrirConfirmacionEliminar">
                     Eliminar Paciente
                 </button>
 
@@ -201,6 +202,44 @@
         </EditForm>
     }
 
+    @if (mostrarConfirmacionEliminar)
+    {
+        <div class="modal-overlay">
+
+            <div class="delete-modal">
+
+                <div class="delete-warning-icon">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+
+                <h2>¿Estás seguro que querés eliminar?</h2>
+
+                <p>
+                    Por favor, confirmá que deseás eliminar definitivamente
+                    este paciente.
+                </p>
+
+                <div class="delete-modal-actions">
+
+                    <button type="button"
+                            class="confirm-delete-button"
+                            @onclick="ConfirmarEliminar">
+                        Eliminar
+                    </button>
+
+                    <button type="button"
+                            class="modal-cancel-button"
+                            @onclick="CerrarConfirmacionEliminar">
+                        Cancelar
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
     @if (!string.IsNullOrWhiteSpace(Mensaje))
     {
         <p class="editar-mensaje">
@@ -213,7 +252,6 @@
 <p>@Mensaje</p>
 
 @code {
-    [Inject] IJSRuntime JSRuntime { get; set; } = default!;
     [Parameter]
     public int Id { get; set; }
 
@@ -221,9 +259,21 @@
     private bool cargando = true;
     private string Mensaje = "";
 
+    private bool mostrarConfirmacionEliminar = false;
+
     private List<TipoDTO> tiposObraSocial = new();
     private List<TipoDTO> tiposDiagnostico = new();
 
+
+    private void AbrirConfirmacionEliminar()
+    {
+        mostrarConfirmacionEliminar = true;
+    }
+
+    private void CerrarConfirmacionEliminar()
+    {
+        mostrarConfirmacionEliminar = false;
+    }
     protected override async Task OnInitializedAsync()
     {
         cargando = true;
@@ -261,23 +311,23 @@
         }
     }
 
-    private async Task Eliminar()
+    private async Task ConfirmarEliminar()
     {
-        // confirmación con JavaScript
-        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Está seguro que desea eliminar este paciente?");
-        if (confirmar)
-        {
-            var resp = await Http.Delete($"api/paciente/{Id}");
-            Mensaje = resp.Error ? resp.ObtenerError() : "Paciente eliminado correctamente.";
+        var resp = await Http.Delete($"api/paciente/{Id}");
 
-            if (!resp.Error)
-            {
-                await Task.Delay(500);
-                Nav.NavigateTo("/pacientes", true);
-            }
+        Mensaje = resp.Error
+            ? resp.ObtenerError()
+            : "Paciente eliminado correctamente.";
+
+        if (!resp.Error)
+        {
+            mostrarConfirmacionEliminar = false;
+
+            await Task.Delay(500);
+
+            Nav.NavigateTo("/pacientes", true);
         }
     }
-
 
     private void Cancelar()
     {
