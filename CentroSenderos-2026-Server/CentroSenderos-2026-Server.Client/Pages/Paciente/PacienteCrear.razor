@@ -5,88 +5,226 @@
 @rendermode InteractiveAuto
 
 
-<h3>Crear Nuevo Paciente</h3>
+<div class="crear-paciente-page">
 
-@if (cargando)
-{
-    <p>Cargando datos...</p>
-}
-else
-{
-    <EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="CrearPacienteForm">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    <h1>Crear Paciente</h1>
 
-        <h5>Datos Personales</h5>
-        <div class="form-group">
-            <label>Nombre Completo</label>
-            <InputText class="form-control" @bind-Value="modelo.Nombre"/>
-            <ValidationMessage For="@(() => modelo.Nombre)" />
+    @if (cargando)
+    {
+        <div class="crear-loading">
+            Cargando datos...
         </div>
+    }
+    else
+    {
+        <EditForm Model="@modelo"
+                  OnValidSubmit="Grabar"
+                  FormName="CrearPacienteForm"
+                  class="paciente-form">
 
-        <div class="form-group">
-            <label>DNI</label>
-            <InputText class="form-control" @bind-Value="modelo.DNI" />
-            <ValidationMessage For="@(() => modelo.DNI)" />
-        </div>
+            <DataAnnotationsValidator />
 
-        <div class="form-group">
-            <label>Número de Afiliado</label>
-            <InputNumber class="form-control" @bind-Value="modelo.NumeroAfiliado" />
-            <ValidationMessage For="@(() => modelo.NumeroAfiliado)" />
-        </div>
+            <ValidationSummary class="validation-summary" />
 
-        <div class="form-group">
-            <label>Teléfono</label>
-            <InputText class="form-control" @bind-Value="modelo.Telefono" />
-            <ValidationMessage For="@(() => modelo.Telefono)" />
-        </div>
+            <!-- =========================================
+                 01 - INFORMACIÓN PERSONAL
+            ========================================== -->
 
-        <div class="form-group">
-            <label>Domicilio</label>
-            <InputText class="form-control" @bind-Value="modelo.Domicilio"/>
-            <ValidationMessage For="@(() => modelo.Domicilio)" />
-        </div>
+            <section class="form-section">
 
-        <div class="form-group">
-            <label for="obraSocial">Obra Social</label>
-            <InputSelect id="obraSocial" class="form-control" @bind-Value="modelo.TipoObraSocialId">
-                <ValidationMessage For="@(() => modelo.TipoObraSocialId)" />
-                <option value="0">-- Seleccione una obra social --</option>
-                @if (tiposObraSocial != null)
-                {
-                    @foreach (var obra in tiposObraSocial)
-                    {
-                        <option value="@obra.Id">@obra.Tipo</option>
-                    }
-                }
-            </InputSelect>
-        </div>
+                <div class="section-title">
+                    <span class="section-number">01</span>
+                    <span>Información Personal</span>
+                </div>
 
-        <div class="form-group">
-            <label for="diagnostico">Diagnóstico</label>
-            <InputSelect id="diagnostico" class="form-control" @bind-Value="modelo.TipoDiagnosticoId">
-                <option value="0">-- Seleccione un diagnóstico --</option>
-                @if (tiposDiagnostico != null)
-                {
-                    @foreach (var diag in tiposDiagnostico)
-                    {
-                        <option value="@diag.Id">@diag.Tipo</option>
-                    }
-                }
-            </InputSelect>
-        </div>
+                <div class="form-grid form-grid-2">
+
+                    <div class="field-group">
+                        <label>Nombre completo</label>
+
+                        <InputText class="form-input"
+                                   @bind-Value="modelo.Nombre"
+                                   placeholder="Insertar nombre" />
+
+                        <ValidationMessage For="@(() => modelo.Nombre)"
+                                           class="validation-message" />
+                    </div>
+
+                    <div class="field-group">
+                        <label>DNI</label>
+
+                        <InputText class="form-input"
+                                   @bind-Value="modelo.DNI"
+                                   placeholder="Insertar DNI" />
+
+                        <ValidationMessage For="@(() => modelo.DNI)"
+                                           class="validation-message" />
+                    </div>
+
+                </div>
+
+            </section>
 
 
+            <!-- =========================================
+                 02 - INFORMACIÓN MÉDICA
+            ========================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <span class="section-number">02</span>
+                    <span>Información Médica / Administrativa</span>
+                </div>
+
+                <div class="form-grid form-grid-3">
+
+                    <div class="field-group">
+
+                        <label for="obraSocial">
+                            Obra Social / Prepaga
+                        </label>
+
+                        <InputSelect id="obraSocial"
+                                     class="form-input"
+                                     @bind-Value="modelo.TipoObraSocialId">
+
+                            <option value="0">
+                                Seleccione obra social
+                            </option>
+
+                            @foreach (var obra in tiposObraSocial)
+                            {
+                                <option value="@obra.Id">
+                                    @obra.Tipo
+                                </option>
+                            }
+
+                        </InputSelect>
+
+                        <ValidationMessage For="@(() => modelo.TipoObraSocialId)"
+                                           class="validation-message" />
+
+                    </div>
 
 
+                    <div class="field-group">
+
+                        <label>Nro. Afiliado</label>
+
+                        <InputNumber class="form-input"
+                                     @bind-Value="modelo.NumeroAfiliado"
+                                     placeholder="Insertar nro. afiliado" />
+
+                        <ValidationMessage For="@(() => modelo.NumeroAfiliado)"
+                                           class="validation-message" />
+
+                    </div>
 
 
-        <br />
-        <button class="btn btn-primary" type="submit">Guardar Paciente</button>
-        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-    </EditForm>
-}
+                    <div class="field-group">
+
+                        <label for="diagnostico">
+                            Diagnóstico / Motivo de Consulta
+                        </label>
+
+                        <InputSelect id="diagnostico"
+                                     class="form-input"
+                                     @bind-Value="modelo.TipoDiagnosticoId">
+
+                            <option value="0">
+                                Seleccione diagnóstico
+                            </option>
+
+                            @foreach (var diag in tiposDiagnostico)
+                            {
+                                <option value="@diag.Id">
+                                    @diag.Tipo
+                                </option>
+                            }
+
+                        </InputSelect>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================================
+                 03 - DATOS DE CONTACTO
+            ========================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <span class="section-number">03</span>
+                    <span>Datos de Contacto</span>
+                </div>
+
+                <div class="form-grid form-grid-2">
+
+                    <div class="field-group">
+
+                        <label>Teléfono</label>
+
+                        <InputText class="form-input"
+                                   @bind-Value="modelo.Telefono"
+                                   placeholder="Insertar teléfono" />
+
+                        <ValidationMessage For="@(() => modelo.Telefono)"
+                                           class="validation-message" />
+
+                    </div>
+
+
+                    <div class="field-group">
+
+                        <label>Domicilio</label>
+
+                        <InputText class="form-input"
+                                   @bind-Value="modelo.Domicilio"
+                                   placeholder="Insertar domicilio" />
+
+                        <ValidationMessage For="@(() => modelo.Domicilio)"
+                                           class="validation-message" />
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================================
+                 BOTONES
+            ========================================== -->
+
+            <div class="form-actions">
+
+                <button type="button"
+                        class="cancel-button"
+                        @onclick="Cancelar">
+                    Cancelar
+                </button>
+
+                <button type="submit"
+                        class="save-button">
+                    Guardar Paciente
+                </button>
+
+            </div>
+
+        </EditForm>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <p class="form-message">@Mensaje</p>
+    }
+
+</div>
 
 <p>@Mensaje</p>
 

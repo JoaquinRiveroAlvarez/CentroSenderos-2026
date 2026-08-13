@@ -1,0 +1,278 @@
+/* CSS for PacienteCrear component */
+/* ===========================================
+   PÁGINA
+=========================================== */
+
+.crear-paciente-page {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+    .crear-paciente-page h1 {
+        margin: 0 0 20px;
+        color: #556f4f;
+        font-size: 28px;
+        font-weight: 500;
+    }
+
+
+/* ===========================================
+   FORMULARIO PRINCIPAL
+=========================================== */
+
+.paciente-form {
+    width: 100%;
+    padding: 22px 24px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #e4e1dc;
+    border-radius: 22px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+}
+
+
+/* ===========================================
+   SECCIONES
+=========================================== */
+
+.form-section {
+    margin-bottom: 26px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    color: #9b7163;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+
+/* Número 01, 02, 03 */
+
+.section-number {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #f8e8df;
+    border-radius: 50%;
+    color: #9a6553;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+
+/* ===========================================
+   GRILLAS
+=========================================== */
+
+.form-grid {
+    display: grid;
+    gap: 18px;
+}
+
+.form-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.form-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+
+/* ===========================================
+   GRUPOS DE CAMPOS
+=========================================== */
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+    .field-group label {
+        margin: 0 0 7px 6px;
+        color: #656565;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+
+/* ===========================================
+   INPUTS / SELECTS
+=========================================== */
+
+::deep .form-input {
+    width: 100%;
+    height: 42px;
+    box-sizing: border-box;
+    padding: 0 16px;
+    background: #ffffff;
+    border: 1px solid #d9ddd6;
+    border-radius: 22px;
+    color: #444444;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+
+    /* Placeholder */
+
+    ::deep .form-input::placeholder {
+        color: #999999;
+        opacity: 1;
+    }
+
+
+    /* Focus */
+
+    ::deep .form-input:focus {
+        background: #ffffff;
+        border-color: #789175;
+        box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
+    }
+
+
+/* Select */
+
+::deep select.form-input {
+    cursor: pointer;
+}
+
+
+/* ===========================================
+   BOTONES
+=========================================== */
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+
+/* Cancelar */
+
+.cancel-button {
+    min-width: 120px;
+    height: 42px;
+    padding: 0 22px;
+    background: #ffffff;
+    border: 1px solid #9d9d96;
+    border-radius: 22px;
+    color: #555555;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+    .cancel-button:hover {
+        background: #f5f5f3;
+        border-color: #777770;
+    }
+
+
+/* Guardar */
+
+.save-button {
+    min-width: 150px;
+    height: 42px;
+    padding: 0 24px;
+    background: #647b5b;
+    border: none;
+    border-radius: 22px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+    .save-button:hover {
+        background: #52694a;
+    }
+
+    .save-button:active {
+        transform: scale(0.98);
+    }
+
+
+/* ===========================================
+   VALIDACIONES
+=========================================== */
+
+.validation-summary {
+    margin-bottom: 18px;
+    color: #b54b43;
+    font-size: 12px;
+}
+
+::deep .validation-message {
+    margin: 5px 0 0 6px;
+    color: #b54b43;
+    font-size: 10px;
+}
+
+
+/* ===========================================
+   MENSAJES
+=========================================== */
+
+.form-message {
+    margin-top: 12px;
+    color: #60745a;
+    font-size: 12px;
+}
+
+.crear-loading {
+    padding: 30px;
+    color: #657461;
+    font-size: 13px;
+}
+
+
+/* ===========================================
+   RESPONSIVE
+=========================================== */
+
+@media (max-width: 900px) {
+
+    .form-grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+@media (max-width: 650px) {
+
+    .paciente-form {
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    .form-grid-2,
+    .form-grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .cancel-button,
+    .save-button {
+        width: 100%;
+    }
+}
