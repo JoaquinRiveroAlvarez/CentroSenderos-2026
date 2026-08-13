@@ -5,93 +5,210 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Editar Paciente</h3>
+<div class="editar-paciente-page">
 
-@if (cargando)
-{
-    <p>Cargando datos del paciente...</p>
-}
-else if (modelo == null)
-{
-    <p>No se encontró el paciente.</p>
-}
-else
-{
-    <EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="EditarPacienteForm">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    <h1>Editar Paciente</h1>
 
-        <h5>Datos Personales</h5>
-        <div class="form-group">
-            <label>ID</label>
-            <InputNumber class="form-control" @bind-Value="modelo.Id" disabled />
+    @if (cargando)
+    {
+        <div class="editar-loading">
+            Cargando datos del paciente...
         </div>
-
-        <div class="form-group">
-            <label>Nombre Completo</label>
-            <InputText class="form-control" @bind-Value="modelo.Nombre" />
-            <ValidationMessage For="@(() => modelo.Nombre)" />
+    }
+    else if (modelo == null)
+    {
+        <div class="editar-mensaje">
+            No se encontró el paciente.
         </div>
+    }
+    else
+    {
+        <EditForm Model="@modelo"
+                  OnValidSubmit="Grabar"
+                  FormName="EditarPacienteForm"
+                  class="paciente-form">
 
-        <div class="form-group">
-            <label>DNI</label>
-            <InputText class="form-control" @bind-Value="modelo.DNI" />
-            <ValidationMessage For="@(() => modelo.DNI)" />
-        </div>
+            <DataAnnotationsValidator />
 
-        <div class="form-group">
-            <label>Número de Afiliado</label>
-            <InputNumber class="form-control" @bind-Value="modelo.NumeroAfiliado" />
-            <ValidationMessage For="@(() => modelo.NumeroAfiliado)" />
-        </div>
+            <ValidationSummary class="validation-summary" />
 
-        <div class="form-group">
-            <label>Teléfono</label>
-            <InputText class="form-control" @bind-Value="modelo.Telefono" />
-        </div>
+            <!-- =========================================
+                 01 - INFORMACIÓN PERSONAL
+            ========================================== -->
 
-        <div class="form-group">
-            <label>Domicilio</label>
-            <InputText class="form-control" @bind-Value="modelo.Domicilio" />
-        </div>
+            <section class="form-section">
 
-        <h5>Datos Médicos</h5>
-        <div class="form-group">
-            <label>Obra Social</label>
-            <InputSelect class="form-control" @bind-Value="modelo.TipoObraSocialId">
-                @foreach (var obra in tiposObraSocial)
-                {
-                    <option value="@obra.Id">@obra.Tipo</option>
-                }
-            </InputSelect>
-        </div>
+                <div class="section-title">
+                    <span class="section-number">01</span>
+                    <span>Información Personal</span>
+                </div>
 
-        <div class="form-group">
-            <label>Diagnóstico</label>
-            <InputSelect class="form-control" @bind-Value="modelo.TipoDiagnosticoId">
-                @foreach (var diag in tiposDiagnostico)
-                {
-                    <option value="@diag.Id">@diag.Tipo</option>
-                }
-            </InputSelect>
-        </div>
-@* 
-        <div class="form-group">
-            <label>Estado Registro</label>
-            <InputSelect class="form-control" @bind-Value="modelo.EstadoRegistro">
-                @foreach (EnumEstadoRegistro estado in Enum.GetValues(typeof(EnumEstadoRegistro)))
-                {
-                    <option value="@estado">@estado</option>
-                }
-            </InputSelect>
-        </div> *@
+                <div class="form-grid form-grid-2">
 
-        <br />
-        <button class="btn btn-primary" type="submit">Guardar Cambios</button>
-        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
-    </EditForm>
-}
+                    <div class="field-group">
+                        <label>Nombre completo</label>
+
+                        <InputText class="form-input"
+                                   @bind-Value="modelo.Nombre"
+                                   placeholder="Nombre completo" />
+
+                        <ValidationMessage For="@(() => modelo.Nombre)"
+                                           class="validation-message" />
+                    </div>
+
+                    <div class="field-group">
+                        <label>DNI</label>
+
+                        <InputText class="form-input"
+                                   @bind-Value="modelo.DNI"
+                                   placeholder="DNI" />
+
+                        <ValidationMessage For="@(() => modelo.DNI)"
+                                           class="validation-message" />
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================================
+                 02 - INFORMACIÓN MÉDICA
+            ========================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <span class="section-number">02</span>
+                    <span>Información Médica / Administrativa</span>
+                </div>
+
+                <div class="form-grid form-grid-3">
+
+                    <div class="field-group">
+                        <label>Obra Social / Prepaga</label>
+
+                        <InputSelect class="form-input"
+                                     @bind-Value="modelo.TipoObraSocialId">
+
+                            @foreach (var obra in tiposObraSocial)
+                            {
+                                <option value="@obra.Id">
+                                    @obra.Tipo
+                                </option>
+                            }
+
+                        </InputSelect>
+                    </div>
+
+
+                    <div class="field-group">
+                        <label>Nro. Afiliado</label>
+
+                        <InputNumber class="form-input"
+                                     @bind-Value="modelo.NumeroAfiliado"
+                                     placeholder="Nro. afiliado" />
+
+                        <ValidationMessage For="@(() => modelo.NumeroAfiliado)"
+                                           class="validation-message" />
+                    </div>
+
+
+                    <div class="field-group">
+                        <label>Diagnóstico / Motivo de Consulta</label>
+
+                        <InputSelect class="form-input"
+                                     @bind-Value="modelo.TipoDiagnosticoId">
+
+                            @foreach (var diag in tiposDiagnostico)
+                            {
+                                <option value="@diag.Id">
+                                    @diag.Tipo
+                                </option>
+                            }
+
+                        </InputSelect>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================================
+                 03 - DATOS DE CONTACTO
+            ========================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <span class="section-number">03</span>
+                    <span>Datos de Contacto</span>
+                </div>
+
+                <div class="form-grid form-grid-2">
+
+                    <div class="field-group">
+                        <label>Teléfono</label>
+
+                        <InputText class="form-input"
+                                   @bind-Value="modelo.Telefono"
+                                   placeholder="Teléfono" />
+                    </div>
+
+                    <div class="field-group">
+                        <label>Domicilio</label>
+
+                        <InputText class="form-input"
+                                   @bind-Value="modelo.Domicilio"
+                                   placeholder="Domicilio" />
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================================
+                 ACCIONES
+            ========================================== -->
+
+            <div class="form-actions">
+
+                <button type="button"
+                        class="delete-button"
+                        @onclick="Eliminar">
+                    Eliminar Paciente
+                </button>
+
+                <div class="form-actions-right">
+
+                    <button type="button"
+                            class="cancel-button"
+                            @onclick="Cancelar">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="save-button">
+                        Guardar Paciente
+                    </button>
+
+                </div>
+
+            </div>
+
+        </EditForm>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <p class="editar-mensaje">
+            @Mensaje
+        </p>
+    }
+
+</div>
 
 <p>@Mensaje</p>
 
