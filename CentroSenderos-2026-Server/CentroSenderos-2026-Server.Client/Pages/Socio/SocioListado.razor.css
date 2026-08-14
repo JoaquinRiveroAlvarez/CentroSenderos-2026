@@ -1,0 +1,875 @@
+/* CSS for SocioListado component */
+.socios-page {
+    width: 100%;
+    padding: 32px 36px 40px;
+    color: #343934;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 22px;
+}
+
+
+.header-title h1 {
+    margin: 0;
+    color: #556f4f;
+    font-size: 26px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+
+.header-title p {
+    margin: 7px 0 0;
+    color: #8f918c;
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   ACCIONES
+===================================================== */
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+
+/* =====================================================
+   BUSCADOR
+===================================================== */
+
+.search-box {
+    width: 275px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 14px;
+    background: #fffdf9;
+    border: 1px solid #e3dfd9;
+    border-radius: 22px;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+
+    .search-box:focus-within {
+        border-color: #8a9c83;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+    }
+
+
+    .search-box i {
+        color: #92968f;
+        font-size: 14px;
+    }
+
+
+    .search-box input {
+        width: 100%;
+        background: transparent;
+        color: #454a43;
+        border: none;
+        outline: none;
+        font-family: inherit;
+        font-size: 14px;
+    }
+
+
+        .search-box input::placeholder {
+            color: #aaa9a5;
+        }
+
+
+/* =====================================================
+   BOTÓN NUEVO
+===================================================== */
+
+.btn-nuevo,
+.btn-nuevo-estado {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 19px;
+    background: #647b5b;
+    color: white;
+    border: none;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(61, 84, 54, .10);
+    transition: background .2s ease, transform .15s ease, box-shadow .2s ease;
+}
+
+
+    .btn-nuevo:hover,
+    .btn-nuevo-estado:hover {
+        background: #556f4f;
+        box-shadow: 0 5px 14px rgba(61, 84, 54, .15);
+    }
+
+
+    .btn-nuevo:active,
+    .btn-nuevo-estado:active {
+        transform: scale(.98);
+    }
+
+
+/* =====================================================
+   LISTADO
+===================================================== */
+
+.list-card {
+    overflow: hidden;
+    background: #fffdf9;
+    border: 1px solid #e9e5de;
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(56, 54, 48, .05);
+}
+
+
+.list-header {
+    min-height: 48px;
+    display: grid;
+    grid-template-columns: minmax(260px, .9fr) minmax(360px, 1.6fr) 35px;
+    align-items: center;
+    gap: 20px;
+    padding: 0 24px;
+    color: #969993;
+    border-bottom: 1px solid #ece9e3;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .05em;
+}
+
+
+/* =====================================================
+   FILA
+===================================================== */
+
+.socio-row {
+    min-height: 74px;
+    display: grid;
+    grid-template-columns: minmax(260px, .9fr) minmax(360px, 1.6fr) 35px;
+    align-items: center;
+    gap: 20px;
+    padding: 0 24px;
+    border-bottom: 1px solid #f0ede8;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+
+
+    .socio-row:last-child {
+        border-bottom: none;
+    }
+
+
+    .socio-row:hover {
+        background: #f5f7f2;
+    }
+
+
+        .socio-row:hover .socio-action i {
+            color: #556f4f;
+            transform: translateX(3px);
+        }
+
+
+/* =====================================================
+   PROFESIONAL
+===================================================== */
+
+.socio-info {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+
+.socio-avatar {
+    width: 39px;
+    height: 39px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #dfe5dc;
+    color: #556f4f;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+.socio-nombre {
+    overflow: hidden;
+    color: #383d36;
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   OBSERVACIÓN
+===================================================== */
+
+.socio-observacion {
+    overflow: hidden;
+    color: #72766f;
+    font-size: 14px;
+    line-height: 1.45;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.sin-dato {
+    color: #aaa9a4;
+    font-style: italic;
+}
+
+
+/* =====================================================
+   FLECHA
+===================================================== */
+
+.socio-action {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+
+    .socio-action i {
+        color: #aaada7;
+        font-size: 15px;
+        transition: color .15s ease, transform .15s ease;
+    }
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.list-footer {
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    background: #fdfbf8;
+    color: #999b96;
+    border-top: 1px solid #eeebe5;
+    font-size: 13px;
+}
+
+
+/* =====================================================
+   ESTADOS
+===================================================== */
+
+.estado-card {
+    min-height: 310px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 30px;
+    background: #fffdf9;
+    border: 1px solid #e9e5de;
+    border-radius: 18px;
+    color: #777c74;
+    text-align: center;
+    box-shadow: 0 8px 28px rgba(56, 54, 48, .04);
+}
+
+
+.estado-icon {
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+    background: #dfe5dc;
+    color: #556f4f;
+    border-radius: 50%;
+    font-size: 22px;
+}
+
+
+.estado-card h2 {
+    margin: 0;
+    color: #454a43;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+
+.estado-card p {
+    max-width: 420px;
+    margin: 0 0 10px;
+    color: #92958f;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+
+.estado-card .spinner-border {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 5px;
+    color: #647b5b;
+}
+
+
+/* =====================================================
+   LIMPIAR BÚSQUEDA
+===================================================== */
+
+.btn-limpiar-busqueda {
+    height: 40px;
+    padding: 0 18px;
+    background: #efedeb;
+    color: #5d625b;
+    border: 1px solid #dedbd6;
+    border-radius: 20px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease;
+}
+
+
+    .btn-limpiar-busqueda:hover {
+        background: #e5e2de;
+    }
+
+
+/* =====================================================
+   ERROR
+===================================================== */
+
+.mensaje-error {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 16px;
+    padding: 12px 15px;
+    background: #fff0ee;
+    color: #a8443d;
+    border: 1px solid #f1d5d1;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 900px) {
+
+    .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+
+    .header-actions {
+        width: 100%;
+    }
+
+
+    .search-box {
+        flex: 1;
+        width: auto;
+    }
+
+
+    .list-card {
+        overflow-x: auto;
+    }
+
+
+    .list-header,
+    .socio-row {
+        min-width: 760px;
+    }
+}
+
+
+@media (max-width: 620px) {
+
+    .socios-page {
+        padding: 22px 15px 30px;
+
+        .socios-page {
+            width: 100%;
+            padding: 32px 36px 40px;
+            color: #343934;
+        }
+        /* =====================================================
+   HEADER
+===================================================== */
+
+        .page-header {
+            width: 100%;
+            max-width: 760px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 20px;
+            margin: 0 auto 22px;
+        }
+
+
+        .header-title h1 {
+            margin: 0;
+            color: #556f4f;
+            font-size: 26px;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+
+        .header-title p {
+            margin: 7px 0 0;
+            color: #8f918c;
+            font-size: 14px;
+        }
+        /* =====================================================
+   ACCIONES
+===================================================== */
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        /* =====================================================
+   BUSCADOR
+===================================================== */
+
+        .search-box {
+            width: 210px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 0 14px;
+            background: #fffdf9;
+            border: 1px solid #e3dfd9;
+            border-radius: 22px;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+
+
+            .search-box:focus-within {
+                border-color: #8a9c83;
+                box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+            }
+
+
+            .search-box i {
+                flex-shrink: 0;
+                color: #92968f;
+                font-size: 14px;
+            }
+
+
+            .search-box input {
+                width: 100%;
+                min-width: 0;
+                background: transparent;
+                color: #454a43;
+                border: none;
+                outline: none;
+                font-family: inherit;
+                font-size: 14px;
+            }
+
+
+                .search-box input::placeholder {
+                    color: #aaa9a5;
+                }
+        /* =====================================================
+   BOTÓN NUEVO
+===================================================== */
+
+        .btn-nuevo,
+        .btn-nuevo-estado {
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 0 17px;
+            background: #647b5b;
+            color: white;
+            border: none;
+            border-radius: 22px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(61, 84, 54, .10);
+            transition: background .2s ease, transform .15s ease, box-shadow .2s ease;
+        }
+
+
+            .btn-nuevo:hover,
+            .btn-nuevo-estado:hover {
+                background: #556f4f;
+                box-shadow: 0 5px 14px rgba(61, 84, 54, .15);
+            }
+
+
+            .btn-nuevo:active,
+            .btn-nuevo-estado:active {
+                transform: scale(.98);
+            }
+        /* =====================================================
+   CARD LISTADO
+===================================================== */
+
+        .list-card {
+            width: 100%;
+            max-width: 760px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #fffdf9;
+            border: 1px solid #e9e5de;
+            border-radius: 18px;
+            box-shadow: 0 8px 28px rgba(56, 54, 48, .05);
+        }
+        /* =====================================================
+   ENCABEZADO LISTA
+===================================================== */
+
+        .list-header {
+            min-height: 46px;
+            display: grid;
+            grid-template-columns: minmax(230px, .85fr) minmax(280px, 1.15fr) 28px;
+            align-items: center;
+            gap: 18px;
+            padding: 0 22px;
+            color: #969993;
+            border-bottom: 1px solid #ece9e3;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .05em;
+        }
+        /* =====================================================
+   FILAS
+===================================================== */
+
+        .socio-row {
+            min-height: 70px;
+            display: grid;
+            grid-template-columns: minmax(230px, .85fr) minmax(280px, 1.15fr) 28px;
+            align-items: center;
+            gap: 18px;
+            padding: 0 22px;
+            border-bottom: 1px solid #f0ede8;
+            cursor: pointer;
+            transition: background .15s ease;
+        }
+
+
+            .socio-row:last-child {
+                border-bottom: none;
+            }
+
+
+            .socio-row:hover {
+                background: #f5f7f2;
+            }
+
+
+                .socio-row:hover .socio-action i {
+                    color: #556f4f;
+                    transform: translateX(3px);
+                }
+        /* =====================================================
+   PROFESIONAL
+===================================================== */
+
+        .socio-info {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+
+        .socio-avatar {
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #dfe5dc;
+            color: #556f4f;
+            border-radius: 50%;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+
+        .socio-nombre {
+            overflow: hidden;
+            color: #383d36;
+            font-size: 14px;
+            font-weight: 600;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        /* =====================================================
+   OBSERVACIÓN
+===================================================== */
+
+        .socio-observacion {
+            overflow: hidden;
+            color: #72766f;
+            font-size: 14px;
+            line-height: 1.45;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+
+        .sin-dato {
+            color: #aaa9a4;
+            font-style: italic;
+        }
+        /* =====================================================
+   FLECHA
+===================================================== */
+
+        .socio-action {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+
+            .socio-action i {
+                color: #aaada7;
+                font-size: 15px;
+                transition: color .15s ease, transform .15s ease;
+            }
+        /* =====================================================
+   FOOTER
+===================================================== */
+
+        .list-footer {
+            min-height: 46px;
+            display: flex;
+            align-items: center;
+            padding: 0 22px;
+            background: #fdfbf8;
+            color: #999b96;
+            border-top: 1px solid #eeebe5;
+            font-size: 13px;
+        }
+        /* =====================================================
+   ESTADOS VACÍOS / CARGANDO
+===================================================== */
+
+        .estado-card {
+            width: 100%;
+            max-width: 760px;
+            min-height: 270px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 0 auto;
+            padding: 30px;
+            background: #fffdf9;
+            border: 1px solid #e9e5de;
+            border-radius: 18px;
+            color: #777c74;
+            text-align: center;
+            box-shadow: 0 8px 28px rgba(56, 54, 48, .04);
+        }
+
+
+        .estado-icon {
+            width: 54px;
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            background: #dfe5dc;
+            color: #556f4f;
+            border-radius: 50%;
+            font-size: 22px;
+        }
+
+
+        .estado-card h2 {
+            margin: 0;
+            color: #454a43;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+
+        .estado-card p {
+            max-width: 420px;
+            margin: 0 0 10px;
+            color: #92958f;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+
+        .estado-card .spinner-border {
+            width: 28px;
+            height: 28px;
+            margin-bottom: 5px;
+            color: #647b5b;
+        }
+        /* =====================================================
+   LIMPIAR BÚSQUEDA
+===================================================== */
+
+        .btn-limpiar-busqueda {
+            height: 40px;
+            padding: 0 18px;
+            background: #efedeb;
+            color: #5d625b;
+            border: 1px solid #dedbd6;
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background .2s ease;
+        }
+
+
+            .btn-limpiar-busqueda:hover {
+                background: #e5e2de;
+            }
+        /* =====================================================
+   ERROR
+===================================================== */
+
+        .mensaje-error {
+            width: 100%;
+            max-width: 760px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin: 16px auto 0;
+            padding: 12px 15px;
+            background: #fff0ee;
+            color: #a8443d;
+            border: 1px solid #f1d5d1;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        /* =====================================================
+   RESPONSIVE
+===================================================== */
+
+        @media (max-width: 850px) {
+
+            .page-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+
+            .header-actions {
+                width: 100%;
+            }
+
+
+            .search-box {
+                flex: 1;
+                width: auto;
+            }
+        }
+
+
+        @media (max-width: 620px) {
+
+            .socios-page {
+                padding: 22px 15px 30px;
+            }
+
+
+            .header-title h1 {
+                font-size: 24px;
+            }
+
+
+            .header-actions {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+
+            .search-box,
+            .btn-nuevo {
+                width: 100%;
+            }
+
+
+            .list-card {
+                overflow-x: auto;
+            }
+
+
+            .list-header,
+            .socio-row {
+                min-width: 620px;
+            }
+        }
+    }
+
+
+    .header-title h1 {
+        font-size: 24px;
+    }
+
+
+    .header-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+
+    .search-box,
+    .btn-nuevo {
+        width: 100%;
+    }
+}

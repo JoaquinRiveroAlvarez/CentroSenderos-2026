@@ -4,67 +4,310 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Listado de Socios</h3>
+<div class="socios-page">
 
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="IrACrear">Nuevo Socio</button>
+    <div class="page-header">
+
+        <div class="header-title">
+            <h1>Socios</h1>
+            <p>Gestioná los socios registrados en Senderos.</p>
+        </div>
+
+        <div class="header-actions">
+
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+
+                <input type="text"
+                       placeholder="Buscar socio..."
+                       @bind="textoBusqueda"
+                       @bind:event="oninput" />
+            </div>
+
+            <button type="button"
+                    class="btn-nuevo"
+                    @onclick="IrACrear">
+
+                <i class="bi bi-person-plus"></i>
+                <span>Nuevo Socio</span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    @if (cargando)
+    {
+        <div class="estado-card">
+
+            <div class="spinner-border"
+                 role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+
+            <span>Cargando socios...</span>
+
+        </div>
+    }
+    else if (lista.Count == 0 && string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="estado-card">
+
+            <div class="estado-icon">
+                <i class="bi bi-people"></i>
+            </div>
+
+            <h2>No hay socios registrados</h2>
+
+            <p>
+                Todavía no se registraron socios.
+                Podés crear el primero desde esta pantalla.
+            </p>
+
+            <button type="button"
+                    class="btn-nuevo-estado"
+                    @onclick="IrACrear">
+
+                <i class="bi bi-person-plus"></i>
+                <span>Nuevo Socio</span>
+
+            </button>
+
+        </div>
+    }
+    else if (lista.Count > 0 && !SociosFiltrados.Any())
+    {
+        <div class="estado-card">
+
+            <div class="estado-icon">
+                <i class="bi bi-search"></i>
+            </div>
+
+            <h2>No encontramos resultados</h2>
+
+            <p>
+                No hay socios que coincidan con
+                "<strong>@textoBusqueda</strong>".
+            </p>
+
+            <button type="button"
+                    class="btn-limpiar-busqueda"
+                    @onclick="LimpiarBusqueda">
+                Limpiar búsqueda
+            </button>
+
+        </div>
+    }
+    else if (lista.Count > 0)
+    {
+        <div class="list-card">
+
+            <div class="list-header">
+                <div>PROFESIONAL</div>
+                <div>OBSERVACIÓN</div>
+                <div></div>
+            </div>
+
+
+            <div class="list-body">
+
+                @foreach (var item in SociosFiltrados)
+                {
+                    <div class="socio-row"
+                         @onclick="() => IrAEditar(item.Id)">
+
+                        <div class="socio-info">
+
+                            <div class="socio-avatar">
+                                @ObtenerIniciales(item.Profesional)
+                            </div>
+
+                            <div class="socio-nombre">
+                                @(string.IsNullOrWhiteSpace(item.Profesional)
+                                    ? "Sin profesional"
+                                    : item.Profesional)
+                            </div>
+
+                        </div>
+
+
+                        <div class="socio-observacion">
+
+                            @if (string.IsNullOrWhiteSpace(item.Observacion))
+                            {
+                                <span class="sin-dato">
+                                    Sin observación
+                                </span>
+                            }
+                            else
+                            {
+                                @item.Observacion
+                            }
+
+                        </div>
+
+
+                        <div class="socio-action">
+                            <i class="bi bi-chevron-right"></i>
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+
+            <div class="list-footer">
+
+                <span>
+                    Mostrando
+                    <strong>@SociosFiltrados.Count()</strong>
+                    de
+                    <strong>@lista.Count</strong>
+                    @(lista.Count == 1 ? "socio" : "socios")
+                </span>
+
+            </div>
+
+        </div>
+    }
+
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="mensaje-error">
+
+            <i class="bi bi-exclamation-circle"></i>
+
+            <span>@Mensaje</span>
+
+        </div>
+    }
+
 </div>
 
-@if (cargando)
-{
-    <p>Cargando registros...</p>
-}
-else if (lista == null || lista.Count == 0)
-{
-    <p>No hay socios registrados.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>Profesional</th>
-                <th>Observación</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in lista)
-            {
-                <tr style="cursor:pointer" @onclick="() => IrAEditar(item.Id)">
-                    <td>@item.Profesional</td>
-                    <td>@item.Observacion</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
-<p>@Mensaje</p>
 
 @code {
-    private List<SocioListadoDTO> lista = new();
-    private bool cargando = true;
-    private string Mensaje = "";
 
-    protected override async Task OnInitializedAsync() => await Cargar();
+    private List<SocioListadoDTO> lista = new();
+
+    private bool cargando = true;
+
+    private string Mensaje = string.Empty;
+
+    private string textoBusqueda = string.Empty;
+
+
+    private IEnumerable<SocioListadoDTO> SociosFiltrados
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(textoBusqueda))
+            {
+                return lista;
+            }
+
+            var busqueda = textoBusqueda.Trim();
+
+            return lista.Where(item =>
+                ContieneTexto(item.Profesional, busqueda) ||
+                ContieneTexto(item.Observacion, busqueda)
+            );
+        }
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargar();
+    }
+
 
     private async Task Cargar()
     {
-        var resp = await Http.Get<List<SocioListadoDTO>>("api/socio/ListaSocio");
-        lista = resp.Error ? new() : resp.Respuesta ?? new();
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
-        await Task.Delay(200);
+        cargando = true;
+        Mensaje = string.Empty;
+
+        var resp =
+            await Http.Get<List<SocioListadoDTO>>(
+                "api/socio/ListaSocio"
+            );
+
+        if (resp.Error)
+        {
+            lista = new();
+            Mensaje = resp.ObtenerError();
+        }
+        else
+        {
+            lista = resp.Respuesta ?? new();
+        }
+
         cargando = false;
     }
 
+
+    private static bool ContieneTexto(
+        string? valor,
+        string busqueda)
+    {
+        return !string.IsNullOrWhiteSpace(valor)
+            && valor.Contains(
+                busqueda,
+                StringComparison.OrdinalIgnoreCase
+            );
+    }
+
+
+    private static string ObtenerIniciales(string? nombre)
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            return "S";
+        }
+
+        var partes =
+            nombre.Split(
+                ' ',
+                StringSplitOptions.RemoveEmptyEntries
+            );
+
+        if (partes.Length == 1)
+        {
+            return partes[0][0]
+                .ToString()
+                .ToUpper();
+        }
+
+        return string.Concat(
+                partes[0][0],
+                partes[1][0]
+            )
+            .ToUpper();
+    }
+
+
+    private void LimpiarBusqueda()
+    {
+        textoBusqueda = string.Empty;
+    }
+
+
     private void IrAEditar(int id)
     {
-        Nav.NavigateTo($"/socio/editar/{id}");
+        Nav.NavigateTo(
+            $"/socio/editar/{id}"
+        );
     }
+
 
     private void IrACrear()
     {
-        Nav.NavigateTo("/socio/crear");
+        Nav.NavigateTo(
+            "/socio/crear"
+        );
     }
-}
 
+}
