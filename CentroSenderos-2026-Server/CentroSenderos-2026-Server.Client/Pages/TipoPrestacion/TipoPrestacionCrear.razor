@@ -3,54 +3,186 @@
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
-<h3>Crear Tipo de Prestación</h3>
 
-<EditForm Model="@modelo" OnValidSubmit="Grabar">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<div class="prestacion-form-page">
 
-    <div class="form-group">
-        <label>Tipo</label>
-        <InputText class="form-control" @bind-Value="modelo.Tipo" />
+    <div class="prestacion-card">
+
+        <div class="card-header">
+
+            <div>
+                <h1>Nueva Prestación</h1>
+                <p>Complete los datos del tipo de prestación.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    title="Cerrar"
+                    @onclick="Cancelar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <EditForm Model="@modelo"
+                  OnValidSubmit="Grabar"
+                  class="prestacion-form">
+
+            <DataAnnotationsValidator />
+
+            <ValidationSummary class="validation-summary" />
+
+
+            <div class="form-grid">
+
+                <div class="field-group field-full">
+
+                    <label>TIPO DE PRESTACIÓN</label>
+
+                    <InputText class="senderos-input"
+                               @bind-Value="modelo.Tipo"
+                               placeholder="Ej: Psicología, Fonoaudiología, Kinesiología..." />
+
+                    <ValidationMessage For="@(() => modelo.Tipo)" />
+
+                </div>
+
+
+                <div class="field-group field-full">
+
+                    <label>DESCRIPCIÓN</label>
+
+                    <InputTextArea class="senderos-textarea"
+                                   @bind-Value="modelo.Descripcion"
+                                   placeholder="Ingrese una descripción de la prestación" />
+
+                    <ValidationMessage For="@(() => modelo.Descripcion)" />
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>CÓDIGO</label>
+
+                    <InputText class="senderos-input"
+                               @bind-Value="modelo.Cod"
+                               placeholder="Ej: PSI-001" />
+
+                    <ValidationMessage For="@(() => modelo.Cod)" />
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>MONTO POR SESIÓN</label>
+
+                    <div class="money-input-wrapper">
+
+                        <span class="money-symbol">$</span>
+
+                        <InputNumber class="senderos-input money-input"
+                                     @bind-Value="modelo.MontoSesion"
+                                     step="0.01" />
+
+                    </div>
+
+                    <ValidationMessage For="@(() => modelo.MontoSesion)" />
+
+                </div>
+
+            </div>
+
+
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <div class="form-message">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@Mensaje</span>
+                </div>
+            }
+
+
+            <div class="form-actions">
+
+                <button type="button"
+                        class="btn-cancelar"
+                        @onclick="Cancelar">
+                    Cancelar
+                </button>
+
+                <button type="submit"
+                        class="btn-guardar"
+                        disabled="@guardando">
+
+                    @if (guardando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Guardando...</span>
+                    }
+                    else
+                    {
+                        <span>Guardar</span>
+                    }
+
+                </button>
+
+            </div>
+
+        </EditForm>
+
     </div>
-    <div class="form-group">
-        <label>Descripción</label>
-        <InputText class="form-control" @bind-Value="modelo.Descripcion" />
-    </div>
 
-    <div class="form-group">
-        <label>Código</label>
-        <InputText class="form-control" @bind-Value="modelo.Cod" />
-    </div>
-    <div class="form-group">
-        <label>Monto Sesión</label>
-        <InputNumber class="form-control" @bind-Value="modelo.MontoSesion" />
-    </div>
+</div>
 
-    <button class="btn btn-primary" type="submit">Guardar</button>
-    <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-</EditForm>
-
-<p>@Mensaje</p>
 
 @code {
-    private TipoPrestacionDTO modelo = new TipoPrestacionDTO
+
+    private TipoPrestacionDTO modelo = new()
     {
         Tipo = string.Empty,
         Descripcion = string.Empty,
         Cod = string.Empty,
         MontoSesion = 0
     };
-    private string Mensaje = "";
+
+    private string Mensaje = string.Empty;
+
+    private bool guardando = false;
+
 
     private async Task Grabar()
     {
-        var resp = await Http.Post<TipoPrestacionDTO, int>("api/tipoprestacion", modelo);
-        Mensaje = resp.Error ? resp.ObtenerError() : "Guardado correctamente.";
-        if (!resp.Error) Nav.NavigateTo("/tipoprestacion", true);
+        guardando = true;
+        Mensaje = string.Empty;
+
+        var resp =
+            await Http.Post<TipoPrestacionDTO, int>(
+                "api/tipoprestacion",
+                modelo
+            );
+
+        guardando = false;
+
+        if (!resp.Error)
+        {
+            Nav.NavigateTo(
+                "/tipoprestacion",
+                true
+            );
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
     }
 
-    private void Cancelar() => Nav.NavigateTo("/tipoprestacion");
+
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/tipoprestacion");
+    }
+
 }
-
-
