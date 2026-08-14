@@ -4,110 +4,433 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Editar Profesional</h3>
+<div class="profesional-form-page">
 
-@if (cargando)
+    <div class="profesional-form-card">
+
+        <div class="form-card-header">
+
+            <div>
+                <h1>Editar Profesional</h1>
+                <p>Modifique la información del profesional.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    title="Cerrar"
+                    @onclick="Cancelar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        @if (cargando)
+        {
+            <div class="loading-state">
+
+                <div class="spinner-border"
+                     role="status">
+                </div>
+
+                <span>Cargando profesional...</span>
+
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@modelo"
+                      OnValidSubmit="Grabar"
+                      class="profesional-form">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+
+                @* =========================
+                   01 INFORMACIÓN PERSONAL
+                   ========================= *@
+
+                <section class="form-section">
+
+                    <div class="section-title">
+                        <span class="section-number">01</span>
+                        <span>INFORMACIÓN PERSONAL</span>
+                    </div>
+
+                    <div class="form-grid form-grid-personal">
+
+                        <div class="field-group">
+
+                            <label>NOMBRE COMPLETO</label>
+
+                            <InputText class="senderos-input"
+                                       @bind-Value="modelo.Nombre"
+                                       placeholder="Ingresar nombre completo" />
+
+                            <ValidationMessage For="@(() => modelo.Nombre)" />
+
+                        </div>
+
+
+                        <div class="field-group">
+
+                            <label>CUIT</label>
+
+                            <InputText class="senderos-input"
+                                       @bind-Value="modelo.Cuit"
+                                       placeholder="Ej: 20-12345678-9" />
+
+                            <ValidationMessage For="@(() => modelo.Cuit)" />
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                @* =========================
+                   02 INFORMACIÓN PROFESIONAL
+                   ========================= *@
+
+                <section class="form-section">
+
+                    <div class="section-title">
+                        <span class="section-number">02</span>
+                        <span>INFORMACIÓN PROFESIONAL</span>
+                    </div>
+
+
+                    <div class="form-grid form-grid-profesional">
+
+                        <div class="field-group">
+
+                            <label>ÁREA</label>
+
+                            <InputText class="senderos-input"
+                                       @bind-Value="modelo.Area"
+                                       placeholder="Ej: Psicología" />
+
+                            <ValidationMessage For="@(() => modelo.Area)" />
+
+                        </div>
+
+
+                        <div class="field-group">
+
+                            <label>M.P. (MATRÍCULA PROFESIONAL)</label>
+
+                            <InputText class="senderos-input"
+                                       @bind-Value="modelo.MP"
+                                       placeholder="Ingresar M.P." />
+
+                            <ValidationMessage For="@(() => modelo.MP)" />
+
+                        </div>
+
+
+                        <div class="field-group">
+
+                            <label>R.N.P.</label>
+
+                            <InputText class="senderos-input"
+                                       @bind-Value="modelo.RNP"
+                                       placeholder="Ingresar R.N.P." />
+
+                            <ValidationMessage For="@(() => modelo.RNP)" />
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                @* =========================
+                   03 DATOS DE CONTACTO
+                   ========================= *@
+
+                <section class="form-section">
+
+                    <div class="section-title">
+                        <span class="section-number">03</span>
+                        <span>DATOS DE CONTACTO</span>
+                    </div>
+
+
+                    <div class="form-grid form-grid-contacto">
+
+                        <div class="field-group">
+
+                            <label>TELÉFONO</label>
+
+                            <InputText class="senderos-input"
+                                       @bind-Value="modelo.Telefono"
+                                       placeholder="Ej: +54 351 1234567" />
+
+                            <ValidationMessage For="@(() => modelo.Telefono)" />
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+                        @Mensaje
+                    </div>
+                }
+
+
+                <div class="form-actions editar-actions">
+
+                    <button type="button"
+                            class="btn-eliminar"
+                            @onclick="AbrirConfirmacionEliminar">
+                        <i class="bi bi-trash3"></i>
+                        Eliminar Profesional
+                    </button>
+
+
+                    <div class="right-actions">
+
+                        <button type="button"
+                                class="btn-cancelar"
+                                @onclick="Cancelar">
+                            Cancelar
+                        </button>
+
+                        <button type="submit"
+                                class="btn-guardar"
+                                disabled="@guardando">
+
+                            @if (guardando)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                <span>Guardando...</span>
+                            }
+                            else
+                            {
+                                <span>Guardar Profesional</span>
+                            }
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </EditForm>
+        }
+
+    </div>
+
+</div>
+
+
+@if (mostrarConfirmacionEliminar)
 {
-    <p>Cargando...</p>
+    <div class="modal-overlay">
+
+        <div class="delete-modal">
+
+            <div class="delete-warning-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+
+            <h2>
+                ¿Estás seguro que querés eliminar este profesional?
+            </h2>
+
+
+            <p>
+                Esta acción no se puede deshacer.
+                El profesional será eliminado definitivamente.
+            </p>
+
+
+            <div class="delete-modal-actions">
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminando"
+                        @onclick="ConfirmarEliminar">
+
+                    @if (eliminando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Eliminando...</span>
+                    }
+                    else
+                    {
+                        <span>Eliminar</span>
+                    }
+
+                </button>
+
+
+                <button type="button"
+                        class="modal-cancel-button"
+                        disabled="@eliminando"
+                        @onclick="CerrarConfirmacionEliminar">
+                    Cancelar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
 }
-else
-{
-    <EditForm Model="@modelo" OnValidSubmit="Grabar">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
 
-        <h5>Datos Personales</h5>
-        <div class="form-group">
-            <label>Nombre Completo</label>
-            <InputText class="form-control" @bind-Value="modelo.Nombre" placeholder="Ej: Lic. Juan Carlos López" />
-            <ValidationMessage For="@(() => modelo.Nombre)" />
-        </div>
-
-        <div class="form-group">
-            <label>Área/Perfil</label>
-            <InputText class="form-control" @bind-Value="modelo.Area" placeholder="Ej: Fisioterapeuta, Psicólogo, etc." />
-            <ValidationMessage For="@(() => modelo.Area)" />
-        </div>
-
-        <h5>Datos Profesionales</h5>
-        <div class="form-group">
-            <label>CUIT</label>
-            <InputText class="form-control" @bind-Value="modelo.Cuit" placeholder="Ej: 20-12345678-9" />
-            <ValidationMessage For="@(() => modelo.Cuit)" />
-@*             <InputText class="form-control" @bind-Value="modelo.Cuit" disabled /> *@
-
-        </div>
-
-        <div class="form-group">
-            <label>MP</label>
-            <InputText class="form-control" @bind-Value="modelo.MP" placeholder="Ej: MP-001" />
-            <ValidationMessage For="@(() => modelo.MP)" />
-        </div>
-
-        <div class="form-group">
-            <label>RNP</label>
-            <InputText class="form-control" @bind-Value="modelo.RNP" placeholder="Ej: RNP-10001" />
-            <ValidationMessage For="@(() => modelo.RNP)" />
-        </div>
-
-        <div class="form-group">
-            <label>Teléfono de Contacto</label>
-            <InputText class="form-control" @bind-Value="modelo.Telefono" placeholder="Ej: +54 11 2345-6789" />
-            <ValidationMessage For="@(() => modelo.Telefono)" />
-        </div>
-
-        <br />
-        <button class="btn btn-primary" type="submit">Guardar Cambios</button>
-        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
-    </EditForm>
-}
-
-<p>@Mensaje</p>
 
 @code {
-    [Inject] IJSRuntime JSRuntime { get; set; } = default!;
-    [Parameter] public int id { get; set; }
-    private ProfesionalDTO modelo = new ProfesionalDTO { Nombre = string.Empty, Area = string.Empty, Cuit = string.Empty, MP = string.Empty, RNP = string.Empty, Telefono = string.Empty };
+
+    [Parameter]
+    public int id { get; set; }
+
+
+    private ProfesionalDTO modelo = CrearModeloVacio();
+
     private bool cargando = true;
+
+    private bool guardando = false;
+
+    private bool eliminando = false;
+
+    private bool mostrarConfirmacionEliminar = false;
+
     private string Mensaje = "";
+
 
     protected override async Task OnInitializedAsync()
     {
-        var resp = await Http.Get<ProfesionalDTO>($"api/profesional/{id}");
-        modelo = resp.Error ? new ProfesionalDTO { Nombre = string.Empty, Area = string.Empty, Cuit = string.Empty, MP = string.Empty, RNP = string.Empty, Telefono = string.Empty }
-                            : resp.Respuesta ?? new ProfesionalDTO { Nombre = string.Empty, Area = string.Empty, Cuit = string.Empty, MP = string.Empty, RNP = string.Empty, Telefono = string.Empty };
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
-        await Task.Delay(200);
-        cargando = false;
-
+        await CargarProfesional();
     }
+
+
+    private async Task CargarProfesional()
+    {
+        cargando = true;
+
+        var resp =
+            await Http.Get<ProfesionalDTO>(
+                $"api/profesional/{id}"
+            );
+
+        modelo =
+            resp.Error
+                ? CrearModeloVacio()
+                : resp.Respuesta ?? CrearModeloVacio();
+
+        Mensaje =
+            resp.Error
+                ? resp.ObtenerError()
+                : "";
+
+        cargando = false;
+    }
+
 
     private async Task Grabar()
     {
-        var resp = await Http.Put<ProfesionalDTO, RespuestaDTO>($"api/profesional/{id}", modelo);
-        Mensaje = resp.Error ? resp.ObtenerError() : resp.Respuesta?.mensaje!;
+        guardando = true;
 
-        if (!resp.Error) Nav.NavigateTo("/profesionales", true);
-    }
+        Mensaje = "";
 
-    private async Task Eliminar()
-    {
-        // confirmación con JavaScript
-        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Está seguro que desea eliminar este profesional?");
-        if (confirmar)
+        var resp =
+            await Http.Put<ProfesionalDTO, RespuestaDTO>(
+                $"api/profesional/{id}",
+                modelo
+            );
+
+        guardando = false;
+
+
+        if (!resp.Error)
         {
-            var resp = await Http.Delete($"api/profesional/{id}");
-            Mensaje = resp.Error ? resp.ObtenerError() : "Profesional eliminado correctamente.";
-
-            if (!resp.Error)
-            {
-                await Task.Delay(500);
-                Nav.NavigateTo("/profesionales", true);
-            }
+            Nav.NavigateTo(
+                "/profesionales",
+                true
+            );
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
         }
     }
 
-    private void Cancelar() => Nav.NavigateTo("/profesionales");
+
+    private void AbrirConfirmacionEliminar()
+    {
+        mostrarConfirmacionEliminar = true;
+    }
+
+
+    private void CerrarConfirmacionEliminar()
+    {
+        if (!eliminando)
+        {
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    private async Task ConfirmarEliminar()
+    {
+        eliminando = true;
+
+        Mensaje = "";
+
+        var resp =
+            await Http.Delete(
+                $"api/profesional/{id}"
+            );
+
+        eliminando = false;
+
+
+        if (!resp.Error)
+        {
+            mostrarConfirmacionEliminar = false;
+
+            Nav.NavigateTo(
+                "/profesionales",
+                true
+            );
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/profesionales");
+    }
+
+
+    private static ProfesionalDTO CrearModeloVacio()
+    {
+        return new ProfesionalDTO
+        {
+            Nombre = string.Empty,
+            Area = string.Empty,
+            Cuit = string.Empty,
+            MP = string.Empty,
+            RNP = string.Empty,
+            Telefono = string.Empty
+        };
+    }
 
 }
