@@ -4,66 +4,199 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Crear Nuevo Profesional</h3>
+<div class="profesional-form-page">
 
-@if (cargando)
-{
-    <p>Cargando datos...</p>
-}
-else
-{
-    <EditForm Model="@modelo" OnValidSubmit="Grabar">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    <div class="profesional-form-card">
 
-        <h5>Datos Personales</h5>
-        <div class="form-group">
-            <label>Nombre Completo</label>
-            <InputText class="form-control" @bind-Value="modelo.Nombre" placeholder="Ej: Lic. Juan Carlos López" />
-            <ValidationMessage For="@(() => modelo.Nombre)" />
+        <div class="form-card-header">
+            <div>
+                <h1>Crear Profesional</h1>
+                <p>Complete los datos del nuevo profesional.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    title="Cerrar"
+                    @onclick="Cancelar">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
 
-        <div class="form-group">
-            <label>Área</label>
-            <InputText class="form-control" @bind-Value="modelo.Area" placeholder="Ej: Fisioterapeuta, Psicólogo, etc." />
-            <ValidationMessage For="@(() => modelo.Area)" />
-        </div>
+        @if (cargando)
+        {
+            <div class="loading-state">
+                <div class="spinner-border" role="status"></div>
+                <span>Cargando datos...</span>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@modelo"
+                      OnValidSubmit="Grabar"
+                      class="profesional-form">
 
-        <h5>Datos Profesionales</h5>
-        <div class="form-group">
-            <label>CUIT</label>
-            <InputText class="form-control" @bind-Value="modelo.Cuit" placeholder="Ej: 20-12345678-9" />
-            <ValidationMessage For="@(() => modelo.Cuit)" />
-        </div>
+                <DataAnnotationsValidator />
 
-        <div class="form-group">
-            <label>Matrícula Profesional (MP)</label>
-            <InputText class="form-control" @bind-Value="modelo.MP" placeholder="Ej: MP-001" />
-            <ValidationMessage For="@(() => modelo.MP)" />
-        </div>
+                <ValidationSummary class="validation-summary" />
 
-        <div class="form-group">
-            <label>Registro Nacional Profesional (RNP)</label>
-            <InputText class="form-control" @bind-Value="modelo.RNP" placeholder="Ej: RNP-10001" />
-            <ValidationMessage For="@(() => modelo.RNP)" />
-        </div>
 
-        <div class="form-group">
-            <label>Teléfono de Contacto</label>
-            <InputText class="form-control" @bind-Value="modelo.Telefono" placeholder="Ej: +54 11 2345-6789" />
-            <ValidationMessage For="@(() => modelo.Telefono)" />
-        </div>
+                @* =========================
+                   01 INFORMACIÓN PERSONAL
+                   ========================= *@
 
-        <br />
-        <button class="btn btn-primary" type="submit">Guardar Profesional</button>
-        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-    </EditForm>
-}
+                <section class="form-section">
 
-<p>@Mensaje</p>
+                    <div class="section-title">
+                        <span class="section-number">01</span>
+                        <span>INFORMACIÓN PERSONAL</span>
+                    </div>
+
+                    <div class="form-grid form-grid-personal">
+
+                        <div class="field-group">
+                            <label>NOMBRE COMPLETO</label>
+
+                            <InputText class="senderos-input"
+                                       @bind-Value="modelo.Nombre"
+                                       placeholder="Ingresar nombre completo" />
+
+                            <ValidationMessage For="@(() => modelo.Nombre)" />
+                        </div>
+
+                        <div class="field-group">
+                            <label>CUIT</label>
+
+                            <InputText class="senderos-input"
+                                       @bind-Value="modelo.Cuit"
+                                       placeholder="Ej: 20-12345678-9" />
+
+                            <ValidationMessage For="@(() => modelo.Cuit)" />
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                @* =========================
+                   02 INFORMACIÓN PROFESIONAL
+                   ========================= *@
+
+                <section class="form-section">
+
+                    <div class="section-title">
+                        <span class="section-number">02</span>
+                        <span>INFORMACIÓN PROFESIONAL</span>
+                    </div>
+
+                    <div class="form-grid form-grid-profesional">
+
+                        <div class="field-group">
+                            <label>ÁREA</label>
+
+                            <InputText class="senderos-input"
+                                       @bind-Value="modelo.Area"
+                                       placeholder="Ej: Psicología" />
+
+                            <ValidationMessage For="@(() => modelo.Area)" />
+                        </div>
+
+                        <div class="field-group">
+                            <label>M.P. (MATRÍCULA PROFESIONAL)</label>
+
+                            <InputText class="senderos-input"
+                                       @bind-Value="modelo.MP"
+                                       placeholder="Ingresar M.P." />
+
+                            <ValidationMessage For="@(() => modelo.MP)" />
+                        </div>
+
+                        <div class="field-group">
+                            <label>R.N.P.</label>
+
+                            <InputText class="senderos-input"
+                                       @bind-Value="modelo.RNP"
+                                       placeholder="Ingresar R.N.P." />
+
+                            <ValidationMessage For="@(() => modelo.RNP)" />
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                @* =========================
+                   03 DATOS DE CONTACTO
+                   ========================= *@
+
+                <section class="form-section">
+
+                    <div class="section-title">
+                        <span class="section-number">03</span>
+                        <span>DATOS DE CONTACTO</span>
+                    </div>
+
+                    <div class="form-grid form-grid-contacto">
+
+                        <div class="field-group">
+                            <label>TELÉFONO</label>
+
+                            <InputText class="senderos-input"
+                                       @bind-Value="modelo.Telefono"
+                                       placeholder="Ej: +54 351 1234567" />
+
+                            <ValidationMessage For="@(() => modelo.Telefono)" />
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+                        @Mensaje
+                    </div>
+                }
+
+
+                <div class="form-actions">
+
+                    <button type="button"
+                            class="btn-cancelar"
+                            @onclick="Cancelar">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="btn-guardar"
+                            disabled="@guardando">
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar Profesional</span>
+                        }
+                    </button>
+
+                </div>
+
+            </EditForm>
+        }
+
+    </div>
+
+</div>
+
 
 @code {
-    private ProfesionalDTO modelo = new ProfesionalDTO
+
+    private ProfesionalDTO modelo = new()
     {
         Nombre = string.Empty,
         Area = string.Empty,
@@ -72,17 +205,33 @@ else
         RNP = string.Empty,
         Telefono = string.Empty
     };
+
     private bool cargando = false;
+
+    private bool guardando = false;
+
     private string Mensaje = "";
+
 
     private async Task Grabar()
     {
-        var resp = await Http.Post<ProfesionalDTO, int>("api/profesional", modelo);
+        guardando = true;
+        Mensaje = "";
+
+        var resp =
+            await Http.Post<ProfesionalDTO, int>(
+                "api/profesional",
+                modelo
+            );
+
+        guardando = false;
+
         if (!resp.Error)
         {
-            Mensaje = "Profesional guardado correctamente.";
-            await Task.Delay(500);
-            Nav.NavigateTo("/profesionales", forceLoad: true);
+            Nav.NavigateTo(
+                "/profesionales",
+                forceLoad: true
+            );
         }
         else
         {
@@ -90,8 +239,10 @@ else
         }
     }
 
+
     private void Cancelar()
     {
         Nav.NavigateTo("/profesionales");
     }
+
 }

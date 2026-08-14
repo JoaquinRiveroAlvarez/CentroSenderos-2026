@@ -1,0 +1,356 @@
+/* CSS for ProfesionalCrear component */
+.profesional-form-page {
+    width: 100%;
+    padding: 30px 34px 40px;
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.profesional-form-card {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 26px 30px 24px;
+    background: #fffdf9;
+    border: 1px solid #ebe7e0;
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(55, 52, 46, .06);
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.form-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+    .form-card-header h1 {
+        margin: 0;
+        color: #556f4f;
+        font-size: 26px;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+    .form-card-header p {
+        margin: 7px 0 0;
+        color: #96958f;
+        font-size: 14px;
+    }
+
+
+/* =====================================================
+   CERRAR
+===================================================== */
+
+.close-button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+    background: transparent;
+    color: #545851;
+    border: none;
+    border-radius: 50%;
+    font-size: 17px;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+}
+
+    .close-button:hover {
+        background: #f1efeb;
+        color: #2e312d;
+    }
+
+
+/* =====================================================
+   SECCIONES
+===================================================== */
+
+.form-section {
+    margin-bottom: 30px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    color: #8c6959;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .08em;
+}
+
+.section-number {
+    width: 27px;
+    height: 27px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #f8dfcf;
+    color: #915d49;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+
+/* =====================================================
+   GRID
+===================================================== */
+
+.form-grid {
+    display: grid;
+    column-gap: 18px;
+    row-gap: 18px;
+}
+
+.form-grid-personal {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid-profesional {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-grid-contacto {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+
+/* =====================================================
+   CAMPOS
+===================================================== */
+
+.field-group {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+    .field-group label {
+        margin-bottom: 7px;
+        color: #656860;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1.3;
+    }
+
+
+/* =====================================================
+   INPUTS
+===================================================== */
+
+.senderos-input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    background: #fffefa;
+    color: #41453f;
+    border: 1px solid #d9ddd6;
+    border-radius: 12px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+    .senderos-input::placeholder {
+        color: #aaa9a4;
+    }
+
+    .senderos-input:focus {
+        background: white;
+        border-color: #82947a;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+    }
+
+
+/* =====================================================
+   VALIDACIONES
+===================================================== */
+
+.validation-summary {
+    margin-bottom: 20px;
+    padding: 12px 15px;
+    background: #fff1ee;
+    color: #a74740;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+.validation-message {
+    margin-top: 5px;
+    color: #d34848;
+    font-size: 12px;
+}
+
+
+/* =====================================================
+   MENSAJE API
+===================================================== */
+
+.form-message {
+    margin-top: 6px;
+    margin-bottom: 18px;
+    padding: 12px 15px;
+    background: #fff1ee;
+    color: #a74740;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   ACCIONES
+===================================================== */
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 34px;
+}
+
+
+/* CANCELAR */
+
+.btn-cancelar {
+    min-width: 110px;
+    height: 44px;
+    padding: 0 20px;
+    background: #efedeb;
+    color: #555852;
+    border: 1px solid #dedbd6;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+    .btn-cancelar:hover {
+        background: #e7e4e0;
+    }
+
+
+/* GUARDAR */
+
+.btn-guardar {
+    min-width: 155px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 22px;
+    background: #647b5b;
+    color: white;
+    border: none;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease, transform .15s ease, opacity .2s ease;
+}
+
+    .btn-guardar:hover:not(:disabled) {
+        background: #556f4f;
+    }
+
+    .btn-guardar:active:not(:disabled) {
+        transform: scale(.98);
+    }
+
+    .btn-guardar:disabled {
+        opacity: .65;
+        cursor: default;
+    }
+
+
+/* =====================================================
+   LOADING
+===================================================== */
+
+.loading-state {
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #747970;
+    font-size: 14px;
+}
+
+    .loading-state .spinner-border {
+        width: 28px;
+        height: 28px;
+        color: #647b5b;
+    }
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 900px) {
+
+    .form-grid-personal,
+    .form-grid-profesional,
+    .form-grid-contacto {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+@media (max-width: 620px) {
+
+    .profesional-form-page {
+        padding: 20px 14px 30px;
+    }
+
+    .profesional-form-card {
+        padding: 22px 18px;
+    }
+
+    .form-card-header h1 {
+        font-size: 23px;
+    }
+
+    .form-grid-personal,
+    .form-grid-profesional,
+    .form-grid-contacto {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .btn-cancelar,
+    .btn-guardar {
+        width: 100%;
+    }
+}
