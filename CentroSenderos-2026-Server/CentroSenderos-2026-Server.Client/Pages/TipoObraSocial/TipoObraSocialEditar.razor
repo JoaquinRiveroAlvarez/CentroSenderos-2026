@@ -4,73 +4,331 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Editar Tipo de Obra Social</h3>
+<div class="obra-social-form-page">
 
-@if (cargando)
-{
-    <p>Cargando...</p>
-}
-else
-{
-    <EditForm Model="@modelo" OnValidSubmit="Grabar">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    <div class="obra-social-card">
 
-        <div class="form-group">
-            <label>Tipo</label>
-            <InputText class="form-control" @bind-Value="modelo!.Tipo" />
+        <div class="card-header">
+
+            <div>
+                <h1>Editar Obra Social</h1>
+                <p>Modifique los datos de la obra social.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    title="Cerrar"
+                    @onclick="Cancelar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
         </div>
-        <div class="form-group">
-            <label>Descripción</label>
-            <InputText class="form-control" @bind-Value="modelo!.Descripcion" />
+
+
+        @if (cargando)
+        {
+            <div class="loading-state">
+
+                <div class="spinner-border"
+                     role="status">
+                </div>
+
+                <span>Cargando obra social...</span>
+
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@modelo"
+                      OnValidSubmit="Grabar"
+                      class="obra-social-form">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+
+                <div class="field-group">
+
+                    <label>OBRA SOCIAL</label>
+
+                    <InputText class="senderos-input"
+                               @bind-Value="modelo.Tipo"
+                               placeholder="Ingresar nombre de la obra social" />
+
+                    <ValidationMessage For="@(() => modelo.Tipo)" />
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>DESCRIPCIÓN</label>
+
+                    <InputTextArea class="senderos-textarea"
+                                   @bind-Value="modelo.Descripcion"
+                                   placeholder="Ingresar una descripción" />
+
+                    <ValidationMessage For="@(() => modelo.Descripcion)" />
+
+                </div>
+
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+                        @Mensaje
+                    </div>
+                }
+
+
+                <div class="form-actions editar-actions">
+
+                    <button type="button"
+                            class="btn-eliminar"
+                            @onclick="AbrirConfirmacionEliminar">
+
+                        <i class="bi bi-trash3"></i>
+                        Eliminar Obra Social
+
+                    </button>
+
+
+                    <div class="right-actions">
+
+                        <button type="button"
+                                class="btn-cancelar"
+                                @onclick="Cancelar">
+
+                            Cancelar
+
+                        </button>
+
+
+                        <button type="submit"
+                                class="btn-guardar"
+                                disabled="@guardando">
+
+                            @if (guardando)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                <span>Guardando...</span>
+                            }
+                            else
+                            {
+                                <span>Guardar Cambios</span>
+                            }
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </EditForm>
+        }
+
+    </div>
+
+</div>
+
+
+@if (mostrarConfirmacionEliminar)
+{
+    <div class="modal-overlay">
+
+        <div class="delete-modal">
+
+            <div class="delete-warning-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+
+            <h2>
+                ¿Estás seguro que querés eliminar esta obra social?
+            </h2>
+
+
+            <p>
+                Esta acción no se puede deshacer.
+                La obra social será eliminada definitivamente.
+            </p>
+
+
+            <div class="delete-modal-actions">
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminando"
+                        @onclick="ConfirmarEliminar">
+
+                    @if (eliminando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Eliminando...</span>
+                    }
+                    else
+                    {
+                        <span>Eliminar</span>
+                    }
+
+                </button>
+
+
+                <button type="button"
+                        class="modal-cancel-button"
+                        disabled="@eliminando"
+                        @onclick="CerrarConfirmacionEliminar">
+
+                    Cancelar
+
+                </button>
+
+            </div>
+
         </div>
 
-        <button class="btn btn-primary" type="submit">Actualizar</button>
-        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
-    </EditForm>
+    </div>
 }
 
-<p>@Mensaje</p>
 
 @code {
-    [Inject] IJSRuntime JSRuntime { get; set; } = default!;
-    [Parameter] public int id { get; set; }
-    private TipoDTO modelo = new TipoDTO { Tipo = string.Empty, Descripcion = string.Empty };
+
+    [Parameter]
+    public int id { get; set; }
+
+
+    private TipoDTO modelo = CrearModeloVacio();
+
     private bool cargando = true;
+
+    private bool guardando = false;
+
+    private bool eliminando = false;
+
+    private bool mostrarConfirmacionEliminar = false;
+
     private string Mensaje = "";
+
 
     protected override async Task OnInitializedAsync()
     {
-        var resp = await Http.Get<TipoDTO>($"api/tipoobrasocial/{id}");
-        modelo = resp.Error ? new TipoDTO { Tipo = string.Empty, Descripcion = string.Empty }
-                            : resp.Respuesta ?? new TipoDTO { Tipo = string.Empty, Descripcion = string.Empty };
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
-        await Task.Delay(200);
+        await CargarObraSocial();
+    }
+
+
+    private async Task CargarObraSocial()
+    {
+        cargando = true;
+
+        var resp =
+            await Http.Get<TipoDTO>(
+                $"api/tipoobrasocial/{id}"
+            );
+
+        modelo =
+            resp.Error
+                ? CrearModeloVacio()
+                : resp.Respuesta ?? CrearModeloVacio();
+
+        Mensaje =
+            resp.Error
+                ? resp.ObtenerError()
+                : "";
+
         cargando = false;
     }
 
+
     private async Task Grabar()
     {
-        var resp = await Http.Put<TipoDTO, RespuestaDTO>($"api/tipoobrasocial/{id}", modelo);
-        Mensaje = resp.Error ? resp.ObtenerError() : resp.Respuesta?.mensaje!;
+        guardando = true;
 
-        if (!resp.Error) Nav.NavigateTo("/tipoobrasocial", true);
-    }
+        Mensaje = "";
 
-    private async Task Eliminar()
-    {
-        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar esta obra social?");
-        if (confirmar)
+        var resp =
+            await Http.Put<TipoDTO, RespuestaDTO>(
+                $"api/tipoobrasocial/{id}",
+                modelo
+            );
+
+        guardando = false;
+
+
+        if (!resp.Error)
         {
-            var resp = await Http.Delete($"api/tipoobrasocial/{id}");
-            Mensaje = resp.Error ? resp.ObtenerError() : "Obra social eliminada correctamente.";
-            if (!resp.Error) Nav.NavigateTo("/tipoobrasocial", true);
+            Nav.NavigateTo(
+                "/tipoobrasocial",
+                true
+            );
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
         }
     }
 
 
-    private void Cancelar() => Nav.NavigateTo("/tipoobrasocial");
+    private void AbrirConfirmacionEliminar()
+    {
+        mostrarConfirmacionEliminar = true;
+    }
+
+
+    private void CerrarConfirmacionEliminar()
+    {
+        if (!eliminando)
+        {
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    private async Task ConfirmarEliminar()
+    {
+        eliminando = true;
+
+        Mensaje = "";
+
+        var resp =
+            await Http.Delete(
+                $"api/tipoobrasocial/{id}"
+            );
+
+        eliminando = false;
+
+
+        if (!resp.Error)
+        {
+            mostrarConfirmacionEliminar = false;
+
+            Nav.NavigateTo(
+                "/tipoobrasocial",
+                true
+            );
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/tipoobrasocial");
+    }
+
+
+    private static TipoDTO CrearModeloVacio()
+    {
+        return new TipoDTO
+        {
+            Tipo = string.Empty,
+            Descripcion = string.Empty
+        };
+    }
 
 }
-
