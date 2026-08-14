@@ -4,68 +4,251 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Listado de Tipos de Obra Social</h3>
+<div class="obras-sociales-page">
 
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="IrACrear">Nueva Obra Social</button>
+    <div class="page-header">
+
+        <div class="header-title">
+            <h1>Obras Sociales</h1>
+            <p>Gestioná las obras sociales disponibles para los pacientes.</p>
+        </div>
+
+        <div class="header-actions">
+
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+
+                <input type="text"
+                       placeholder="Buscar obra social..."
+                       @bind="textoBusqueda"
+                       @bind:event="oninput" />
+            </div>
+
+            <button type="button"
+                    class="btn-nueva"
+                    @onclick="IrACrear">
+
+                <i class="bi bi-plus-lg"></i>
+                Nueva Obra Social
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    @if (cargando)
+    {
+        <div class="estado-card">
+
+            <div class="spinner-border spinner-border-sm"
+                 role="status">
+            </div>
+
+            <span>Cargando obras sociales...</span>
+
+        </div>
+    }
+    else if (lista == null || lista.Count == 0)
+    {
+        <div class="estado-card">
+
+            <div class="estado-icon">
+                <i class="bi bi-building"></i>
+            </div>
+
+            <h2>No hay obras sociales registradas</h2>
+
+            <p>
+                Creá una nueva obra social para comenzar.
+            </p>
+
+            <button type="button"
+                    class="btn-nueva-estado"
+                    @onclick="IrACrear">
+
+                <i class="bi bi-plus-lg"></i>
+                Nueva Obra Social
+
+            </button>
+
+        </div>
+    }
+    else if (!ObrasSocialesFiltradas.Any())
+    {
+        <div class="estado-card">
+
+            <div class="estado-icon">
+                <i class="bi bi-search"></i>
+            </div>
+
+            <h2>No encontramos resultados</h2>
+
+            <p>
+                No hay obras sociales que coincidan con
+                "@textoBusqueda".
+            </p>
+
+        </div>
+    }
+    else
+    {
+        <div class="list-card">
+
+            <div class="list-header">
+
+                <div class="col-nombre">
+                    OBRA SOCIAL
+                </div>
+
+                <div class="col-descripcion">
+                    DESCRIPCIÓN
+                </div>
+
+                <div class="col-accion"></div>
+
+            </div>
+
+
+            <div class="list-body">
+
+                @foreach (var item in ObrasSocialesFiltradas)
+                {
+                    <div class="obra-row"
+                         @onclick="() => IrAEditar(item.Id)">
+
+                        <div class="obra-info">
+
+                            <div class="obra-icon">
+                                <i class="bi bi-building"></i>
+                            </div>
+
+                            <div class="obra-nombre">
+                                @item.Tipo
+                            </div>
+
+                        </div>
+
+
+                        <div class="obra-descripcion">
+
+                            @if (string.IsNullOrWhiteSpace(item.Descripcion))
+                            {
+                                <span class="sin-descripcion">
+                                    Sin descripción
+                                </span>
+                            }
+                            else
+                            {
+                                @item.Descripcion
+                            }
+
+                        </div>
+
+
+                        <div class="obra-action">
+                            <i class="bi bi-chevron-right"></i>
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+
+            <div class="list-footer">
+
+                <span>
+                    Mostrando @ObrasSocialesFiltradas.Count()
+                    de @lista.Count
+                    @(lista.Count == 1 ? "obra social" : "obras sociales")
+                </span>
+
+            </div>
+
+        </div>
+    }
+
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="mensaje-error">
+            <i class="bi bi-exclamation-circle"></i>
+            <span>@Mensaje</span>
+        </div>
+    }
+
 </div>
 
-@if (cargando)
-{
-    <p>Cargando registros...</p>
-}
-else if (lista == null || lista.Count == 0)
-{
-    <p>No hay obras sociales registradas.</p>
-}
-else
-{
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Tipo</th>
-                <th>Descripción</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in lista)
-            {
-                <tr style="cursor:pointer" @onclick="() => IrAEditar(item.Id)">
-                    <td>@item.Id</td>
-                    <td>@item.Tipo</td>
-                    <td>@item.Descripcion</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
-<p>@Mensaje</p>
 
 @code {
+
     private List<TipoListadoDTO> lista = new();
+
     private bool cargando = true;
+
     private string Mensaje = "";
 
-    protected override async Task OnInitializedAsync() => await Cargar();
+    private string textoBusqueda = "";
+
+
+    private IEnumerable<TipoListadoDTO> ObrasSocialesFiltradas =>
+        lista.Where(x =>
+            string.IsNullOrWhiteSpace(textoBusqueda)
+            ||
+            (x.Tipo?.Contains(
+                textoBusqueda,
+                StringComparison.OrdinalIgnoreCase) ?? false)
+            ||
+            (x.Descripcion?.Contains(
+                textoBusqueda,
+                StringComparison.OrdinalIgnoreCase) ?? false)
+        );
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargar();
+    }
+
 
     private async Task Cargar()
     {
-        var resp = await Http.Get<List<TipoListadoDTO>>("api/tipoobrasocial/ListaTipoObraSocial");
-        lista = resp.Error ? new() : resp.Respuesta ?? new();
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
-        await Task.Delay(200);
+        cargando = true;
+
+        var resp =
+            await Http.Get<List<TipoListadoDTO>>(
+                "api/tipoobrasocial/ListaTipoObraSocial"
+            );
+
+        lista =
+            resp.Error
+                ? new()
+                : resp.Respuesta ?? new();
+
+        Mensaje =
+            resp.Error
+                ? resp.ObtenerError()
+                : "";
+
         cargando = false;
     }
 
+
     private void IrAEditar(int id)
     {
-        Nav.NavigateTo($"/tipoobrasocial/editar/{id}");
+        Nav.NavigateTo(
+            $"/tipoobrasocial/editar/{id}"
+        );
     }
+
 
     private void IrACrear()
     {
-        Nav.NavigateTo("/tipoobrasocial/crear");
+        Nav.NavigateTo(
+            "/tipoobrasocial/crear"
+        );
     }
+
 }
