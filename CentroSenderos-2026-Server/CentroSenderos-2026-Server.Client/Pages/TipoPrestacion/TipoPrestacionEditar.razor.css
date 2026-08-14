@@ -1,4 +1,4 @@
-/* CSS for TipoPrestacionCrear component */
+/* CSS for TipoPrestacionEditar component */
 .prestacion-form-page {
     width: 100%;
     padding: 34px 36px 40px;
@@ -294,14 +294,61 @@
 
 .form-actions {
     display: flex;
-    justify-content: flex-end;
     align-items: center;
     gap: 12px;
     margin-top: 32px;
 }
 
 
-/* CANCELAR */
+.editar-actions {
+    justify-content: space-between;
+}
+
+
+.right-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+/* =====================================================
+   ELIMINAR
+===================================================== */
+
+.btn-eliminar {
+    min-width: 170px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 20px;
+    background: #ef4545;
+    color: white;
+    border: none;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease, transform .15s ease;
+}
+
+
+    .btn-eliminar:hover {
+        background: #db3d3d;
+    }
+
+
+    .btn-eliminar:active {
+        transform: scale(.98);
+    }
+
+
+/* =====================================================
+   CANCELAR
+===================================================== */
 
 .btn-cancelar {
     min-width: 110px;
@@ -324,10 +371,12 @@
     }
 
 
-/* GUARDAR */
+/* =====================================================
+   GUARDAR
+===================================================== */
 
 .btn-guardar {
-    min-width: 120px;
+    min-width: 145px;
     height: 44px;
     display: flex;
     align-items: center;
@@ -357,6 +406,180 @@
 
 
     .btn-guardar:disabled {
+        opacity: .65;
+        cursor: default;
+    }
+
+
+/* =====================================================
+   CARGANDO
+===================================================== */
+
+.loading-state {
+    min-height: 270px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #747970;
+    font-size: 14px;
+}
+
+
+    .loading-state .spinner-border {
+        width: 28px;
+        height: 28px;
+        color: #647b5b;
+    }
+
+
+/* =====================================================
+   MODAL OVERLAY
+===================================================== */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, .60);
+}
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.delete-modal {
+    width: 100%;
+    max-width: 400px;
+    padding: 28px 28px 24px;
+    background: #fffdfa;
+    border: 1px solid #ebe5df;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .22);
+}
+
+
+/* =====================================================
+   ADVERTENCIA
+===================================================== */
+
+.delete-warning-icon {
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    background: #ffd9cb;
+    color: #9a5d49;
+    border-radius: 50%;
+    font-size: 22px;
+}
+
+
+/* =====================================================
+   TEXTO MODAL
+===================================================== */
+
+.delete-modal h2 {
+    max-width: 335px;
+    margin: 0 auto;
+    color: #292d28;
+    font-size: 24px;
+    font-weight: 650;
+    line-height: 1.22;
+}
+
+
+.delete-modal p {
+    max-width: 325px;
+    margin: 12px auto 24px;
+    color: #81817d;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+
+/* =====================================================
+   ACCIONES MODAL
+===================================================== */
+
+.delete-modal-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+}
+
+
+/* =====================================================
+   CONFIRMAR ELIMINAR
+===================================================== */
+
+.confirm-delete-button {
+    min-width: 130px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 18px;
+    background: #ef4545;
+    color: white;
+    border: none;
+    border-radius: 21px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease, opacity .2s ease;
+}
+
+
+    .confirm-delete-button:hover:not(:disabled) {
+        background: #db3d3d;
+    }
+
+
+    .confirm-delete-button:disabled {
+        opacity: .65;
+        cursor: default;
+    }
+
+
+/* =====================================================
+   CANCELAR MODAL
+===================================================== */
+
+.modal-cancel-button {
+    min-width: 130px;
+    height: 42px;
+    padding: 0 18px;
+    background: #efedeb;
+    color: #5f625c;
+    border: none;
+    border-radius: 21px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease, opacity .2s ease;
+}
+
+
+    .modal-cancel-button:hover:not(:disabled) {
+        background: #e4e1de;
+    }
+
+
+    .modal-cancel-button:disabled {
         opacity: .65;
         cursor: default;
     }
@@ -393,14 +616,42 @@
     }
 
 
-    .form-actions {
-        flex-direction: column-reverse;
+    .editar-actions {
         align-items: stretch;
+        flex-direction: column;
     }
 
 
+    .right-actions {
+        width: 100%;
+        flex-direction: column-reverse;
+    }
+
+
+    .btn-eliminar,
     .btn-cancelar,
     .btn-guardar {
+        width: 100%;
+    }
+
+
+    .delete-modal {
+        padding: 25px 19px 21px;
+    }
+
+
+        .delete-modal h2 {
+            font-size: 21px;
+        }
+
+
+    .delete-modal-actions {
+        flex-direction: column;
+    }
+
+
+    .confirm-delete-button,
+    .modal-cancel-button {
         width: 100%;
     }
 }
