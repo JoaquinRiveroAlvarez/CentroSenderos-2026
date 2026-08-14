@@ -4,49 +4,142 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Crear Nuevo Socio</h3>
+<div class="socio-form-page">
 
-@if (cargando)
-{
-    <p>Cargando datos...</p>
-}
-else
-{
-    <EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="CrearSocioForm">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    <div class="socio-card">
 
-        <div class="form-group">
-            <label for="profesional">Profesional</label>
-            <InputSelect id="profesional" class="form-control" @bind-Value="modelo.ProfesionalId">
-                <option value="0">-- Seleccione un profesional --</option>
-                @if (profesionales != null)
+        <div class="card-header">
+
+            <div>
+                <h1>Nuevo Socio</h1>
+                <p>Seleccione el profesional y complete la observación.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    title="Cerrar"
+                    @onclick="Cancelar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        @if (cargando)
+        {
+            <div class="loading-state">
+
+                <div class="spinner-border"
+                     role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+
+                <span>Cargando profesionales...</span>
+
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@modelo"
+                      OnValidSubmit="Grabar"
+                      FormName="CrearSocioForm"
+                      class="socio-form">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+
+                <div class="field-group">
+
+                    <label>PROFESIONAL</label>
+
+                    <InputSelect class="senderos-select"
+                                 @bind-Value="modelo.ProfesionalId">
+
+                        <option value="0">
+                            Seleccione un profesional
+                        </option>
+
+                        @foreach (var prof in profesionales)
+                        {
+                            <option value="@prof.Id">
+                                @prof.Nombre (@prof.Area)
+                            </option>
+                        }
+
+                    </InputSelect>
+
+                    <ValidationMessage For="@(() => modelo.ProfesionalId)" />
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>OBSERVACIÓN</label>
+
+                    <InputTextArea class="senderos-textarea"
+                                   @bind-Value="modelo.Observacion"
+                                   placeholder="Ingrese una observación" />
+
+                    <ValidationMessage For="@(() => modelo.Observacion)" />
+
+                </div>
+
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
                 {
-                    @foreach (var prof in profesionales)
-                    {
-                        <option value="@prof.Id">@prof.Nombre (@prof.Area)</option>
-                    }
+                    <div class="form-message">
+
+                        <i class="bi bi-exclamation-circle"></i>
+
+                        <span>@Mensaje</span>
+
+                    </div>
                 }
-            </InputSelect>
-            <ValidationMessage For="@(() => modelo.ProfesionalId)" />
-        </div>
 
-        <div class="form-group">
-            <label>Observación</label>
-            <InputText class="form-control" @bind-Value="modelo.Observacion" />
-            <ValidationMessage For="@(() => modelo.Observacion)" />
-        </div>
 
-        <br />
-        <button class="btn btn-primary" type="submit">Guardar Socio</button>
-        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-    </EditForm>
-}
+                <div class="form-actions">
 
-<p>@Mensaje</p>
+                    <button type="button"
+                            class="btn-cancelar"
+                            @onclick="Cancelar">
+
+                        Cancelar
+
+                    </button>
+
+
+                    <button type="submit"
+                            class="btn-guardar"
+                            disabled="@guardando">
+
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar Socio</span>
+                        }
+
+                    </button>
+
+                </div>
+
+            </EditForm>
+        }
+
+    </div>
+
+</div>
+
 
 @code {
-    private SocioDTO modelo = new SocioDTO
+
+    private SocioDTO modelo = new()
     {
         ProfesionalId = 0,
         Observacion = string.Empty,
@@ -54,31 +147,66 @@ else
     };
 
     private List<ProfesionalListadoDTO> profesionales = new();
-    private bool cargando = false;
-    private string Mensaje = "";
+
+    private bool cargando = true;
+
+    private bool guardando = false;
+
+    private string Mensaje = string.Empty;
+
 
     protected override async Task OnInitializedAsync()
     {
-        cargando = true;
+        await CargarProfesionales();
+    }
 
-        // Cargar lista de profesionales
-        var respProf = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
-        if (!respProf.Error && respProf.Respuesta != null)
-            profesionales = respProf.Respuesta;
+
+    private async Task CargarProfesionales()
+    {
+        cargando = true;
+        Mensaje = string.Empty;
+
+        var respProf =
+            await Http.Get<List<ProfesionalListadoDTO>>(
+                "api/profesional/ListaProfesional"
+            );
+
+        if (!respProf.Error)
+        {
+            profesionales =
+                respProf.Respuesta ?? new();
+        }
         else
-            Mensaje = respProf.ObtenerError();
-        await Task.Delay(200);
+        {
+            profesionales = new();
+
+            Mensaje =
+                respProf.ObtenerError();
+        }
+
         cargando = false;
     }
 
+
     private async Task Grabar()
     {
-        var resp = await Http.Post<SocioDTO, int>("api/socio/insertar", modelo);
+        guardando = true;
+        Mensaje = string.Empty;
+
+        var resp =
+            await Http.Post<SocioDTO, int>(
+                "api/socio/insertar",
+                modelo
+            );
+
+        guardando = false;
+
         if (!resp.Error)
         {
-            Mensaje = "Socio guardado correctamente.";
-            await Task.Delay(500);
-            Nav.NavigateTo("/socio", forceLoad: true);
+            Nav.NavigateTo(
+                "/socio",
+                forceLoad: true
+            );
         }
         else
         {
@@ -86,8 +214,10 @@ else
         }
     }
 
+
     private void Cancelar()
     {
         Nav.NavigateTo("/socio");
     }
+
 }
