@@ -1,0 +1,342 @@
+/* CSS for TipoConsultorioCrear component */
+.consultorio-form-page {
+    width: 100%;
+    padding: 34px 36px 40px;
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.consultorio-card {
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 28px 30px 26px;
+    background: #fffdf9;
+    border: 1px solid #e9e5df;
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(56, 53, 47, .06);
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+
+    .card-header h1 {
+        margin: 0;
+        color: #556f4f;
+        font-size: 26px;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+
+    .card-header p {
+        margin: 7px 0 0;
+        color: #92948f;
+        font-size: 14px;
+    }
+
+
+/* =====================================================
+   CERRAR
+===================================================== */
+
+.close-button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+    background: transparent;
+    color: #555953;
+    border: none;
+    border-radius: 50%;
+    font-size: 17px;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+}
+
+
+    .close-button:hover {
+        background: #f1efeb;
+        color: #2f332e;
+    }
+
+
+/* =====================================================
+   FORM
+===================================================== */
+
+.consultorio-form {
+    width: 100%;
+}
+
+
+/* =====================================================
+   CAMPOS
+===================================================== */
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 22px;
+}
+
+
+    .field-group label {
+        margin-bottom: 7px;
+        color: #656860;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: .03em;
+    }
+
+
+/* =====================================================
+   INPUT
+===================================================== */
+
+.senderos-input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    background: #fffefa;
+    color: #41453f;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+
+    .senderos-input::placeholder {
+        color: #aaa9a4;
+    }
+
+
+    .senderos-input:focus {
+        background: white;
+        border-color: #82947a;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+    }
+
+
+/* =====================================================
+   TEXTAREA
+===================================================== */
+
+.senderos-textarea {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    padding: 12px 14px;
+    background: #fffefa;
+    color: #41453f;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+
+    .senderos-textarea::placeholder {
+        color: #aaa9a4;
+    }
+
+
+    .senderos-textarea:focus {
+        background: white;
+        border-color: #82947a;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+    }
+
+
+/* =====================================================
+   DIRECCIÓN CON ICONO
+===================================================== */
+
+.input-with-icon {
+    position: relative;
+    width: 100%;
+}
+
+
+    .input-with-icon i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        z-index: 2;
+        transform: translateY(-50%);
+        color: #7f9177;
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+
+.address-input {
+    padding-left: 38px;
+}
+
+
+/* =====================================================
+   VALIDACIONES
+===================================================== */
+
+.validation-summary {
+    margin-bottom: 20px;
+    padding: 12px 15px;
+    background: #fff1ee;
+    color: #a74740;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+
+.validation-message {
+    margin-top: 5px;
+    color: #d34848;
+    font-size: 12px;
+}
+
+
+/* =====================================================
+   MENSAJE API
+===================================================== */
+
+.form-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding: 12px 15px;
+    background: #fff1ee;
+    color: #a74740;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   ACCIONES
+===================================================== */
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+
+.btn-cancelar {
+    min-width: 110px;
+    height: 44px;
+    padding: 0 20px;
+    background: #efedeb;
+    color: #555852;
+    border: 1px solid #dedbd6;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease;
+}
+
+
+    .btn-cancelar:hover {
+        background: #e6e3df;
+    }
+
+
+.btn-guardar {
+    min-width: 120px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 22px;
+    background: #647b5b;
+    color: white;
+    border: none;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease, transform .15s ease, opacity .2s ease;
+}
+
+
+    .btn-guardar:hover:not(:disabled) {
+        background: #556f4f;
+    }
+
+
+    .btn-guardar:active:not(:disabled) {
+        transform: scale(.98);
+    }
+
+
+    .btn-guardar:disabled {
+        opacity: .65;
+        cursor: default;
+    }
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 650px) {
+
+    .consultorio-form-page {
+        padding: 22px 15px 30px;
+    }
+
+
+    .consultorio-card {
+        padding: 23px 19px;
+    }
+
+
+    .card-header h1 {
+        font-size: 23px;
+    }
+
+
+    .form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+
+    .btn-cancelar,
+    .btn-guardar {
+        width: 100%;
+    }
+}

@@ -4,81 +4,349 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Editar Tipo de Consultorio</h3>
+<div class="consultorio-form-page">
 
-@if (cargando)
+    <div class="consultorio-card">
+
+        <div class="card-header">
+
+            <div>
+                <h1>Editar Consultorio</h1>
+                <p>Modifique los datos del tipo de consultorio.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    title="Cerrar"
+                    @onclick="Cancelar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        @if (cargando)
+        {
+            <div class="loading-state">
+
+                <div class="spinner-border"
+                     role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+
+                <span>Cargando consultorio...</span>
+
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@modelo"
+                      OnValidSubmit="Grabar"
+                      FormName="EditarTipoConsultorioForm"
+                      class="consultorio-form">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+
+                <div class="field-group">
+
+                    <label>TIPO DE CONSULTORIO</label>
+
+                    <InputText class="senderos-input"
+                               @bind-Value="modelo.Tipo"
+                               placeholder="Ej: Consultorio 1, Sala de Terapia..." />
+
+                    <ValidationMessage For="@(() => modelo.Tipo)" />
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>DESCRIPCIÓN</label>
+
+                    <InputTextArea class="senderos-textarea"
+                                   @bind-Value="modelo.Descripcion"
+                                   placeholder="Ingrese una descripción del consultorio" />
+
+                    <ValidationMessage For="@(() => modelo.Descripcion)" />
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>DIRECCIÓN</label>
+
+                    <div class="input-with-icon">
+
+                        <i class="bi bi-geo-alt"></i>
+
+                        <InputText class="senderos-input address-input"
+                                   @bind-Value="modelo.Direccion"
+                                   placeholder="Ingrese la dirección" />
+
+                    </div>
+
+                    <ValidationMessage For="@(() => modelo.Direccion)" />
+
+                </div>
+
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+
+                        <i class="bi bi-exclamation-circle"></i>
+
+                        <span>@Mensaje</span>
+
+                    </div>
+                }
+
+
+                <div class="form-actions editar-actions">
+
+                    <button type="button"
+                            class="btn-eliminar"
+                            @onclick="AbrirConfirmacionEliminar">
+
+                        <i class="bi bi-trash3"></i>
+                        Eliminar Consultorio
+
+                    </button>
+
+
+                    <div class="right-actions">
+
+                        <button type="button"
+                                class="btn-cancelar"
+                                @onclick="Cancelar">
+                            Cancelar
+                        </button>
+
+
+                        <button type="submit"
+                                class="btn-guardar"
+                                disabled="@guardando">
+
+                            @if (guardando)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                <span>Guardando...</span>
+                            }
+                            else
+                            {
+                                <span>Guardar Cambios</span>
+                            }
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </EditForm>
+        }
+
+    </div>
+
+</div>
+
+
+@if (mostrarConfirmacionEliminar)
 {
-    <p>Cargando...</p>
+    <div class="modal-overlay">
+
+        <div class="delete-modal">
+
+            <div class="delete-warning-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+            <h2>
+                ¿Estás seguro que querés eliminar este consultorio?
+            </h2>
+
+            <p>
+                Esta acción no se puede deshacer.
+                El consultorio será eliminado definitivamente.
+            </p>
+
+            <div class="delete-modal-actions">
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminando"
+                        @onclick="ConfirmarEliminar">
+
+                    @if (eliminando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Eliminando...</span>
+                    }
+                    else
+                    {
+                        <span>Eliminar</span>
+                    }
+
+                </button>
+
+
+                <button type="button"
+                        class="modal-cancel-button"
+                        disabled="@eliminando"
+                        @onclick="CerrarConfirmacionEliminar">
+                    Cancelar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
 }
-else
-{
-    <EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="EditarTipoConsultorioForm">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
 
-        <div class="form-group">
-            <label>Tipo</label>
-            <InputText class="form-control" @bind-Value="modelo.Tipo" />
-        </div>
-
-        <div class="form-group">
-            <label>Descripción</label>
-            <InputText class="form-control" @bind-Value="modelo.Descripcion" />
-        </div>
-
-        <div class="form-group">
-            <label>Dirección</label>
-            <InputText class="form-control" @bind-Value="modelo.Direccion" />
-        </div>
-
-        <button class="btn btn-primary" type="submit">Actualizar</button>
-        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
-    </EditForm>
-}
-
-<p>@Mensaje</p>
 
 @code {
-    [Inject] IJSRuntime JSRuntime { get; set; } = default!;
-    [Parameter] public int id { get; set; }
-    private TipoConsultorioDTO modelo = new TipoConsultorioDTO
-    {
-        Tipo = string.Empty,
-        Descripcion = string.Empty,
-        Direccion = string.Empty
-    };
+
+    [Parameter]
+    public int id { get; set; }
+
+
+    private TipoConsultorioDTO modelo = CrearModeloVacio();
+
     private bool cargando = true;
-    private string Mensaje = "";
+
+    private bool guardando = false;
+
+    private bool eliminando = false;
+
+    private bool mostrarConfirmacionEliminar = false;
+
+    private string Mensaje = string.Empty;
+
 
     protected override async Task OnInitializedAsync()
     {
-        var resp = await Http.Get<TipoConsultorioDTO>($"api/tipoconsultorio/{id}");
-        modelo = resp.Error ? new TipoConsultorioDTO { Tipo = string.Empty, Descripcion = string.Empty, Direccion = string.Empty }
-                            : resp.Respuesta ?? new TipoConsultorioDTO { Tipo = string.Empty, Descripcion = string.Empty, Direccion = string.Empty };
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
-        await Task.Delay(200);
+        await CargarConsultorio();
+    }
+
+
+    private async Task CargarConsultorio()
+    {
+        cargando = true;
+        Mensaje = string.Empty;
+
+        var resp =
+            await Http.Get<TipoConsultorioDTO>(
+                $"api/tipoconsultorio/{id}"
+            );
+
+        if (resp.Error)
+        {
+            modelo = CrearModeloVacio();
+            Mensaje = resp.ObtenerError();
+        }
+        else
+        {
+            modelo =
+                resp.Respuesta
+                ?? CrearModeloVacio();
+        }
+
         cargando = false;
     }
 
+
     private async Task Grabar()
     {
-        var resp = await Http.Put<TipoConsultorioDTO, string>($"api/tipoconsultorio/{id}", modelo);
-        Mensaje = resp.Error ? resp.ObtenerError() : "Actualizado correctamente.";
-        if (!resp.Error) Nav.NavigateTo("/tipoconsultorio", true);
-    }
+        guardando = true;
+        Mensaje = string.Empty;
 
-    private async Task Eliminar()
-    {
-        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar este consultorio?");
-        if (confirmar)
+        var resp =
+            await Http.Put<TipoConsultorioDTO, string>(
+                $"api/tipoconsultorio/{id}",
+                modelo
+            );
+
+        guardando = false;
+
+        if (!resp.Error)
         {
-            var resp = await Http.Delete($"api/tipoconsultorio/{id}");
-            Mensaje = resp.Error ? resp.ObtenerError() : "Consultorio eliminado correctamente.";
-            if (!resp.Error) Nav.NavigateTo("/tipoconsultorio", true);
+            Nav.NavigateTo(
+                "/tipoconsultorio",
+                true
+            );
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
         }
     }
 
-    private void Cancelar() => Nav.NavigateTo("/tipoconsultorio");
-}
 
+    private void AbrirConfirmacionEliminar()
+    {
+        mostrarConfirmacionEliminar = true;
+    }
+
+
+    private void CerrarConfirmacionEliminar()
+    {
+        if (!eliminando)
+        {
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    private async Task ConfirmarEliminar()
+    {
+        eliminando = true;
+        Mensaje = string.Empty;
+
+        var resp =
+            await Http.Delete(
+                $"api/tipoconsultorio/{id}"
+            );
+
+        eliminando = false;
+
+        if (!resp.Error)
+        {
+            mostrarConfirmacionEliminar = false;
+
+            Nav.NavigateTo(
+                "/tipoconsultorio",
+                true
+            );
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/tipoconsultorio");
+    }
+
+
+    private static TipoConsultorioDTO CrearModeloVacio()
+    {
+        return new TipoConsultorioDTO
+        {
+            Tipo = string.Empty,
+            Descripcion = string.Empty,
+            Direccion = string.Empty
+        };
+    }
+
+}

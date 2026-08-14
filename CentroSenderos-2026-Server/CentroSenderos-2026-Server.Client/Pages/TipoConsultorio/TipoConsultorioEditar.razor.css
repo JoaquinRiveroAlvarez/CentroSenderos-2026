@@ -1,0 +1,577 @@
+/* CSS for TipoConsultorioEditar component */
+.consultorio-form-page {
+    width: 100%;
+    padding: 34px 36px 40px;
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.consultorio-card {
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 28px 30px 26px;
+    background: #fffdf9;
+    border: 1px solid #e9e5df;
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(56, 53, 47, .06);
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+
+    .card-header h1 {
+        margin: 0;
+        color: #556f4f;
+        font-size: 26px;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+
+    .card-header p {
+        margin: 7px 0 0;
+        color: #92948f;
+        font-size: 14px;
+    }
+
+
+/* =====================================================
+   CERRAR
+===================================================== */
+
+.close-button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+    background: transparent;
+    color: #555953;
+    border: none;
+    border-radius: 50%;
+    font-size: 17px;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+}
+
+
+    .close-button:hover {
+        background: #f1efeb;
+        color: #2f332e;
+    }
+
+
+/* =====================================================
+   FORM
+===================================================== */
+
+.consultorio-form {
+    width: 100%;
+}
+
+
+/* =====================================================
+   CAMPOS
+===================================================== */
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 22px;
+}
+
+
+    .field-group label {
+        margin-bottom: 7px;
+        color: #656860;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: .03em;
+    }
+
+
+/* =====================================================
+   INPUT
+===================================================== */
+
+.senderos-input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    background: #fffefa;
+    color: #41453f;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+
+    .senderos-input::placeholder {
+        color: #aaa9a4;
+    }
+
+
+    .senderos-input:focus {
+        background: white;
+        border-color: #82947a;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+    }
+
+
+/* =====================================================
+   TEXTAREA
+===================================================== */
+
+.senderos-textarea {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    padding: 12px 14px;
+    background: #fffefa;
+    color: #41453f;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+
+    .senderos-textarea::placeholder {
+        color: #aaa9a4;
+    }
+
+
+    .senderos-textarea:focus {
+        background: white;
+        border-color: #82947a;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+    }
+
+
+/* =====================================================
+   DIRECCIÓN
+===================================================== */
+
+.input-with-icon {
+    position: relative;
+    width: 100%;
+}
+
+
+    .input-with-icon i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        z-index: 2;
+        transform: translateY(-50%);
+        color: #7f9177;
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+
+.address-input {
+    padding-left: 38px;
+}
+
+
+/* =====================================================
+   VALIDACIONES
+===================================================== */
+
+.validation-summary {
+    margin-bottom: 20px;
+    padding: 12px 15px;
+    background: #fff1ee;
+    color: #a74740;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+
+.validation-message {
+    margin-top: 5px;
+    color: #d34848;
+    font-size: 12px;
+}
+
+
+/* =====================================================
+   MENSAJE API
+===================================================== */
+
+.form-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding: 12px 15px;
+    background: #fff1ee;
+    color: #a74740;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   ACCIONES
+===================================================== */
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+
+.editar-actions {
+    justify-content: space-between;
+}
+
+
+.right-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+/* =====================================================
+   ELIMINAR
+===================================================== */
+
+.btn-eliminar {
+    min-width: 170px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 20px;
+    background: #ef4545;
+    color: white;
+    border: none;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease, transform .15s ease;
+}
+
+
+    .btn-eliminar:hover {
+        background: #db3d3d;
+    }
+
+
+    .btn-eliminar:active {
+        transform: scale(.98);
+    }
+
+
+/* =====================================================
+   CANCELAR
+===================================================== */
+
+.btn-cancelar {
+    min-width: 110px;
+    height: 44px;
+    padding: 0 20px;
+    background: #efedeb;
+    color: #555852;
+    border: 1px solid #dedbd6;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease;
+}
+
+
+    .btn-cancelar:hover {
+        background: #e6e3df;
+    }
+
+
+/* =====================================================
+   GUARDAR
+===================================================== */
+
+.btn-guardar {
+    min-width: 145px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 20px;
+    background: #647b5b;
+    color: white;
+    border: none;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease, transform .15s ease, opacity .2s ease;
+}
+
+
+    .btn-guardar:hover:not(:disabled) {
+        background: #556f4f;
+    }
+
+
+    .btn-guardar:active:not(:disabled) {
+        transform: scale(.98);
+    }
+
+
+    .btn-guardar:disabled {
+        opacity: .65;
+        cursor: default;
+    }
+
+
+/* =====================================================
+   LOADING
+===================================================== */
+
+.loading-state {
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #747970;
+    font-size: 14px;
+}
+
+
+    .loading-state .spinner-border {
+        width: 28px;
+        height: 28px;
+        color: #647b5b;
+    }
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, .60);
+}
+
+
+.delete-modal {
+    width: 100%;
+    max-width: 400px;
+    padding: 28px 28px 24px;
+    background: #fffdfa;
+    border: 1px solid #ebe5df;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .22);
+}
+
+
+.delete-warning-icon {
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    background: #ffd9cb;
+    color: #9a5d49;
+    border-radius: 50%;
+    font-size: 22px;
+}
+
+
+.delete-modal h2 {
+    max-width: 335px;
+    margin: 0 auto;
+    color: #292d28;
+    font-size: 24px;
+    font-weight: 650;
+    line-height: 1.22;
+}
+
+
+.delete-modal p {
+    max-width: 325px;
+    margin: 12px auto 24px;
+    color: #81817d;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+
+/* =====================================================
+   ACCIONES MODAL
+===================================================== */
+
+.delete-modal-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+}
+
+
+.confirm-delete-button {
+    min-width: 130px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 18px;
+    background: #ef4545;
+    color: white;
+    border: none;
+    border-radius: 21px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease, opacity .2s ease;
+}
+
+
+    .confirm-delete-button:hover:not(:disabled) {
+        background: #db3d3d;
+    }
+
+
+    .confirm-delete-button:disabled {
+        opacity: .65;
+        cursor: default;
+    }
+
+
+.modal-cancel-button {
+    min-width: 130px;
+    height: 42px;
+    padding: 0 18px;
+    background: #efedeb;
+    color: #5f625c;
+    border: none;
+    border-radius: 21px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease, opacity .2s ease;
+}
+
+
+    .modal-cancel-button:hover:not(:disabled) {
+        background: #e4e1de;
+    }
+
+
+    .modal-cancel-button:disabled {
+        opacity: .65;
+        cursor: default;
+    }
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 650px) {
+
+    .consultorio-form-page {
+        padding: 22px 15px 30px;
+    }
+
+
+    .consultorio-card {
+        padding: 23px 19px;
+    }
+
+
+    .card-header h1 {
+        font-size: 23px;
+    }
+
+
+    .editar-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+
+    .right-actions {
+        width: 100%;
+        flex-direction: column-reverse;
+    }
+
+
+    .btn-eliminar,
+    .btn-cancelar,
+    .btn-guardar {
+        width: 100%;
+    }
+
+
+    .delete-modal {
+        padding: 25px 19px 21px;
+    }
+
+
+        .delete-modal h2 {
+            font-size: 21px;
+        }
+
+
+    .delete-modal-actions {
+        flex-direction: column;
+    }
+
+
+    .confirm-delete-button,
+    .modal-cancel-button {
+        width: 100%;
+    }
+}

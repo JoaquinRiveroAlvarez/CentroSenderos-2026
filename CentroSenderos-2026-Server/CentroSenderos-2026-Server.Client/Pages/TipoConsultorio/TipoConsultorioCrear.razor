@@ -4,52 +4,174 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Crear Tipo de Consultorio</h3>
+<div class="consultorio-form-page">
 
-<EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="CrearTipoConsultorioForm">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+    <div class="consultorio-card">
 
-    <div class="form-group">
-        <label>Tipo</label>
-        <InputText class="form-control" @bind-Value="modelo.Tipo" />
-        <ValidationMessage For="@(() => modelo.Tipo)" />
+        <div class="card-header">
+
+            <div>
+                <h1>Nuevo Consultorio</h1>
+                <p>Complete los datos del tipo de consultorio.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    title="Cerrar"
+                    @onclick="Cancelar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <EditForm Model="@modelo"
+                  OnValidSubmit="Grabar"
+                  FormName="CrearTipoConsultorioForm"
+                  class="consultorio-form">
+
+            <DataAnnotationsValidator />
+
+            <ValidationSummary class="validation-summary" />
+
+
+            <div class="field-group">
+
+                <label>TIPO DE CONSULTORIO</label>
+
+                <InputText class="senderos-input"
+                           @bind-Value="modelo.Tipo"
+                           placeholder="Ej: Consultorio 1, Sala de Terapia..." />
+
+                <ValidationMessage For="@(() => modelo.Tipo)" />
+
+            </div>
+
+
+            <div class="field-group">
+
+                <label>DESCRIPCIÓN</label>
+
+                <InputTextArea class="senderos-textarea"
+                               @bind-Value="modelo.Descripcion"
+                               placeholder="Ingrese una descripción del consultorio" />
+
+                <ValidationMessage For="@(() => modelo.Descripcion)" />
+
+            </div>
+
+
+            <div class="field-group">
+
+                <label>DIRECCIÓN</label>
+
+                <div class="input-with-icon">
+
+                    <i class="bi bi-geo-alt"></i>
+
+                    <InputText class="senderos-input address-input"
+                               @bind-Value="modelo.Direccion"
+                               placeholder="Ingrese la dirección" />
+
+                </div>
+
+                <ValidationMessage For="@(() => modelo.Direccion)" />
+
+            </div>
+
+
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <div class="form-message">
+
+                    <i class="bi bi-exclamation-circle"></i>
+
+                    <span>@Mensaje</span>
+
+                </div>
+            }
+
+
+            <div class="form-actions">
+
+                <button type="button"
+                        class="btn-cancelar"
+                        @onclick="Cancelar">
+
+                    Cancelar
+
+                </button>
+
+
+                <button type="submit"
+                        class="btn-guardar"
+                        disabled="@guardando">
+
+                    @if (guardando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Guardando...</span>
+                    }
+                    else
+                    {
+                        <span>Guardar</span>
+                    }
+
+                </button>
+
+            </div>
+
+        </EditForm>
+
     </div>
 
-    <div class="form-group">
-        <label>Descripción</label>
-        <InputText class="form-control" @bind-Value="modelo.Descripcion" />
-        <ValidationMessage For="@(() => modelo.Descripcion)" />
-    </div>
+</div>
 
-    <div class="form-group">
-        <label>Dirección</label>
-        <InputText class="form-control" @bind-Value="modelo.Direccion" />
-        <ValidationMessage For="@(() => modelo.Direccion)" />
-    </div>
-
-    <button class="btn btn-primary" type="submit">Guardar</button>
-    <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-</EditForm>
-
-<p>@Mensaje</p>
 
 @code {
-    private TipoConsultorioDTO modelo = new TipoConsultorioDTO
+
+    private TipoConsultorioDTO modelo = new()
     {
         Tipo = string.Empty,
         Descripcion = string.Empty,
         Direccion = string.Empty
     };
-    private string Mensaje = "";
+
+    private bool guardando = false;
+
+    private string Mensaje = string.Empty;
+
 
     private async Task Grabar()
     {
-        var resp = await Http.Post<TipoConsultorioDTO, int>("api/tipoconsultorio", modelo);
-        Mensaje = resp.Error ? resp.ObtenerError() : "Guardado correctamente.";
-        if (!resp.Error) Nav.NavigateTo("/tipoconsultorio", true);
+        guardando = true;
+        Mensaje = string.Empty;
+
+        var resp =
+            await Http.Post<TipoConsultorioDTO, int>(
+                "api/tipoconsultorio",
+                modelo
+            );
+
+        guardando = false;
+
+        if (!resp.Error)
+        {
+            Nav.NavigateTo(
+                "/tipoconsultorio",
+                true
+            );
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
     }
 
-    private void Cancelar() => Nav.NavigateTo("/tipoconsultorio");
-}
 
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/tipoconsultorio");
+    }
+
+}
