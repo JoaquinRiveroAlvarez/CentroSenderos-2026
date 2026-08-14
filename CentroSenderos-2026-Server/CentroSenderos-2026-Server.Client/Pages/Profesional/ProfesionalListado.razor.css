@@ -1,0 +1,394 @@
+/* CSS for ProfesionalListado component */
+.profesionales-page {
+    width: 100%;
+    padding: 32px 36px 40px;
+    color: #2f382d;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.profesionales-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+    .profesionales-header h1 {
+        margin: 0;
+        color: #556f4f;
+        font-size: 26px;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+    .profesionales-header p {
+        margin: 7px 0 0;
+        color: #898b86;
+        font-size: 14px;
+    }
+
+
+/* =====================================================
+   ACCIONES SUPERIORES
+===================================================== */
+
+.profesionales-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+/* BUSCADOR */
+
+.search-box {
+    width: 260px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 14px;
+    background: #fffdf9;
+    border: 1px solid #e7e3dc;
+    border-radius: 22px;
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+    .search-box:focus-within {
+        background: white;
+        border-color: #9cab97;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+    }
+
+    .search-box i {
+        color: #92968f;
+        font-size: 14px;
+    }
+
+    .search-box input {
+        flex: 1;
+        min-width: 0;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #40443e;
+        font-family: inherit;
+        font-size: 14px;
+    }
+
+        .search-box input::placeholder {
+            color: #aaa9a5;
+        }
+
+
+/* BOTÓN FILTROS */
+
+.btn-filter {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 17px;
+    background: #fffdf9;
+    color: #666b64;
+    border: 1px solid #e1ded8;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+    .btn-filter:hover {
+        background: #f2f0eb;
+    }
+
+    .btn-filter i {
+        font-size: 14px;
+    }
+
+
+/* NUEVO PROFESIONAL */
+
+.btn-nuevo-profesional {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 19px;
+    background: #647b5b;
+    border: none;
+    border-radius: 22px;
+    color: white;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(61, 84, 54, .12);
+    transition: background .2s ease, transform .15s ease, box-shadow .2s ease;
+}
+
+    .btn-nuevo-profesional:hover {
+        background: #556f4f;
+        box-shadow: 0 5px 14px rgba(61, 84, 54, .17);
+    }
+
+    .btn-nuevo-profesional:active {
+        transform: scale(.98);
+    }
+
+    .btn-nuevo-profesional i {
+        font-size: 15px;
+    }
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.profesionales-card {
+    overflow: hidden;
+    background: #fffdf9;
+    border: 1px solid #ebe7e0;
+    border-radius: 18px;
+    box-shadow: 0 8px 25px rgba(64, 61, 54, .05);
+}
+
+
+/* =====================================================
+   TABLA
+===================================================== */
+
+.tabla-profesionales {
+    width: 100%;
+}
+
+
+/* HEADER TABLA */
+
+.tabla-header {
+    min-height: 48px;
+    display: grid;
+    grid-template-columns: minmax(230px, 1.8fr) minmax(150px, 1.1fr) minmax(90px, .7fr) minmax(90px, .7fr) minmax(150px, 1fr) minmax(150px, 1fr);
+    align-items: center;
+    padding: 0 22px;
+    color: #969993;
+    border-bottom: 1px solid #eeebe6;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+}
+
+
+/* FILA */
+
+.profesional-row {
+    min-height: 72px;
+    display: grid;
+    grid-template-columns: minmax(230px, 1.8fr) minmax(150px, 1.1fr) minmax(90px, .7fr) minmax(90px, .7fr) minmax(150px, 1fr) minmax(150px, 1fr);
+    align-items: center;
+    padding: 0 22px;
+    border-bottom: 1px solid #f0ede8;
+    cursor: pointer;
+    transition: background .15s ease, transform .15s ease;
+}
+
+    .profesional-row:last-child {
+        border-bottom: none;
+    }
+
+    .profesional-row:hover {
+        background: #f7f8f4;
+    }
+
+
+/* =====================================================
+   PROFESIONAL
+===================================================== */
+
+.profesional-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.profesional-avatar {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #dfe5dc;
+    color: #556f4f;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.profesional-nombre {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+    .profesional-nombre strong {
+        overflow: hidden;
+        color: #383d36;
+        font-size: 14px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .profesional-nombre span {
+        margin-top: 3px;
+        color: #a09f9b;
+        font-size: 12px;
+    }
+
+
+/* =====================================================
+   CELDAS
+===================================================== */
+
+.dato {
+    overflow: hidden;
+    padding-right: 14px;
+    color: #686c66;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+    .dato.area {
+        color: #5d625a;
+    }
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.tabla-footer {
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    padding: 0 22px;
+    color: #999b96;
+    border-top: 1px solid #eeeae4;
+    font-size: 13px;
+}
+
+
+/* =====================================================
+   ESTADOS
+===================================================== */
+
+.estado-container {
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #fffdf9;
+    border: 1px solid #ebe7e0;
+    border-radius: 18px;
+    color: #7e827b;
+}
+
+    .estado-container i {
+        color: #82927c;
+        font-size: 30px;
+    }
+
+    .estado-container p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+
+/* =====================================================
+   MENSAJE ERROR
+===================================================== */
+
+.mensaje-error {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: #fff0ee;
+    color: #a8443d;
+    border: 1px solid #f2d4d0;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 1250px) {
+
+    .profesionales-page {
+        padding: 28px 24px 36px;
+    }
+
+    .profesionales-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .profesionales-header-actions {
+        width: 100%;
+    }
+
+    .search-box {
+        flex: 1;
+        width: auto;
+    }
+}
+
+
+@media (max-width: 950px) {
+
+    .profesionales-card {
+        overflow-x: auto;
+    }
+
+    .tabla-profesionales {
+        min-width: 980px;
+    }
+}
+
+
+@media (max-width: 650px) {
+
+    .profesionales-page {
+        padding: 22px 16px 30px;
+    }
+
+    .profesionales-header h1 {
+        font-size: 24px;
+    }
+
+    .profesionales-header-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .search-box,
+    .btn-filter,
+    .btn-nuevo-profesional {
+        width: 100%;
+    }
+}

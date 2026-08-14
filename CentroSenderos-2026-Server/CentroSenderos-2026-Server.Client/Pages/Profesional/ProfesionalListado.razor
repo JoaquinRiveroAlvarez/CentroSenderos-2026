@@ -4,98 +4,287 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Listado de Profesionales</h3>
+<div class="profesionales-page">
 
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="IrACrear">Nuevo Profesional</button>
+    <div class="profesionales-header">
+
+        <div>
+            <h1>Gestión de Profesionales</h1>
+            <p>Administrá los profesionales registrados en Senderos.</p>
+        </div>
+
+        <div class="profesionales-header-actions">
+
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+
+                <input type="text"
+                       placeholder="Buscar profesional..."
+                       @bind="textoBusqueda"
+                       @bind:event="oninput" />
+            </div>
+
+            <button type="button"
+                    class="btn-filter">
+                <i class="bi bi-funnel"></i>
+                Filtros
+            </button>
+
+            <button type="button"
+                    class="btn-nuevo-profesional"
+                    @onclick="IrACrear">
+                <i class="bi bi-person-plus"></i>
+                Nuevo Profesional
+            </button>
+
+        </div>
+
+    </div>
+
+
+    @if (cargando)
+    {
+        <div class="estado-container">
+            <div class="spinner-border text-success" role="status"></div>
+            <p>Cargando profesionales...</p>
+        </div>
+    }
+    else if (listaProfesionales == null)
+    {
+        <div class="estado-container">
+            <i class="bi bi-exclamation-circle"></i>
+            <p>Error al cargar profesionales.</p>
+        </div>
+    }
+    else if (!ProfesionalesFiltrados.Any())
+    {
+        <div class="estado-container">
+            <i class="bi bi-person-x"></i>
+
+            @if (string.IsNullOrWhiteSpace(textoBusqueda))
+            {
+                <p>No hay profesionales registrados.</p>
+            }
+            else
+            {
+                <p>No encontramos profesionales que coincidan con la búsqueda.</p>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="profesionales-card">
+
+            <div class="tabla-profesionales">
+
+                <div class="tabla-header">
+                    <div>NOMBRE</div>
+                    <div>ÁREA</div>
+                    <div>M.P.</div>
+                    <div>R.N.P.</div>
+                    <div>CUIT</div>
+                    <div>TELÉFONO</div>
+                </div>
+
+                @foreach (var profesional in ProfesionalesFiltrados)
+                {
+                    <div class="profesional-row"
+                         @onclick="() => IrAEditar(profesional.Id)">
+
+                        <div class="profesional-info">
+
+                            <div class="profesional-avatar">
+                                @ObtenerIniciales(profesional.Nombre)
+                            </div>
+
+                            <div class="profesional-nombre">
+                                <strong>@profesional.Nombre</strong>
+                                <span>Profesional</span>
+                            </div>
+
+                        </div>
+
+                        <div class="dato area">
+                            @MostrarValor(profesional.Area)
+                        </div>
+
+                        <div class="dato">
+                            @MostrarValor(profesional.MP)
+                        </div>
+
+                        <div class="dato">
+                            @MostrarValor(profesional.RNP)
+                        </div>
+
+                        <div class="dato">
+                            @MostrarValor(profesional.Cuit)
+                        </div>
+
+                        <div class="dato">
+                            @MostrarValor(profesional.Telefono)
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+            <div class="tabla-footer">
+                <span>
+                    Mostrando @ProfesionalesFiltrados.Count()
+                    de @listaProfesionales.Count profesionales
+                </span>
+            </div>
+
+        </div>
+    }
+
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="mensaje-error">
+            @Mensaje
+        </div>
+    }
+
 </div>
 
-@if (cargando)
-{
-    <p>Cargando profesionales...</p>
-}
-else if (listaProfesionales == null)
-{
-    <p>Error al cargar profesionales.</p>
-}
-else if (listaProfesionales.Count == 0)
-{
-    <p>No hay profesionales registrados.</p>
-}
-else
-{
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Área/Profesión</th>
-                <th>CUIT</th>
-                <th>Matrícula (MP)</th>
-                <th>RNP</th>
-                <th>Teléfono</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var profesional in listaProfesionales)
-            {
-                <tr style="cursor:pointer" @onclick="() => IrAEditar(profesional.Id)">
-                    <td>@profesional.Id</td>
-                    <td>@profesional.Nombre</td>
-                    <td>@profesional.Area</td>
-                    <td>@profesional.Cuit</td>
-                    <td>@profesional.MP</td>
-                    <td>@profesional.RNP</td>
-                    <td>@profesional.Telefono</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
-<p>@Mensaje</p>
 
 @code {
+
     private List<ProfesionalListadoDTO>? listaProfesionales;
+
     private bool cargando = true;
+
     private string Mensaje = "";
+
+    private string textoBusqueda = "";
+
+
+    private IEnumerable<ProfesionalListadoDTO> ProfesionalesFiltrados =>
+        listaProfesionales?
+            .Where(p =>
+                string.IsNullOrWhiteSpace(textoBusqueda) ||
+
+                (p.Nombre?.Contains(
+                    textoBusqueda,
+                    StringComparison.OrdinalIgnoreCase) ?? false) ||
+
+                (p.Area?.Contains(
+                    textoBusqueda,
+                    StringComparison.OrdinalIgnoreCase) ?? false) ||
+
+                (p.Cuit?.Contains(
+                    textoBusqueda,
+                    StringComparison.OrdinalIgnoreCase) ?? false) ||
+
+                (p.MP?.ToString()?.Contains(
+                    textoBusqueda,
+                    StringComparison.OrdinalIgnoreCase) ?? false) ||
+
+                (p.RNP?.ToString()?.Contains(
+                    textoBusqueda,
+                    StringComparison.OrdinalIgnoreCase) ?? false) ||
+
+                (p.Telefono?.ToString()?.Contains(
+                    textoBusqueda,
+                    StringComparison.OrdinalIgnoreCase) ?? false)
+            )
+        ?? Enumerable.Empty<ProfesionalListadoDTO>();
+
 
     protected override async Task OnInitializedAsync()
     {
         await CargarProfesionales();
     }
 
+
     private async Task CargarProfesionales()
     {
         cargando = true;
 
-        var resp = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
+        var resp =
+            await Http.Get<List<ProfesionalListadoDTO>>(
+                "api/profesional/ListaProfesional"
+            );
 
-        if (resp.Error && resp.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+        if (resp.Error &&
+            resp.HttpResponseMessage.StatusCode ==
+            System.Net.HttpStatusCode.NotFound)
         {
-        // Si la API devuelve 404, tratamos como lista vacía sin mostrar mensaje de error
-        listaProfesionales = new();
-        Mensaje = "";
-    }
-    else
-    {
-        // Para otros casos, mantenemos tu lógica original
-        listaProfesionales = resp.Error ? new() : resp.Respuesta ?? new();
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
-    }
+            listaProfesionales = new();
 
-    await Task.Delay(200); // opcional para suavizar el renderizado
-    cargando = false;
-}
+            Mensaje = "";
+        }
+        else
+        {
+            listaProfesionales =
+                resp.Error
+                    ? new()
+                    : resp.Respuesta ?? new();
+
+            Mensaje =
+                resp.Error
+                    ? resp.ObtenerError()
+                    : "";
+        }
+
+        cargando = false;
+    }
 
 
     private void IrAEditar(int id)
     {
-        Nav.NavigateTo($"/profesionales/editar/{id}");
+        Nav.NavigateTo(
+            $"/profesionales/editar/{id}"
+        );
     }
+
 
     private void IrACrear()
     {
-        Nav.NavigateTo("/profesionales/crear");
+        Nav.NavigateTo(
+            "/profesionales/crear"
+        );
     }
+
+
+    private static string MostrarValor(object? valor)
+    {
+        if (valor is null)
+            return "—";
+
+        var texto = valor.ToString();
+
+        return string.IsNullOrWhiteSpace(texto)
+            ? "—"
+            : texto;
+    }
+
+
+    private static string ObtenerIniciales(string? nombre)
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+            return "P";
+
+        var palabras =
+            nombre.Split(
+                ' ',
+                StringSplitOptions.RemoveEmptyEntries
+            );
+
+        if (palabras.Length == 1)
+        {
+            return palabras[0][0]
+                .ToString()
+                .ToUpper();
+        }
+
+        return string.Concat(
+                palabras[0][0],
+                palabras[1][0]
+            )
+            .ToUpper();
+    }
+
 }
