@@ -5,115 +5,377 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Socio</h3>
+<div class="socio-form-page">
 
-@if (cargando)
-{
-    <p>Cargando datos del socio...</p>
-}
-else if (modelo == null)
-{
-    <p>No se encontró el socio.</p>
-}
-else
-{
-    <EditForm Model="@modelo" OnValidSubmit="Grabar" FormName="EditarSocioForm">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    <div class="socio-card">
 
-        <div class="form-group">
-            <label>ID</label>
-            <InputNumber class="form-control" @bind-Value="modelo.Id" disabled />
+        <div class="card-header">
+
+            <div>
+                <h1>Editar Socio</h1>
+                <p>Modifique los datos asociados al socio.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    title="Cerrar"
+                    @onclick="Cancelar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
         </div>
 
-        <div class="form-group">
-            <label>Profesional</label>
-            <InputSelect class="form-control" @bind-Value="modelo.ProfesionalId">
-                <option value="0">-- Seleccione un profesional --</option>
-                @foreach (var prof in profesionales)
+
+        @if (cargando)
+        {
+            <div class="loading-state">
+
+                <div class="spinner-border"
+                     role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+
+                <span>Cargando datos del socio...</span>
+
+            </div>
+        }
+        else if (modelo == null)
+        {
+            <div class="not-found-state">
+
+                <div class="not-found-icon">
+                    <i class="bi bi-exclamation-circle"></i>
+                </div>
+
+                <h2>No se encontró el socio</h2>
+
+                <p>
+                    No pudimos cargar la información solicitada.
+                </p>
+
+                <button type="button"
+                        class="btn-volver"
+                        @onclick="Cancelar">
+                    Volver
+                </button>
+
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@modelo"
+                      OnValidSubmit="Grabar"
+                      FormName="EditarSocioForm"
+                      class="socio-form">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+
+                <div class="field-group">
+
+                    <label>PROFESIONAL</label>
+
+                    <InputSelect class="senderos-select"
+                                 @bind-Value="modelo.ProfesionalId">
+
+                        <option value="0">
+                            Seleccione un profesional
+                        </option>
+
+                        @foreach (var prof in profesionales)
+                        {
+                            <option value="@prof.Id">
+                                @prof.Nombre (@prof.Area)
+                            </option>
+                        }
+
+                    </InputSelect>
+
+                    <ValidationMessage For="@(() => modelo.ProfesionalId)" />
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>OBSERVACIÓN</label>
+
+                    <InputTextArea class="senderos-textarea"
+                                   @bind-Value="modelo.Observacion"
+                                   placeholder="Ingrese una observación" />
+
+                    <ValidationMessage For="@(() => modelo.Observacion)" />
+
+                </div>
+
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
                 {
-                    <option value="@prof.Id">@prof.Nombre (@prof.Area)</option>
+                    <div class="form-message">
+
+                        <i class="bi bi-exclamation-circle"></i>
+
+                        <span>@Mensaje</span>
+
+                    </div>
                 }
-            </InputSelect>
-            <ValidationMessage For="@(() => modelo.ProfesionalId)" />
+
+
+                <div class="form-actions editar-actions">
+
+                    <button type="button"
+                            class="btn-eliminar"
+                            @onclick="AbrirConfirmacionEliminar">
+
+                        <i class="bi bi-trash3"></i>
+                        Eliminar Socio
+
+                    </button>
+
+
+                    <div class="right-actions">
+
+                        <button type="button"
+                                class="btn-cancelar"
+                                @onclick="Cancelar">
+                            Cancelar
+                        </button>
+
+                        <button type="submit"
+                                class="btn-guardar"
+                                disabled="@guardando">
+
+                            @if (guardando)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                <span>Guardando...</span>
+                            }
+                            else
+                            {
+                                <span>Guardar Cambios</span>
+                            }
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </EditForm>
+        }
+
+    </div>
+
+</div>
+
+
+@if (mostrarConfirmacionEliminar)
+{
+    <div class="modal-overlay">
+
+        <div class="delete-modal">
+
+            <div class="delete-warning-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+            <h2>
+                ¿Estás seguro que querés eliminar este socio?
+            </h2>
+
+            <p>
+                Esta acción no se puede deshacer.
+                El socio será eliminado definitivamente.
+            </p>
+
+            <div class="delete-modal-actions">
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminando"
+                        @onclick="ConfirmarEliminar">
+
+                    @if (eliminando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Eliminando...</span>
+                    }
+                    else
+                    {
+                        <span>Eliminar</span>
+                    }
+
+                </button>
+
+                <button type="button"
+                        class="modal-cancel-button"
+                        disabled="@eliminando"
+                        @onclick="CerrarConfirmacionEliminar">
+                    Cancelar
+                </button>
+
+            </div>
+
         </div>
 
-        <div class="form-group">
-            <label>Observación</label>
-            <InputText class="form-control" @bind-Value="modelo.Observacion" />
-            <ValidationMessage For="@(() => modelo.Observacion)" />
-        </div>
-
-
-        <br />
-        <button class="btn btn-primary" type="submit">Guardar Cambios</button>
-        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
-    </EditForm>
+    </div>
 }
 
-<p>@Mensaje</p>
 
 @code {
-    [Inject] IJSRuntime JSRuntime { get; set; } = default!;
-    [Parameter]
 
+    [Parameter]
     public int id { get; set; }
 
+
     private SocioDTO? modelo;
-    private bool cargando = true;
-    private string Mensaje = "";
 
     private List<ProfesionalListadoDTO> profesionales = new();
 
+    private bool cargando = true;
+
+    private bool guardando = false;
+
+    private bool eliminando = false;
+
+    private bool mostrarConfirmacionEliminar = false;
+
+    private string Mensaje = string.Empty;
+
+
     protected override async Task OnInitializedAsync()
     {
+        await CargarDatos();
+    }
+
+
+    private async Task CargarDatos()
+    {
         cargando = true;
+        Mensaje = string.Empty;
 
-        // cargar lista de profesionales
-        var respProf = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
-        if (!respProf.Error && respProf.Respuesta != null)
-            profesionales = respProf.Respuesta;
+
+        var respProf =
+            await Http.Get<List<ProfesionalListadoDTO>>(
+                "api/profesional/ListaProfesional"
+            );
+
+        if (!respProf.Error)
+        {
+            profesionales =
+                respProf.Respuesta ?? new();
+        }
         else
+        {
+            profesionales = new();
+
             Mensaje = respProf.ObtenerError();
+        }
 
-        // cargar socio
-        var respSocio = await Http.Get<SocioDTO>($"api/socio/{id}");
+
+        var respSocio =
+            await Http.Get<SocioDTO>(
+                $"api/socio/{id}"
+            );
+
         if (!respSocio.Error)
+        {
             modelo = respSocio.Respuesta;
+        }
         else
+        {
+            modelo = null;
+
             Mensaje = respSocio.ObtenerError();
-        await Task.Delay(200);
+        }
+
+
         cargando = false;
     }
 
+
     private async Task Grabar()
     {
-        if (modelo == null) return;
+        if (modelo == null)
+            return;
 
-        var resp = await Http.Put<SocioDTO, RespuestaDTO>($"api/socio/{id}", modelo);
-        Mensaje = resp.Error ? resp.ObtenerError() : resp.Respuesta?.mensaje!;
+        guardando = true;
+        Mensaje = string.Empty;
+
+        var resp =
+            await Http.Put<SocioDTO, RespuestaDTO>(
+                $"api/socio/{id}",
+                modelo
+            );
+
+        guardando = false;
+
 
         if (!resp.Error)
         {
-            await Task.Delay(500);
-            Nav.NavigateTo("/socio", true);
+            Nav.NavigateTo(
+                "/socio",
+                true
+            );
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
         }
     }
 
-    private async Task Eliminar()
+
+    private void AbrirConfirmacionEliminar()
     {
-        var confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar este socio?");
-        if (confirmar)
+        mostrarConfirmacionEliminar = true;
+    }
+
+
+    private void CerrarConfirmacionEliminar()
+    {
+        if (!eliminando)
         {
-            var resp = await Http.Delete($"api/socio/{id}");
-            Mensaje = resp.Error ? resp.ObtenerError() : "Socio eliminado correctamente.";
-            if (!resp.Error) Nav.NavigateTo("/socio", true);
+            mostrarConfirmacionEliminar = false;
         }
     }
+
+
+    private async Task ConfirmarEliminar()
+    {
+        eliminando = true;
+        Mensaje = string.Empty;
+
+        var resp =
+            await Http.Delete(
+                $"api/socio/{id}"
+            );
+
+        eliminando = false;
+
+
+        if (!resp.Error)
+        {
+            mostrarConfirmacionEliminar = false;
+
+            Nav.NavigateTo(
+                "/socio",
+                true
+            );
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
 
     private void Cancelar()
     {
         Nav.NavigateTo("/socio");
     }
+
 }
