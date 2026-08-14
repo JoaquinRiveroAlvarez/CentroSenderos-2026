@@ -2,108 +2,214 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h2>Panel de Administración</h2>
-<p>Seleccione la sección que desea administrar:</p>
+<div class="admin-page">
 
-<div class="row">
-    <div class="col-md-4 mb-3">
-        <div class="card shadow-sm border-primary">
-            <div class="card-body text-center">
-                <h5 class="card-title text-primary">Tipos de Obra Social</h5>
-                <p class="card-text">Gestione las obras sociales disponibles.</p>
-                <button class="btn btn-outline-primary" @onclick="IrAObraSocial">
-                    Ir a Obra Social
-                </button>
-            </div>
+    <div class="admin-header">
+
+        <div>
+            <h1>Panel de Administración</h1>
+            <p>Gestioná la configuración general y los catálogos del sistema.</p>
         </div>
+
     </div>
 
-    <div class="col-md-4 mb-3">
-        <div class="card shadow-sm border-success">
-            <div class="card-body text-center">
-                <h5 class="card-title text-success">Tipos de Prestación</h5>
-                <p class="card-text">Gestione las prestaciones y sus montos.</p>
-                <button class="btn btn-outline-success" @onclick="IrAPrestacion">
-                    Ir a Prestaciones
-                </button>
+
+    <div class="admin-grid">
+
+        <button type="button"
+                class="admin-card"
+                @onclick="IrAObraSocial">
+
+            <div class="admin-card-icon">
+                <i class="bi bi-building"></i>
             </div>
-        </div>
+
+            <div class="admin-card-content">
+
+                <h2>Obras Sociales</h2>
+
+                <p>
+                    Gestioná los tipos de obra social disponibles
+                    para los pacientes.
+                </p>
+
+            </div>
+
+            <div class="admin-card-arrow">
+                <i class="bi bi-chevron-right"></i>
+            </div>
+
+        </button>
+
+
+        <button type="button"
+                class="admin-card"
+                @onclick="IrAPrestacion">
+
+            <div class="admin-card-icon">
+                <i class="bi bi-clipboard2-pulse"></i>
+            </div>
+
+            <div class="admin-card-content">
+
+                <h2>Tipos de Prestación</h2>
+
+                <p>
+                    Administrá las prestaciones, códigos y montos
+                    por sesión.
+                </p>
+
+            </div>
+
+            <div class="admin-card-arrow">
+                <i class="bi bi-chevron-right"></i>
+            </div>
+
+        </button>
+
+
+        <button type="button"
+                class="admin-card"
+                @onclick="IrATurnos">
+
+            <div class="admin-card-icon">
+                <i class="bi bi-clock-history"></i>
+            </div>
+
+            <div class="admin-card-content">
+
+                <h2>Tipos de Turno</h2>
+
+                <p>
+                    Configurá los tipos de turno y sus duraciones.
+                </p>
+
+            </div>
+
+            <div class="admin-card-arrow">
+                <i class="bi bi-chevron-right"></i>
+            </div>
+
+        </button>
+
+
+        <button type="button"
+                class="admin-card"
+                @onclick="IrASocios">
+
+            <div class="admin-card-icon">
+                <i class="bi bi-people"></i>
+            </div>
+
+            <div class="admin-card-content">
+
+                <h2>Socios</h2>
+
+                <p>
+                    Gestioná los profesionales que forman parte
+                    de la sociedad.
+                </p>
+
+            </div>
+
+            <div class="admin-card-arrow">
+                <i class="bi bi-chevron-right"></i>
+            </div>
+
+        </button>
+
+
+        <button type="button"
+                class="admin-card"
+                @onclick="IrAPlanillas">
+
+            <div class="admin-card-icon">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+
+            <div class="admin-card-content">
+
+                <h2>Tipos de Planillas</h2>
+
+                <p>
+                    Administrá los diferentes tipos de planillas
+                    utilizados por el centro.
+                </p>
+
+            </div>
+
+            <div class="admin-card-arrow">
+                <i class="bi bi-chevron-right"></i>
+            </div>
+
+        </button>
+
+
+        <button type="button"
+                class="admin-card"
+                @onclick="IrAConsultorios">
+
+            <div class="admin-card-icon">
+                <i class="bi bi-door-open"></i>
+            </div>
+
+            <div class="admin-card-content">
+
+                <h2>Consultorios</h2>
+
+                <p>
+                    Gestioná los consultorios, descripciones
+                    y ubicaciones disponibles.
+                </p>
+
+            </div>
+
+            <div class="admin-card-arrow">
+                <i class="bi bi-chevron-right"></i>
+            </div>
+
+        </button>
+
     </div>
 
-    <div class="col-md-4 mb-3">
-        <div class="card shadow-sm border-warning">
-            <div class="card-body text-center">
-                <h5 class="card-title text-warning">Tipos de Turno</h5>
-                <p class="card-text">Gestione los turnos y sus duraciones.</p>
-                <button class="btn btn-outline-warning" @onclick="IrATurnos">
-                    Ir a Turnos
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4 mb-3">
-        <div class="card shadow-sm border-warning">
-            <div class="card-body text-center">
-                <h5 class="card-title text-warning">Socios</h5>
-                <p class="card-text">Gestione los socios y sus datos.</p>
-                <button class="btn btn-outline-warning" @onclick="IrASocios">
-                    Ir a Socios
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4 mb-3">
-        <div class="card shadow-sm border-warning">
-            <div class="card-body text-center">
-                <h5 class="card-title text-warning">Tipos de Planillas</h5>
-                <p class="card-text">Gestione las planillas.</p>
-                <button class="btn btn-outline-warning" @onclick="IrAPlanillas">
-                    Ir a Planillas
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4 mb-3">
-        <div class="card shadow-sm border-primary">
-            <div class="card-body text-center">
-                <h5 class="card-title text-primary">Consultorios</h5>
-                <p class="card-text">Gestione los consultorios y sus datos.</p>
-                <button class="btn btn-outline-primary" @onclick="IrAConsultorios">
-                    Ir a Consultorios
-                </button>
-            </div>
-        </div>
-    </div>
 </div>
 
+
 @code {
+
     private void IrAObraSocial()
     {
-        Nav.NavigateTo("/tipoobrasocial", true);
+        Nav.NavigateTo("/tipoobrasocial");
     }
+
 
     private void IrAPrestacion()
     {
-        Nav.NavigateTo("/tipoprestacion", true);
+        Nav.NavigateTo("/tipoprestacion");
     }
+
 
     private void IrATurnos()
     {
-        Nav.NavigateTo("/tipoturno", true);
+        Nav.NavigateTo("/tipoturno");
     }
+
+
     private void IrASocios()
     {
-        Nav.NavigateTo("/socio", true);
+        Nav.NavigateTo("/socio");
     }
+
+
     private void IrAPlanillas()
     {
-        Nav.NavigateTo("/tipoplanillas", true);
+        Nav.NavigateTo("/tipoplanillas");
     }
+
+
     private void IrAConsultorios()
     {
-        Nav.NavigateTo("/tipoconsultorio", true);
+        Nav.NavigateTo("/tipoconsultorio");
     }
+
 }

@@ -4,47 +4,174 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Crear Tipo de Turno</h3>
+<div class="turno-form-page">
 
-<EditForm Model="@modelo" OnValidSubmit="Grabar">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+    <div class="turno-card">
 
-    <div class="form-group">
-        <label>Tipo</label>
-        <InputText class="form-control" @bind-Value="modelo.Tipo" />
+        <div class="card-header">
+
+            <div>
+                <h1>Nuevo Tipo de Turno</h1>
+                <p>Complete los datos del tipo de turno.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    title="Cerrar"
+                    @onclick="Cancelar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <EditForm Model="@modelo"
+                  OnValidSubmit="Grabar"
+                  class="turno-form">
+
+            <DataAnnotationsValidator />
+
+            <ValidationSummary class="validation-summary" />
+
+
+            <div class="field-group">
+
+                <label>TIPO DE TURNO</label>
+
+                <InputText class="senderos-input"
+                           @bind-Value="modelo.Tipo"
+                           placeholder="Ej: Sesión individual, Evaluación inicial..." />
+
+                <ValidationMessage For="@(() => modelo.Tipo)" />
+
+            </div>
+
+
+            <div class="field-group">
+
+                <label>DESCRIPCIÓN</label>
+
+                <InputTextArea class="senderos-textarea"
+                               @bind-Value="modelo.Descripcion"
+                               placeholder="Ingrese una descripción del tipo de turno" />
+
+                <ValidationMessage For="@(() => modelo.Descripcion)" />
+
+            </div>
+
+
+            <div class="field-group">
+
+                <label>DURACIÓN</label>
+
+                <div class="duration-input-group">
+
+                    <div class="duration-icon">
+                        <i class="bi bi-clock"></i>
+                    </div>
+
+                    <InputNumber class="duration-input"
+                                 @bind-Value="modelo.DuracionMinutos"
+                                 min="0"
+                                 step="5" />
+
+                    <div class="duration-suffix">
+                        minutos
+                    </div>
+
+                </div>
+
+                <ValidationMessage For="@(() => modelo.DuracionMinutos)" />
+
+            </div>
+
+
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <div class="form-message">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@Mensaje</span>
+                </div>
+            }
+
+
+            <div class="form-actions">
+
+                <button type="button"
+                        class="btn-cancelar"
+                        @onclick="Cancelar">
+                    Cancelar
+                </button>
+
+                <button type="submit"
+                        class="btn-guardar"
+                        disabled="@guardando">
+
+                    @if (guardando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Guardando...</span>
+                    }
+                    else
+                    {
+                        <span>Guardar</span>
+                    }
+
+                </button>
+
+            </div>
+
+        </EditForm>
+
     </div>
-    <div class="form-group">
-        <label>Descripción</label>
-        <InputText class="form-control" @bind-Value="modelo.Descripcion" />
-    </div>
-    <div class="form-group">
-        <label>Duración (minutos)</label>
-        <InputNumber class="form-control" @bind-Value="modelo.DuracionMinutos" />
-    </div>
 
-    <button class="btn btn-primary" type="submit">Guardar</button>
-    <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-</EditForm>
+</div>
 
-<p>@Mensaje</p>
 
 @code {
-    private TipoTurnoDTO modelo = new TipoTurnoDTO
+
+    private TipoTurnoDTO modelo = new()
     {
         Tipo = string.Empty,
         Descripcion = string.Empty,
         DuracionMinutos = 0
     };
-    private string Mensaje = "";
+
+    private bool guardando = false;
+
+    private string Mensaje = string.Empty;
+
 
     private async Task Grabar()
     {
-        var resp = await Http.Post<TipoTurnoDTO, int>("api/tipoturno", modelo);
-        Mensaje = resp.Error ? resp.ObtenerError() : "Guardado correctamente.";
-        if (!resp.Error) Nav.NavigateTo("/tipoturno", true);
+        guardando = true;
+        Mensaje = string.Empty;
+
+        var resp =
+            await Http.Post<TipoTurnoDTO, int>(
+                "api/tipoturno",
+                modelo
+            );
+
+        guardando = false;
+
+        if (!resp.Error)
+        {
+            Nav.NavigateTo(
+                "/tipoturno",
+                true
+            );
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
     }
 
-    private void Cancelar() => Nav.NavigateTo("/tipoturno");
-}
 
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/tipoturno");
+    }
+
+}
