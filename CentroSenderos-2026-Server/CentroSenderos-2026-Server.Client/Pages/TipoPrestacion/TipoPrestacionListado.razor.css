@@ -1,0 +1,451 @@
+/* CSS for TipoPrestacionListado component */
+.prestaciones-page {
+    width: 100%;
+    padding: 32px 36px 40px;
+    color: #343934;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 22px;
+}
+
+
+.header-title h1 {
+    margin: 0;
+    color: #556f4f;
+    font-size: 26px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+
+.header-title p {
+    margin: 7px 0 0;
+    color: #8f918c;
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   ACCIONES
+===================================================== */
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+
+/* =====================================================
+   BUSCADOR
+===================================================== */
+
+.search-box {
+    width: 275px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 14px;
+    background: #fffdf9;
+    border: 1px solid #e3dfd9;
+    border-radius: 22px;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+
+    .search-box:focus-within {
+        border-color: #8a9c83;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+    }
+
+
+    .search-box i {
+        color: #92968f;
+        font-size: 14px;
+    }
+
+
+    .search-box input {
+        width: 100%;
+        background: transparent;
+        color: #454a43;
+        border: none;
+        outline: none;
+        font-family: inherit;
+        font-size: 14px;
+    }
+
+
+        .search-box input::placeholder {
+            color: #aaa9a5;
+        }
+
+
+/* =====================================================
+   BOTÓN NUEVA PRESTACIÓN
+===================================================== */
+
+.btn-nueva,
+.btn-nueva-estado {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 19px;
+    background: #647b5b;
+    color: white;
+    border: none;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(61, 84, 54, .10);
+    transition: background .2s ease, transform .15s ease, box-shadow .2s ease;
+}
+
+
+    .btn-nueva:hover,
+    .btn-nueva-estado:hover {
+        background: #556f4f;
+        box-shadow: 0 5px 14px rgba(61, 84, 54, .15);
+    }
+
+
+    .btn-nueva:active,
+    .btn-nueva-estado:active {
+        transform: scale(.98);
+    }
+
+
+/* =====================================================
+   CARD LISTADO
+===================================================== */
+
+.list-card {
+    overflow: hidden;
+    background: #fffdf9;
+    border: 1px solid #e9e5de;
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(56, 54, 48, .05);
+}
+
+
+/* =====================================================
+   HEADER LISTA
+===================================================== */
+
+.list-header {
+    min-height: 48px;
+    display: grid;
+    grid-template-columns: minmax(210px, 1fr) minmax(260px, 1.5fr) minmax(110px, .65fr) minmax(130px, .75fr) 35px;
+    align-items: center;
+    gap: 20px;
+    padding: 0 24px;
+    color: #969993;
+    border-bottom: 1px solid #ece9e3;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .05em;
+}
+
+
+/* =====================================================
+   FILAS
+===================================================== */
+
+.prestacion-row {
+    min-height: 74px;
+    display: grid;
+    grid-template-columns: minmax(210px, 1fr) minmax(260px, 1.5fr) minmax(110px, .65fr) minmax(130px, .75fr) 35px;
+    align-items: center;
+    gap: 20px;
+    padding: 0 24px;
+    border-bottom: 1px solid #f0ede8;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+
+
+    .prestacion-row:last-child {
+        border-bottom: none;
+    }
+
+
+    .prestacion-row:hover {
+        background: #f5f7f2;
+    }
+
+
+        .prestacion-row:hover .prestacion-action i {
+            color: #556f4f;
+            transform: translateX(3px);
+        }
+
+
+/* =====================================================
+   PRESTACIÓN
+===================================================== */
+
+.prestacion-info {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+
+.prestacion-icon {
+    width: 39px;
+    height: 39px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #dfe5dc;
+    color: #556f4f;
+    border-radius: 11px;
+    font-size: 16px;
+}
+
+
+.prestacion-nombre {
+    overflow: hidden;
+    color: #383d36;
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   DESCRIPCIÓN
+===================================================== */
+
+.prestacion-descripcion {
+    overflow: hidden;
+    color: #72766f;
+    font-size: 14px;
+    line-height: 1.45;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.sin-descripcion {
+    color: #aaa9a4;
+    font-style: italic;
+}
+
+
+/* =====================================================
+   CÓDIGO
+===================================================== */
+
+.prestacion-codigo {
+    overflow: hidden;
+    color: #696d67;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   MONTO
+===================================================== */
+
+.prestacion-monto {
+    color: #556f4f;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   FLECHA
+===================================================== */
+
+.prestacion-action {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+
+    .prestacion-action i {
+        color: #aaada7;
+        font-size: 15px;
+        transition: color .15s ease, transform .15s ease;
+    }
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.list-footer {
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    background: #fdfbf8;
+    color: #999b96;
+    border-top: 1px solid #eeebe5;
+    font-size: 13px;
+}
+
+
+/* =====================================================
+   ESTADOS
+===================================================== */
+
+.estado-card {
+    min-height: 310px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 30px;
+    background: #fffdf9;
+    border: 1px solid #e9e5de;
+    border-radius: 18px;
+    color: #777c74;
+    text-align: center;
+    box-shadow: 0 8px 28px rgba(56, 54, 48, .04);
+}
+
+
+.estado-icon {
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+    background: #dfe5dc;
+    color: #556f4f;
+    border-radius: 50%;
+    font-size: 22px;
+}
+
+
+.estado-card h2 {
+    margin: 0;
+    color: #454a43;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+
+.estado-card p {
+    max-width: 420px;
+    margin: 0 0 10px;
+    color: #92958f;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+
+.estado-card .spinner-border {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 5px;
+    color: #647b5b;
+}
+
+
+/* =====================================================
+   ERROR
+===================================================== */
+
+.mensaje-error {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 16px;
+    padding: 12px 15px;
+    background: #fff0ee;
+    color: #a8443d;
+    border: 1px solid #f1d5d1;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 1050px) {
+
+    .list-card {
+        overflow-x: auto;
+    }
+
+
+    .list-header,
+    .prestacion-row {
+        min-width: 900px;
+    }
+}
+
+
+@media (max-width: 900px) {
+
+    .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+
+    .header-actions {
+        width: 100%;
+    }
+
+
+    .search-box {
+        flex: 1;
+        width: auto;
+    }
+}
+
+
+@media (max-width: 620px) {
+
+    .prestaciones-page {
+        padding: 22px 15px 30px;
+    }
+
+
+    .header-title h1 {
+        font-size: 24px;
+    }
+
+
+    .header-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+
+    .search-box,
+    .btn-nueva {
+        width: 100%;
+    }
+}
