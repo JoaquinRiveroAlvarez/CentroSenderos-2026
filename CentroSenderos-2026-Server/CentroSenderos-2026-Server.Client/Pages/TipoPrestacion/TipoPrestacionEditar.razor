@@ -9,7 +9,12 @@
     <div class="prestacion-card">
 
         <div class="card-header">
-
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
             <div>
                 <h1>Editar Prestación</h1>
                 <p>Modifique los datos del tipo de prestación.</p>
@@ -368,6 +373,12 @@
             Cod = string.Empty,
             MontoSesion = 0
         };
+    }
+
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/tipoprestacion");
     }
 
 }

@@ -11,8 +11,14 @@
        ===================================================== *@
 
     <div class="page-header">
-
+        
         <div class="header-title">
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
             <h1>Tipos de Prestación</h1>
             <p>Gestioná las prestaciones disponibles en Senderos.</p>
         </div>
@@ -399,4 +405,9 @@
         );
     }
 
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/admin");
+    }
 }

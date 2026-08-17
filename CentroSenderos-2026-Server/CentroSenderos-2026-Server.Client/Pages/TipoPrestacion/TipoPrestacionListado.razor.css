@@ -389,6 +389,39 @@
 
 
 /* =====================================================
+   VOLVER
+===================================================== */
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #6f786a;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+    .back-button i {
+        font-size: 16px;
+        transition: transform 0.2s ease;
+    }
+
+    .back-button:hover {
+        color: #556f4f;
+    }
+
+        .back-button:hover i {
+            transform: translateX(-3px);
+        }
+
+/* =====================================================
    RESPONSIVE
 ===================================================== */
 
