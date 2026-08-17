@@ -9,6 +9,12 @@
     <div class="page-header">
 
         <div class="header-title">
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
             <h1>Tipos de Turno</h1>
             <p>Gestioná los tipos de turno disponibles en Senderos.</p>
         </div>
@@ -306,4 +312,9 @@
         );
     }
 
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/admin");
+    }
 }

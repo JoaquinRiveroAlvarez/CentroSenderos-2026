@@ -11,6 +11,12 @@
         <div class="card-header">
 
             <div>
+                <button type="button"
+                        class="back-button"
+                        @onclick="Volver">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Volver</span>
+                </button>
                 <h1>Nuevo Tipo de Turno</h1>
                 <p>Complete los datos del tipo de turno.</p>
             </div>
@@ -170,6 +176,10 @@
 
 
     private void Cancelar()
+    {
+        Nav.NavigateTo("/tipoturno");
+    }
+    private void Volver()
     {
         Nav.NavigateTo("/tipoturno");
     }
