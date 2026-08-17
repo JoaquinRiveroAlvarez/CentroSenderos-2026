@@ -6,6 +6,16 @@
 
 <div class="editar-profesional-page">
 
+
+
+    <button type="button"
+            class="back-button"
+            @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver</span>
+    </button>
+
+
     <h1>Editar Profesional</h1>
 
     @if (cargando)
@@ -395,4 +405,10 @@
             Telefono = string.Empty
         };
     }
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/profesionales");
+    }
+
 }

@@ -6,6 +6,14 @@
 
 <div class="crear-profesional-page">
 
+    <button type="button"
+            class="back-button"
+            @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver</span>
+    </button>
+
+
     <h1>Crear Profesional</h1>
 
     <EditForm Model="@modelo"
@@ -218,6 +226,11 @@
     }
 
     private void Cancelar()
+    {
+        Nav.NavigateTo("/profesionales");
+    }
+
+    private void Volver()
     {
         Nav.NavigateTo("/profesionales");
     }
