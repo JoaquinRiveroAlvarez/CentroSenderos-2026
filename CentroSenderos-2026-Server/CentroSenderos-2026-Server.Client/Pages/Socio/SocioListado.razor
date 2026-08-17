@@ -9,6 +9,12 @@
     <div class="page-header">
 
         <div class="header-title">
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
             <h1>Socios</h1>
             <p>Gestioná los socios registrados en Senderos.</p>
         </div>
@@ -310,4 +316,12 @@
         );
     }
 
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/admin");
+    }
+
+    
+    
 }

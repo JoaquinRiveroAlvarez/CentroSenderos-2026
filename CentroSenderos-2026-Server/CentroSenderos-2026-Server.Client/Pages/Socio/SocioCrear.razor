@@ -11,6 +11,12 @@
         <div class="card-header">
 
             <div>
+                <button type="button"
+                        class="back-button"
+                        @onclick="Volver">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Volver</span>
+                </button>
                 <h1>Nuevo Socio</h1>
                 <p>Seleccione el profesional y complete la observación.</p>
             </div>
@@ -219,5 +225,11 @@
     {
         Nav.NavigateTo("/socio");
     }
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/socio");
+    }
+
 
 }
