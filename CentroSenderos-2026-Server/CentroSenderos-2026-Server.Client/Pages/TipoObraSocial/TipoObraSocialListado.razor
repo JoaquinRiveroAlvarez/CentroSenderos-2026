@@ -9,6 +9,12 @@
     <div class="page-header">
 
         <div class="header-title">
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
             <h1>Obras Sociales</h1>
             <p>Gestioná las obras sociales disponibles para los pacientes.</p>
         </div>
@@ -249,6 +255,11 @@
         Nav.NavigateTo(
             "/tipoobrasocial/crear"
         );
+    }
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/admin");
     }
 
 }
