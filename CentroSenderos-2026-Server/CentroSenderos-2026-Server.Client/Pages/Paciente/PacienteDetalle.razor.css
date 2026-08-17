@@ -1,4 +1,7 @@
-/* CSS for PacienteDetalle component */
+/* ===========================================
+   PÁGINA DETALLE PACIENTE
+=========================================== */
+
 .detalle-paciente-page {
     width: 100%;
     box-sizing: border-box;
@@ -10,6 +13,11 @@
         font-size: 28px;
         font-weight: 500;
     }
+
+
+/* ===========================================
+   VOLVER
+=========================================== */
 
 .back-button {
     display: inline-flex;
@@ -40,17 +48,23 @@
             transform: translateX(-3px);
         }
 
-.paciente-detail-card {
+
+/* ===========================================
+   FORMULARIO PRINCIPAL
+   IGUAL A EDITAR PACIENTE
+=========================================== */
+
+.paciente-detail {
     width: 100%;
-    padding: 22px 24px;
     box-sizing: border-box;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid #e4e1dc;
-    border-radius: 22px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
 }
 
-.detail-section {
+
+/* ===========================================
+   SECCIONES
+=========================================== */
+
+.form-section {
     margin-bottom: 26px;
 }
 
@@ -60,15 +74,15 @@
     gap: 10px;
     margin-bottom: 16px;
     color: #9b7163;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
 .section-number {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -76,60 +90,96 @@
     background: #f8e8df;
     border-radius: 50%;
     color: #9a6553;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
 }
 
-.detail-grid {
+
+/* ===========================================
+   GRILLAS
+=========================================== */
+
+.form-grid {
     display: grid;
     gap: 18px;
 }
 
-.detail-grid-2 {
+.form-grid-2 {
     grid-template-columns: repeat(2, 1fr);
 }
 
-.detail-grid-3 {
+.form-grid-3 {
     grid-template-columns: repeat(3, 1fr);
 }
 
-.detail-group {
+
+/* ===========================================
+   CAMPOS
+=========================================== */
+
+.field-group {
     display: flex;
     flex-direction: column;
     min-width: 0;
 }
 
-    .detail-group label {
+    .field-group label {
         margin: 0 0 7px 6px;
         color: #656565;
-        font-size: 13px;
+        font-size: 10px;
         font-weight: 600;
         text-transform: uppercase;
     }
 
-.detail-field {
+
+/* ===========================================
+   CAMPOS DE SOLO LECTURA
+   MISMA FORMA QUE INPUTS DE EDITAR
+=========================================== */
+
+.form-input {
     width: 100%;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
+    height: 42px;
     box-sizing: border-box;
+    padding: 0 16px;
     background: #ffffff;
     border: 1px solid #d9ddd6;
     border-radius: 22px;
     color: #444444;
-    font-size: 14px;
+    font-size: 12px;
 }
 
-.detail-actions {
+.read-only-field {
     display: flex;
-    justify-content: flex-start;
+    align-items: center;
+    cursor: default;
+}
+
+
+/* ===========================================
+   ACCIONES
+=========================================== */
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
     margin-top: 18px;
 }
 
+.detail-actions {
+    justify-content: flex-start;
+}
+
+
+/* ===========================================
+   BOTÓN EDITAR
+=========================================== */
+
 .edit-button {
-    min-width: 150px;
-    height: 44px;
+    min-width: 145px;
+    height: 42px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -139,46 +189,58 @@
     border: none;
     border-radius: 22px;
     color: #8b5c51;
-    font-family: inherit;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
+    transition: background 0.2s, transform 0.1s;
 }
 
     .edit-button:hover {
-        background: #f3d2c1;
+        background: #f2d2c0;
     }
 
     .edit-button:active {
         transform: scale(0.98);
     }
 
-.detalle-loading,
-.detalle-mensaje {
+
+/* ===========================================
+   MENSAJES / CARGANDO
+=========================================== */
+
+.editar-loading,
+.editar-mensaje {
     margin-top: 12px;
     color: #657461;
     font-size: 14px;
 }
 
+
+/* ===========================================
+   RESPONSIVE
+=========================================== */
+
 @media (max-width: 900px) {
-    .detail-grid-3 {
+
+    .form-grid-3 {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
+
 @media (max-width: 650px) {
+
     .detalle-paciente-page h1 {
         font-size: 24px;
     }
 
-    .paciente-detail-card {
+  /*  .paciente-form {
         padding: 20px;
         border-radius: 16px;
-    }
+    }*/
 
-    .detail-grid-2,
-    .detail-grid-3 {
+    .form-grid-2,
+    .form-grid-3 {
         grid-template-columns: 1fr;
     }
 
