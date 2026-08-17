@@ -72,9 +72,9 @@ else if (listaPacientes == null || listaPacientes.Count == 0)
                         {
                             <tr @onclick="() => IrAEditar(paciente.Id)">
 
-                                <td>
-                                    @paciente.Nombre
-                                </td>
+                            <td class="paciente-nombre">
+                                @paciente.Nombre
+                            </td>
 
                                 <td>
                                     @paciente.DNI
