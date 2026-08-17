@@ -1,0 +1,188 @@
+/* CSS for PacienteDetalle component */
+.detalle-paciente-page {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+    .detalle-paciente-page h1 {
+        margin: 0 0 20px;
+        color: #556f4f;
+        font-size: 28px;
+        font-weight: 500;
+    }
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #6f786a;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+    .back-button i {
+        font-size: 16px;
+        transition: transform 0.2s ease;
+    }
+
+    .back-button:hover {
+        color: #556f4f;
+    }
+
+        .back-button:hover i {
+            transform: translateX(-3px);
+        }
+
+.paciente-detail-card {
+    width: 100%;
+    padding: 22px 24px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #e4e1dc;
+    border-radius: 22px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+}
+
+.detail-section {
+    margin-bottom: 26px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    color: #9b7163;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.section-number {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #f8e8df;
+    border-radius: 50%;
+    color: #9a6553;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.detail-grid {
+    display: grid;
+    gap: 18px;
+}
+
+.detail-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.detail-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.detail-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+    .detail-group label {
+        margin: 0 0 7px 6px;
+        color: #656565;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+.detail-field {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1px solid #d9ddd6;
+    border-radius: 22px;
+    color: #444444;
+    font-size: 14px;
+}
+
+.detail-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 18px;
+}
+
+.edit-button {
+    min-width: 150px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 22px;
+    background: #f8dfcf;
+    border: none;
+    border-radius: 22px;
+    color: #8b5c51;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+    .edit-button:hover {
+        background: #f3d2c1;
+    }
+
+    .edit-button:active {
+        transform: scale(0.98);
+    }
+
+.detalle-loading,
+.detalle-mensaje {
+    margin-top: 12px;
+    color: #657461;
+    font-size: 14px;
+}
+
+@media (max-width: 900px) {
+    .detail-grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 650px) {
+    .detalle-paciente-page h1 {
+        font-size: 24px;
+    }
+
+    .paciente-detail-card {
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    .detail-grid-2,
+    .detail-grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .edit-button {
+        width: 100%;
+    }
+}
