@@ -9,6 +9,12 @@
     <div class="page-header">
 
         <div class="header-title">
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
             <h1>Tipos de Consultorio</h1>
             <p>Gestioná los consultorios disponibles en Senderos.</p>
         </div>
@@ -310,6 +316,12 @@
         Nav.NavigateTo(
             "/tipoconsultorio/crear"
         );
+    }
+
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/admin");
     }
 
 }

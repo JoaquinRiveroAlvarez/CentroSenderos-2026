@@ -11,6 +11,12 @@
         <div class="card-header">
 
             <div>
+                <button type="button"
+                        class="back-button"
+                        @onclick="Volver">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Volver</span>
+                </button>
                 <h1>Nuevo Consultorio</h1>
                 <p>Complete los datos del tipo de consultorio.</p>
             </div>
@@ -174,4 +180,8 @@
         Nav.NavigateTo("/tipoconsultorio");
     }
 
+    private void Volver()
+    {
+        Nav.NavigateTo("/tipoconsultorio");
+    }
 }
