@@ -9,30 +9,40 @@
     <div class="page-header">
 
         <div class="header-title">
+
             <button type="button"
                     class="back-button"
                     @onclick="Volver">
                 <i class="bi bi-arrow-left"></i>
                 <span>Volver</span>
             </button>
+
             <h1>Tipos de Turno</h1>
-            <p>Gestioná los tipos de turno disponibles en Senderos.</p>
+
+            <p>
+                Gestioná los tipos de turno disponibles en Senderos.
+            </p>
+
         </div>
+
 
         <div class="header-actions">
 
             <div class="search-box">
+
                 <i class="bi bi-search"></i>
 
                 <input type="text"
                        placeholder="Buscar tipo de turno..."
                        @bind="textoBusqueda"
                        @bind:event="oninput" />
+
             </div>
+
 
             <button type="button"
                     class="btn-nuevo"
-                    @onclick="IrACrear">
+                    @onclick="AbrirCrear">
 
                 <i class="bi bi-plus-lg"></i>
                 <span>Nuevo Tipo de Turno</span>
@@ -50,7 +60,6 @@
 
             <div class="spinner-border"
                  role="status">
-                <span class="visually-hidden">Cargando...</span>
             </div>
 
             <span>Cargando tipos de turno...</span>
@@ -74,7 +83,7 @@
 
             <button type="button"
                     class="btn-nuevo-estado"
-                    @onclick="IrACrear">
+                    @onclick="AbrirCrear">
 
                 <i class="bi bi-plus-lg"></i>
                 <span>Nuevo Tipo de Turno</span>
@@ -101,7 +110,9 @@
             <button type="button"
                     class="btn-limpiar-busqueda"
                     @onclick="LimpiarBusqueda">
+
                 Limpiar búsqueda
+
             </button>
 
         </div>
@@ -111,10 +122,12 @@
         <div class="list-card">
 
             <div class="list-header">
+
                 <div>TIPO DE TURNO</div>
                 <div>DESCRIPCIÓN</div>
                 <div>DURACIÓN</div>
                 <div></div>
+
             </div>
 
 
@@ -123,7 +136,7 @@
                 @foreach (var item in TurnosFiltrados)
                 {
                     <div class="turno-row"
-                         @onclick="() => IrAEditar(item.Id)">
+                         @onclick="() => AbrirDetalle(item.Id)">
 
                         <div class="turno-info">
 
@@ -135,7 +148,9 @@
 
                                 @if (string.IsNullOrWhiteSpace(item.Tipo))
                                 {
-                                    <span class="sin-dato">Sin nombre</span>
+                                    <span class="sin-dato">
+                                        Sin nombre
+                                    </span>
                                 }
                                 else
                                 {
@@ -166,8 +181,13 @@
                         <div class="turno-duracion">
 
                             <div class="duracion-badge">
+
                                 <i class="bi bi-clock"></i>
-                                <span>@item.DuracionMinutos min</span>
+
+                                <span>
+                                    @item.DuracionMinutos min
+                                </span>
+
                             </div>
 
                         </div>
@@ -199,7 +219,8 @@
     }
 
 
-    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    @if (!string.IsNullOrWhiteSpace(Mensaje) &&
+         modalActual == ModalTurno.Ninguno)
     {
         <div class="mensaje-error">
 
@@ -213,11 +234,551 @@
 </div>
 
 
+@* =========================================================
+   MODAL DETALLE
+========================================================= *@
+
+@if (modalActual == ModalTurno.Detalle)
+{
+    <div class="admin-modal-overlay">
+
+        <div class="admin-modal">
+
+            @if (cargandoDetalle)
+            {
+                <div class="modal-loading">
+
+                    <div class="spinner-border"
+                         role="status">
+                    </div>
+
+                    <span>Cargando tipo de turno...</span>
+
+                </div>
+            }
+            else
+            {
+                <div class="modal-header">
+
+                    <div>
+
+                        <h2>Detalle Tipo de Turno</h2>
+
+                        <p>
+                            Información del tipo de turno seleccionado.
+                        </p>
+
+                    </div>
+
+
+                    <button type="button"
+                            class="close-button"
+                            title="Cerrar"
+                            @onclick="CerrarModal">
+
+                        <i class="bi bi-x-lg"></i>
+
+                    </button>
+
+                </div>
+
+
+                <div class="detail-grid">
+
+                    <div class="field-group field-full">
+
+                        <label>TIPO DE TURNO</label>
+
+                        <div class="detail-value">
+                            @MostrarValor(modelo.Tipo)
+                        </div>
+
+                    </div>
+
+
+                    <div class="field-group field-full">
+
+                        <label>DESCRIPCIÓN</label>
+
+                        <div class="detail-value detail-value-large">
+
+                            @if (string.IsNullOrWhiteSpace(modelo.Descripcion))
+                            {
+                                <span class="sin-dato">
+                                    Sin descripción
+                                </span>
+                            }
+                            else
+                            {
+                                @modelo.Descripcion
+                            }
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="field-group field-duration">
+
+                        <label>DURACIÓN</label>
+
+                        <div class="duration-detail">
+
+                            <span class="duration-icon">
+                                <i class="bi bi-clock"></i>
+                            </span>
+
+                            <span class="duration-number">
+                                @modelo.DuracionMinutos
+                            </span>
+
+                            <span class="duration-suffix">
+                                minutos
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-actions detail-actions">
+
+                    <button type="button"
+                            class="btn-cerrar"
+                            @onclick="CerrarModal">
+
+                        Cerrar
+
+                    </button>
+
+
+                    <button type="button"
+                            class="btn-editar"
+                            @onclick="AbrirEditar">
+
+                        <i class="bi bi-pencil-square"></i>
+                        Editar
+
+                    </button>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+}
+
+
+@* =========================================================
+   MODAL CREAR
+========================================================= *@
+
+@if (modalActual == ModalTurno.Crear)
+{
+    <div class="admin-modal-overlay">
+
+        <div class="admin-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>Nuevo Tipo de Turno</h2>
+
+                    <p>
+                        Complete los datos del tipo de turno.
+                    </p>
+
+                </div>
+
+
+                <button type="button"
+                        class="close-button"
+                        disabled="@guardando"
+                        title="Cerrar"
+                        @onclick="CerrarModal">
+
+                    <i class="bi bi-x-lg"></i>
+
+                </button>
+
+            </div>
+
+
+            <EditForm Model="@modelo"
+                      OnValidSubmit="CrearTurno">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+
+                <div class="form-grid">
+
+                    <div class="field-group field-full">
+
+                        <label>TIPO DE TURNO</label>
+
+                        <InputText class="senderos-input"
+                                   @bind-Value="modelo.Tipo"
+                                   placeholder="Ej: Sesión individual" />
+
+                        <ValidationMessage For="@(() => modelo.Tipo)" />
+
+                    </div>
+
+
+                    <div class="field-group field-full">
+
+                        <label>DESCRIPCIÓN</label>
+
+                        <InputTextArea class="senderos-textarea"
+                                       @bind-Value="modelo.Descripcion"
+                                       placeholder="Ingrese una descripción" />
+
+                        <ValidationMessage For="@(() => modelo.Descripcion)" />
+
+                    </div>
+
+
+                    <div class="field-group field-duration">
+
+                        <label>DURACIÓN</label>
+
+                        <div class="duration-input-group">
+
+                            <span class="duration-prefix">
+                                <i class="bi bi-clock"></i>
+                            </span>
+
+                            <InputNumber class="duration-input"
+                                         @bind-Value="modelo.DuracionMinutos" />
+
+                            <span class="duration-suffix-input">
+                                minutos
+                            </span>
+
+                        </div>
+
+                        <ValidationMessage For="@(() => modelo.DuracionMinutos)" />
+
+                    </div>
+
+                </div>
+
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+
+                        <i class="bi bi-exclamation-circle"></i>
+
+                        <span>@Mensaje</span>
+
+                    </div>
+                }
+
+
+                <div class="modal-actions">
+
+                    <button type="button"
+                            class="btn-cancelar"
+                            disabled="@guardando"
+                            @onclick="CerrarModal">
+
+                        Cancelar
+
+                    </button>
+
+
+                    <button type="submit"
+                            class="btn-guardar"
+                            disabled="@guardando">
+
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar</span>
+                        }
+
+                    </button>
+
+                </div>
+
+            </EditForm>
+
+        </div>
+
+    </div>
+}
+
+
+@* =========================================================
+   MODAL EDITAR
+========================================================= *@
+
+@if (modalActual == ModalTurno.Editar)
+{
+    <div class="admin-modal-overlay">
+
+        <div class="admin-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>Editar Tipo de Turno</h2>
+
+                    <p>
+                        Modifique los datos del tipo de turno.
+                    </p>
+
+                </div>
+
+
+                <button type="button"
+                        class="close-button"
+                        disabled="@guardando"
+                        title="Volver al detalle"
+                        @onclick="CancelarEdicion">
+
+                    <i class="bi bi-x-lg"></i>
+
+                </button>
+
+            </div>
+
+
+            <EditForm Model="@modelo"
+                      OnValidSubmit="GuardarCambios">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+
+                <div class="form-grid">
+
+                    <div class="field-group field-full">
+
+                        <label>TIPO DE TURNO</label>
+
+                        <InputText class="senderos-input"
+                                   @bind-Value="modelo.Tipo"
+                                   placeholder="Ej: Sesión individual" />
+
+                        <ValidationMessage For="@(() => modelo.Tipo)" />
+
+                    </div>
+
+
+                    <div class="field-group field-full">
+
+                        <label>DESCRIPCIÓN</label>
+
+                        <InputTextArea class="senderos-textarea"
+                                       @bind-Value="modelo.Descripcion"
+                                       placeholder="Ingrese una descripción" />
+
+                        <ValidationMessage For="@(() => modelo.Descripcion)" />
+
+                    </div>
+
+
+                    <div class="field-group field-duration">
+
+                        <label>DURACIÓN</label>
+
+                        <div class="duration-input-group">
+
+                            <span class="duration-prefix">
+                                <i class="bi bi-clock"></i>
+                            </span>
+
+                            <InputNumber class="duration-input"
+                                         @bind-Value="modelo.DuracionMinutos" />
+
+                            <span class="duration-suffix-input">
+                                minutos
+                            </span>
+
+                        </div>
+
+                        <ValidationMessage For="@(() => modelo.DuracionMinutos)" />
+
+                    </div>
+
+                </div>
+
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+
+                        <i class="bi bi-exclamation-circle"></i>
+
+                        <span>@Mensaje</span>
+
+                    </div>
+                }
+
+
+                <div class="modal-actions edit-actions">
+
+                    <button type="button"
+                            class="btn-eliminar"
+                            disabled="@guardando"
+                            @onclick="AbrirConfirmacionEliminar">
+
+                        <i class="bi bi-trash3"></i>
+
+                        Eliminar Tipo de Turno
+
+                    </button>
+
+
+                    <div class="right-actions">
+
+                        <button type="button"
+                                class="btn-cancelar"
+                                disabled="@guardando"
+                                @onclick="CancelarEdicion">
+
+                            Cancelar
+
+                        </button>
+
+
+                        <button type="submit"
+                                class="btn-guardar"
+                                disabled="@guardando">
+
+                            @if (guardando)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                <span>Guardando...</span>
+                            }
+                            else
+                            {
+                                <span>Guardar Cambios</span>
+                            }
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </EditForm>
+
+        </div>
+
+    </div>
+}
+
+
+@* =========================================================
+   CONFIRMAR ELIMINACIÓN
+========================================================= *@
+
+@if (mostrarConfirmacionEliminar)
+{
+    <div class="delete-modal-overlay">
+
+        <div class="delete-modal">
+
+            <div class="delete-warning-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+
+            <h2>
+                ¿Estás seguro que querés eliminar este tipo de turno?
+            </h2>
+
+
+            <p>
+                Esta acción no se puede deshacer.
+                El tipo de turno será eliminado definitivamente.
+            </p>
+
+
+            <div class="delete-modal-actions">
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminando"
+                        @onclick="ConfirmarEliminar">
+
+                    @if (eliminando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Eliminando...</span>
+                    }
+                    else
+                    {
+                        <span>Eliminar</span>
+                    }
+
+                </button>
+
+
+                <button type="button"
+                        class="modal-cancel-button"
+                        disabled="@eliminando"
+                        @onclick="CerrarConfirmacionEliminar">
+
+                    Cancelar
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+
 @code {
+
+    private enum ModalTurno
+    {
+        Ninguno,
+        Detalle,
+        Crear,
+        Editar
+    }
+
 
     private List<TipoTurnoListadoDTO> lista = new();
 
+    private TipoTurnoDTO modelo = CrearModeloVacio();
+
+    private ModalTurno modalActual =
+        ModalTurno.Ninguno;
+
+
+    private int? idSeleccionado;
+
+
     private bool cargando = true;
+
+    private bool cargandoDetalle = false;
+
+    private bool guardando = false;
+
+    private bool eliminando = false;
+
+    private bool mostrarConfirmacionEliminar = false;
+
 
     private string Mensaje = string.Empty;
 
@@ -258,16 +819,20 @@
     private async Task Cargar()
     {
         cargando = true;
+
         Mensaje = string.Empty;
+
 
         var resp =
             await Http.Get<List<TipoTurnoListadoDTO>>(
                 "api/tipoturno/ListaTipoTurno"
             );
 
+
         if (resp.Error)
         {
             lista = new();
+
             Mensaje = resp.ObtenerError();
         }
         else
@@ -275,7 +840,287 @@
             lista = resp.Respuesta ?? new();
         }
 
+
         cargando = false;
+    }
+
+
+    private async Task AbrirDetalle(int id)
+    {
+        Mensaje = string.Empty;
+
+        idSeleccionado = id;
+
+        modelo = CrearModeloVacio();
+
+        modalActual = ModalTurno.Detalle;
+
+        cargandoDetalle = true;
+
+
+        var resp =
+            await Http.Get<TipoTurnoDTO>(
+                $"api/tipoturno/{id}"
+            );
+
+
+        if (!resp.Error &&
+            resp.Respuesta != null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            modalActual = ModalTurno.Ninguno;
+        }
+
+
+        cargandoDetalle = false;
+    }
+
+
+    private void AbrirCrear()
+    {
+        Mensaje = string.Empty;
+
+        idSeleccionado = null;
+
+        modelo = CrearModeloVacio();
+
+        modalActual = ModalTurno.Crear;
+    }
+
+
+    private async Task CrearTurno()
+    {
+        guardando = true;
+
+        Mensaje = string.Empty;
+
+
+        var resp =
+            await Http.Post<TipoTurnoDTO, int>(
+                "api/tipoturno",
+                modelo
+            );
+
+
+        guardando = false;
+
+
+        if (!resp.Error)
+        {
+            modalActual = ModalTurno.Ninguno;
+
+            modelo = CrearModeloVacio();
+
+            await Cargar();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+
+    private void AbrirEditar()
+    {
+        Mensaje = string.Empty;
+
+        modalActual = ModalTurno.Editar;
+    }
+
+
+    private async Task CancelarEdicion()
+    {
+        if (guardando ||
+            eliminando ||
+            idSeleccionado is null)
+        {
+            return;
+        }
+
+
+        Mensaje = string.Empty;
+
+        cargandoDetalle = true;
+
+        modalActual = ModalTurno.Detalle;
+
+
+        var resp =
+            await Http.Get<TipoTurnoDTO>(
+                $"api/tipoturno/{idSeleccionado.Value}"
+            );
+
+
+        if (!resp.Error &&
+            resp.Respuesta != null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            modalActual = ModalTurno.Editar;
+        }
+
+
+        cargandoDetalle = false;
+    }
+
+
+    private async Task GuardarCambios()
+    {
+        if (idSeleccionado is null)
+            return;
+
+
+        guardando = true;
+
+        Mensaje = string.Empty;
+
+
+        var resp =
+            await Http.Put<TipoTurnoDTO, string>(
+                $"api/tipoturno/{idSeleccionado.Value}",
+                modelo
+            );
+
+
+        guardando = false;
+
+
+        if (!resp.Error)
+        {
+            await Cargar();
+
+            await RecargarDetalle();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+
+    private void AbrirConfirmacionEliminar()
+    {
+        mostrarConfirmacionEliminar = true;
+    }
+
+
+    private void CerrarConfirmacionEliminar()
+    {
+        if (!eliminando)
+        {
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    private async Task ConfirmarEliminar()
+    {
+        if (idSeleccionado is null)
+            return;
+
+
+        eliminando = true;
+
+        Mensaje = string.Empty;
+
+
+        var resp =
+            await Http.Delete(
+                $"api/tipoturno/{idSeleccionado.Value}"
+            );
+
+
+        eliminando = false;
+
+
+        if (!resp.Error)
+        {
+            mostrarConfirmacionEliminar = false;
+
+            modalActual = ModalTurno.Ninguno;
+
+            idSeleccionado = null;
+
+            modelo = CrearModeloVacio();
+
+            await Cargar();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    private async Task RecargarDetalle()
+    {
+        if (idSeleccionado is null)
+            return;
+
+
+        cargandoDetalle = true;
+
+        modalActual = ModalTurno.Detalle;
+
+
+        var resp =
+            await Http.Get<TipoTurnoDTO>(
+                $"api/tipoturno/{idSeleccionado.Value}"
+            );
+
+
+        if (!resp.Error &&
+            resp.Respuesta != null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            modalActual = ModalTurno.Ninguno;
+        }
+
+
+        cargandoDetalle = false;
+    }
+
+
+    private void CerrarModal()
+    {
+        if (guardando || eliminando)
+            return;
+
+
+        modalActual = ModalTurno.Ninguno;
+
+        idSeleccionado = null;
+
+        modelo = CrearModeloVacio();
+
+        Mensaje = string.Empty;
+    }
+
+
+    private static TipoTurnoDTO CrearModeloVacio()
+    {
+        return new TipoTurnoDTO
+        {
+            Tipo = string.Empty,
+            Descripcion = string.Empty,
+            DuracionMinutos = 0
+        };
     }
 
 
@@ -291,25 +1136,17 @@
     }
 
 
+    private static string MostrarValor(string? valor)
+    {
+        return string.IsNullOrWhiteSpace(valor)
+            ? "—"
+            : valor;
+    }
+
+
     private void LimpiarBusqueda()
     {
         textoBusqueda = string.Empty;
-    }
-
-
-    private void IrAEditar(int id)
-    {
-        Nav.NavigateTo(
-            $"/tipoturno/editar/{id}"
-        );
-    }
-
-
-    private void IrACrear()
-    {
-        Nav.NavigateTo(
-            "/tipoturno/crear"
-        );
     }
 
 
@@ -317,4 +1154,5 @@
     {
         Nav.NavigateTo("/admin");
     }
+
 }

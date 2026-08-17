@@ -1,7 +1,11 @@
-/* CSS for TipoTurnoListado component */
+/* =====================================================
+   PÁGINA
+===================================================== */
+
 .turnos-page {
     width: 100%;
     padding: 32px 36px 40px;
+    box-sizing: border-box;
     color: #343934;
 }
 
@@ -18,15 +22,13 @@
     margin-bottom: 22px;
 }
 
-
 .header-title h1 {
     margin: 0;
     color: #556f4f;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 500;
     line-height: 1.2;
 }
-
 
 .header-title p {
     margin: 7px 0 0;
@@ -36,7 +38,41 @@
 
 
 /* =====================================================
-   ACCIONES
+   VOLVER
+===================================================== */
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #6f786a;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color .2s ease;
+}
+
+    .back-button i {
+        font-size: 16px;
+        transition: transform .2s ease;
+    }
+
+    .back-button:hover {
+        color: #556f4f;
+    }
+
+        .back-button:hover i {
+            transform: translateX(-3px);
+        }
+
+
+/* =====================================================
+   ACCIONES HEADER
 ===================================================== */
 
 .header-actions {
@@ -57,27 +93,25 @@
     align-items: center;
     gap: 9px;
     padding: 0 14px;
+    box-sizing: border-box;
     background: #fffdf9;
     border: 1px solid #e3dfd9;
     border-radius: 22px;
     transition: border-color .2s ease, box-shadow .2s ease;
 }
 
-
     .search-box:focus-within {
         border-color: #8a9c83;
         box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
     }
-
 
     .search-box i {
         color: #92968f;
         font-size: 14px;
     }
 
-
     .search-box input {
-        width: 100%;
+        flex: 1;
         min-width: 0;
         background: transparent;
         color: #454a43;
@@ -87,26 +121,25 @@
         font-size: 14px;
     }
 
-
         .search-box input::placeholder {
             color: #aaa9a5;
         }
 
 
 /* =====================================================
-   BOTÓN NUEVO
+   NUEVO
 ===================================================== */
 
 .btn-nuevo,
 .btn-nuevo-estado {
     height: 42px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 7px;
     padding: 0 19px;
     background: #647b5b;
-    color: white;
+    color: #ffffff;
     border: none;
     border-radius: 22px;
     font-family: inherit;
@@ -115,16 +148,13 @@
     cursor: pointer;
     white-space: nowrap;
     box-shadow: 0 4px 10px rgba(61, 84, 54, .10);
-    transition: background .2s ease, transform .15s ease, box-shadow .2s ease;
+    transition: background .2s ease, transform .15s ease;
 }
-
 
     .btn-nuevo:hover,
     .btn-nuevo-estado:hover {
         background: #556f4f;
-        box-shadow: 0 5px 14px rgba(61, 84, 54, .15);
     }
-
 
     .btn-nuevo:active,
     .btn-nuevo-estado:active {
@@ -133,21 +163,17 @@
 
 
 /* =====================================================
-   CARD LISTADO
+   LISTADO
 ===================================================== */
 
 .list-card {
+    width: 100%;
     overflow: hidden;
     background: #fffdf9;
     border: 1px solid #e9e5de;
     border-radius: 18px;
     box-shadow: 0 8px 28px rgba(56, 54, 48, .05);
 }
-
-
-/* =====================================================
-   HEADER LISTA
-===================================================== */
 
 .list-header {
     min-height: 48px;
@@ -180,16 +206,13 @@
     transition: background .15s ease;
 }
 
-
     .turno-row:last-child {
         border-bottom: none;
     }
 
-
     .turno-row:hover {
         background: #f5f7f2;
     }
-
 
         .turno-row:hover .turno-action i {
             color: #556f4f;
@@ -198,7 +221,7 @@
 
 
 /* =====================================================
-   TIPO DE TURNO
+   TIPO TURNO
 ===================================================== */
 
 .turno-info {
@@ -207,7 +230,6 @@
     align-items: center;
     gap: 13px;
 }
-
 
 .turno-icon {
     width: 39px;
@@ -222,7 +244,6 @@
     font-size: 16px;
 }
 
-
 .turno-nombre {
     overflow: hidden;
     color: #383d36;
@@ -231,11 +252,6 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-
-
-/* =====================================================
-   DESCRIPCIÓN
-===================================================== */
 
 .turno-descripcion {
     overflow: hidden;
@@ -248,14 +264,13 @@
 
 
 /* =====================================================
-   DURACIÓN
+   DURACIÓN LISTADO
 ===================================================== */
 
 .turno-duracion {
     display: flex;
     align-items: center;
 }
-
 
 .duracion-badge {
     min-height: 32px;
@@ -272,15 +287,9 @@
     white-space: nowrap;
 }
 
-
     .duracion-badge i {
         font-size: 13px;
     }
-
-
-/* =====================================================
-   VACÍOS
-===================================================== */
 
 .sin-dato {
     color: #aaa9a4;
@@ -289,7 +298,7 @@
 
 
 /* =====================================================
-   FLECHA
+   CHEVRON
 ===================================================== */
 
 .turno-action {
@@ -297,7 +306,6 @@
     align-items: center;
     justify-content: flex-end;
 }
-
 
     .turno-action i {
         color: #aaada7;
@@ -342,7 +350,6 @@
     box-shadow: 0 8px 28px rgba(56, 54, 48, .04);
 }
 
-
 .estado-icon {
     width: 54px;
     height: 54px;
@@ -356,14 +363,12 @@
     font-size: 22px;
 }
 
-
 .estado-card h2 {
     margin: 0;
     color: #454a43;
     font-size: 20px;
     font-weight: 600;
 }
-
 
 .estado-card p {
     max-width: 420px;
@@ -373,11 +378,9 @@
     line-height: 1.5;
 }
 
-
 .estado-card .spinner-border {
     width: 28px;
     height: 28px;
-    margin-bottom: 5px;
     color: #647b5b;
 }
 
@@ -397,9 +400,7 @@
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: background .2s ease;
 }
-
 
     .btn-limpiar-busqueda:hover {
         background: #e5e2de;
@@ -423,38 +424,613 @@
     font-size: 14px;
 }
 
+
 /* =====================================================
-   VOLVER
+   OVERLAY ADMIN
 ===================================================== */
 
-.back-button {
-    display: inline-flex;
+.admin-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    margin: 0 0 14px;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(32, 36, 31, .35);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    animation: overlayFade .18s ease-out;
+}
+
+
+/* =====================================================
+   MODAL PRINCIPAL
+===================================================== */
+
+.admin-modal {
+    width: 100%;
+    max-width: 680px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding: 28px 30px 26px;
+    box-sizing: border-box;
+    background: #fffdfa;
+    border: 1px solid rgba(235, 229, 223, .95);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .18), 0 4px 16px rgba(0, 0, 0, .08);
+    animation: modalEnter .18s ease-out;
+}
+
+
+/* =====================================================
+   HEADER MODAL
+===================================================== */
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+    .modal-header h2 {
+        margin: 0;
+        color: #556f4f;
+        font-size: 26px;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+    .modal-header p {
+        margin: 7px 0 0;
+        color: #92948f;
+        font-size: 14px;
+    }
+
+
+/* =====================================================
+   CERRAR
+===================================================== */
+
+.close-button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
     padding: 0;
     background: transparent;
+    color: #555953;
     border: none;
-    color: #6f786a;
+    border-radius: 50%;
+    font-size: 17px;
+    cursor: pointer;
+}
+
+    .close-button:hover:not(:disabled) {
+        background: #f1efeb;
+        color: #2f332e;
+    }
+
+
+/* =====================================================
+   GRILLAS MODAL
+===================================================== */
+
+.form-grid,
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 18px;
+    row-gap: 22px;
+}
+
+.field-full {
+    grid-column: 1 / -1;
+}
+
+.field-duration {
+    grid-column: 1 / -1;
+    max-width: 420px;
+}
+
+
+/* =====================================================
+   CAMPOS
+===================================================== */
+
+.field-group {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+    .field-group label {
+        margin-bottom: 7px;
+        color: #656860;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: .03em;
+    }
+
+
+/* =====================================================
+   INPUTS
+===================================================== */
+
+::deep .senderos-input {
+    width: 100%;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    background: #fffefa;
+    color: #41453f;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+    ::deep .senderos-input:focus {
+        background: #ffffff;
+        border-color: #82947a;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+    }
+
+
+/* =====================================================
+   TEXTAREA
+===================================================== */
+
+::deep .senderos-textarea {
+    width: 100%;
+    min-height: 120px;
+    box-sizing: border-box;
+    resize: vertical;
+    padding: 12px 14px;
+    background: #fffefa;
+    color: #41453f;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+    ::deep .senderos-textarea:focus {
+        background: #ffffff;
+        border-color: #82947a;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+    }
+
+
+/* =====================================================
+   DURACIÓN INPUT
+===================================================== */
+
+.duration-input-group {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: stretch;
+    box-sizing: border-box;
+    background: #fffefa;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+    .duration-input-group:focus-within {
+        background: #ffffff;
+        border-color: #82947a;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+    }
+
+.duration-prefix {
+    width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #f3f1ed;
+    color: #647b5b;
+    border-right: 1px solid #d9ddd6;
+    font-size: 14px;
+}
+
+::deep .duration-input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0 14px;
+    background: transparent;
+    color: #41453f;
+    border: none !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.duration-suffix-input {
+    min-width: 82px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0 12px;
+    background: #f3f1ed;
+    color: #737770;
+    border-left: 1px solid #d9ddd6;
+    font-size: 13px;
+}
+
+
+/* =====================================================
+   DETALLE
+===================================================== */
+
+.detail-value {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 0 14px;
+    background: #fffefa;
+    color: #41453f;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.detail-value-large {
+    min-height: 120px;
+    align-items: flex-start;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+
+/* =====================================================
+   DURACIÓN DETALLE
+===================================================== */
+
+.duration-detail {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: stretch;
+    box-sizing: border-box;
+    overflow: hidden;
+    background: #fffefa;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+}
+
+.duration-icon {
+    width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #f3f1ed;
+    color: #647b5b;
+    border-right: 1px solid #d9ddd6;
+}
+
+.duration-number {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    color: #41453f;
+    font-size: 14px;
+}
+
+.duration-suffix {
+    min-width: 82px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    background: #f3f1ed;
+    color: #737770;
+    border-left: 1px solid #d9ddd6;
+    font-size: 13px;
+}
+
+
+/* =====================================================
+   VALIDACIONES / MENSAJES
+===================================================== */
+
+.validation-summary {
+    margin-bottom: 20px;
+    padding: 12px 15px;
+    background: #fff1ee;
+    color: #a74740;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+::deep .validation-message {
+    margin-top: 5px;
+    color: #d34848;
+    font-size: 13px;
+}
+
+.form-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 12px 15px;
+    background: #fff1ee;
+    color: #a74740;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   LOADING MODAL
+===================================================== */
+
+.modal-loading {
+    min-height: 230px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #747970;
+    font-size: 14px;
+}
+
+    .modal-loading .spinner-border {
+        width: 28px;
+        height: 28px;
+        color: #647b5b;
+    }
+
+
+/* =====================================================
+   ACCIONES
+===================================================== */
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 32px;
+}
+
+.detail-actions {
+    justify-content: flex-end;
+}
+
+.edit-actions {
+    justify-content: space-between;
+}
+
+.right-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+/* =====================================================
+   BOTONES
+===================================================== */
+
+.btn-cerrar,
+.btn-cancelar {
+    min-width: 110px;
+    height: 44px;
+    padding: 0 20px;
+    background: #efedeb;
+    color: #555852;
+    border: 1px solid #dedbd6;
+    border-radius: 22px;
     font-family: inherit;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: color 0.2s ease;
 }
 
-    .back-button i {
-        font-size: 16px;
-        transition: transform 0.2s ease;
+    .btn-cerrar:hover,
+    .btn-cancelar:hover:not(:disabled) {
+        background: #e6e3df;
     }
 
-    .back-button:hover {
-        color: #556f4f;
+.btn-editar,
+.btn-guardar {
+    min-width: 120px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 22px;
+    background: #647b5b;
+    color: #ffffff;
+    border: none;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+    .btn-editar:hover,
+    .btn-guardar:hover:not(:disabled) {
+        background: #556f4f;
     }
 
-        .back-button:hover i {
-            transform: translateX(-3px);
-        }
+.btn-eliminar {
+    min-width: 190px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 20px;
+    background: #ef4545;
+    color: #ffffff;
+    border: none;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+    .btn-eliminar:hover {
+        background: #db3d3d;
+    }
+
+
+/* =====================================================
+   ELIMINAR
+===================================================== */
+
+.delete-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(20, 22, 19, .38);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    animation: overlayFade .18s ease-out;
+}
+
+.delete-modal {
+    width: 100%;
+    max-width: 400px;
+    padding: 28px 28px 24px;
+    box-sizing: border-box;
+    background: #fffdfa;
+    border: 1px solid #ebe5df;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .20), 0 4px 16px rgba(0, 0, 0, .08);
+    animation: modalEnter .18s ease-out;
+}
+
+.delete-warning-icon {
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    background: #ffd9cb;
+    color: #9a5d49;
+    border-radius: 50%;
+    font-size: 22px;
+}
+
+.delete-modal h2 {
+    max-width: 335px;
+    margin: 0 auto;
+    color: #292d28;
+    font-size: 24px;
+    font-weight: 650;
+    line-height: 1.22;
+}
+
+.delete-modal p {
+    max-width: 325px;
+    margin: 12px auto 24px;
+    color: #81817d;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.delete-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.confirm-delete-button,
+.modal-cancel-button {
+    min-width: 130px;
+    height: 42px;
+    border: none;
+    border-radius: 21px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.confirm-delete-button {
+    background: #ef4545;
+    color: #ffffff;
+}
+
+    .confirm-delete-button:hover:not(:disabled) {
+        background: #db3d3d;
+    }
+
+.modal-cancel-button {
+    background: #efedeb;
+    color: #5f625c;
+}
+
+    .modal-cancel-button:hover:not(:disabled) {
+        background: #e4e1de;
+    }
+
+
+/* =====================================================
+   ANIMACIONES
+===================================================== */
+
+@keyframes overlayFade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modalEnter {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 
 /* =====================================================
    RESPONSIVE
@@ -465,7 +1041,6 @@
     .list-card {
         overflow-x: auto;
     }
-
 
     .list-header,
     .turno-row {
@@ -481,11 +1056,9 @@
         flex-direction: column;
     }
 
-
     .header-actions {
         width: 100%;
     }
-
 
     .search-box {
         flex: 1;
@@ -494,26 +1067,87 @@
 }
 
 
-@media (max-width: 620px) {
+@media (max-width: 650px) {
 
     .turnos-page {
         padding: 22px 15px 30px;
     }
 
-
     .header-title h1 {
         font-size: 24px;
     }
-
 
     .header-actions {
         align-items: stretch;
         flex-direction: column;
     }
 
-
     .search-box,
     .btn-nuevo {
+        width: 100%;
+    }
+
+    .admin-modal-overlay {
+        padding: 14px;
+    }
+
+    .admin-modal {
+        max-height: calc(100vh - 28px);
+        padding: 23px 19px 21px;
+    }
+
+    .modal-header h2 {
+        font-size: 23px;
+    }
+
+    .form-grid,
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .field-full,
+    .field-duration {
+        grid-column: auto;
+        max-width: none;
+    }
+
+    .edit-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .right-actions {
+        width: 100%;
+        flex-direction: column-reverse;
+    }
+
+    .modal-actions:not(.edit-actions) {
+        align-items: stretch;
+        flex-direction: column-reverse;
+    }
+
+    .btn-cerrar,
+    .btn-editar,
+    .btn-eliminar,
+    .btn-cancelar,
+    .btn-guardar {
+        width: 100%;
+    }
+
+    .delete-modal {
+        padding: 25px 19px 21px;
+    }
+
+        .delete-modal h2 {
+            font-size: 21px;
+        }
+
+    .delete-modal-actions {
+        flex-direction: column;
+    }
+
+    .confirm-delete-button,
+    .modal-cancel-button {
         width: 100%;
     }
 }
