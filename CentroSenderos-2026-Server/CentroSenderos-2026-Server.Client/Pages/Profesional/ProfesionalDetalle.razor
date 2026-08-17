@@ -1,0 +1,257 @@
+﻿@page "/profesionales/detalle/{id:int}"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<div class="detalle-profesional-page">
+
+    <button type="button"
+            class="back-button"
+            @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver a Profesionales</span>
+    </button>
+
+    <h1>Detalle Profesional</h1>
+
+    @if (cargando)
+    {
+        <div class="detalle-loading">
+            Cargando datos del profesional...
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="detalle-mensaje">
+            @Mensaje
+        </div>
+    }
+    else
+    {
+        <div class="profesional-detail">
+
+            <!-- =========================================
+                 01 - INFORMACIÓN PERSONAL
+            ========================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <span class="section-number">01</span>
+                    <span>Información Personal</span>
+                </div>
+
+                <div class="form-grid form-grid-2">
+
+                    <div class="field-group">
+
+                        <label>Nombre completo</label>
+
+                        <div class="form-value">
+                            @MostrarValor(modelo.Nombre)
+                        </div>
+
+                    </div>
+
+
+                    <div class="field-group">
+
+                        <label>CUIT</label>
+
+                        <div class="form-value">
+                            @MostrarValor(modelo.Cuit)
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================================
+                 02 - INFORMACIÓN PROFESIONAL
+            ========================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <span class="section-number">02</span>
+                    <span>Información Profesional</span>
+                </div>
+
+                <div class="form-grid form-grid-3">
+
+                    <div class="field-group">
+
+                        <label>Área</label>
+
+                        <div class="form-value">
+                            @MostrarValor(modelo.Area)
+                        </div>
+
+                    </div>
+
+
+                    <div class="field-group">
+
+                        <label>M.P. (Matrícula Profesional)</label>
+
+                        <div class="form-value">
+                            @MostrarValor(modelo.MP)
+                        </div>
+
+                    </div>
+
+
+                    <div class="field-group">
+
+                        <label>R.N.P.</label>
+
+                        <div class="form-value">
+                            @MostrarValor(modelo.RNP)
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================================
+                 03 - DATOS DE CONTACTO
+            ========================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <span class="section-number">03</span>
+                    <span>Datos de Contacto</span>
+                </div>
+
+                <div class="form-grid form-grid-2">
+
+                    <div class="field-group">
+
+                        <label>Teléfono</label>
+
+                        <div class="form-value">
+                            @MostrarValor(modelo.Telefono)
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================================
+                 ACCIONES
+            ========================================== -->
+
+            <div class="form-actions">
+
+                <button type="button"
+                        class="edit-button"
+                        @onclick="Editar">
+
+                    <i class="bi bi-pencil-square"></i>
+                    <span>Editar Profesional</span>
+
+                </button>
+
+            </div>
+
+        </div>
+    }
+
+</div>
+
+
+@code {
+
+    [Parameter]
+    public int id { get; set; }
+
+
+    private ProfesionalDTO modelo = CrearModeloVacio();
+
+    private bool cargando = true;
+
+    private string Mensaje = "";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarProfesional();
+    }
+
+
+    private async Task CargarProfesional()
+    {
+        cargando = true;
+        Mensaje = "";
+
+        var resp = await Http.Get<ProfesionalDTO>(
+            $"api/profesional/{id}"
+        );
+
+        if (!resp.Error && resp.Respuesta != null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            modelo = CrearModeloVacio();
+            Mensaje = resp.ObtenerError();
+        }
+
+        cargando = false;
+    }
+
+
+    private void Editar()
+    {
+        Nav.NavigateTo(
+            $"/profesionales/editar/{id}"
+        );
+    }
+
+
+    private void Volver()
+    {
+        Nav.NavigateTo(
+            "/profesionales"
+        );
+    }
+
+
+    private static string MostrarValor(object? valor)
+    {
+        if (valor is null)
+            return "—";
+
+        var texto = valor.ToString();
+
+        return string.IsNullOrWhiteSpace(texto)
+            ? "—"
+            : texto;
+    }
+
+
+    private static ProfesionalDTO CrearModeloVacio()
+    {
+        return new ProfesionalDTO
+        {
+            Nombre = string.Empty,
+            Area = string.Empty,
+            Cuit = string.Empty,
+            MP = string.Empty,
+            RNP = string.Empty,
+            Telefono = string.Empty
+        };
+    }
+}

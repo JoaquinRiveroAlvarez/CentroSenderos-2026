@@ -42,7 +42,7 @@
 .section-title {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 13px;
     margin-bottom: 16px;
     color: #9b7163;
     font-size: 12px;
@@ -64,7 +64,7 @@
     background: #f8e8df;
     border-radius: 50%;
     color: #9a6553;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
 }
 
@@ -100,7 +100,7 @@
     .field-group label {
         margin: 0 0 7px 6px;
         color: #656565;
-        font-size: 10px;
+        font-size: 13px;
         font-weight: 600;
         text-transform: uppercase;
     }
@@ -119,7 +119,7 @@
     border: 1px solid #d9ddd6;
     border-radius: 22px;
     color: #444444;
-    font-size: 12px;
+    font-size: 14px;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
@@ -246,13 +246,13 @@
 .validation-summary {
     margin-bottom: 18px;
     color: #b54b43;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 ::deep .validation-message {
     margin: 5px 0 0 6px;
     color: #b54b43;
-    font-size: 10px;
+    font-size: 13px;
 }
 
 
@@ -263,13 +263,13 @@
 .form-message {
     margin-top: 12px;
     color: #60745a;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .crear-loading {
     padding: 30px;
     color: #657461;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 
@@ -303,6 +303,7 @@
 
     .cancel-button,
     .save-button {
+        font-size: 14px;
         width: 100%;
     }
 }

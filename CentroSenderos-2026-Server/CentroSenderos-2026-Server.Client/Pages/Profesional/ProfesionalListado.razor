@@ -82,8 +82,8 @@
 
                         @foreach (var profesional in ProfesionalesFiltrados)
                         {
-                            <tr @onclick="() => IrAEditar(profesional.Id)">
-
+                            <tr @onclick="() => IrADetalle(profesional.Id)">
+                                
                                 <td class="profesional-nombre">
                                     @MostrarValor(profesional.Nombre)
                                 </td>
@@ -212,12 +212,12 @@
     }
 
 
-    private void IrAEditar(int id)
-    {
-        Nav.NavigateTo(
-            $"/profesionales/editar/{id}"
-        );
-    }
+ private void IrADetalle(int id)
+{
+    Nav.NavigateTo(
+        $"/profesionales/detalle/{id}"
+    );
+}
 
 
     private void IrACrear()

@@ -1,13 +1,14 @@
+/* CSS for ProfesionalDetalle component */
 /* ===========================================
-   PÁGINA DETALLE PACIENTE
+   PÁGINA DETALLE PROFESIONAL
 =========================================== */
 
-.detalle-paciente-page {
+.detalle-profesional-page {
     width: 100%;
     box-sizing: border-box;
 }
 
-    .detalle-paciente-page h1 {
+    .detalle-profesional-page h1 {
         margin: 0 0 20px;
         color: #556f4f;
         font-size: 28px;
@@ -50,11 +51,11 @@
 
 
 /* ===========================================
-   FORMULARIO PRINCIPAL
-   IGUAL A EDITAR PACIENTE
+   CONTENEDOR
+   SIN CARD BLANCA EXTERIOR
 =========================================== */
 
-.paciente-detail {
+.profesional-detail {
     width: 100%;
     box-sizing: border-box;
 }
@@ -95,7 +96,6 @@
 }
 
 
-
 /* ===========================================
    GRILLAS
 =========================================== */
@@ -134,11 +134,10 @@
 
 
 /* ===========================================
-   CAMPOS DE SOLO LECTURA
-   MISMA FORMA QUE INPUTS DE EDITAR
+   VALORES SOLO LECTURA
 =========================================== */
 
-.form-input {
+.form-value {
     width: 100%;
     height: 44px;
     display: flex;
@@ -156,10 +155,6 @@
     white-space: nowrap;
 }
 
-.read-only-field {
-    cursor: default;
-}
-
 
 /* ===========================================
    ACCIONES
@@ -167,14 +162,9 @@
 
 .form-actions {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    margin-top: 18px;
-}
-
-.detail-actions {
     justify-content: flex-start;
+    align-items: center;
+    margin-top: 18px;
 }
 
 
@@ -210,11 +200,11 @@
 
 
 /* ===========================================
-   MENSAJES / CARGANDO
+   LOADING / MENSAJES
 =========================================== */
 
-.editar-loading,
-.editar-mensaje {
+.detalle-loading,
+.detalle-mensaje {
     margin-top: 12px;
     color: #657461;
     font-size: 14px;
@@ -222,7 +212,7 @@
 
 
 /* ===========================================
-   RESPONSIVE
+   RESPONSIVE - TABLET
 =========================================== */
 
 @media (max-width: 900px) {
@@ -233,16 +223,15 @@
 }
 
 
+/* ===========================================
+   RESPONSIVE - CELULAR
+=========================================== */
+
 @media (max-width: 650px) {
 
-    .detalle-paciente-page h1 {
+    .detalle-profesional-page h1 {
         font-size: 24px;
     }
-
-  /*  .paciente-form {
-        padding: 20px;
-        border-radius: 16px;
-    }*/
 
     .form-grid-2,
     .form-grid-3 {

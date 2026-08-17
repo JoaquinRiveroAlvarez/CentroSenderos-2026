@@ -389,7 +389,7 @@
 
     private void Cancelar()
     {
-        Nav.NavigateTo("/profesionales");
+        Nav.NavigateTo($"/profesionales/detalle/{id}");
     }
 
 
@@ -408,7 +408,7 @@
 
     private void Volver()
     {
-        Nav.NavigateTo("/profesionales");
+        Nav.NavigateTo($"/profesionales/detalle/{id}");
     }
 
 }
