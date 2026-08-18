@@ -222,17 +222,147 @@
 
 
 /* ===========================================
-   MENSAJES
+   ESTADOS DEL LISTADO
 =========================================== */
 
-.profesionales-mensaje {
-    margin: 20px 0;
-    color: #6f6f6f;
-    font-size: 14px;
+.profesionales-estado {
+    min-height: 230px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 40px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid #e7e3dc;
+    border-radius: 24px;
+    text-align: left;
 }
 
-    .profesionales-mensaje.error {
-        color: #a74740;
+    .profesionales-estado > div:last-child {
+        max-width: 480px;
+    }
+
+    .profesionales-estado h3 {
+        margin: 0 0 6px;
+        color: #424b40;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .profesionales-estado p {
+        margin: 0;
+        color: #777b75;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+        .profesionales-estado p strong {
+            color: #556f4f;
+            font-weight: 600;
+        }
+
+
+/* ===========================================
+   ICONO DE ESTADO
+=========================================== */
+
+.estado-icono {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #edf1eb;
+    border-radius: 50%;
+    color: #647b5b;
+    font-size: 20px;
+}
+
+.profesionales-estado.error .estado-icono {
+    background: #f8e9e7;
+    color: #a74740;
+}
+
+
+/* ===========================================
+   BOTONES DE ESTADO
+=========================================== */
+
+.estado-button {
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 18px;
+    padding: 0 15px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+    .estado-button.principal {
+        background: #647b5b;
+        border: 1px solid #647b5b;
+        color: #ffffff;
+    }
+
+        .estado-button.principal:hover {
+            background: #52694a;
+            border-color: #52694a;
+        }
+
+    .estado-button.secundario {
+        background: #ffffff;
+        border: 1px solid #deded9;
+        color: #596057;
+    }
+
+        .estado-button.secundario:hover {
+            background: #f7f7f4;
+            border-color: #d0d0ca;
+        }
+
+
+/* ===========================================
+   SPINNER
+=========================================== */
+
+.estado-spinner {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border: 3px solid #dfe5dc;
+    border-top-color: #647b5b;
+    border-radius: 50%;
+    animation: profesionales-spin 0.8s linear infinite;
+}
+
+@keyframes profesionales-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* ===========================================
+   FOOTER LISTADO
+=========================================== */
+
+.profesionales-footer {
+    padding: 14px 18px;
+    border-top: 1px solid #eeeeea;
+    color: #858982;
+    font-size: 12px;
+}
+
+    .profesionales-footer strong {
+        color: #61675f;
+        font-weight: 600;
     }
 
 

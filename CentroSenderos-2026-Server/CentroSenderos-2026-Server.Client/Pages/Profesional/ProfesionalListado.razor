@@ -23,11 +23,13 @@
                        @bind:event="oninput" />
             </div>
 
-            <button type="button"
+            @*  boton de filtros deshabilitado por el momento 
+             
+         <button type="button"
                     class="filter-button">
                 <i class="bi bi-funnel"></i>
                 <span>Filtros</span>
-            </button>
+            </button> *@
 
             <button type="button"
                     class="new-professional-button"
@@ -45,21 +47,80 @@
 
     @if (cargando)
     {
-        <div class="profesionales-loading">
-            <span>Cargando profesionales...</span>
+        <div class="profesionales-estado">
+            <div class="estado-spinner"></div>
+
+            <div>
+                <h3>Cargando profesionales</h3>
+                <p>Estamos obteniendo la información registrada.</p>
+            </div>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="profesionales-estado error">
+            <div class="estado-icono">
+                <i class="bi bi-exclamation-circle"></i>
+            </div>
+
+            <div>
+                <h3>No pudimos cargar los profesionales</h3>
+                <p>@Mensaje</p>
+
+                <button type="button"
+                        class="estado-button secundario"
+                        @onclick="CargarProfesionales">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Reintentar
+                </button>
+            </div>
         </div>
     }
     else if (listaProfesionales == null || listaProfesionales.Count == 0)
     {
-        <p class="profesionales-mensaje">
-            No hay profesionales registrados.
-        </p>
+        <div class="profesionales-estado">
+            <div class="estado-icono">
+                <i class="bi bi-person-workspace"></i>
+            </div>
+
+            <div>
+                <h3>No hay profesionales registrados</h3>
+                <p>
+                    Todavía no se registraron profesionales en Senderos.
+                </p>
+
+                <button type="button"
+                        class="estado-button principal"
+                        @onclick="IrACrear">
+                    <i class="bi bi-person-plus"></i>
+                    Nuevo Profesional
+                </button>
+            </div>
+        </div>
     }
     else if (!ProfesionalesFiltrados.Any())
     {
-        <p class="profesionales-mensaje">
-            No se encontraron profesionales que coincidan con la búsqueda.
-        </p>
+        <div class="profesionales-estado">
+            <div class="estado-icono">
+                <i class="bi bi-search"></i>
+            </div>
+
+            <div>
+                <h3>No encontramos resultados</h3>
+
+                <p>
+                    No hay profesionales que coincidan con
+                    <strong>"@textoBusqueda"</strong>.
+                </p>
+
+                <button type="button"
+                        class="estado-button secundario"
+                        @onclick="LimpiarBusqueda">
+                    <i class="bi bi-x-circle"></i>
+                    Limpiar búsqueda
+                </button>
+            </div>
+        </div>
     }
     else
     {
@@ -85,40 +146,32 @@
                         @foreach (var profesional in ProfesionalesFiltrados)
                         {
                             <tr @onclick="() => IrADetalle(profesional.Id)">
-                                
-                               <td class="profesional-nombre">
-                                  <div class="nombre-con-socio">
-                                    <span>@MostrarValor(profesional.Nombre)</span>
 
-                                    @if (profesional.EsSocio)
-                                            {
-                                                 <span class="socio-badge">
-                                                  <i class="bi bi-star-fill"></i>
-                                                      Socio
-                                                 </span>
-        }
-                                  </div>
-                               </td>
+                                <td class="profesional-nombre">
 
-                                <td>
-                                    @MostrarValor(profesional.Area)
+                                    <div class="nombre-con-socio">
+
+                                        <span>
+                                            @MostrarValor(profesional.Nombre)
+                                        </span>
+
+                                        @if (profesional.EsSocio)
+                                        {
+                                            <span class="socio-badge">
+                                                <i class="bi bi-star-fill"></i>
+                                                Socio
+                                            </span>
+                                        }
+
+                                    </div>
+
                                 </td>
 
-                                <td>
-                                    @MostrarValor(profesional.MP)
-                                </td>
-
-                                <td>
-                                    @MostrarValor(profesional.RNP)
-                                </td>
-
-                                <td>
-                                    @MostrarValor(profesional.Cuit)
-                                </td>
-
-                                <td>
-                                    @MostrarValor(profesional.Telefono)
-                                </td>
+                                <td>@MostrarValor(profesional.Area)</td>
+                                <td>@MostrarValor(profesional.MP)</td>
+                                <td>@MostrarValor(profesional.RNP)</td>
+                                <td>@MostrarValor(profesional.Cuit)</td>
+                                <td>@MostrarValor(profesional.Telefono)</td>
 
                             </tr>
                         }
@@ -129,15 +182,15 @@
 
             </div>
 
+            <div class="profesionales-footer">
+                Mostrando
+                <strong>@ProfesionalesFiltrados.Count()</strong>
+                de
+                <strong>@listaProfesionales.Count</strong>
+                profesionales
+            </div>
+
         </div>
-    }
-
-
-    @if (!string.IsNullOrWhiteSpace(Mensaje))
-    {
-        <p class="profesionales-mensaje error">
-            @Mensaje
-        </p>
     }
 
 </div>
@@ -195,8 +248,8 @@
     private async Task CargarProfesionales()
     {
         cargando = true;
-
-        var resp = await Http.Get<List<ProfesionalListadoDTO>>(
+        Mensaje = "";
+        var resp = await Http.Get<List<ProfesionalListadoDTO>>( 
             "api/profesional/ListaProfesional"
         );
 
@@ -223,6 +276,11 @@
         cargando = false;
     }
 
+
+    private void LimpiarBusqueda()
+    {
+        textoBusqueda = "";
+    }
 
  private void IrADetalle(int id)
 {
