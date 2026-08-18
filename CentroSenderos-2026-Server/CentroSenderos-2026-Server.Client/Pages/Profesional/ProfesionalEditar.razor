@@ -8,10 +8,9 @@
 
 <div class="editar-profesional-page">
 
-
-
     <button type="button"
             class="back-button"
+            disabled="@(guardando || eliminando)"
             @onclick="Volver">
         <i class="bi bi-arrow-left"></i>
         <span>Volver</span>
@@ -31,6 +30,7 @@
         }
 
     </div>
+
 
     @if (cargando)
     {
@@ -201,9 +201,12 @@
 
                 <button type="button"
                         class="delete-button"
-                        disabled="@eliminando"
+                        disabled="@(eliminando || guardando)"
                         @onclick="AbrirConfirmacionEliminar">
-                    Eliminar Profesional
+
+                    <i class="bi bi-trash"></i>
+                    <span>Eliminar Profesional</span>
+
                 </button>
 
 
@@ -211,7 +214,7 @@
 
                     <button type="button"
                             class="cancel-button"
-                            disabled="@guardando"
+                            disabled="@(guardando || eliminando)"
                             @onclick="Cancelar">
                         Cancelar
                     </button>
@@ -219,7 +222,7 @@
 
                     <button type="submit"
                             class="save-button"
-                            disabled="@guardando">
+                            disabled="@(guardando || eliminando)">
 
                         @if (guardando)
                         {
@@ -253,12 +256,23 @@
                 <i class="bi bi-exclamation-triangle-fill"></i>
             </div>
 
-            <h2>¿Estás seguro que querés eliminar?</h2>
+            <h2>¿Eliminar profesional?</h2>
 
             <p>
-                Por favor, confirmá que deseás eliminar definitivamente
-                este profesional.
+                ¿Estás seguro de que querés eliminar a
+                <strong>@modelo.Nombre</strong>?
+                El profesional dejará de aparecer entre los registros activos.
             </p>
+
+
+            @if (!string.IsNullOrWhiteSpace(MensajeEliminar))
+            {
+                <div class="delete-error">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@MensajeEliminar</span>
+                </div>
+            }
+
 
             <div class="delete-modal-actions">
 
@@ -274,7 +288,8 @@
                     }
                     else
                     {
-                        <span>Eliminar</span>
+                        <i class="bi bi-trash"></i>
+                        <span>Eliminar profesional</span>
                     }
 
                 </button>
@@ -308,6 +323,7 @@
     private bool mostrarConfirmacionEliminar = false;
 
     private string Mensaje = "";
+    private string MensajeEliminar = "";
 
 
     protected override async Task OnInitializedAsync()
@@ -364,6 +380,7 @@
 
     private void AbrirConfirmacionEliminar()
     {
+        MensajeEliminar = "";
         mostrarConfirmacionEliminar = true;
     }
 
@@ -372,6 +389,7 @@
     {
         if (!eliminando)
         {
+            MensajeEliminar = "";
             mostrarConfirmacionEliminar = false;
         }
     }
@@ -380,7 +398,7 @@
     private async Task ConfirmarEliminar()
     {
         eliminando = true;
-        Mensaje = "";
+        MensajeEliminar = "";
 
         var resp = await Http.Delete(
             $"api/profesional/{id}"
@@ -391,19 +409,29 @@
         if (!resp.Error)
         {
             mostrarConfirmacionEliminar = false;
+
             Nav.NavigateTo("/profesionales");
         }
         else
         {
-            Mensaje = resp.ObtenerError();
-            mostrarConfirmacionEliminar = false;
+            MensajeEliminar = resp.ObtenerError();
         }
     }
 
 
     private void Cancelar()
     {
-        Nav.NavigateTo($"/profesionales/detalle/{id}");
+        Nav.NavigateTo(
+            $"/profesionales/detalle/{id}"
+        );
+    }
+
+
+    private void Volver()
+    {
+        Nav.NavigateTo(
+            $"/profesionales/detalle/{id}"
+        );
     }
 
 
@@ -418,11 +446,6 @@
             RNP = string.Empty,
             Telefono = string.Empty
         };
-    }
-
-    private void Volver()
-    {
-        Nav.NavigateTo($"/profesionales/detalle/{id}");
     }
 
 }

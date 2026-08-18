@@ -521,6 +521,35 @@
         color: #647b5b;
         font-size: 10px;
     }
+
+
+/* ===========================================
+   ERROR DE ELIMINACIÓN
+=========================================== */
+
+.delete-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: -6px 0 20px;
+    padding: 10px 12px;
+    background: #fff1ee;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    color: #a74740;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: left;
+}
+
+    .delete-error i {
+        flex-shrink: 0;
+        margin-top: 1px;
+        font-size: 14px;
+    }
+
+
+
 /* ===========================================
    RESPONSIVE - TABLET
 =========================================== */
