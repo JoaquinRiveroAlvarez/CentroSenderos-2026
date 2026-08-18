@@ -17,7 +17,9 @@
         <span>Volver</span>
     </button>
 
+
     <h1>Crear Paciente</h1>
+
 
     @if (cargando)
     {
@@ -34,7 +36,6 @@
 
             <DataAnnotationsValidator />
 
-            <ValidationSummary class="validation-summary" />
 
             <!-- =========================================
                  01 - INFORMACIÓN PERSONAL
@@ -47,9 +48,11 @@
                     <span>Información Personal</span>
                 </div>
 
+
                 <div class="form-grid form-grid-2">
 
                     <div class="field-group">
+
                         <label>Nombre completo</label>
 
                         <InputText class="form-input"
@@ -58,9 +61,12 @@
 
                         <ValidationMessage For="@(() => modelo.Nombre)"
                                            class="validation-message" />
+
                     </div>
 
+
                     <div class="field-group">
+
                         <label>DNI</label>
 
                         <InputText class="form-input"
@@ -69,6 +75,7 @@
 
                         <ValidationMessage For="@(() => modelo.DNI)"
                                            class="validation-message" />
+
                     </div>
 
                 </div>
@@ -86,6 +93,7 @@
                     <span class="section-number">02</span>
                     <span>Información Médica / Administrativa</span>
                 </div>
+
 
                 <div class="form-grid form-grid-3">
 
@@ -155,6 +163,9 @@
 
                         </InputSelect>
 
+                        <ValidationMessage For="@(() => modelo.TipoDiagnosticoId)"
+                                           class="validation-message" />
+
                     </div>
 
                 </div>
@@ -172,6 +183,7 @@
                     <span class="section-number">03</span>
                     <span>Datos de Contacto</span>
                 </div>
+
 
                 <div class="form-grid form-grid-2">
 
@@ -208,7 +220,18 @@
 
 
             <!-- =========================================
-                 BOTONES
+                 ERROR GENERAL
+            ========================================== -->
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <div class="form-message">
+                    @Mensaje
+                </div>
+            }
+
+
+            <!-- =========================================
+                 ACCIONES
             ========================================== -->
 
             <div class="form-actions">
@@ -217,8 +240,11 @@
                         class="cancel-button"
                         disabled="@guardando"
                         @onclick="Cancelar">
+
                     Cancelar
+
                 </button>
+
 
                 <button type="submit"
                         class="save-button"
@@ -241,16 +267,12 @@
         </EditForm>
     }
 
-    @if (!string.IsNullOrWhiteSpace(Mensaje))
-    {
-        <p class="form-message">@Mensaje</p>
-    }
-
 </div>
 
 
 @code {
-    private PacienteCrearDTO modelo = new PacienteCrearDTO
+
+    private PacienteCrearDTO modelo = new()
     {
         Nombre = string.Empty,
         DNI = string.Empty,
@@ -261,48 +283,73 @@
         TipoDiagnosticoId = 0
     };
 
+
     private List<TipoDTO> tiposObraSocial = new();
     private List<TipoDTO> tiposDiagnostico = new();
 
-    private bool cargando = false;
+
+    private bool cargando = true;
     private bool guardando = false;
+
     private string Mensaje = "";
 
+
+    // CARGAR DATOS
 
     protected override async Task OnInitializedAsync()
     {
         cargando = true;
+        Mensaje = "";
 
-        var respObra = await Http.Get<List<TipoDTO>>("api/tipoobrasocial/ListaTipoObraSocial");
+
+        var respObra = await Http.Get<List<TipoDTO>>(
+            "api/tipoobrasocial/ListaTipoObraSocial"
+        );
+
         if (!respObra.Error && respObra.Respuesta != null)
+        {
             tiposObraSocial = respObra.Respuesta;
-        else
+        }
+        else if (respObra.Error)
+        {
             Mensaje = respObra.ObtenerError();
+        }
 
-        var respDiag = await Http.Get<List<TipoDTO>>("api/tipodiagnostico/ListaTipoDiagnostico");
+
+        var respDiag = await Http.Get<List<TipoDTO>>(
+            "api/tipodiagnostico/ListaTipoDiagnostico"
+        );
+
         if (!respDiag.Error && respDiag.Respuesta != null)
+        {
             tiposDiagnostico = respDiag.Respuesta;
-        else
+        }
+        else if (respDiag.Error)
+        {
             Mensaje = respDiag.ObtenerError();
-        await Task.Delay(200);
+        }
+
+
         cargando = false;
     }
 
 
-    
-
+    // GUARDAR
 
     private async Task Grabar()
     {
         guardando = true;
         Mensaje = "";
 
+
         var resp = await Http.Post<PacienteCrearDTO, int>(
             "api/paciente/insertar",
             modelo
         );
 
+
         guardando = false;
+
 
         if (!resp.Error)
         {
@@ -318,13 +365,24 @@
         }
     }
 
+
+    // CANCELAR
+
     private void Cancelar()
     {
-        Nav.NavigateTo("/pacientes");
+        Nav.NavigateTo(
+            "/pacientes"
+        );
     }
+
+
+    // VOLVER
 
     private void Volver()
     {
-        Nav.NavigateTo("/pacientes");
+        Nav.NavigateTo(
+            "/pacientes"
+        );
     }
+
 }
