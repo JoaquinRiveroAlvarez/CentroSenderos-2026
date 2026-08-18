@@ -5,7 +5,6 @@ using CentroSenderos_2026_Shared.Enum;
 using Microsoft.EntityFrameworkCore;
 using Modelado2025_1Repositorio.Repositorios;
 
-
 namespace CentroSenderos_2026_Repositorio.Repositorios
 {
     public class PacienteRepositorio : Repositorio<Paciente>, IPacienteRepositorio
@@ -16,6 +15,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             this.context = context;
         }
+
+
         public async Task<PacienteDTO?> SelectPorId(int pacienteId)
         {
             return await context.Pacientes
@@ -34,13 +35,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
                     TipoObraSocialId = p.TipoObraSocialId,
                     TipoObraSocialNombre = p.TipoObraSociales!.Tipo,
+
                     TipoDiagnosticoId = p.TipoDiagnosticoId,
                     TipoDiagnosticoNombre = p.TipoDiagnosticos!.Tipo
                 })
                 .FirstOrDefaultAsync();
         }
 
-        // Obtener lista completa de pacientes
+
         public async Task<List<PacienteResumenDTO>> SelectListaPaciente()
         {
             return await context.Pacientes
@@ -55,44 +57,85 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     DNI = p.DNI,
                     NumeroAfiliado = p.NumeroAfiliado,
                     EstadoRegistro = p.EstadoRegistro,
+
                     TipoObraSocialId = p.TipoObraSocialId,
                     TipoObraSocialNombre = p.TipoObraSociales!.Tipo,
+
                     TipoDiagnosticoId = p.TipoDiagnosticoId,
                     TipoDiagnosticoNombre = p.TipoDiagnosticos!.Tipo
                 })
                 .ToListAsync();
         }
 
-        // Insertar paciente con validaciones
+
         public async Task<int> InsertarPaciente(PacienteCrearDTO dto)
         {
-            // Validar obra social
-            var obraSocialExiste = await context.TipoObrasSociales.AnyAsync(o => o.Id == dto.TipoObraSocialId);
+            var nombreLimpio = NormalizarTexto(dto.Nombre);
+            var dniLimpio = NormalizarDni(dto.DNI);
+            var telefonoLimpio = NormalizarTelefono(dto.Telefono);
+            var domicilioLimpio = NormalizarDomicilio(dto.Domicilio);
+
+
+            // Validar relaciones
+
+            var obraSocialExiste = await context.TipoObrasSociales
+                .AnyAsync(o => o.Id == dto.TipoObraSocialId);
+
             if (!obraSocialExiste)
-                throw new ApplicationException("La obra social seleccionada no existe.");
+            {
+                throw new ApplicationException(
+                    "La obra social seleccionada no existe."
+                );
+            }
 
-            // Validar diagnóstico
-            var diagnosticoExiste = await context.TipoDiagnosticos.AnyAsync(d => d.Id == dto.TipoDiagnosticoId);
+
+            var diagnosticoExiste = await context.TipoDiagnosticos
+                .AnyAsync(d => d.Id == dto.TipoDiagnosticoId);
+
             if (!diagnosticoExiste)
-                throw new ApplicationException("El diagnóstico seleccionado no existe.");
+            {
+                throw new ApplicationException(
+                    "El diagnóstico seleccionado no existe."
+                );
+            }
 
-            //// Validar documento (si lo usás)
-            //var documentoExiste = await context.Documentos.AnyAsync(d => d.Id == dto.DocumentoId);
-            //if (!documentoExiste)
-            //    throw new ApplicationException("El tipo de documento seleccionado no existe.");
+
+            // Validar duplicados
+
+            var dniExiste = await context.Pacientes
+                .AnyAsync(p => p.DNI == dniLimpio);
+
+            if (dniExiste)
+            {
+                throw new ApplicationException(
+                    $"Ya existe un paciente con el DNI '{dniLimpio}'."
+                );
+            }
+
+
+            var numeroAfiliadoExiste = await context.Pacientes
+                .AnyAsync(p => p.NumeroAfiliado == dto.NumeroAfiliado);
+
+            if (numeroAfiliadoExiste)
+            {
+                throw new ApplicationException(
+                    $"Ya existe un paciente con el número de afiliado '{dto.NumeroAfiliado}'."
+                );
+            }
+
 
             var paciente = new Paciente
             {
-                Nombre = dto.Nombre,
-                DNI = dto.DNI,
+                Nombre = nombreLimpio,
+                DNI = dniLimpio,
                 NumeroAfiliado = dto.NumeroAfiliado,
-                Telefono = dto.Telefono,
-                Domicilio = dto.Domicilio,
+                Telefono = telefonoLimpio,
+                Domicilio = domicilioLimpio,
                 TipoObraSocialId = dto.TipoObraSocialId,
                 TipoDiagnosticoId = dto.TipoDiagnosticoId,
-                //DocumentoId = dto.DocumentoId,
                 EstadoRegistro = EnumEstadoRegistro.activo
             };
+
 
             context.Pacientes.Add(paciente);
 
@@ -102,66 +145,182 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
             catch (DbUpdateException ex)
             {
-                if (ex.InnerException?.Message.Contains("Paciente_DNI_UQ") == true)
-                    throw new ApplicationException($"Ya existe un paciente con el DNI '{dto.DNI}'.");
+                if (ex.InnerException?.Message.Contains("DNI_UQ") == true)
+                {
+                    throw new ApplicationException(
+                        $"Ya existe un paciente con el DNI '{dniLimpio}'."
+                    );
+                }
 
                 if (ex.InnerException?.Message.Contains("NumeroAfiliado_UQ") == true)
-                    throw new ApplicationException($"Ya existe un paciente con el número de afiliado '{dto.NumeroAfiliado}'.");
+                {
+                    throw new ApplicationException(
+                        $"Ya existe un paciente con el número de afiliado '{dto.NumeroAfiliado}'."
+                    );
+                }
 
                 throw;
             }
+
 
             return paciente.Id;
         }
 
 
-        // Actualizar paciente
-        public async Task<bool> ActualizarPaciente(int id, PacienteDTO dto)
+        public async Task<bool> ActualizarPaciente(
+            int id,
+            PacienteDTO dto)
         {
-            var paciente = await context.Pacientes.FirstOrDefaultAsync(p => p.Id == id);
-            if (paciente == null) return false;
+            var paciente = await context.Pacientes
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (paciente == null)
+                return false;
+
+
+            var nombreLimpio = NormalizarTexto(dto.Nombre);
+            var dniLimpio = NormalizarDni(dto.DNI);
+            var telefonoLimpio = NormalizarTelefono(dto.Telefono ?? "");
+            var domicilioLimpio = NormalizarDomicilio(dto.Domicilio ?? "");
+
+
+            // Validar relaciones
+
+            var obraSocialExiste = await context.TipoObrasSociales
+                .AnyAsync(o => o.Id == dto.TipoObraSocialId);
+
+            if (!obraSocialExiste)
+            {
+                throw new ApplicationException(
+                    "La obra social seleccionada no existe."
+                );
+            }
+
+
+            var diagnosticoExiste = await context.TipoDiagnosticos
+                .AnyAsync(d => d.Id == dto.TipoDiagnosticoId);
+
+            if (!diagnosticoExiste)
+            {
+                throw new ApplicationException(
+                    "El diagnóstico seleccionado no existe."
+                );
+            }
+
+
+            // Validar duplicados
 
             var dniExiste = await context.Pacientes
-            .AnyAsync(p => p.DNI == dto.DNI && p.Id != id);
-            if (dniExiste)
-            throw new ApplicationException($"Ya existe un paciente con el DNI '{dto.DNI}'.");
+                .AnyAsync(p =>
+                    p.DNI == dniLimpio &&
+                    p.Id != id);
 
-            paciente.Nombre = dto.Nombre;
-            paciente.DNI = dto.DNI;
-            paciente.TipoObraSocialId = dto.TipoObraSocialId;
+            if (dniExiste)
+            {
+                throw new ApplicationException(
+                    $"Ya existe un paciente con el DNI '{dniLimpio}'."
+                );
+            }
+
+
+            var numeroAfiliadoExiste = await context.Pacientes
+                .AnyAsync(p =>
+                    p.NumeroAfiliado == dto.NumeroAfiliado &&
+                    p.Id != id);
+
+            if (numeroAfiliadoExiste)
+            {
+                throw new ApplicationException(
+                    $"Ya existe un paciente con el número de afiliado '{dto.NumeroAfiliado}'."
+                );
+            }
+
+
+            // Actualizar
+
+            paciente.Nombre = nombreLimpio;
+            paciente.DNI = dniLimpio;
             paciente.NumeroAfiliado = dto.NumeroAfiliado;
+            paciente.Telefono = telefonoLimpio;
+            paciente.Domicilio = domicilioLimpio;
+            paciente.TipoObraSocialId = dto.TipoObraSocialId;
             paciente.TipoDiagnosticoId = dto.TipoDiagnosticoId;
-            paciente.Telefono = dto.Telefono!;
-            paciente.Domicilio = dto.Domicilio!;
-            //paciente.EstadoRegistro = dto.EstadoRegistro;
+
 
             try
             {
                 context.Pacientes.Update(paciente);
+
                 await context.SaveChangesAsync();
+
                 return true;
             }
             catch (DbUpdateException ex)
             {
-                if (ex.InnerException?.Message.Contains("Paciente_DNI_UQ") == true)
-                    throw new ApplicationException($"Ya existe un paciente con el DNI '{dto.DNI}'.");
+                if (ex.InnerException?.Message.Contains("DNI_UQ") == true)
+                {
+                    throw new ApplicationException(
+                        $"Ya existe un paciente con el DNI '{dniLimpio}'."
+                    );
+                }
+
+                if (ex.InnerException?.Message.Contains("NumeroAfiliado_UQ") == true)
+                {
+                    throw new ApplicationException(
+                        $"Ya existe un paciente con el número de afiliado '{dto.NumeroAfiliado}'."
+                    );
+                }
+
                 throw;
             }
         }
 
 
-        // Eliminar paciente
         public async Task<bool> DeletePaciente(int id)
         {
             var paciente = await context.Pacientes
                 .FirstOrDefaultAsync(p => p.Id == id);
-            if (paciente == null) return false;
+
+            if (paciente == null)
+                return false;
+
 
             paciente.EstadoRegistro = EnumEstadoRegistro.borrado;
+
             await context.SaveChangesAsync();
+
             return true;
         }
 
+
+        private static string NormalizarTexto(string texto)
+        {
+            var cultura = new System.Globalization.CultureInfo("es-AR");
+
+            texto = texto.Trim().ToLower(cultura);
+
+            return cultura.TextInfo.ToTitleCase(texto);
+        }
+
+
+        private static string NormalizarDni(string dni)
+        {
+            return dni
+                .Trim()
+                .Replace(".", "")
+                .Replace(" ", "");
+        }
+
+
+        private static string NormalizarTelefono(string telefono)
+        {
+            return telefono.Trim();
+        }
+
+
+        private static string NormalizarDomicilio(string domicilio)
+        {
+            return domicilio.Trim();
+        }
     }
 }
-
