@@ -17,6 +17,8 @@
 
 <PageTitle>Registrarse</PageTitle>
 
+<PageTitle>Registrarse</PageTitle>
+
 <div class="register-page">
 
     <div class="register-content">
@@ -59,7 +61,7 @@
 
                     <i class="bi bi-lock field-icon-left"></i>
 
-                    <InputText type="password"
+                    <InputText type="@(mostrarPassword ? "text" : "password")"
                                @bind-Value="Input.Password"
                                id="Input.Password"
                                class="form-control register-input"
@@ -67,7 +69,12 @@
                                aria-required="true"
                                placeholder="Contraseña" />
 
-                    <i class="bi bi-eye password-icon"></i>
+                    <button type="button"
+                            class="password-icon"
+                            onclick="togglePassword('Input.Password', this)"
+                            aria-label="Mostrar contraseña">
+                        <i class="bi bi-eye"></i>
+                    </button>
 
                     <ValidationMessage For="() => Input.Password"
                                        class="text-danger validation-message" />
@@ -78,7 +85,7 @@
 
                     <i class="bi bi-shield-lock field-icon-left"></i>
 
-                    <InputText type="password"
+                    <InputText type="@(mostrarConfirmacion ? "text" : "password")"
                                @bind-Value="Input.ConfirmPassword"
                                id="Input.ConfirmPassword"
                                class="form-control register-input"
@@ -86,15 +93,19 @@
                                aria-required="true"
                                placeholder="Confirmar contraseña" />
 
-                    <i class="bi bi-eye password-icon"></i>
+                    <button type="button"
+                            class="password-icon"
+                            onclick="togglePassword('Input.ConfirmPassword', this)"
+                            aria-label="Mostrar confirmación de contraseña">
+                        <i class="bi bi-eye"></i>
+                    </button>
 
                     <ValidationMessage For="() => Input.ConfirmPassword"
                                        class="text-danger validation-message" />
 
                 </div>
 
-                <button type="submit"
-                        class="register-button">
+                <button type="submit" class="register-button">
                     Registrarse
                 </button>
 
@@ -118,6 +129,8 @@
 
 @code {
     private IEnumerable<IdentityError>? identityErrors;
+    private bool mostrarPassword;
+    private bool mostrarConfirmacion;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = default!;
@@ -125,7 +138,9 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
+    private string? Message => identityErrors is null
+        ? null
+        : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
     protected override void OnInitialized()
     {
@@ -137,8 +152,10 @@
         var user = CreateUser();
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+
         var emailStore = GetEmailStore();
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+
         var result = await UserManager.CreateAsync(user, Input.Password);
 
         if (!result.Succeeded)
@@ -151,12 +168,22 @@
 
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
         var callbackUrl = NavigationManager.GetUriWithQueryParameters(
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
+            new Dictionary<string, object?>
+            {
+                ["userId"] = userId,
+                ["code"] = code,
+                ["returnUrl"] = ReturnUrl
+            });
 
-        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+        await EmailSender.SendConfirmationLinkAsync(
+            user,
+            Input.Email,
+            HtmlEncoder.Default.Encode(callbackUrl));
 
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
@@ -166,8 +193,7 @@
         }
         else
         {
-            await SignInManager.SignInAsync(user, isPersistent: false);
-            RedirectManager.RedirectTo(ReturnUrl);
+            RedirectManager.RedirectTo("Account/Login");
         }
     }
 
@@ -179,7 +205,8 @@
         }
         catch
         {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(MiUsuario)}'. " +
+            throw new InvalidOperationException(
+                $"Can't create an instance of '{nameof(MiUsuario)}'. " +
                 $"Ensure that '{nameof(MiUsuario)}' is not an abstract class and has a parameterless constructor.");
         }
     }
@@ -188,8 +215,10 @@
     {
         if (!UserManager.SupportsUserEmail)
         {
-            throw new NotSupportedException("The default UI requires a user store with email support.");
+            throw new NotSupportedException(
+                "The default UI requires a user store with email support.");
         }
+
         return (IUserEmailStore<MiUsuario>)UserStore;
     }
 
@@ -201,14 +230,14 @@
         public string Email { get; set; } = "";
 
         [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [StringLength(100, ErrorMessage = "La contraseña debe tener al menos {2} caracteres.", MinimumLength = 6)]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
         public string Password { get; set; } = "";
 
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        [Compare("Password", ErrorMessage = "La contraseña y su confirmación no coinciden.")]
         public string ConfirmPassword { get; set; } = "";
     }
 }

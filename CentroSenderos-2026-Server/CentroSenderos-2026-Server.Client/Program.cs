@@ -11,5 +11,4 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 //builder.Services.AddScoped(sp => new HttpClient {BaseAddress = new Uri("https://centrosenderos-2026-server.onrender.com/")});
 
 builder.Services.AddScoped<IHttpServicio, HttpServicio>();
-
 await builder.Build().RunAsync();

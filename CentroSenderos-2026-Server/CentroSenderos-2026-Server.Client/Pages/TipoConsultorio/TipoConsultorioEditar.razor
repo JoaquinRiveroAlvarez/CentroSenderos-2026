@@ -1,4 +1,6 @@
 ﻿@page "/tipoconsultorio/editar/{id:int}"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
 @inject IHttpServicio Http
 @inject NavigationManager Nav

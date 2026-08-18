@@ -38,25 +38,15 @@
     <!-- Menú -->
     <nav class="sidebar-nav">
 
-        <NavLink href="/" Match="NavLinkMatch.All" class="sidebar-link">
+@*         <NavLink href="Account/Login" Match="NavLinkMatch.All" class="sidebar-link">
             <i class="bi bi-house-door"></i>
             <span>Inicio</span>
-        </NavLink>
-
-@*         <NavLink href="counter" class="sidebar-link">
-            <i class="bi bi-plus-square"></i>
-            <span>Counter</span>
-        </NavLink>
-
-        <NavLink href="weather" class="sidebar-link">
-            <i class="bi bi-cloud-sun"></i>
-            <span>Weather</span>
         </NavLink> *@
 
-        <NavLink href="auth" class="sidebar-link">
+@*         <NavLink href="auth" class="sidebar-link">
             <i class="bi bi-lock"></i>
             <span>Auth</span>
-        </NavLink>
+        </NavLink> *@
 
         <AuthorizeView>
 
@@ -137,7 +127,7 @@
             </Authorized>
 
             <NotAuthorized>
-
+@* 
                 <NavLink href="Account/Login"
                          class="sidebar-link">
 
@@ -145,8 +135,8 @@
 
                     <span>Ingresar</span>
 
-                </NavLink>
-
+                </NavLink> *@
+@* 
                 <NavLink href="Account/Register"
                          class="sidebar-link">
 
@@ -154,7 +144,7 @@
 
                     <span>Registrarse</span>
 
-                </NavLink>
+                </NavLink> *@
 
             </NotAuthorized>
 

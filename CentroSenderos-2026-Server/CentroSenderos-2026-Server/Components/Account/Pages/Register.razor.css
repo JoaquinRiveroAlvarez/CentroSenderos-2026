@@ -125,24 +125,27 @@
    CONTRASEÑAS
 =========================================== */
 
-.password-field ::deep input.register-input {
-    padding-right: 42px !important;
-}
-
 .password-icon {
     position: absolute;
     top: 14px;
     right: 14px;
-    font-size: 16px;
-    color: #668069;
-    cursor: pointer;
     z-index: 5;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #668069;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
 }
 
     .password-icon:hover {
         color: #315d34;
     }
 
+.password-field ::deep input.register-input {
+    padding-right: 42px !important;
+}
 
 /* ===========================================
    BOTÓN
