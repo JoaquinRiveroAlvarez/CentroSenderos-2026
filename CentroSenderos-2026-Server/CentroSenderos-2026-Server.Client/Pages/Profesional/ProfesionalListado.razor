@@ -10,12 +10,9 @@
 
     <div class="profesionales-header">
 
-        <div>
-            <h1>Gestión de Profesionales</h1>
-            <p>Administrá los profesionales registrados en Senderos.</p>
-        </div>
+        <h1>Gestión de Profesionales</h1>
 
-        <div class="profesionales-header-actions">
+        <div class="profesionales-actions">
 
             <div class="search-box">
                 <i class="bi bi-search"></i>
@@ -27,16 +24,18 @@
             </div>
 
             <button type="button"
-                    class="btn-filter">
+                    class="filter-button">
                 <i class="bi bi-funnel"></i>
-                Filtros
+                <span>Filtros</span>
             </button>
 
             <button type="button"
-                    class="btn-nuevo-profesional"
+                    class="new-professional-button"
                     @onclick="IrACrear">
+
                 <i class="bi bi-person-plus"></i>
-                Nuevo Profesional
+                <span>Nuevo Profesional</span>
+
             </button>
 
         </div>
@@ -46,96 +45,78 @@
 
     @if (cargando)
     {
-        <div class="estado-container">
-            <div class="spinner-border text-success" role="status"></div>
-            <p>Cargando profesionales...</p>
+        <div class="profesionales-loading">
+            <span>Cargando profesionales...</span>
         </div>
     }
-    else if (listaProfesionales == null)
+    else if (listaProfesionales == null || listaProfesionales.Count == 0)
     {
-        <div class="estado-container">
-            <i class="bi bi-exclamation-circle"></i>
-            <p>Error al cargar profesionales.</p>
-        </div>
+        <p class="profesionales-mensaje">
+            No hay profesionales registrados.
+        </p>
     }
     else if (!ProfesionalesFiltrados.Any())
     {
-        <div class="estado-container">
-            <i class="bi bi-person-x"></i>
-
-            @if (string.IsNullOrWhiteSpace(textoBusqueda))
-            {
-                <p>No hay profesionales registrados.</p>
-            }
-            else
-            {
-                <p>No encontramos profesionales que coincidan con la búsqueda.</p>
-            }
-        </div>
+        <p class="profesionales-mensaje">
+            No se encontraron profesionales que coincidan con la búsqueda.
+        </p>
     }
     else
     {
         <div class="profesionales-card">
 
-            <div class="tabla-profesionales">
+            <div class="profesionales-table-wrapper">
 
-                <div class="tabla-header">
-                    <div>NOMBRE</div>
-                    <div>ÁREA</div>
-                    <div>M.P.</div>
-                    <div>R.N.P.</div>
-                    <div>CUIT</div>
-                    <div>TELÉFONO</div>
-                </div>
+                <table class="profesionales-table">
 
-                @foreach (var profesional in ProfesionalesFiltrados)
-                {
-                    <div class="profesional-row"
-                         @onclick="() => IrAEditar(profesional.Id)">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Área</th>
+                            <th>M.P.</th>
+                            <th>R.N.P.</th>
+                            <th>CUIT</th>
+                            <th>Teléfono</th>
+                        </tr>
+                    </thead>
 
-                        <div class="profesional-info">
+                    <tbody>
 
-                            <div class="profesional-avatar">
-                                @ObtenerIniciales(profesional.Nombre)
-                            </div>
+                        @foreach (var profesional in ProfesionalesFiltrados)
+                        {
+                            <tr @onclick="() => IrADetalle(profesional.Id)">
+                                
+                                <td class="profesional-nombre">
+                                    @MostrarValor(profesional.Nombre)
+                                </td>
 
-                            <div class="profesional-nombre">
-                                <strong>@profesional.Nombre</strong>
-                                <span>Profesional</span>
-                            </div>
+                                <td>
+                                    @MostrarValor(profesional.Area)
+                                </td>
 
-                        </div>
+                                <td>
+                                    @MostrarValor(profesional.MP)
+                                </td>
 
-                        <div class="dato area">
-                            @MostrarValor(profesional.Area)
-                        </div>
+                                <td>
+                                    @MostrarValor(profesional.RNP)
+                                </td>
 
-                        <div class="dato">
-                            @MostrarValor(profesional.MP)
-                        </div>
+                                <td>
+                                    @MostrarValor(profesional.Cuit)
+                                </td>
 
-                        <div class="dato">
-                            @MostrarValor(profesional.RNP)
-                        </div>
+                                <td>
+                                    @MostrarValor(profesional.Telefono)
+                                </td>
 
-                        <div class="dato">
-                            @MostrarValor(profesional.Cuit)
-                        </div>
+                            </tr>
+                        }
 
-                        <div class="dato">
-                            @MostrarValor(profesional.Telefono)
-                        </div>
+                    </tbody>
 
-                    </div>
-                }
+                </table>
 
-            </div>
-
-            <div class="tabla-footer">
-                <span>
-                    Mostrando @ProfesionalesFiltrados.Count()
-                    de @listaProfesionales.Count profesionales
-                </span>
             </div>
 
         </div>
@@ -144,9 +125,9 @@
 
     @if (!string.IsNullOrWhiteSpace(Mensaje))
     {
-        <div class="mensaje-error">
+        <p class="profesionales-mensaje error">
             @Mensaje
-        </div>
+        </p>
     }
 
 </div>
@@ -205,17 +186,15 @@
     {
         cargando = true;
 
-        var resp =
-            await Http.Get<List<ProfesionalListadoDTO>>(
-                "api/profesional/ListaProfesional"
-            );
+        var resp = await Http.Get<List<ProfesionalListadoDTO>>(
+            "api/profesional/ListaProfesional"
+        );
 
         if (resp.Error &&
             resp.HttpResponseMessage.StatusCode ==
             System.Net.HttpStatusCode.NotFound)
         {
             listaProfesionales = new();
-
             Mensaje = "";
         }
         else
@@ -235,12 +214,12 @@
     }
 
 
-    private void IrAEditar(int id)
-    {
-        Nav.NavigateTo(
-            $"/profesionales/editar/{id}"
-        );
-    }
+ private void IrADetalle(int id)
+{
+    Nav.NavigateTo(
+        $"/profesionales/detalle/{id}"
+    );
+}
 
 
     private void IrACrear()
@@ -262,31 +241,4 @@
             ? "—"
             : texto;
     }
-
-
-    private static string ObtenerIniciales(string? nombre)
-    {
-        if (string.IsNullOrWhiteSpace(nombre))
-            return "P";
-
-        var palabras =
-            nombre.Split(
-                ' ',
-                StringSplitOptions.RemoveEmptyEntries
-            );
-
-        if (palabras.Length == 1)
-        {
-            return palabras[0][0]
-                .ToString()
-                .ToUpper();
-        }
-
-        return string.Concat(
-                palabras[0][0],
-                palabras[1][0]
-            )
-            .ToUpper();
-    }
-
 }

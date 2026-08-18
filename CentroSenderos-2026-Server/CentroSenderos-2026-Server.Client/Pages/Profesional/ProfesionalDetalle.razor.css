@@ -1,14 +1,14 @@
-/* CSS for PacienteCrear component */
+/* CSS for ProfesionalDetalle component */
 /* ===========================================
-   PÁGINA
+   PÁGINA DETALLE PROFESIONAL
 =========================================== */
 
-.crear-paciente-page {
+.detalle-profesional-page {
     width: 100%;
     box-sizing: border-box;
 }
 
-    .crear-paciente-page h1 {
+    .detalle-profesional-page h1 {
         margin: 0 0 20px;
         color: #556f4f;
         font-size: 28px;
@@ -17,17 +17,47 @@
 
 
 /* ===========================================
-   FORMULARIO PRINCIPAL
+   VOLVER
 =========================================== */
 
-.paciente-form {
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #6f786a;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+    .back-button i {
+        font-size: 16px;
+        transition: transform 0.2s ease;
+    }
+
+    .back-button:hover {
+        color: #556f4f;
+    }
+
+        .back-button:hover i {
+            transform: translateX(-3px);
+        }
+
+
+/* ===========================================
+   CONTENEDOR
+   SIN CARD BLANCA EXTERIOR
+=========================================== */
+
+.profesional-detail {
     width: 100%;
-    padding: 22px 24px;
     box-sizing: border-box;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid #e4e1dc;
-    border-radius: 22px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
 }
 
 
@@ -42,21 +72,18 @@
 .section-title {
     display: flex;
     align-items: center;
-    gap: 13px;
+    gap: 10px;
     margin-bottom: 16px;
     color: #9b7163;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-
-/* Número 01, 02, 03 */
-
 .section-number {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -88,7 +115,7 @@
 
 
 /* ===========================================
-   GRUPOS DE CAMPOS
+   CAMPOS
 =========================================== */
 
 .field-group {
@@ -107,174 +134,85 @@
 
 
 /* ===========================================
-   INPUTS / SELECTS
+   VALORES SOLO LECTURA
 =========================================== */
 
-::deep .form-input {
+.form-value {
     width: 100%;
-    height: 42px;
+    height: 44px;
+    display: flex;
+    align-items: center;
     box-sizing: border-box;
     padding: 0 16px;
     background: #ffffff;
     border: 1px solid #d9ddd6;
     border-radius: 22px;
     color: #444444;
+    font-family: inherit;
     font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-}
-
-
-    /* Placeholder */
-
-    ::deep .form-input::placeholder {
-        color: #999999;
-        opacity: 1;
-    }
-
-
-    /* Focus */
-
-    ::deep .form-input:focus {
-        background: #ffffff;
-        border-color: #789175;
-        box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
-    }
-
-
-/* Select */
-
-::deep select.form-input {
-    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 
 /* ===========================================
-   BOTONES
+   ACCIONES
 =========================================== */
 
 .form-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     align-items: center;
-    gap: 14px;
-    margin-top: 16px;
+    margin-top: 18px;
 }
 
 
-/* Cancelar */
+/* ===========================================
+   BOTÓN EDITAR
+=========================================== */
 
-.cancel-button {
-    min-width: 120px;
+.edit-button {
+    min-width: 145px;
     height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     padding: 0 22px;
-    background: #ffffff;
-    border: 1px solid #9d9d96;
-    border-radius: 22px;
-    color: #555555;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-}
-
-    .cancel-button:hover {
-        background: #f5f5f3;
-        border-color: #777770;
-    }
-
-
-/* Guardar */
-
-.save-button {
-    min-width: 150px;
-    height: 42px;
-    padding: 0 24px;
-    background: #647b5b;
+    background: #f8dfcf;
     border: none;
     border-radius: 22px;
-    color: #ffffff;
+    color: #8b5c51;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s, transform 0.1s;
 }
 
-    .save-button:hover {
-        background: #52694a;
+    .edit-button:hover {
+        background: #f2d2c0;
     }
 
-    .save-button:active {
+    .edit-button:active {
         transform: scale(0.98);
     }
 
 
-    /*boton volver*/
-.back-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 14px;
-    padding: 0;
-    background: transparent;
-    border: none;
-    color: #6f786a;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-    .back-button i {
-        font-size: 16px;
-        transition: transform 0.2s ease;
-    }
-
-    .back-button:hover {
-        color: #556f4f;
-    }
-
-        .back-button:hover i {
-            transform: translateX(-3px);
-        }
-
 /* ===========================================
-   VALIDACIONES
+   LOADING / MENSAJES
 =========================================== */
 
-.validation-summary {
-    margin-bottom: 18px;
-    color: #b54b43;
-    font-size: 14px;
-}
-
-::deep .validation-message {
-    margin: 5px 0 0 6px;
-    color: #b54b43;
-    font-size: 13px;
-}
-
-
-/* ===========================================
-   MENSAJES
-=========================================== */
-
-.form-message {
+.detalle-loading,
+.detalle-mensaje {
     margin-top: 12px;
-    color: #60745a;
-    font-size: 14px;
-}
-
-.crear-loading {
-    padding: 30px;
     color: #657461;
     font-size: 14px;
 }
 
 
 /* ===========================================
-   RESPONSIVE
+   RESPONSIVE - TABLET
 =========================================== */
 
 @media (max-width: 900px) {
@@ -285,11 +223,14 @@
 }
 
 
+/* ===========================================
+   RESPONSIVE - CELULAR
+=========================================== */
+
 @media (max-width: 650px) {
 
-    .paciente-form {
-        padding: 20px;
-        border-radius: 16px;
+    .detalle-profesional-page h1 {
+        font-size: 24px;
     }
 
     .form-grid-2,
@@ -297,13 +238,7 @@
         grid-template-columns: 1fr;
     }
 
-    .form-actions {
-        flex-direction: column-reverse;
-    }
-
-    .cancel-button,
-    .save-button {
-        font-size: 14px;
+    .edit-button {
         width: 100%;
     }
 }

@@ -9,6 +9,13 @@
 
 <div class="crear-paciente-page">
 
+    <button type="button"
+            class="back-button"
+            @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver</span>
+    </button>
+
     <h1>Crear Paciente</h1>
 
     @if (cargando)
@@ -288,6 +295,11 @@
     }
 
     private void Cancelar()
+    {
+        Nav.NavigateTo("/pacientes");
+    }
+
+    private void Volver()
     {
         Nav.NavigateTo("/pacientes");
     }

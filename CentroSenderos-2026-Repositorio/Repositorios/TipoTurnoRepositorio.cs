@@ -35,6 +35,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         public async Task<TipoTurnoListadoDTO?> SelectByTipoTurno(string tipo)
         {
             TipoTurnoListadoDTO? entidad = await context.TipoTurnos
+                .OrderBy(p => p.Tipo)
                 .Select(p => new TipoTurnoListadoDTO
                 {
                     Id = p.Id,
@@ -49,6 +50,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             var lista = await context.TipoTurnos
                 .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
+                .OrderBy(p => p.Tipo)
                 .Select(p => new TipoTurnoListadoDTO
                 {
                     Id = p.Id,

@@ -8,29 +8,52 @@
 
 <div class="obras-sociales-page">
 
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
     <div class="page-header">
 
         <div class="header-title">
+
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+
+            </button>
+
             <h1>Obras Sociales</h1>
-            <p>Gestioná las obras sociales disponibles para los pacientes.</p>
+
+            <p>
+                Gestioná las obras sociales disponibles para los pacientes.
+            </p>
+
         </div>
+
 
         <div class="header-actions">
 
             <div class="search-box">
+
                 <i class="bi bi-search"></i>
 
                 <input type="text"
                        placeholder="Buscar obra social..."
                        @bind="textoBusqueda"
                        @bind:event="oninput" />
+
             </div>
+
 
             <button type="button"
                     class="btn-nueva"
-                    @onclick="IrACrear">
+                    @onclick="AbrirCrear">
 
                 <i class="bi bi-plus-lg"></i>
+
                 Nueva Obra Social
 
             </button>
@@ -40,6 +63,9 @@
     </div>
 
 
+    <!-- =====================================================
+         LISTADO
+    ====================================================== -->
     @if (cargando)
     {
         <div class="estado-card">
@@ -52,7 +78,7 @@
 
         </div>
     }
-    else if (lista == null || lista.Count == 0)
+    else if (lista.Count == 0)
     {
         <div class="estado-card">
 
@@ -68,9 +94,10 @@
 
             <button type="button"
                     class="btn-nueva-estado"
-                    @onclick="IrACrear">
+                    @onclick="AbrirCrear">
 
                 <i class="bi bi-plus-lg"></i>
+
                 Nueva Obra Social
 
             </button>
@@ -100,15 +127,11 @@
 
             <div class="list-header">
 
-                <div class="col-nombre">
-                    OBRA SOCIAL
-                </div>
+                <div>OBRA SOCIAL</div>
 
-                <div class="col-descripcion">
-                    DESCRIPCIÓN
-                </div>
+                <div>DESCRIPCIÓN</div>
 
-                <div class="col-accion"></div>
+                <div></div>
 
             </div>
 
@@ -118,7 +141,7 @@
                 @foreach (var item in ObrasSocialesFiltradas)
                 {
                     <div class="obra-row"
-                         @onclick="() => IrAEditar(item.Id)">
+                         @onclick="() => AbrirDetalle(item.Id)">
 
                         <div class="obra-info">
 
@@ -150,7 +173,9 @@
 
 
                         <div class="obra-action">
+
                             <i class="bi bi-chevron-right"></i>
+
                         </div>
 
                     </div>
@@ -173,22 +198,475 @@
     }
 
 
-    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    @if (!string.IsNullOrWhiteSpace(Mensaje) &&
+         modalActual == ModalObraSocial.Ninguno)
     {
         <div class="mensaje-error">
+
             <i class="bi bi-exclamation-circle"></i>
+
             <span>@Mensaje</span>
+
         </div>
     }
 
 </div>
 
 
+<!-- =========================================================
+     MODAL DETALLE
+========================================================= -->
+@if (modalActual == ModalObraSocial.Detalle)
+{
+    <div class="admin-modal-overlay">
+
+        <div class="admin-modal">
+
+            @if (cargandoDetalle)
+            {
+                <div class="modal-loading">
+
+                    <div class="spinner-border"
+                         role="status">
+                    </div>
+
+                    <span>Cargando obra social...</span>
+
+                </div>
+            }
+            else
+            {
+                <div class="modal-header">
+
+                    <div>
+
+                        <h2>Detalle Obra Social</h2>
+
+                        <p>
+                            Información de la obra social seleccionada.
+                        </p>
+
+                    </div>
+
+
+                    <button type="button"
+                            class="close-button"
+                            title="Cerrar"
+                            @onclick="CerrarModal">
+
+                        <i class="bi bi-x-lg"></i>
+
+                    </button>
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>OBRA SOCIAL</label>
+
+                    <div class="detail-value">
+                        @MostrarValor(modelo.Tipo)
+                    </div>
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>DESCRIPCIÓN</label>
+
+                    <div class="detail-value detail-value-large">
+
+                        @if (string.IsNullOrWhiteSpace(modelo.Descripcion))
+                        {
+                            <span class="sin-descripcion">
+                                Sin descripción
+                            </span>
+                        }
+                        else
+                        {
+                            @modelo.Descripcion
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-actions detail-actions">
+
+                    <button type="button"
+                            class="btn-cerrar"
+                            @onclick="CerrarModal">
+
+                        Cerrar
+
+                    </button>
+
+
+                    <button type="button"
+                            class="btn-editar"
+                            @onclick="AbrirEditar">
+
+                        <i class="bi bi-pencil-square"></i>
+
+                        Editar
+
+                    </button>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+}
+
+
+<!-- =========================================================
+     MODAL CREAR
+========================================================= -->
+@if (modalActual == ModalObraSocial.Crear)
+{
+    <div class="admin-modal-overlay">
+
+        <div class="admin-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>Nueva Obra Social</h2>
+
+                    <p>
+                        Complete los datos de la obra social.
+                    </p>
+
+                </div>
+
+
+                <button type="button"
+                        class="close-button"
+                        title="Cerrar"
+                        disabled="@guardando"
+                        @onclick="CerrarModal">
+
+                    <i class="bi bi-x-lg"></i>
+
+                </button>
+
+            </div>
+
+
+            <EditForm Model="@modelo"
+                      OnValidSubmit="CrearObraSocial">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+
+                <div class="field-group">
+
+                    <label>OBRA SOCIAL</label>
+
+                    <InputText class="senderos-input"
+                               @bind-Value="modelo.Tipo"
+                               placeholder="Ingresar nombre de la obra social" />
+
+                    <ValidationMessage For="@(() => modelo.Tipo)" />
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>DESCRIPCIÓN</label>
+
+                    <InputTextArea class="senderos-textarea"
+                                   @bind-Value="modelo.Descripcion"
+                                   placeholder="Ingresar una descripción" />
+
+                    <ValidationMessage For="@(() => modelo.Descripcion)" />
+
+                </div>
+
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+                        @Mensaje
+                    </div>
+                }
+
+
+                <div class="modal-actions">
+
+                    <button type="button"
+                            class="btn-cancelar"
+                            disabled="@guardando"
+                            @onclick="CerrarModal">
+
+                        Cancelar
+
+                    </button>
+
+
+                    <button type="submit"
+                            class="btn-guardar"
+                            disabled="@guardando">
+
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar</span>
+                        }
+
+                    </button>
+
+                </div>
+
+            </EditForm>
+
+        </div>
+
+    </div>
+}
+
+
+<!-- =========================================================
+     MODAL EDITAR
+========================================================= -->
+@if (modalActual == ModalObraSocial.Editar)
+{
+    <div class="admin-modal-overlay">
+
+        <div class="admin-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>Editar Obra Social</h2>
+
+                    <p>
+                        Modifique los datos de la obra social.
+                    </p>
+
+                </div>
+
+
+                <button type="button"
+                        class="close-button"
+                        title="Volver al detalle"
+                        disabled="@guardando"
+                        @onclick="CancelarEdicion">
+
+                    <i class="bi bi-x-lg"></i>
+
+                </button>
+
+            </div>
+
+
+            <EditForm Model="@modelo"
+                      OnValidSubmit="GuardarCambios">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+
+                <div class="field-group">
+
+                    <label>OBRA SOCIAL</label>
+
+                    <InputText class="senderos-input"
+                               @bind-Value="modelo.Tipo"
+                               placeholder="Ingresar nombre de la obra social" />
+
+                    <ValidationMessage For="@(() => modelo.Tipo)" />
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>DESCRIPCIÓN</label>
+
+                    <InputTextArea class="senderos-textarea"
+                                   @bind-Value="modelo.Descripcion"
+                                   placeholder="Ingresar una descripción" />
+
+                    <ValidationMessage For="@(() => modelo.Descripcion)" />
+
+                </div>
+
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+                        @Mensaje
+                    </div>
+                }
+
+
+                <div class="modal-actions edit-actions">
+
+                    <button type="button"
+                            class="btn-eliminar"
+                            disabled="@guardando"
+                            @onclick="AbrirConfirmacionEliminar">
+
+                        <i class="bi bi-trash3"></i>
+
+                        Eliminar
+
+                    </button>
+
+
+                    <div class="right-actions">
+
+                        <button type="button"
+                                class="btn-cancelar"
+                                disabled="@guardando"
+                                @onclick="CancelarEdicion">
+
+                            Cancelar
+
+                        </button>
+
+
+                        <button type="submit"
+                                class="btn-guardar"
+                                disabled="@guardando">
+
+                            @if (guardando)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                <span>Guardando...</span>
+                            }
+                            else
+                            {
+                                <span>Guardar Cambios</span>
+                            }
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </EditForm>
+
+        </div>
+
+    </div>
+}
+
+
+<!-- =========================================================
+     MODAL CONFIRMAR ELIMINACIÓN
+========================================================= -->
+@if (mostrarConfirmacionEliminar)
+{
+    <div class="delete-modal-overlay">
+
+        <div class="delete-modal">
+
+            <div class="delete-warning-icon">
+
+                <i class="bi bi-exclamation-triangle-fill"></i>
+
+            </div>
+
+
+            <h2>
+                ¿Estás seguro que querés eliminar esta obra social?
+            </h2>
+
+
+            <p>
+                Esta acción no se puede deshacer.
+                La obra social será eliminada definitivamente.
+            </p>
+
+
+            <div class="delete-modal-actions">
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminando"
+                        @onclick="ConfirmarEliminar">
+
+                    @if (eliminando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Eliminando...</span>
+                    }
+                    else
+                    {
+                        <span>Eliminar</span>
+                    }
+
+                </button>
+
+
+                <button type="button"
+                        class="modal-cancel-button"
+                        disabled="@eliminando"
+                        @onclick="CerrarConfirmacionEliminar">
+
+                    Cancelar
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+
 @code {
+
+    private enum ModalObraSocial
+    {
+        Ninguno,
+        Detalle,
+        Crear,
+        Editar
+    }
+
 
     private List<TipoListadoDTO> lista = new();
 
+    private TipoDTO modelo = CrearModeloVacio();
+
+
+    private ModalObraSocial modalActual =
+        ModalObraSocial.Ninguno;
+
+
+    private int? idSeleccionado;
+
+
     private bool cargando = true;
+
+    private bool cargandoDetalle = false;
+
+    private bool guardando = false;
+
+    private bool eliminando = false;
+
+    private bool mostrarConfirmacionEliminar = false;
+
 
     private string Mensaje = "";
 
@@ -215,6 +693,10 @@
     }
 
 
+    /* =====================================================
+       CARGAR LISTADO
+    ====================================================== */
+
     private async Task Cargar()
     {
         cargando = true;
@@ -224,33 +706,353 @@
                 "api/tipoobrasocial/ListaTipoObraSocial"
             );
 
+
         lista =
             resp.Error
                 ? new()
                 : resp.Respuesta ?? new();
+
 
         Mensaje =
             resp.Error
                 ? resp.ObtenerError()
                 : "";
 
+
         cargando = false;
     }
 
 
-    private void IrAEditar(int id)
+    /* =====================================================
+       DETALLE
+    ====================================================== */
+
+    private async Task AbrirDetalle(int id)
     {
-        Nav.NavigateTo(
-            $"/tipoobrasocial/editar/{id}"
-        );
+        Mensaje = "";
+
+        idSeleccionado = id;
+
+        modelo = CrearModeloVacio();
+
+        modalActual = ModalObraSocial.Detalle;
+
+        cargandoDetalle = true;
+
+
+        var resp =
+            await Http.Get<TipoDTO>(
+                $"api/tipoobrasocial/{id}"
+            );
+
+
+        if (!resp.Error &&
+            resp.Respuesta != null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            modalActual = ModalObraSocial.Ninguno;
+        }
+
+
+        cargandoDetalle = false;
     }
 
 
-    private void IrACrear()
+    /* =====================================================
+       CREAR
+    ====================================================== */
+
+    private void AbrirCrear()
     {
-        Nav.NavigateTo(
-            "/tipoobrasocial/crear"
-        );
+        Mensaje = "";
+
+        idSeleccionado = null;
+
+        modelo = CrearModeloVacio();
+
+        modalActual = ModalObraSocial.Crear;
+    }
+
+
+    private async Task CrearObraSocial()
+    {
+        guardando = true;
+
+        Mensaje = "";
+
+
+        var resp =
+            await Http.Post<TipoDTO, int>(
+                "api/tipoobrasocial",
+                modelo
+            );
+
+
+        guardando = false;
+
+
+        if (!resp.Error)
+        {
+            modalActual = ModalObraSocial.Ninguno;
+
+            modelo = CrearModeloVacio();
+
+            await Cargar();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+
+    /* =====================================================
+       EDITAR
+    ====================================================== */
+
+    private void AbrirEditar()
+    {
+        Mensaje = "";
+
+        modalActual = ModalObraSocial.Editar;
+    }
+
+
+    /*
+     * Al cancelar edición volvemos a cargar el registro
+     * desde la API para descartar cualquier cambio que
+     * haya quedado en el modelo mediante @bind-Value.
+     */
+    private async Task CancelarEdicion()
+    {
+        if (guardando ||
+            eliminando ||
+            idSeleccionado is null)
+        {
+            return;
+        }
+
+
+        Mensaje = "";
+
+        cargandoDetalle = true;
+
+        modalActual = ModalObraSocial.Detalle;
+
+
+        var resp =
+            await Http.Get<TipoDTO>(
+                $"api/tipoobrasocial/{idSeleccionado.Value}"
+            );
+
+
+        if (!resp.Error &&
+            resp.Respuesta != null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            modalActual = ModalObraSocial.Editar;
+        }
+
+
+        cargandoDetalle = false;
+    }
+
+
+    private async Task GuardarCambios()
+    {
+        if (idSeleccionado is null)
+            return;
+
+
+        guardando = true;
+
+        Mensaje = "";
+
+
+        var resp =
+            await Http.Put<TipoDTO, RespuestaDTO>(
+                $"api/tipoobrasocial/{idSeleccionado.Value}",
+                modelo
+            );
+
+
+        guardando = false;
+
+
+        if (!resp.Error)
+        {
+            await Cargar();
+
+            // Después de guardar volvemos al detalle.
+            await RecargarDetalle();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+
+    /* =====================================================
+       ELIMINAR
+    ====================================================== */
+
+    private void AbrirConfirmacionEliminar()
+    {
+        mostrarConfirmacionEliminar = true;
+    }
+
+
+    private void CerrarConfirmacionEliminar()
+    {
+        if (!eliminando)
+        {
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    private async Task ConfirmarEliminar()
+    {
+        if (idSeleccionado is null)
+            return;
+
+
+        eliminando = true;
+
+        Mensaje = "";
+
+
+        var resp =
+            await Http.Delete(
+                $"api/tipoobrasocial/{idSeleccionado.Value}"
+            );
+
+
+        eliminando = false;
+
+
+        if (!resp.Error)
+        {
+            mostrarConfirmacionEliminar = false;
+
+            modalActual = ModalObraSocial.Ninguno;
+
+            idSeleccionado = null;
+
+            modelo = CrearModeloVacio();
+
+            await Cargar();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    /* =====================================================
+       RECARGAR DETALLE
+    ====================================================== */
+
+    private async Task RecargarDetalle()
+    {
+        if (idSeleccionado is null)
+            return;
+
+
+        cargandoDetalle = true;
+
+        modalActual = ModalObraSocial.Detalle;
+
+
+        var resp =
+            await Http.Get<TipoDTO>(
+                $"api/tipoobrasocial/{idSeleccionado.Value}"
+            );
+
+
+        if (!resp.Error &&
+            resp.Respuesta != null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            modalActual = ModalObraSocial.Ninguno;
+        }
+
+
+        cargandoDetalle = false;
+    }
+
+
+    /* =====================================================
+       CERRAR MODAL
+    ====================================================== */
+
+    private void CerrarModal()
+    {
+        if (guardando || eliminando)
+            return;
+
+
+        modalActual = ModalObraSocial.Ninguno;
+
+        idSeleccionado = null;
+
+        modelo = CrearModeloVacio();
+
+        Mensaje = "";
+    }
+
+
+    /* =====================================================
+       AUXILIARES
+    ====================================================== */
+
+    private static TipoDTO CrearModeloVacio()
+    {
+        return new TipoDTO
+        {
+            Tipo = string.Empty,
+            Descripcion = string.Empty
+        };
+    }
+
+
+    private static string MostrarValor(object? valor)
+    {
+        if (valor is null)
+            return "—";
+
+
+        var texto = valor.ToString();
+
+
+        return string.IsNullOrWhiteSpace(texto)
+            ? "—"
+            : texto;
+    }
+
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/admin");
     }
 
 }

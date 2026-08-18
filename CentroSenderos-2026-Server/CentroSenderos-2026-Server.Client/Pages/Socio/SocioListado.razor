@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Enum
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
@@ -11,24 +12,40 @@
     <div class="page-header">
 
         <div class="header-title">
+
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
+
             <h1>Socios</h1>
-            <p>Gestioná los socios registrados en Senderos.</p>
+
+            <p>
+                Gestioná los socios registrados en Senderos.
+            </p>
+
         </div>
+
 
         <div class="header-actions">
 
             <div class="search-box">
+
                 <i class="bi bi-search"></i>
 
                 <input type="text"
                        placeholder="Buscar socio..."
                        @bind="textoBusqueda"
                        @bind:event="oninput" />
+
             </div>
+
 
             <button type="button"
                     class="btn-nuevo"
-                    @onclick="IrACrear">
+                    @onclick="AbrirCrear">
 
                 <i class="bi bi-person-plus"></i>
                 <span>Nuevo Socio</span>
@@ -46,7 +63,6 @@
 
             <div class="spinner-border"
                  role="status">
-                <span class="visually-hidden">Cargando...</span>
             </div>
 
             <span>Cargando socios...</span>
@@ -70,7 +86,7 @@
 
             <button type="button"
                     class="btn-nuevo-estado"
-                    @onclick="IrACrear">
+                    @onclick="AbrirCrear">
 
                 <i class="bi bi-person-plus"></i>
                 <span>Nuevo Socio</span>
@@ -97,19 +113,23 @@
             <button type="button"
                     class="btn-limpiar-busqueda"
                     @onclick="LimpiarBusqueda">
+
                 Limpiar búsqueda
+
             </button>
 
         </div>
     }
-    else if (lista.Count > 0)
+    else
     {
         <div class="list-card">
 
             <div class="list-header">
+
                 <div>PROFESIONAL</div>
                 <div>OBSERVACIÓN</div>
                 <div></div>
+
             </div>
 
 
@@ -118,7 +138,7 @@
                 @foreach (var item in SociosFiltrados)
                 {
                     <div class="socio-row"
-                         @onclick="() => IrAEditar(item.Id)">
+                         @onclick="() => AbrirDetalle(item.Id)">
 
                         <div class="socio-info">
 
@@ -127,9 +147,11 @@
                             </div>
 
                             <div class="socio-nombre">
+
                                 @(string.IsNullOrWhiteSpace(item.Profesional)
                                     ? "Sin profesional"
                                     : item.Profesional)
+
                             </div>
 
                         </div>
@@ -177,7 +199,8 @@
     }
 
 
-    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    @if (!string.IsNullOrWhiteSpace(Mensaje) &&
+         modalActual == ModalSocio.Ninguno)
     {
         <div class="mensaje-error">
 
@@ -191,11 +214,512 @@
 </div>
 
 
+@* =========================================================
+   MODAL DETALLE
+========================================================= *@
+
+@if (modalActual == ModalSocio.Detalle)
+{
+    <div class="admin-modal-overlay">
+
+        <div class="admin-modal">
+
+            @if (cargandoDetalle)
+            {
+                <div class="modal-loading">
+
+                    <div class="spinner-border"
+                         role="status">
+                    </div>
+
+                    <span>Cargando socio...</span>
+
+                </div>
+            }
+            else
+            {
+                <div class="modal-header">
+
+                    <div>
+
+                        <h2>Detalle Socio</h2>
+
+                        <p>
+                            Información del socio seleccionado.
+                        </p>
+
+                    </div>
+
+
+                    <button type="button"
+                            class="close-button"
+                            title="Cerrar"
+                            @onclick="CerrarModal">
+
+                        <i class="bi bi-x-lg"></i>
+
+                    </button>
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>PROFESIONAL</label>
+
+                    <div class="detail-profesional">
+
+                        <div class="detail-avatar">
+                            @ObtenerIniciales(ObtenerNombreProfesional())
+                        </div>
+
+                        <div class="detail-profesional-text">
+
+                            <strong>
+                                @ObtenerNombreProfesional()
+                            </strong>
+
+                            @if (!string.IsNullOrWhiteSpace(ObtenerAreaProfesional()))
+                            {
+                                <span>
+                                    @ObtenerAreaProfesional()
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>OBSERVACIÓN</label>
+
+                    <div class="detail-value detail-value-large">
+
+                        @if (string.IsNullOrWhiteSpace(modelo.Observacion))
+                        {
+                            <span class="sin-dato">
+                                Sin observación
+                            </span>
+                        }
+                        else
+                        {
+                            @modelo.Observacion
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-actions detail-actions">
+
+                    <button type="button"
+                            class="btn-cerrar"
+                            @onclick="CerrarModal">
+
+                        Cerrar
+
+                    </button>
+
+
+                    <button type="button"
+                            class="btn-editar"
+                            @onclick="AbrirEditar">
+
+                        <i class="bi bi-pencil-square"></i>
+                        Editar
+
+                    </button>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+}
+
+
+@* =========================================================
+   MODAL CREAR
+========================================================= *@
+
+@if (modalActual == ModalSocio.Crear)
+{
+    <div class="admin-modal-overlay">
+
+        <div class="admin-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>Nuevo Socio</h2>
+
+                    <p>
+                        Seleccione el profesional y complete la observación.
+                    </p>
+
+                </div>
+
+
+                <button type="button"
+                        class="close-button"
+                        title="Cerrar"
+                        disabled="@guardando"
+                        @onclick="CerrarModal">
+
+                    <i class="bi bi-x-lg"></i>
+
+                </button>
+
+            </div>
+
+
+            <EditForm Model="@modelo"
+                      OnValidSubmit="CrearSocio">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+
+                <div class="field-group">
+
+                    <label>PROFESIONAL</label>
+
+                    <InputSelect class="senderos-select"
+                                 @bind-Value="modelo.ProfesionalId">
+
+                        <option value="0">
+                            Seleccione un profesional
+                        </option>
+
+                        @foreach (var prof in profesionales)
+                        {
+                            <option value="@prof.Id">
+                                @prof.Nombre (@prof.Area)
+                            </option>
+                        }
+
+                    </InputSelect>
+
+                    <ValidationMessage For="@(() => modelo.ProfesionalId)" />
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>OBSERVACIÓN</label>
+
+                    <InputTextArea class="senderos-textarea"
+                                   @bind-Value="modelo.Observacion"
+                                   placeholder="Ingrese una observación" />
+
+                    <ValidationMessage For="@(() => modelo.Observacion)" />
+
+                </div>
+
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+
+                        <i class="bi bi-exclamation-circle"></i>
+
+                        <span>@Mensaje</span>
+
+                    </div>
+                }
+
+
+                <div class="modal-actions">
+
+                    <button type="button"
+                            class="btn-cancelar"
+                            disabled="@guardando"
+                            @onclick="CerrarModal">
+
+                        Cancelar
+
+                    </button>
+
+
+                    <button type="submit"
+                            class="btn-guardar"
+                            disabled="@guardando">
+
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar Socio</span>
+                        }
+
+                    </button>
+
+                </div>
+
+            </EditForm>
+
+        </div>
+
+    </div>
+}
+
+
+@* =========================================================
+   MODAL EDITAR
+========================================================= *@
+
+@if (modalActual == ModalSocio.Editar)
+{
+    <div class="admin-modal-overlay">
+
+        <div class="admin-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>Editar Socio</h2>
+
+                    <p>
+                        Modifique los datos asociados al socio.
+                    </p>
+
+                </div>
+
+
+                <button type="button"
+                        class="close-button"
+                        title="Volver al detalle"
+                        disabled="@guardando"
+                        @onclick="CancelarEdicion">
+
+                    <i class="bi bi-x-lg"></i>
+
+                </button>
+
+            </div>
+
+
+            <EditForm Model="@modelo"
+                      OnValidSubmit="GuardarCambios">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+
+                <div class="field-group">
+
+                    <label>PROFESIONAL</label>
+
+                    <InputSelect class="senderos-select"
+                                 @bind-Value="modelo.ProfesionalId">
+
+                        <option value="0">
+                            Seleccione un profesional
+                        </option>
+
+                        @foreach (var prof in profesionales)
+                        {
+                            <option value="@prof.Id">
+                                @prof.Nombre (@prof.Area)
+                            </option>
+                        }
+
+                    </InputSelect>
+
+                    <ValidationMessage For="@(() => modelo.ProfesionalId)" />
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <label>OBSERVACIÓN</label>
+
+                    <InputTextArea class="senderos-textarea"
+                                   @bind-Value="modelo.Observacion"
+                                   placeholder="Ingrese una observación" />
+
+                    <ValidationMessage For="@(() => modelo.Observacion)" />
+
+                </div>
+
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+
+                        <i class="bi bi-exclamation-circle"></i>
+
+                        <span>@Mensaje</span>
+
+                    </div>
+                }
+
+
+                <div class="modal-actions edit-actions">
+
+                    <button type="button"
+                            class="btn-eliminar"
+                            disabled="@guardando"
+                            @onclick="AbrirConfirmacionEliminar">
+
+                        <i class="bi bi-trash3"></i>
+
+                        Eliminar Socio
+
+                    </button>
+
+
+                    <div class="right-actions">
+
+                        <button type="button"
+                                class="btn-cancelar"
+                                disabled="@guardando"
+                                @onclick="CancelarEdicion">
+
+                            Cancelar
+
+                        </button>
+
+
+                        <button type="submit"
+                                class="btn-guardar"
+                                disabled="@guardando">
+
+                            @if (guardando)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                <span>Guardando...</span>
+                            }
+                            else
+                            {
+                                <span>Guardar Cambios</span>
+                            }
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </EditForm>
+
+        </div>
+
+    </div>
+}
+
+
+@* =========================================================
+   CONFIRMACIÓN ELIMINAR
+========================================================= *@
+
+@if (mostrarConfirmacionEliminar)
+{
+    <div class="delete-modal-overlay">
+
+        <div class="delete-modal">
+
+            <div class="delete-warning-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+
+            <h2>
+                ¿Estás seguro que querés eliminar este socio?
+            </h2>
+
+
+            <p>
+                Esta acción no se puede deshacer.
+                El socio será eliminado definitivamente.
+            </p>
+
+
+            <div class="delete-modal-actions">
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminando"
+                        @onclick="ConfirmarEliminar">
+
+                    @if (eliminando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Eliminando...</span>
+                    }
+                    else
+                    {
+                        <span>Eliminar</span>
+                    }
+
+                </button>
+
+
+                <button type="button"
+                        class="modal-cancel-button"
+                        disabled="@eliminando"
+                        @onclick="CerrarConfirmacionEliminar">
+
+                    Cancelar
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+
 @code {
+
+    private enum ModalSocio
+    {
+        Ninguno,
+        Detalle,
+        Crear,
+        Editar
+    }
+
 
     private List<SocioListadoDTO> lista = new();
 
+    private List<ProfesionalListadoDTO> profesionales = new();
+
+    private SocioDTO modelo = CrearModeloVacio();
+
+    private ModalSocio modalActual = ModalSocio.Ninguno;
+
+
+    private int? idSeleccionado;
+
+
     private bool cargando = true;
+
+    private bool cargandoDetalle = false;
+
+    private bool guardando = false;
+
+    private bool eliminando = false;
+
+    private bool mostrarConfirmacionEliminar = false;
+
 
     private string Mensaje = string.Empty;
 
@@ -223,31 +747,406 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await CargarInicial();
+    }
+
+
+    // =====================================================
+    // CARGA INICIAL
+    // =====================================================
+
+    private async Task CargarInicial()
+    {
+        cargando = true;
+        Mensaje = string.Empty;
+
+        await CargarProfesionales();
         await Cargar();
+
+        cargando = false;
     }
 
 
     private async Task Cargar()
     {
-        cargando = true;
-        Mensaje = string.Empty;
-
         var resp =
             await Http.Get<List<SocioListadoDTO>>(
                 "api/socio/ListaSocio"
             );
 
+
         if (resp.Error)
         {
             lista = new();
+
             Mensaje = resp.ObtenerError();
         }
         else
         {
             lista = resp.Respuesta ?? new();
         }
+    }
 
-        cargando = false;
+
+    private async Task CargarProfesionales()
+    {
+        var resp =
+            await Http.Get<List<ProfesionalListadoDTO>>(
+                "api/profesional/ListaProfesional"
+            );
+
+
+        if (resp.Error)
+        {
+            profesionales = new();
+
+            Mensaje = resp.ObtenerError();
+        }
+        else
+        {
+            profesionales = resp.Respuesta ?? new();
+        }
+    }
+
+
+    // =====================================================
+    // DETALLE
+    // =====================================================
+
+    private async Task AbrirDetalle(int id)
+    {
+        Mensaje = string.Empty;
+
+        idSeleccionado = id;
+
+        modelo = CrearModeloVacio();
+
+        modalActual = ModalSocio.Detalle;
+
+        cargandoDetalle = true;
+
+
+        var resp =
+            await Http.Get<SocioDTO>(
+                $"api/socio/{id}"
+            );
+
+
+        if (!resp.Error &&
+            resp.Respuesta != null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            modalActual = ModalSocio.Ninguno;
+        }
+
+
+        cargandoDetalle = false;
+    }
+
+
+    // =====================================================
+    // CREAR
+    // =====================================================
+
+    private void AbrirCrear()
+    {
+        Mensaje = string.Empty;
+
+        idSeleccionado = null;
+
+        modelo = CrearModeloVacio();
+
+        modalActual = ModalSocio.Crear;
+    }
+
+
+    private async Task CrearSocio()
+    {
+        guardando = true;
+
+        Mensaje = string.Empty;
+
+
+        var resp =
+            await Http.Post<SocioDTO, int>(
+                "api/socio/insertar",
+                modelo
+            );
+
+
+        guardando = false;
+
+
+        if (!resp.Error)
+        {
+            modalActual = ModalSocio.Ninguno;
+
+            modelo = CrearModeloVacio();
+
+            await Cargar();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+
+    // =====================================================
+    // EDITAR
+    // =====================================================
+
+    private void AbrirEditar()
+    {
+        Mensaje = string.Empty;
+
+        modalActual = ModalSocio.Editar;
+    }
+
+
+    private async Task CancelarEdicion()
+    {
+        if (guardando ||
+            eliminando ||
+            idSeleccionado is null)
+        {
+            return;
+        }
+
+
+        Mensaje = string.Empty;
+
+        cargandoDetalle = true;
+
+        modalActual = ModalSocio.Detalle;
+
+
+        var resp =
+            await Http.Get<SocioDTO>(
+                $"api/socio/{idSeleccionado.Value}"
+            );
+
+
+        if (!resp.Error &&
+            resp.Respuesta != null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            modalActual = ModalSocio.Editar;
+        }
+
+
+        cargandoDetalle = false;
+    }
+
+
+    private async Task GuardarCambios()
+    {
+        if (idSeleccionado is null)
+            return;
+
+
+        guardando = true;
+
+        Mensaje = string.Empty;
+
+
+        var resp =
+            await Http.Put<SocioDTO, RespuestaDTO>(
+                $"api/socio/{idSeleccionado.Value}",
+                modelo
+            );
+
+
+        guardando = false;
+
+
+        if (!resp.Error)
+        {
+            await Cargar();
+
+            await RecargarDetalle();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+
+    // =====================================================
+    // ELIMINAR
+    // =====================================================
+
+    private void AbrirConfirmacionEliminar()
+    {
+        mostrarConfirmacionEliminar = true;
+    }
+
+
+    private void CerrarConfirmacionEliminar()
+    {
+        if (!eliminando)
+        {
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    private async Task ConfirmarEliminar()
+    {
+        if (idSeleccionado is null)
+            return;
+
+
+        eliminando = true;
+
+        Mensaje = string.Empty;
+
+
+        var resp =
+            await Http.Delete(
+                $"api/socio/{idSeleccionado.Value}"
+            );
+
+
+        eliminando = false;
+
+
+        if (!resp.Error)
+        {
+            mostrarConfirmacionEliminar = false;
+
+            modalActual = ModalSocio.Ninguno;
+
+            idSeleccionado = null;
+
+            modelo = CrearModeloVacio();
+
+            await Cargar();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    // =====================================================
+    // RECARGAR DETALLE
+    // =====================================================
+
+    private async Task RecargarDetalle()
+    {
+        if (idSeleccionado is null)
+            return;
+
+
+        cargandoDetalle = true;
+
+        modalActual = ModalSocio.Detalle;
+
+
+        var resp =
+            await Http.Get<SocioDTO>(
+                $"api/socio/{idSeleccionado.Value}"
+            );
+
+
+        if (!resp.Error &&
+            resp.Respuesta != null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+
+            modalActual = ModalSocio.Ninguno;
+        }
+
+
+        cargandoDetalle = false;
+    }
+
+
+    // =====================================================
+    // CERRAR
+    // =====================================================
+
+    private void CerrarModal()
+    {
+        if (guardando || eliminando)
+            return;
+
+
+        modalActual = ModalSocio.Ninguno;
+
+        idSeleccionado = null;
+
+        modelo = CrearModeloVacio();
+
+        Mensaje = string.Empty;
+    }
+
+
+    // =====================================================
+    // PROFESIONAL
+    // =====================================================
+
+    private ProfesionalListadoDTO? ObtenerProfesionalSeleccionado()
+    {
+        return profesionales.FirstOrDefault(
+            p => p.Id == modelo.ProfesionalId
+        );
+    }
+
+
+    private string ObtenerNombreProfesional()
+    {
+        var profesional = ObtenerProfesionalSeleccionado();
+
+        if (profesional == null ||
+            string.IsNullOrWhiteSpace(profesional.Nombre))
+        {
+            return "Sin profesional";
+        }
+
+        return profesional.Nombre;
+    }
+
+
+    private string ObtenerAreaProfesional()
+    {
+        var profesional = ObtenerProfesionalSeleccionado();
+
+        return profesional?.Area ?? string.Empty;
+    }
+
+
+    // =====================================================
+    // AUXILIARES
+    // =====================================================
+
+    private static SocioDTO CrearModeloVacio()
+    {
+        return new SocioDTO
+        {
+            ProfesionalId = 0,
+            Observacion = string.Empty,
+            EstadoRegistro = EnumEstadoRegistro.EnGrabacion
+        };
     }
 
 
@@ -276,12 +1175,14 @@
                 StringSplitOptions.RemoveEmptyEntries
             );
 
+
         if (partes.Length == 1)
         {
             return partes[0][0]
                 .ToString()
                 .ToUpper();
         }
+
 
         return string.Concat(
                 partes[0][0],
@@ -297,19 +1198,9 @@
     }
 
 
-    private void IrAEditar(int id)
+    private void Volver()
     {
-        Nav.NavigateTo(
-            $"/socio/editar/{id}"
-        );
-    }
-
-
-    private void IrACrear()
-    {
-        Nav.NavigateTo(
-            "/socio/crear"
-        );
+        Nav.NavigateTo("/admin");
     }
 
 }

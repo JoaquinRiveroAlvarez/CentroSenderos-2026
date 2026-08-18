@@ -51,6 +51,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             return await context.Socios
                 .Where(s => s.EstadoRegistro == EnumEstadoRegistro.activo)
+                .OrderBy(s => s.Profesionales!.Nombre)
                 .Select(s => new SocioListadoDTO
                 {
                     Id = s.Id,

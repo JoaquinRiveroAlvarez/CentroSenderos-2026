@@ -72,11 +72,11 @@ else if (listaPacientes == null || listaPacientes.Count == 0)
 
                     @foreach (var paciente in PacientesFiltrados)
                         {
-                            <tr @onclick="() => IrAEditar(paciente.Id)">
+                        <tr @onclick="() => IrADetalle(paciente.Id)">
 
-                                <td>
-                                    @paciente.Nombre
-                                </td>
+                            <td class="paciente-nombre">
+                                @paciente.Nombre
+                            </td>
 
                                 <td>
                                     @paciente.DNI
@@ -132,9 +132,9 @@ else if (listaPacientes == null || listaPacientes.Count == 0)
         cargando = false;
     }
 
-    private void IrAEditar(int id)
+    private void IrADetalle(int id)
     {
-        Nav.NavigateTo($"/pacientes/editar/{id}");
+        Nav.NavigateTo($"/pacientes/detalle/{id}");
     }
 
     private void IrACrear()

@@ -70,7 +70,7 @@
         outline: none;
         background: transparent;
         color: #444;
-        font-size: 13px;
+        font-size: 14px;
     }
 
         .search-box input::placeholder {
@@ -93,7 +93,7 @@
     border: 1px solid #e1e1e1;
     border-radius: 22px;
     color: #5f5f5f;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: background 0.2s, border-color 0.2s;
@@ -120,7 +120,7 @@
     border: none;
     border-radius: 22px;
     color: #ffffff;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: background 0.2s, transform 0.1s;
@@ -182,7 +182,7 @@
     .pacientes-table th {
         padding: 16px 18px;
         color: #999999;
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 600;
         text-align: left;
         text-transform: uppercase;
@@ -198,7 +198,7 @@
     .pacientes-table td {
         padding: 16px 18px;
         color: #555555;
-        font-size: 13px;
+        font-size: 14px;
         border-top: 1px solid #f0f0f0;
         vertical-align: middle;
     }
@@ -218,8 +218,8 @@
 =========================================== */
 
 .paciente-nombre {
-    color: #252525;
-    font-size: 13px;
+    color: #252525 !important;
+    font-size: 14px;
     font-weight: 600;
 }
 
@@ -231,7 +231,7 @@
 .pacientes-mensaje {
     margin: 20px 0;
     color: #6f6f6f;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 
@@ -245,7 +245,7 @@
     gap: 10px;
     padding: 24px;
     color: #667066;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 
@@ -297,6 +297,7 @@
     .filter-button,
     .new-patient-button {
         flex: 1;
+        font-size: 14px;
     }
 
     .pacientes-card {

@@ -1,0 +1,227 @@
+﻿@page "/pacientes/detalle/{id:int}"
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<div class="detalle-paciente-page">
+
+    <button type="button"
+            class="back-button"
+            @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver a Pacientes</span>
+    </button>
+
+    <h1>Detalle Paciente</h1>
+
+    @if (cargando)
+    {
+        <div class="editar-loading">
+            Cargando datos del paciente...
+        </div>
+    }
+    else if (modelo == null)
+    {
+        <div class="editar-mensaje">
+            No se encontró el paciente.
+        </div>
+    }
+    else
+    {
+        <div class="paciente-detail">
+
+            <!-- =========================================
+                 01 - INFORMACIÓN PERSONAL
+            ========================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <span class="section-number">01</span>
+                    <span>Información Personal</span>
+                </div>
+
+                <div class="form-grid form-grid-2">
+
+                    <div class="field-group">
+                        <label>Nombre completo</label>
+
+                        <div class="form-input read-only-field">
+                            @MostrarValor(modelo.Nombre)
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label>DNI</label>
+
+                        <div class="form-input read-only-field">
+                            @MostrarValor(modelo.DNI)
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================================
+                 02 - INFORMACIÓN MÉDICA
+            ========================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <span class="section-number">02</span>
+                    <span>Información Médica / Administrativa</span>
+                </div>
+
+                <div class="form-grid form-grid-3">
+
+                    <div class="field-group">
+                        <label>Obra Social / Prepaga</label>
+
+                        <div class="form-input read-only-field">
+                            @MostrarValor(modelo.TipoObraSocialNombre)
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label>Nro. Afiliado</label>
+
+                        <div class="form-input read-only-field">
+                            @MostrarValor(modelo.NumeroAfiliado)
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label>Diagnóstico / Motivo de Consulta</label>
+
+                        <div class="form-input read-only-field">
+                            @MostrarValor(modelo.TipoDiagnosticoNombre)
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================================
+                 03 - DATOS DE CONTACTO
+            ========================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+                    <span class="section-number">03</span>
+                    <span>Datos de Contacto</span>
+                </div>
+
+                <div class="form-grid form-grid-2">
+
+                    <div class="field-group">
+                        <label>Teléfono</label>
+
+                        <div class="form-input read-only-field">
+                            @MostrarValor(modelo.Telefono)
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label>Domicilio</label>
+
+                        <div class="form-input read-only-field">
+                            @MostrarValor(modelo.Domicilio)
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================================
+                 ACCIONES
+            ========================================== -->
+
+            <div class="form-actions detail-actions">
+
+                <button type="button"
+                        class="edit-button"
+                        @onclick="Editar">
+                    <i class="bi bi-pencil-square"></i>
+                    Editar Paciente
+                </button>
+
+            </div>
+
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="editar-mensaje">
+            @Mensaje
+        </div>
+    }
+
+</div>
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private PacienteDTO? modelo;
+
+    private bool cargando = true;
+
+    private string Mensaje = "";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        cargando = true;
+
+        var resp = await Http.Get<PacienteDTO>(
+            $"api/paciente/{Id}"
+        );
+
+        if (!resp.Error)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+
+        cargando = false;
+    }
+
+
+    private void Editar()
+    {
+        Nav.NavigateTo($"/pacientes/editar/{Id}");
+    }
+
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/pacientes");
+    }
+
+
+    private static string MostrarValor(object? valor)
+    {
+        if (valor is null)
+            return "—";
+
+        var texto = valor.ToString();
+
+        return string.IsNullOrWhiteSpace(texto)
+            ? "—"
+            : texto;
+    }
+}

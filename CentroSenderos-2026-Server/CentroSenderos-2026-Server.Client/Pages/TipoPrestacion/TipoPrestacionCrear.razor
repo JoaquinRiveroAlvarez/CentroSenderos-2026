@@ -11,8 +11,14 @@
     <div class="prestacion-card">
 
         <div class="card-header">
-
+           
             <div>
+                <button type="button"
+                        class="back-button"
+                        @onclick="Volver">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Volver</span>
+                </button>
                 <h1>Nueva Prestación</h1>
                 <p>Complete los datos del tipo de prestación.</p>
             </div>
@@ -187,4 +193,9 @@
         Nav.NavigateTo("/tipoprestacion");
     }
 
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/tipoprestacion");
+    }
 }
