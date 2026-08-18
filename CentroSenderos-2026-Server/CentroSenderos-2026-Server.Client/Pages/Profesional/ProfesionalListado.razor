@@ -86,9 +86,19 @@
                         {
                             <tr @onclick="() => IrADetalle(profesional.Id)">
                                 
-                                <td class="profesional-nombre">
-                                    @MostrarValor(profesional.Nombre)
-                                </td>
+                               <td class="profesional-nombre">
+                                  <div class="nombre-con-socio">
+                                    <span>@MostrarValor(profesional.Nombre)</span>
+
+                                    @if (profesional.EsSocio)
+                                            {
+                                                 <span class="socio-badge">
+                                                  <i class="bi bi-star-fill"></i>
+                                                      Socio
+                                                 </span>
+        }
+                                  </div>
+                               </td>
 
                                 <td>
                                     @MostrarValor(profesional.Area)

@@ -13,5 +13,6 @@ namespace CentroSenderos_2026_Shared.DTO
         public string MP { get; set; } = string.Empty;
         public string RNP { get; set; } = string.Empty;
         public string Telefono { get; set; } = string.Empty;
+        public bool EsSocio { get; set; }
     }
 }

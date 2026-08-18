@@ -68,7 +68,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Cuit = p.Cuit,
                     MP = p.MP,
                     RNP = p.RNP,
-                    Telefono = p.Telefono
+                    Telefono = p.Telefono,
+
+        EsSocio = context.Socios.Any(s =>
+        s.ProfesionalId == p.Id &&
+        s.EstadoRegistro == EnumEstadoRegistro.activo)
                 })
                 .ToListAsync();
             return lista;

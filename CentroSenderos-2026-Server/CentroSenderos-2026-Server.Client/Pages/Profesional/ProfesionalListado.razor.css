@@ -250,6 +250,47 @@
 }
 
 
+/* =====================================================
+   PROFESIONAL SOCIO
+===================================================== */
+
+.nombre-con-socio {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+
+    .nombre-con-socio > span:first-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+
+/* Badge */
+
+.socio-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    background: #e4ebe1;
+    color: #556f4f;
+    border: 1px solid #d4dfd0;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+    .socio-badge i {
+        color: #647b5b;
+        font-size: 9px;
+    }
+
 /* ===========================================
    RESPONSIVE
 =========================================== */
