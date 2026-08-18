@@ -47,6 +47,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
                 .Include(p => p.TipoObraSociales)
                 .Include(p => p.TipoDiagnosticos)
+                .OrderBy(p => p.Nombre)
                 .Select(p => new PacienteResumenDTO
                 {
                     Id = p.Id,

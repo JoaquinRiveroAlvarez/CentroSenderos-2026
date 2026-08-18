@@ -51,6 +51,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             return await context.TipoDiagnosticos
                 .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
+                .OrderBy(p => p.Tipo)
                 .Select(p => new TipoListadoDTO
                 {
                     Id = p.Id,
