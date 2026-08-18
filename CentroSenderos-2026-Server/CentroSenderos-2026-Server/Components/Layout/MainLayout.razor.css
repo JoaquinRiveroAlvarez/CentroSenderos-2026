@@ -8,8 +8,9 @@
     background: #faf8f5;
 }
 
+
 /* ===========================================
-   CONTENIDO
+   CONTENIDO PRINCIPAL
 =========================================== */
 
 .main-content {
@@ -17,26 +18,86 @@
     margin-left: 100px;
     display: flex;
     flex-direction: column;
+    min-width: 0;
     min-height: 100vh;
 }
+
 
 /* ===========================================
    TOPBAR
 =========================================== */
 
 .top-row {
-    height: 60px;
-    min-height: 60px;
-    background: #f5f3ef;
-    border-bottom: 1px solid #e7e3dc;
+    width: 100%;
+    height: 64px;
+    min-height: 64px;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    padding: 0 35px;
+    padding: 0 34px;
+    box-sizing: border-box;
+    background: rgba(250, 248, 245, 0.97);
+    border-bottom: 1px solid #e7e3dc;
     position: sticky;
     top: 0;
     z-index: 900;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
+
+
+/* ===========================================
+   IDENTIDAD INSTITUCIONAL
+=========================================== */
+
+.topbar-identity {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    min-width: 0;
+}
+
+
+/* ===========================================
+   SENDEROS
+=========================================== */
+
+.topbar-brand-name {
+    color: #556f4f;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 27px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.035em;
+    white-space: nowrap;
+}
+
+
+/* ===========================================
+   SEPARADOR
+=========================================== */
+
+.topbar-divider {
+    width: 1px;
+    height: 25px;
+    flex-shrink: 0;
+    background: #d7d3cd;
+}
+
+
+/* ===========================================
+   DESCRIPTOR
+=========================================== */
+
+.topbar-subtitle {
+    color: #8b8b86;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
 
 /* ===========================================
    CONTENIDO DE LAS PÁGINAS
@@ -46,22 +107,33 @@
     flex: 1;
     padding: 35px;
     overflow: auto;
+    box-sizing: border-box;
 }
 
+
 /* ===========================================
-   ERROR UI
+   ERROR UI DE BLAZOR
 =========================================== */
 
 #blazor-error-ui {
-    background: #fff8d8;
-    border-top: 1px solid #e6d888;
-    padding: .8rem 1.2rem;
-    position: fixed;
-    bottom: 0;
     width: 100%;
     display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    padding: 0.8rem 1.2rem;
+    box-sizing: border-box;
+    background: #fff8d8;
+    border-top: 1px solid #e6d888;
     z-index: 5000;
 }
+
+
+    #blazor-error-ui .reload {
+        color: #556f4f;
+        font-weight: 600;
+    }
+
 
     #blazor-error-ui .dismiss {
         position: absolute;
@@ -70,22 +142,90 @@
         cursor: pointer;
     }
 
+
 /* ===========================================
-   RESPONSIVE
+   RESPONSIVE - TABLET
 =========================================== */
 
-@media (max-width:768px) {
+@media (max-width: 768px) {
 
     .main-content {
         margin-left: 0;
         margin-top: 72px;
     }
 
+
     .top-row {
+        height: 60px;
+        min-height: 60px;
         padding: 0 20px;
     }
 
+
+    .topbar-identity {
+        gap: 15px;
+    }
+
+
+    .topbar-brand-name {
+        font-size: 22px;
+    }
+
+
+    .topbar-divider {
+        height: 21px;
+    }
+
+
+    .topbar-subtitle {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+    }
+
+
     .page-content {
         padding: 20px;
+    }
+}
+
+
+/* ===========================================
+   RESPONSIVE - CELULAR
+=========================================== */
+
+@media (max-width: 520px) {
+
+    .top-row {
+        height: 62px;
+        min-height: 62px;
+        padding: 0 15px;
+    }
+
+
+    .topbar-identity {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+    }
+
+
+    .topbar-divider {
+        display: none;
+    }
+
+
+    .topbar-brand-name {
+        font-size: 20px;
+    }
+
+
+    .topbar-subtitle {
+        font-size: 9px;
+        letter-spacing: 0.07em;
+    }
+
+
+    .page-content {
+        padding: 18px 15px;
     }
 }
