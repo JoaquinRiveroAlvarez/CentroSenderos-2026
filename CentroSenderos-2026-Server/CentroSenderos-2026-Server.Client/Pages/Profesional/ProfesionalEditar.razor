@@ -18,7 +18,19 @@
     </button>
 
 
-    <h1>Editar Profesional</h1>
+    <div class="editar-title-row">
+
+        <h1>Editar Profesional</h1>
+
+        @if (!cargando && modelo.EsSocio)
+        {
+            <span class="socio-badge">
+                <i class="bi bi-star-fill"></i>
+                <span>Socio</span>
+            </span>
+        }
+
+    </div>
 
     @if (cargando)
     {
