@@ -43,20 +43,26 @@
     }
     else
     {
-
         @if (Estado == "actualizado")
         {
             <div class="success-message">
-
                 <i class="bi bi-check-circle-fill"></i>
 
                 <div>
                     <strong>Profesional actualizado</strong>
-                    <span>
-                        Los cambios se guardaron correctamente.
-                    </span>
+                    <span>Los cambios se guardaron correctamente.</span>
                 </div>
+            </div>
+        }
+        else if (Estado == "creado")
+        {
+            <div class="success-message">
+                <i class="bi bi-check-circle-fill"></i>
 
+                <div>
+                    <strong>Profesional registrado</strong>
+                    <span>El profesional fue registrado correctamente.</span>
+                </div>
             </div>
         }
 
@@ -228,7 +234,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && Estado == "actualizado")
+        if (firstRender &&
+            (Estado == "actualizado" || Estado == "creado"))
         {
             await Task.Delay(5000);
 

@@ -10,6 +10,7 @@
 
     <button type="button"
             class="back-button"
+            disabled="@guardando"
             @onclick="Volver">
         <i class="bi bi-arrow-left"></i>
         <span>Volver</span>
@@ -163,6 +164,7 @@
 
             <button type="button"
                     class="cancel-button"
+                    disabled="@guardando"
                     @onclick="Cancelar">
                 Cancelar
             </button>
@@ -219,7 +221,11 @@
 
         if (!resp.Error)
         {
-            Nav.NavigateTo("/profesionales");
+            var profesionalId = resp.Respuesta;
+
+            Nav.NavigateTo(
+                $"/profesionales/detalle/{profesionalId}?estado=creado"
+            );
         }
         else
         {
