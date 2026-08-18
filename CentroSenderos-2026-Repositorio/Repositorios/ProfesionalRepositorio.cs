@@ -59,7 +59,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             var lista = await context.Profesionales
                 .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
-                .OrderBy(p => p.Nombre)
+                .OrderBy(p => p.Area)
                 .Select(p => new ProfesionalListadoDTO
                 {
                     Id = p.Id,
