@@ -21,19 +21,19 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         public required string Area { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El CUIT es obligatorio")]
-        [MaxLength(30, ErrorMessage = "El CUIT no puede exceder los 20 caracteres")]
+        [MaxLength(30, ErrorMessage = "El CUIT no puede exceder los 30 caracteres")]
         public required string Cuit { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La Matricula Profesional es obligatoria")]
-        [MaxLength(30, ErrorMessage = "La Matricula Profesional no puede exceder los 20 caracteres")]
+        [MaxLength(30, ErrorMessage = "La Matricula Profesional no puede exceder los 30 caracteres")]
         public required string MP { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El RNP es obligatorio")]
-        [MaxLength(30, ErrorMessage = "El RNP no puede exceder los 20 caracteres")]
+        [MaxLength(30, ErrorMessage = "El RNP no puede exceder los 30 caracteres")]
         public required string RNP { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El Teléfono es obligatorio")]
-        [MaxLength(30, ErrorMessage = "El Teléfono no puede exceder los 20 caracteres")]
+        [MaxLength(30, ErrorMessage = "El Teléfono no puede exceder los 30 caracteres")]
         public required string Telefono { get; set; } = string.Empty;
 
         public List<TurnoProfesional> TurnoProfesionales { get; set; } = new();
