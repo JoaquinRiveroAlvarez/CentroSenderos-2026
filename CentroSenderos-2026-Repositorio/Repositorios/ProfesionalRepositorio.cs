@@ -46,6 +46,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         }
         public async Task<ProfesionalListadoDTO?> SelectByCuit(string cod)
         {
+            var cuitLimpio = NormalizarCuit(cod);
+
             ProfesionalListadoDTO? entidad = await context.Profesionales
                 .Select(p => new ProfesionalListadoDTO
                 {
@@ -57,7 +59,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     RNP = p.RNP,
                     Telefono = p.Telefono
                 })
-                .FirstOrDefaultAsync(x => x.Cuit == cod);
+                .FirstOrDefaultAsync(x => x.Cuit == cuitLimpio);
+
             return entidad;
         }
         public async Task<List<ProfesionalListadoDTO>> SelectListaProfesional()
@@ -74,51 +77,70 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     MP = p.MP,
                     RNP = p.RNP,
                     Telefono = p.Telefono,
-
-        EsSocio = context.Socios.Any(s =>
-        s.ProfesionalId == p.Id &&
-        s.EstadoRegistro == EnumEstadoRegistro.activo)
+                    EsSocio = context.Socios.Any(s =>
+                    s.ProfesionalId == p.Id &&
+                    s.EstadoRegistro == EnumEstadoRegistro.activo)
                 })
                 .ToListAsync();
             return lista;
         }
         public async Task<int> InsertarProfesional(ProfesionalDTO dto)
         {
-            // Validar que el CUIT no tenga prefijo duplicado
-            var cuitLimpio = dto.Cuit.StartsWith("CUIT: ") ? dto.Cuit.Substring(6) : dto.Cuit;
+            var nombreLimpio = NormalizarTexto(dto.Nombre);
+            var areaLimpia = NormalizarTexto(dto.Area);
+            var cuitLimpio = NormalizarCuit(dto.Cuit);
+            var mpLimpia = NormalizarCodigo(dto.MP);
+            var rnpLimpio = NormalizarCodigo(dto.RNP);
+            var telefonoLimpio = dto.Telefono.Trim();
+
 
             var profesional = new Profesional
             {
-                Nombre = dto.Nombre,
-                Area = dto.Area,
+                Nombre = nombreLimpio,
+                Area = areaLimpia,
                 Cuit = cuitLimpio,
-                MP = dto.MP,
-                RNP = dto.RNP,
-                Telefono = dto.Telefono,
+                MP = mpLimpia,
+                RNP = rnpLimpio,
+                Telefono = telefonoLimpio,
                 EstadoRegistro = EnumEstadoRegistro.activo
             };
 
+
             context.Profesionales.Add(profesional);
+
             try
             {
                 await context.SaveChangesAsync();
             }
             catch (DbUpdateException ex)
             {
-                if (ex.InnerException?.Message.Contains("Profesional_Cuit_UQ") == true)
+                if (ex.InnerException?.Message.Contains(
+                    "Profesional_Cuit_UQ") == true)
                 {
-                    throw new ApplicationException($"Ya existe un profesional con el CUIT '{cuitLimpio}'.");
+                    throw new ApplicationException(
+                        $"Ya existe un profesional con el CUIT '{cuitLimpio}'."
+                    );
                 }
-                if (ex.InnerException?.Message.Contains("Profesional_MP_UQ") == true)
+
+                if (ex.InnerException?.Message.Contains(
+                    "Profesional_MP_UQ") == true)
                 {
-                    throw new ApplicationException($"Ya existe un profesional con la Matrícula Profesional '{dto.MP}'.");
+                    throw new ApplicationException(
+                        $"Ya existe un profesional con la Matrícula Profesional '{mpLimpia}'."
+                    );
                 }
-                if (ex.InnerException?.Message.Contains("Profesional_RNP_UQ") == true)
+
+                if (ex.InnerException?.Message.Contains(
+                    "Profesional_RNP_UQ") == true)
                 {
-                    throw new ApplicationException($"Ya existe un profesional con el RNP '{dto.RNP}'.");
+                    throw new ApplicationException(
+                        $"Ya existe un profesional con el RNP '{rnpLimpio}'."
+                    );
                 }
+
                 throw;
             }
+
 
             return profesional.Id;
         }
@@ -136,7 +158,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
-        public async Task<bool> ActualizarProfesional(int id, ProfesionalDTO dto)
+        public async Task<bool> ActualizarProfesional(
+     int id,
+     ProfesionalDTO dto)
         {
             var profesional = await context.Profesionales
                 .FirstOrDefaultAsync(p => p.Id == id);
@@ -144,49 +168,139 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (profesional == null)
                 return false;
 
-            // Validar que el CUIT no tenga prefijo duplicado
-            var cuitLimpio = dto.Cuit.StartsWith("CUIT: ") ? dto.Cuit.Substring(6) : dto.Cuit;
 
-            // Verificar si el CUIT, MP o RNP ya existe (en otro registro)
+            // NORMALIZAR DATOS
+
+            var nombreLimpio = NormalizarTexto(dto.Nombre);
+            var areaLimpia = NormalizarTexto(dto.Area);
+            var cuitLimpio = NormalizarCuit(dto.Cuit);
+            var mpLimpia = NormalizarCodigo(dto.MP);
+            var rnpLimpio = NormalizarCodigo(dto.RNP);
+            var telefonoLimpio = dto.Telefono.Trim();
+
+
+            // VALIDAR CUIT DUPLICADO
+
             var cuitExiste = await context.Profesionales
-                .AnyAsync(p => p.Cuit == cuitLimpio && p.Id != id);
+                .AnyAsync(p =>
+                    p.Cuit == cuitLimpio &&
+                    p.Id != id);
+
             if (cuitExiste)
-                throw new ApplicationException($"Ya existe un profesional con el CUIT '{cuitLimpio}'.");
+            {
+                throw new ApplicationException(
+                    $"Ya existe un profesional con el CUIT '{cuitLimpio}'."
+                );
+            }
+
+
+            // VALIDAR M.P. DUPLICADA
 
             var mpExiste = await context.Profesionales
-                .AnyAsync(p => p.MP == dto.MP && p.Id != id);
+                .AnyAsync(p =>
+                    p.MP == mpLimpia &&
+                    p.Id != id);
+
             if (mpExiste)
-                throw new ApplicationException($"Ya existe un profesional con la Matrícula Profesional '{dto.MP}'.");
+            {
+                throw new ApplicationException(
+                    $"Ya existe un profesional con la Matrícula Profesional '{mpLimpia}'."
+                );
+            }
+
+
+            // VALIDAR RNP DUPLICADO
+
 
             var rnpExiste = await context.Profesionales
-                .AnyAsync(p => p.RNP == dto.RNP && p.Id != id);
-            if (rnpExiste)
-                throw new ApplicationException($"Ya existe un profesional con el RNP '{dto.RNP}'.");
+                .AnyAsync(p =>
+                    p.RNP == rnpLimpio &&
+                    p.Id != id);
 
-            // Actualizar los datos
-            profesional.Nombre = dto.Nombre;
-            profesional.Area = dto.Area;
+            if (rnpExiste)
+            {
+                throw new ApplicationException(
+                    $"Ya existe un profesional con el RNP '{rnpLimpio}'."
+                );
+            }
+
+
+            // ACTUALIZAR
+
+
+            profesional.Nombre = nombreLimpio;
+            profesional.Area = areaLimpia;
             profesional.Cuit = cuitLimpio;
-            profesional.MP = dto.MP;
-            profesional.RNP = dto.RNP;
-            profesional.Telefono = dto.Telefono;
+            profesional.MP = mpLimpia;
+            profesional.RNP = rnpLimpio;
+            profesional.Telefono = telefonoLimpio;
+
 
             try
             {
                 context.Profesionales.Update(profesional);
+
                 await context.SaveChangesAsync();
+
                 return true;
             }
             catch (DbUpdateException ex)
             {
-                if (ex.InnerException?.Message.Contains("Profesional_Cuit_UQ") == true)
-                    throw new ApplicationException($"Ya existe un profesional con el CUIT '{cuitLimpio}'.");
-                if (ex.InnerException?.Message.Contains("Profesional_MP_UQ") == true)
-                    throw new ApplicationException($"Ya existe un profesional con la Matrícula Profesional '{dto.MP}'.");
-                if (ex.InnerException?.Message.Contains("Profesional_RNP_UQ") == true)
-                    throw new ApplicationException($"Ya existe un profesional con el RNP '{dto.RNP}'.");
+                if (ex.InnerException?.Message.Contains(
+                    "Profesional_Cuit_UQ") == true)
+                {
+                    throw new ApplicationException(
+                        $"Ya existe un profesional con el CUIT '{cuitLimpio}'."
+                    );
+                }
+
+                if (ex.InnerException?.Message.Contains(
+                    "Profesional_MP_UQ") == true)
+                {
+                    throw new ApplicationException(
+                        $"Ya existe un profesional con la Matrícula Profesional '{mpLimpia}'."
+                    );
+                }
+
+                if (ex.InnerException?.Message.Contains(
+                    "Profesional_RNP_UQ") == true)
+                {
+                    throw new ApplicationException(
+                        $"Ya existe un profesional con el RNP '{rnpLimpio}'."
+                    );
+                }
+
                 throw;
             }
         }
+
+        private static string NormalizarTexto(string texto)
+        {
+            var cultura = new System.Globalization.CultureInfo("es-AR");
+
+            texto = texto.Trim().ToLower(cultura);
+
+            return cultura.TextInfo.ToTitleCase(texto);
+        }
+
+        private static string NormalizarCodigo(string texto)
+        {
+            return texto.Trim().ToUpperInvariant();
+        }
+
+        private static string NormalizarCuit(string cuit)
+        {
+            var cuitLimpio = cuit.Trim();
+
+            if (cuitLimpio.StartsWith(
+                "CUIT: ",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                cuitLimpio = cuitLimpio.Substring(6).Trim();
+            }
+
+            return cuitLimpio;
+        }
     }
+    
 }
