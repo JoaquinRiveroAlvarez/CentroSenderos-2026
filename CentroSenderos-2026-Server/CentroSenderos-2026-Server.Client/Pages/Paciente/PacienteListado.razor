@@ -6,50 +6,153 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="pacientes-header">
+<div class="pacientes-page">
 
-    <h1>Gestión de Pacientes</h1>
+    <div class="pacientes-header">
 
-    <div class="pacientes-actions">
+        <h1>Gestión de Pacientes</h1>
 
-        <div class="search-box">
-            <i class="bi bi-search"></i>
+        <div class="pacientes-actions">
 
-            <input type="text"
-                   placeholder="Buscar paciente..."
-                   @bind="busqueda"
-                   @bind:event="oninput" />
+            <div class="search-box">
+
+                <i class="bi bi-search"></i>
+
+                <input type="text"
+                       placeholder="Buscar paciente..."
+                       @bind="busqueda"
+                       @bind:event="oninput" />
+
+            </div>
+
+
+            @* Filtros deshabilitados por el momento
+
+            <button type="button"
+                    class="filter-button">
+                <i class="bi bi-funnel"></i>
+                <span>Filtros</span>
+            </button>
+
+            *@
+
+
+            <button type="button"
+                    class="new-patient-button"
+                    @onclick="IrACrear">
+
+                <i class="bi bi-person-plus"></i>
+                <span>Nuevo Paciente</span>
+
+            </button>
+
         </div>
 
-        <button class="filter-button">
-            <i class="bi bi-funnel"></i>
-            <span>Filtros</span>
-        </button>
-
-        <button class="new-patient-button"
-                @onclick="IrACrear">
-
-            <i class="bi bi-person-plus"></i>
-            <span>Nuevo Paciente</span>
-
-        </button>
-
     </div>
 
-</div>
 
-@if (cargando)
-{
-    <div class="pacientes-loading">
-        <span>Cargando pacientes...</span>
-    </div>
-}
-else if (listaPacientes == null || listaPacientes.Count == 0)
-{
-    <p class="pacientes-mensaje">
-        No hay pacientes registrados.
-    </p>
-}
+    @if (cargando)
+    {
+        <div class="pacientes-estado">
+
+            <div class="estado-spinner"></div>
+
+            <div>
+                <h3>Cargando pacientes</h3>
+
+                <p>
+                    Estamos obteniendo la información registrada.
+                </p>
+            </div>
+
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="pacientes-estado error">
+
+            <div class="estado-icono">
+                <i class="bi bi-exclamation-circle"></i>
+            </div>
+
+            <div>
+
+                <h3>No pudimos cargar los pacientes</h3>
+
+                <p>@Mensaje</p>
+
+                <button type="button"
+                        class="estado-button secundario"
+                        @onclick="CargarPacientes">
+
+                    <i class="bi bi-arrow-clockwise"></i>
+                    <span>Reintentar</span>
+
+                </button>
+
+            </div>
+
+        </div>
+    }
+    else if (listaPacientes == null || listaPacientes.Count == 0)
+    {
+        <div class="pacientes-estado">
+
+            <div class="estado-icono">
+                <i class="bi bi-people"></i>
+            </div>
+
+            <div>
+
+                <h3>No hay pacientes registrados</h3>
+
+                <p>
+                    Todavía no se registraron pacientes en Senderos.
+                </p>
+
+                <button type="button"
+                        class="estado-button principal"
+                        @onclick="IrACrear">
+
+                    <i class="bi bi-person-plus"></i>
+                    <span>Nuevo Paciente</span>
+
+                </button>
+
+            </div>
+
+        </div>
+    }
+    else if (!PacientesFiltrados.Any())
+    {
+        <div class="pacientes-estado">
+
+            <div class="estado-icono">
+                <i class="bi bi-search"></i>
+            </div>
+
+            <div>
+
+                <h3>No encontramos resultados</h3>
+
+                <p>
+                    No hay pacientes que coincidan con
+                    <strong>"@busqueda"</strong>.
+                </p>
+
+                <button type="button"
+                        class="estado-button secundario"
+                        @onclick="LimpiarBusqueda">
+
+                    <i class="bi bi-x-circle"></i>
+                    <span>Limpiar búsqueda</span>
+
+                </button>
+
+            </div>
+
+        </div>
+    }
     else
     {
         <div class="pacientes-card">
@@ -59,6 +162,7 @@ else if (listaPacientes == null || listaPacientes.Count == 0)
                 <table class="pacientes-table">
 
                     <thead>
+
                         <tr>
                             <th>Nombre</th>
                             <th>DNI</th>
@@ -66,32 +170,33 @@ else if (listaPacientes == null || listaPacientes.Count == 0)
                             <th>Diagnóstico</th>
                             <th>Obra Social</th>
                         </tr>
+
                     </thead>
 
                     <tbody>
 
-                    @foreach (var paciente in PacientesFiltrados)
+                        @foreach (var paciente in PacientesFiltrados)
                         {
-                        <tr @onclick="() => IrADetalle(paciente.Id)">
+                            <tr @onclick="() => IrADetalle(paciente.Id)">
 
-                            <td class="paciente-nombre">
-                                @paciente.Nombre
-                            </td>
-
-                                <td>
-                                    @paciente.DNI
+                                <td class="paciente-nombre">
+                                    @MostrarValor(paciente.Nombre)
                                 </td>
 
                                 <td>
-                                    @paciente.NumeroAfiliado
+                                    @MostrarValor(paciente.DNI)
                                 </td>
 
                                 <td>
-                                    @paciente.TipoDiagnosticoNombre
+                                    @MostrarValor(paciente.NumeroAfiliado)
                                 </td>
 
                                 <td>
-                                    @paciente.TipoObraSocialNombre
+                                    @MostrarValor(paciente.TipoDiagnosticoNombre)
+                                </td>
+
+                                <td>
+                                    @MostrarValor(paciente.TipoObraSocialNombre)
                                 </td>
 
                             </tr>
@@ -103,15 +208,29 @@ else if (listaPacientes == null || listaPacientes.Count == 0)
 
             </div>
 
+
+            <div class="pacientes-footer">
+
+                Mostrando
+                <strong>@PacientesFiltrados.Count()</strong>
+                de
+                <strong>@listaPacientes.Count</strong>
+                pacientes
+
+            </div>
+
         </div>
     }
 
+</div>
 
-<p>@Mensaje</p>
 
 @code {
+
     private List<PacienteResumenDTO> listaPacientes = new();
+
     private bool cargando = true;
+
     private string Mensaje = "";
 
     private string busqueda = "";
@@ -122,36 +241,99 @@ else if (listaPacientes == null || listaPacientes.Count == 0)
         await CargarPacientes();
     }
 
+
     private async Task CargarPacientes()
     {
         cargando = true;
-        var resp = await Http.Get<List<PacienteResumenDTO>>("api/paciente/ListaPaciente");
-        listaPacientes = resp.Error ? new() : resp.Respuesta ?? new();
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
-        await Task.Delay(200);
+        Mensaje = "";
+
+        var resp = await Http.Get<List<PacienteResumenDTO>>(
+            "api/paciente/ListaPaciente"
+        );
+
+        if (resp.Error &&
+            resp.HttpResponseMessage.StatusCode ==
+            System.Net.HttpStatusCode.NotFound)
+        {
+            listaPacientes = new();
+            Mensaje = "";
+        }
+        else
+        {
+            listaPacientes =
+                resp.Error
+                    ? new()
+                    : resp.Respuesta ?? new();
+
+            Mensaje =
+                resp.Error
+                    ? resp.ObtenerError()
+                    : "";
+        }
+
         cargando = false;
-    }
-
-    private void IrADetalle(int id)
-    {
-        Nav.NavigateTo($"/pacientes/detalle/{id}");
-    }
-
-    private void IrACrear()
-    {
-        Nav.NavigateTo("/pacientes/crear");
     }
 
 
     private IEnumerable<PacienteResumenDTO> PacientesFiltrados =>
-    string.IsNullOrWhiteSpace(busqueda)
-        ? listaPacientes
-        : listaPacientes.Where(p =>
-            (p.Nombre?.Contains(busqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (p.DNI?.Contains(busqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (p.NumeroAfiliado.ToString().Contains(busqueda, StringComparison.OrdinalIgnoreCase)) ||
-            (p.TipoDiagnosticoNombre?.Contains(busqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (p.TipoObraSocialNombre?.Contains(busqueda, StringComparison.OrdinalIgnoreCase) ?? false)
+        listaPacientes
+            .Where(p =>
+                string.IsNullOrWhiteSpace(busqueda) ||
+
+                (p.Nombre?.Contains(
+                    busqueda,
+                    StringComparison.OrdinalIgnoreCase) ?? false) ||
+
+                (p.DNI?.Contains(
+                    busqueda,
+                    StringComparison.OrdinalIgnoreCase) ?? false) ||
+
+               p.NumeroAfiliado.ToString().Contains(
+                    busqueda,
+                    StringComparison.OrdinalIgnoreCase) ||
+
+                (p.TipoDiagnosticoNombre?.Contains(
+                    busqueda,
+                    StringComparison.OrdinalIgnoreCase) ?? false) ||
+
+                (p.TipoObraSocialNombre?.Contains(
+                    busqueda,
+                    StringComparison.OrdinalIgnoreCase) ?? false)
+            );
+
+
+    private void LimpiarBusqueda()
+    {
+        busqueda = "";
+    }
+
+
+    private void IrADetalle(int id)
+    {
+        Nav.NavigateTo(
+            $"/pacientes/detalle/{id}"
         );
+    }
+
+
+    private void IrACrear()
+    {
+        Nav.NavigateTo(
+            "/pacientes/crear"
+        );
+    }
+
+
+    private static string MostrarValor(object? valor)
+    {
+        if (valor is null)
+            return "—";
+
+        var texto = valor.ToString();
+
+        return string.IsNullOrWhiteSpace(texto)
+            ? "—"
+            : texto;
+    }
 
 }
