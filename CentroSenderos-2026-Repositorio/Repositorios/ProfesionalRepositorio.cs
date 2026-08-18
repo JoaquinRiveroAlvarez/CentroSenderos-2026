@@ -35,7 +35,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     MP = p.MP,
                     RNP = p.RNP,
                     Telefono = p.Telefono,
-                    EstadoRegistro = p.EstadoRegistro
+                    EstadoRegistro = p.EstadoRegistro,
+
+                    EsSocio = context.Socios.Any(s =>
+                        s.ProfesionalId == p.Id &&
+                        s.EstadoRegistro == EnumEstadoRegistro.activo
+            )
                 })
                 .FirstOrDefaultAsync();
         }

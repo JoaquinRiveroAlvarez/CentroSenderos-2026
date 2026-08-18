@@ -13,7 +13,20 @@
         <span>Volver a Profesionales</span>
     </button>
 
-    <h1>Detalle Profesional</h1>
+    <div class="detalle-title-row">
+
+        <h1>Detalle Profesional</h1>
+
+        @if (!cargando && modelo.EsSocio)
+        {
+            <span class="detalle-socio-badge">
+                <i class="bi bi-star-fill"></i>
+                <span>Socio</span>
+            </span>
+        }
+
+    </div>
+
 
     @if (cargando)
     {

@@ -198,7 +198,45 @@
         transform: scale(0.98);
     }
 
+/* ===========================================
+   TÍTULO + SOCIO
+=========================================== */
 
+.detalle-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+    .detalle-title-row h1 {
+        margin: 0;
+    }
+
+
+/* ===========================================
+   BADGE SOCIO
+=========================================== */
+
+.detalle-socio-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: #e4ebe1;
+    color: #556f4f;
+    border: 1px solid #d4dfd0;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+    .detalle-socio-badge i {
+        color: #647b5b;
+        font-size: 10px;
+    }
 /* ===========================================
    LOADING / MENSAJES
 =========================================== */
