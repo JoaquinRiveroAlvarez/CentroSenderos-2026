@@ -13,6 +13,7 @@
         <span>Volver a Profesionales</span>
     </button>
 
+
     <div class="detalle-title-row">
 
         <h1>Detalle Profesional</h1>
@@ -42,6 +43,24 @@
     }
     else
     {
+
+        @if (Estado == "actualizado")
+        {
+            <div class="success-message">
+
+                <i class="bi bi-check-circle-fill"></i>
+
+                <div>
+                    <strong>Profesional actualizado</strong>
+                    <span>
+                        Los cambios se guardaron correctamente.
+                    </span>
+                </div>
+
+            </div>
+        }
+
+
         <div class="profesional-detail">
 
             <!-- =========================================
@@ -190,6 +209,10 @@
     public int id { get; set; }
 
 
+    [SupplyParameterFromQuery(Name = "estado")]
+    public string? Estado { get; set; }
+
+
     private ProfesionalDTO modelo = CrearModeloVacio();
 
     private bool cargando = true;
@@ -202,6 +225,19 @@
         await CargarProfesional();
     }
 
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Estado == "actualizado")
+        {
+            await Task.Delay(5000);
+
+            Nav.NavigateTo(
+                $"/profesionales/detalle/{id}",
+                replace: true
+            );
+        }
+    }
 
     private async Task CargarProfesional()
     {
@@ -267,4 +303,5 @@
             Telefono = string.Empty
         };
     }
+
 }

@@ -6,7 +6,21 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
+@if (Estado == "eliminado")
+{
+    <div class="success-message">
+
+        <i class="bi bi-check-circle-fill"></i>
+
+        <div>
+            <strong>Profesional eliminado</strong>
+            <span>El profesional fue eliminado correctamente.</span>
+        </div>
+
+    </div>
+}
 <div class="profesionales-page">
+
 
     <div class="profesionales-header">
 
@@ -197,6 +211,8 @@
 
 
 @code {
+    [SupplyParameterFromQuery(Name = "estado")]
+    public string? Estado { get; set; }
 
     private List<ProfesionalListadoDTO>? listaProfesionales;
 
@@ -244,6 +260,18 @@
         await CargarProfesionales();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Estado == "eliminado")
+        {
+            await Task.Delay(5000);
+
+            Nav.NavigateTo(
+                "/profesionales",
+                replace: true
+            );
+        }
+    }
 
     private async Task CargarProfesionales()
     {

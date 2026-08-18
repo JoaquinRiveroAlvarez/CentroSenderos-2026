@@ -369,7 +369,9 @@
 
         if (!resp.Error)
         {
-            Nav.NavigateTo($"/profesionales/detalle/{id}");
+            Nav.NavigateTo(
+                $"/profesionales/detalle/{id}?estado=actualizado"
+            );
         }
         else
         {
@@ -410,7 +412,9 @@
         {
             mostrarConfirmacionEliminar = false;
 
-            Nav.NavigateTo("/profesionales");
+            Nav.NavigateTo(
+                "/profesionales?estado=eliminado"
+            );
         }
         else
         {
