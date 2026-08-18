@@ -15,6 +15,29 @@
 
     <h1>Detalle Paciente</h1>
 
+    @if (Estado == "creado")
+    {
+        <div class="success-message">
+            <i class="bi bi-check-circle-fill"></i>
+
+            <div>
+                <strong>Paciente registrado</strong>
+                <span>El paciente fue registrado correctamente.</span>
+            </div>
+        </div>
+    }
+    else if (Estado == "actualizado")
+    {
+        <div class="success-message">
+            <i class="bi bi-check-circle-fill"></i>
+
+            <div>
+                <strong>Paciente actualizado</strong>
+                <span>Los cambios se guardaron correctamente.</span>
+            </div>
+        </div>
+    }
+
     @if (cargando)
     {
         <div class="editar-loading">
@@ -173,6 +196,9 @@
     [Parameter]
     public int Id { get; set; }
 
+    [SupplyParameterFromQuery(Name = "estado")]
+    public string? Estado { get; set; }
+
     private PacienteDTO? modelo;
 
     private bool cargando = true;
@@ -200,6 +226,19 @@
         cargando = false;
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender &&
+            (Estado == "creado" || Estado == "actualizado"))
+        {
+            await Task.Delay(3000);
+
+            Nav.NavigateTo(
+                $"/pacientes/detalle/{Id}",
+                replace: true
+            );
+        }
+    }
 
     private void Editar()
     {

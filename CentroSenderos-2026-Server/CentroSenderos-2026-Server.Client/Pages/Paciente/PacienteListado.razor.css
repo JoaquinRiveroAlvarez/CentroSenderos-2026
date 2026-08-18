@@ -368,6 +368,45 @@
         font-weight: 600;
     }
 
+
+
+/* ===========================================
+   MENSAJE DE ÉXITO
+=========================================== */
+
+.success-message {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 13px 16px;
+    background: #edf3ea;
+    border: 1px solid #d7e3d2;
+    border-radius: 12px;
+    color: #556f4f;
+}
+
+    .success-message > i {
+        flex-shrink: 0;
+        font-size: 18px;
+    }
+
+    .success-message > div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .success-message strong {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .success-message span {
+        color: #687565;
+        font-size: 13px;
+    }
+
 /* ===========================================
    RESPONSIVE
 =========================================== */

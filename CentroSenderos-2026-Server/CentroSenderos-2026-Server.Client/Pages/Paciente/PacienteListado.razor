@@ -10,6 +10,17 @@
 
     <div class="pacientes-header">
 
+        @if (Estado == "eliminado")
+        {
+            <div class="success-message">
+                <i class="bi bi-check-circle-fill"></i>
+
+                <div>
+                    <strong>Paciente eliminado</strong>
+                    <span>El paciente fue eliminado correctamente.</span>
+                </div>
+            </div>
+        }
         <h1>Gestión de Pacientes</h1>
 
         <div class="pacientes-actions">
@@ -227,6 +238,9 @@
 
 @code {
 
+    [SupplyParameterFromQuery(Name = "estado")]
+    public string? Estado { get; set; }
+
     private List<PacienteResumenDTO> listaPacientes = new();
 
     private bool cargando = true;
@@ -236,11 +250,24 @@
     private string busqueda = "";
 
 
+
     protected override async Task OnInitializedAsync()
     {
         await CargarPacientes();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Estado == "eliminado")
+        {
+            await Task.Delay(5000);
+
+            Nav.NavigateTo(
+                "/pacientes",
+                replace: true
+            );
+        }
+    }
 
     private async Task CargarPacientes()
     {

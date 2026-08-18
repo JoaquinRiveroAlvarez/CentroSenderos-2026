@@ -2,7 +2,6 @@
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
-@using CentroSenderos_2026_Shared.Enum
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
@@ -10,15 +9,27 @@
 
 <div class="editar-paciente-page">
 
+    <!-- =========================================
+         VOLVER
+    ========================================== -->
+
     <button type="button"
             class="back-button"
+            disabled="@(guardando || eliminando)"
             @onclick="Volver">
+
         <i class="bi bi-arrow-left"></i>
         <span>Volver</span>
+
     </button>
+
 
     <h1>Editar Paciente</h1>
 
+
+    <!-- =========================================
+         CARGANDO
+    ========================================== -->
     @if (cargando)
     {
         <div class="editar-loading">
@@ -40,7 +51,6 @@
 
             <DataAnnotationsValidator />
 
-            <ValidationSummary class="validation-summary" />
 
             <!-- =========================================
                  01 - INFORMACIÓN PERSONAL
@@ -53,9 +63,11 @@
                     <span>Información Personal</span>
                 </div>
 
+
                 <div class="form-grid form-grid-2">
 
                     <div class="field-group">
+
                         <label>Nombre completo</label>
 
                         <InputText class="form-input"
@@ -64,9 +76,12 @@
 
                         <ValidationMessage For="@(() => modelo.Nombre)"
                                            class="validation-message" />
+
                     </div>
 
+
                     <div class="field-group">
+
                         <label>DNI</label>
 
                         <InputText class="form-input"
@@ -75,6 +90,7 @@
 
                         <ValidationMessage For="@(() => modelo.DNI)"
                                            class="validation-message" />
+
                     </div>
 
                 </div>
@@ -93,9 +109,11 @@
                     <span>Información Médica / Administrativa</span>
                 </div>
 
+
                 <div class="form-grid form-grid-3">
 
                     <div class="field-group">
+
                         <label>Obra Social / Prepaga</label>
 
                         <InputSelect class="form-input"
@@ -109,10 +127,15 @@
                             }
 
                         </InputSelect>
+
+                        <ValidationMessage For="@(() => modelo.TipoObraSocialId)"
+                                           class="validation-message" />
+
                     </div>
 
 
                     <div class="field-group">
+
                         <label>Nro. Afiliado</label>
 
                         <InputNumber class="form-input"
@@ -121,10 +144,12 @@
 
                         <ValidationMessage For="@(() => modelo.NumeroAfiliado)"
                                            class="validation-message" />
+
                     </div>
 
 
                     <div class="field-group">
+
                         <label>Diagnóstico / Motivo de Consulta</label>
 
                         <InputSelect class="form-input"
@@ -138,6 +163,10 @@
                             }
 
                         </InputSelect>
+
+                        <ValidationMessage For="@(() => modelo.TipoDiagnosticoId)"
+                                           class="validation-message" />
+
                     </div>
 
                 </div>
@@ -156,27 +185,50 @@
                     <span>Datos de Contacto</span>
                 </div>
 
+
                 <div class="form-grid form-grid-2">
 
                     <div class="field-group">
+
                         <label>Teléfono</label>
 
                         <InputText class="form-input"
                                    @bind-Value="modelo.Telefono"
                                    placeholder="Teléfono" />
+
+                        <ValidationMessage For="@(() => modelo.Telefono)"
+                                           class="validation-message" />
+
                     </div>
 
+
                     <div class="field-group">
+
                         <label>Domicilio</label>
 
                         <InputText class="form-input"
                                    @bind-Value="modelo.Domicilio"
                                    placeholder="Domicilio" />
+
+                        <ValidationMessage For="@(() => modelo.Domicilio)"
+                                           class="validation-message" />
+
                     </div>
 
                 </div>
 
             </section>
+
+
+            <!-- =========================================
+                 ERROR GENERAL
+            ========================================== -->
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <div class="editar-mensaje">
+                    @Mensaje
+                </div>
+            }
 
 
             <!-- =========================================
@@ -187,21 +239,41 @@
 
                 <button type="button"
                         class="delete-button"
+                        disabled="@(guardando || eliminando)"
                         @onclick="AbrirConfirmacionEliminar">
-                    Eliminar Paciente
+
+                    <i class="bi bi-trash"></i>
+                    <span>Eliminar Paciente</span>
+
                 </button>
+
 
                 <div class="form-actions-right">
 
                     <button type="button"
                             class="cancel-button"
+                            disabled="@(guardando || eliminando)"
                             @onclick="Cancelar">
+
                         Cancelar
+
                     </button>
 
+
                     <button type="submit"
-                            class="save-button">
-                        Guardar Paciente
+                            class="save-button"
+                            disabled="@(guardando || eliminando)">
+
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar Paciente</span>
+                        }
+
                     </button>
 
                 </div>
@@ -211,140 +283,269 @@
         </EditForm>
     }
 
-    @if (mostrarConfirmacionEliminar)
-    {
-        <div class="modal-overlay">
+</div>
 
-            <div class="delete-modal">
 
-                <div class="delete-warning-icon">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
+<!-- =========================================
+     MODAL ELIMINAR
+========================================== -->
+@if (mostrarConfirmacionEliminar)
+{
+    <div class="modal-overlay">
+
+        <div class="delete-modal">
+
+            <div class="delete-warning-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+
+            <h2>¿Eliminar paciente?</h2>
+
+
+            <p>
+                ¿Estás seguro de que querés eliminar a
+                <strong>@modelo?.Nombre</strong>?
+                El paciente dejará de aparecer entre los registros activos.
+            </p>
+
+
+            @if (!string.IsNullOrWhiteSpace(MensajeEliminar))
+            {
+                <div class="delete-error">
+
+                    <i class="bi bi-exclamation-circle"></i>
+
+                    <span>
+                        @MensajeEliminar
+                    </span>
+
                 </div>
+            }
 
-                <h2>¿Estás seguro que querés eliminar?</h2>
 
-                <p>
-                    Por favor, confirmá que deseás eliminar definitivamente
-                    este paciente.
-                </p>
+            <div class="delete-modal-actions">
 
-                <div class="delete-modal-actions">
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminando"
+                        @onclick="ConfirmarEliminar">
 
-                    <button type="button"
-                            class="confirm-delete-button"
-                            @onclick="ConfirmarEliminar">
-                        Eliminar
-                    </button>
+                    @if (eliminando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Eliminando...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-trash"></i>
+                        <span>Eliminar paciente</span>
+                    }
 
-                    <button type="button"
-                            class="modal-cancel-button"
-                            @onclick="CerrarConfirmacionEliminar">
-                        Cancelar
-                    </button>
+                </button>
 
-                </div>
+
+                <button type="button"
+                        class="modal-cancel-button"
+                        disabled="@eliminando"
+                        @onclick="CerrarConfirmacionEliminar">
+
+                    Cancelar
+
+                </button>
 
             </div>
 
         </div>
-    }
 
-    @if (!string.IsNullOrWhiteSpace(Mensaje))
-    {
-        <p class="editar-mensaje">
-            @Mensaje
-        </p>
-    }
+    </div>
+}
 
-</div>
-
-<p>@Mensaje</p>
 
 @code {
+
     [Parameter]
     public int Id { get; set; }
 
-    private PacienteDTO? modelo;
-    private bool cargando = true;
-    private string Mensaje = "";
 
+    private PacienteDTO? modelo;
+
+
+    private bool cargando = true;
+    private bool guardando = false;
+    private bool eliminando = false;
     private bool mostrarConfirmacionEliminar = false;
+
+
+    private string Mensaje = "";
+    private string MensajeEliminar = "";
+
 
     private List<TipoDTO> tiposObraSocial = new();
     private List<TipoDTO> tiposDiagnostico = new();
 
 
-    private void AbrirConfirmacionEliminar()
-    {
-        mostrarConfirmacionEliminar = true;
-    }
+    // CARGAR DATOS
 
-    private void CerrarConfirmacionEliminar()
-    {
-        mostrarConfirmacionEliminar = false;
-    }
     protected override async Task OnInitializedAsync()
     {
         cargando = true;
+        Mensaje = "";
 
-        // cargar listas
-        var respObra = await Http.Get<List<TipoDTO>>("api/tipoobrasocial/ListaTipoObraSocial");
+
+        // Obras sociales
+        var respObra = await Http.Get<List<TipoDTO>>(
+            "api/tipoobrasocial/ListaTipoObraSocial"
+        );
+
         if (!respObra.Error && respObra.Respuesta != null)
+        {
             tiposObraSocial = respObra.Respuesta;
+        }
+        else if (respObra.Error)
+        {
+            Mensaje = respObra.ObtenerError();
+        }
 
-        var respDiag = await Http.Get<List<TipoDTO>>("api/tipodiagnostico/ListaTipoDiagnostico");
+
+        // Diagnósticos
+        var respDiag = await Http.Get<List<TipoDTO>>(
+            "api/tipodiagnostico/ListaTipoDiagnostico"
+        );
+
         if (!respDiag.Error && respDiag.Respuesta != null)
+        {
             tiposDiagnostico = respDiag.Respuesta;
+        }
+        else if (respDiag.Error)
+        {
+            Mensaje = respDiag.ObtenerError();
+        }
 
-        // cargar paciente
-        var respPac = await Http.Get<PacienteDTO>($"api/paciente/{Id}");
-        if (!respPac.Error)
+
+        // Paciente
+        var respPac = await Http.Get<PacienteDTO>(
+            $"api/paciente/{Id}"
+        );
+
+        if (!respPac.Error && respPac.Respuesta != null)
+        {
             modelo = respPac.Respuesta;
+        }
         else
+        {
+            modelo = null;
             Mensaje = respPac.ObtenerError();
-        await Task.Delay(200);
+        }
+
+
         cargando = false;
     }
 
+
+    // GUARDAR
+
     private async Task Grabar()
     {
-        if (modelo == null) return;
+        if (modelo == null)
+            return;
 
-        var resp = await Http.Put<PacienteDTO, RespuestaDTO>($"api/paciente/{Id}", modelo);
-        Mensaje = resp.Error ? resp.ObtenerError() : resp.Respuesta?.mensaje!;
+
+        guardando = true;
+        Mensaje = "";
+
+
+        var resp = await Http.Put<PacienteDTO, RespuestaDTO>(
+            $"api/paciente/{Id}",
+            modelo
+        );
+
+
+        guardando = false;
+
 
         if (!resp.Error)
         {
-            await Task.Delay(500);
-            Nav.NavigateTo("/pacientes", true);
+            Nav.NavigateTo(
+                $"/pacientes/detalle/{Id}?estado=actualizado"
+            );
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
         }
     }
 
+
+    // ABRIR MODAL ELIMINAR
+
+    private void AbrirConfirmacionEliminar()
+    {
+        MensajeEliminar = "";
+        mostrarConfirmacionEliminar = true;
+    }
+
+
+    // CERRAR MODAL ELIMINAR
+
+    private void CerrarConfirmacionEliminar()
+    {
+        if (!eliminando)
+        {
+            MensajeEliminar = "";
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+
+    // ELIMINAR
+
     private async Task ConfirmarEliminar()
     {
-        var resp = await Http.Delete($"api/paciente/{Id}");
+        eliminando = true;
+        MensajeEliminar = "";
 
-        Mensaje = resp.Error
-            ? resp.ObtenerError()
-            : "Paciente eliminado correctamente.";
+
+        var resp = await Http.Delete(
+            $"api/paciente/{Id}"
+        );
+
+
+        eliminando = false;
+
 
         if (!resp.Error)
         {
             mostrarConfirmacionEliminar = false;
 
-            await Task.Delay(500);
-
-            Nav.NavigateTo("/pacientes", true);
+            Nav.NavigateTo(
+                "/pacientes?estado=eliminado"
+            );
+        }
+        else
+        {
+            MensajeEliminar = resp.ObtenerError();
         }
     }
 
+
+    // CANCELAR
+
     private void Cancelar()
     {
-        Nav.NavigateTo($"/pacientes/detalle/{Id}");
+        Nav.NavigateTo(
+            $"/pacientes/detalle/{Id}"
+        );
     }
+
+
+    // VOLVER
 
     private void Volver()
     {
-        Nav.NavigateTo($"/pacientes/detalle/{Id}");
+        Nav.NavigateTo(
+            $"/pacientes/detalle/{Id}"
+        );
     }
+
 }
