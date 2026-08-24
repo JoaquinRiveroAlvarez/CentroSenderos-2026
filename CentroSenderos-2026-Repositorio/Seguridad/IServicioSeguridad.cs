@@ -5,7 +5,7 @@ namespace Modelado2025_1.Repositorio.Seguridad;
 
 public interface IServicioSeguridad
 {
-    Task<ResultadoOperacionSeguridad> HacerAdmin (string email);
-    Task<ResultadoOperacionSeguridad> RemoverAdmin(string email);
+    Task<ResultadoOperacionSeguridad> AsignarRol(string email, string rol);
+    Task<ResultadoOperacionSeguridad> RemoverRol(string email, string rol);
     Task<List<UsuarioDTO>> ObtenerUsuarios(string email);
 }

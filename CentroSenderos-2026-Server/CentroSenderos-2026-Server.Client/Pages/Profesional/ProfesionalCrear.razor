@@ -26,12 +26,6 @@
 
         <DataAnnotationsValidator />
 
-        @* <ValidationSummary class="validation-summary" /> *@
-
-        <!-- =========================================
-             01 - INFORMACIÓN PERSONAL
-        ========================================== -->
-
         <section class="form-section">
 
             <div class="section-title">
@@ -66,11 +60,6 @@
             </div>
 
         </section>
-
-
-        <!-- =========================================
-             02 - INFORMACIÓN PROFESIONAL
-        ========================================== -->
 
         <section class="form-section">
 
@@ -118,11 +107,6 @@
 
         </section>
 
-
-        <!-- =========================================
-             03 - DATOS DE CONTACTO
-        ========================================== -->
-
         <section class="form-section">
 
             <div class="section-title">
@@ -147,6 +131,34 @@
 
         </section>
 
+        <section class="form-section">
+            <div class="section-title">
+                <span class="section-number">04</span>
+                <span>Usuario del Sistema</span>
+            </div>
+
+            <div class="form-grid form-grid-2">
+                <div class="field-group">
+                    <label>Email</label>
+                    <InputText class="form-input"
+                               @bind-Value="modelo.Email"
+                               placeholder="Ej: profesional@senderos.com" />
+                    <ValidationMessage For="@(() => modelo.Email)" class="validation-message" />
+                </div>
+
+                <div class="field-group">
+                    <label>Rol</label>
+                    <InputSelect class="form-input" @bind-Value="modelo.RolAsignado">
+                        <option value="">-- Seleccionar rol --</option>
+                        <option value="admin">Admin</option>
+                        <option value="equipo">Equipo</option>
+                        <option value="profesional">Profesional</option>
+                    </InputSelect>
+                </div>
+            </div>
+        </section>
+
+
 
         @if (!string.IsNullOrWhiteSpace(Mensaje))
         {
@@ -154,11 +166,6 @@
                 @Mensaje
             </div>
         }
-
-
-        <!-- =========================================
-             BOTONES
-        ========================================== -->
 
         <div class="form-actions">
 
@@ -200,7 +207,9 @@
         Cuit = string.Empty,
         MP = string.Empty,
         RNP = string.Empty,
-        Telefono = string.Empty
+        Telefono = string.Empty,
+        Email = string.Empty,
+        RolAsignado = string.Empty
     };
 
     private bool guardando = false;
@@ -223,14 +232,23 @@
         {
             var profesionalId = resp.Respuesta;
 
-            Nav.NavigateTo(
-                $"/profesionales/detalle/{profesionalId}?estado=creado"
-            );
+            // Asignar rol en Identity si se seleccionó
+            if (!string.IsNullOrWhiteSpace(modelo.RolAsignado))
+            {
+                var rolResp = await Http.Post<RolAsignacionDTO, string>(
+                    "api/seguridad/asignarRol",
+                    new RolAsignacionDTO { Email = modelo.Email, Rol = modelo.RolAsignado }
+                );
+
+                if (rolResp.Error)
+                {
+                    Mensaje = $"Profesional creado, pero error al asignar rol: {rolResp.ObtenerError()}";
+                }
+            }
+
+            Nav.NavigateTo($"/profesionales/detalle/{profesionalId}?estado=creado");
         }
-        else
-        {
-            Mensaje = resp.ObtenerError();
-        }
+
     }
 
     private void Cancelar()

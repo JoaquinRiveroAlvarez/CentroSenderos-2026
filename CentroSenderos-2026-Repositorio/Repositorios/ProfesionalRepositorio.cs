@@ -35,6 +35,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     MP = p.MP,
                     RNP = p.RNP,
                     Telefono = p.Telefono,
+                    Email = p.Email,
+                    RolAsignado = p.RolAsignado,
                     EstadoRegistro = p.EstadoRegistro,
 
                     EsSocio = context.Socios.Any(s =>
@@ -57,7 +59,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Cuit = p.Cuit,
                     MP = p.MP,
                     RNP = p.RNP,
-                    Telefono = p.Telefono
+                    Telefono = p.Telefono,
+                    Email = p.Email,
+                    RolAsignado = p.RolAsignado
                 })
                 .FirstOrDefaultAsync(x => x.Cuit == cuitLimpio);
 
@@ -77,6 +81,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     MP = p.MP,
                     RNP = p.RNP,
                     Telefono = p.Telefono,
+                    Email = p.Email,
+                    RolAsignado = p.RolAsignado,
                     EsSocio = context.Socios.Any(s =>
                     s.ProfesionalId == p.Id &&
                     s.EstadoRegistro == EnumEstadoRegistro.activo)
@@ -96,15 +102,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             var profesional = new Profesional
             {
-                Nombre = nombreLimpio,
-                Area = areaLimpia,
-                Cuit = cuitLimpio,
-                MP = mpLimpia,
-                RNP = rnpLimpio,
-                Telefono = telefonoLimpio,
+                Nombre = NormalizarTexto(dto.Nombre),
+                Area = NormalizarTexto(dto.Area),
+                Cuit = NormalizarCuit(dto.Cuit),
+                MP = NormalizarCodigo(dto.MP),
+                RNP = NormalizarCodigo(dto.RNP),
+                Telefono = dto.Telefono.Trim(),
+                Email = dto.Email.Trim().ToLower(),
+                RolAsignado = dto.RolAsignado,
                 EstadoRegistro = EnumEstadoRegistro.activo
             };
-
 
             context.Profesionales.Add(profesional);
 
@@ -158,9 +165,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
-        public async Task<bool> ActualizarProfesional(
-     int id,
-     ProfesionalDTO dto)
+        public async Task<bool> ActualizarProfesional(int id, ProfesionalDTO dto)
         {
             var profesional = await context.Profesionales
                 .FirstOrDefaultAsync(p => p.Id == id);
@@ -234,7 +239,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             profesional.MP = mpLimpia;
             profesional.RNP = rnpLimpio;
             profesional.Telefono = telefonoLimpio;
-
+            profesional.Email = dto.Email.Trim().ToLower();
+            profesional.RolAsignado = dto.RolAsignado;
 
             try
             {

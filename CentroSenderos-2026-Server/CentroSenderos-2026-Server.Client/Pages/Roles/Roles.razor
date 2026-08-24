@@ -1,0 +1,157 @@
+﻿@page "/roles"
+@attribute [Authorize(Policy = "EsAdmin")]
+@using Microsoft.AspNetCore.Authorization
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<div class="roles-page">
+
+    <div class="page-header">
+        <div class="header-title">
+            <h1>Gestión de Roles</h1>
+            <p>Asigná o remové roles a los usuarios del sistema.</p>
+        </div>
+
+        <div class="header-actions">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text"
+                       placeholder="Buscar usuario..."
+                       @bind="textoBusqueda"
+                       @bind:event="oninput" />
+            </div>
+        </div>
+    </div>
+
+    @if (cargando)
+    {
+        <div class="estado-card">
+            <div class="spinner-border" role="status"></div>
+            <span>Cargando usuarios...</span>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="estado-card error">
+            <div class="estado-icon"><i class="bi bi-exclamation-circle"></i></div>
+            <h3>Error al cargar usuarios</h3>
+            <p>@Mensaje</p>
+            <button type="button"
+                    class="estado-button secundario"
+                    @onclick="CargarUsuarios">
+                <i class="bi bi-arrow-clockwise"></i>
+                Reintentar
+            </button>
+        </div>
+    }
+    else if (usuarios == null || usuarios.Count == 0)
+    {
+        <div class="estado-card">
+            <div class="estado-icon"><i class="bi bi-people"></i></div>
+            <h2>No hay usuarios registrados</h2>
+            <p>Actualmente no existen usuarios en el sistema.</p>
+        </div>
+    }
+    else if (!UsuariosFiltrados.Any())
+    {
+        <div class="estado-card">
+            <div class="estado-icon"><i class="bi bi-search"></i></div>
+            <h3>No encontramos resultados</h3>
+            <p>No hay usuarios que coincidan con <strong>"@textoBusqueda"</strong>.</p>
+            <button type="button"
+                    class="estado-button secundario"
+                    @onclick="LimpiarBusqueda">
+                <i class="bi bi-x-circle"></i>
+                Limpiar búsqueda
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="list-card">
+            <div class="list-header">
+                <div>EMAIL</div>
+                <div>ROLES</div>
+                <div>ACCIONES</div>
+            </div>
+
+            <div class="list-body">
+                @foreach (var u in UsuariosFiltrados)
+                {
+                    <div class="socio-row">
+                        <div class="socio-nombre">@u.Email</div>
+                        <div class="socio-observacion">
+                            @(u.Roles.Any() ? string.Join(", ", u.Roles) : "Sin roles")
+                        </div>
+                        <div class="socio-action">
+                            <button type="button" class="btn-rol" @onclick="@(() => AsignarRol(u.Email, "admin"))">Admin</button>
+                            <button type="button" class="btn-rol" @onclick="@(() => AsignarRol(u.Email, "equipo"))">Equipo</button>
+                            <button type="button" class="btn-rol" @onclick="@(() => AsignarRol(u.Email, "profesional"))">Profesional</button>
+                            <button type="button" class="btn-rol btn-rol-remove" @onclick="@(() => RemoverRol(u.Email, "admin"))">Quitar Admin</button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="list-footer">
+                Mostrando <strong>@UsuariosFiltrados.Count()</strong> de <strong>@usuarios.Count</strong> usuarios
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<UsuarioDTO> usuarios = new();
+    private string textoBusqueda = string.Empty;
+    private bool cargando = true;
+    private string Mensaje = string.Empty;
+
+    private IEnumerable<UsuarioDTO> UsuariosFiltrados =>
+        string.IsNullOrWhiteSpace(textoBusqueda)
+            ? usuarios
+            : usuarios.Where(u => u.Email.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarUsuarios();
+    }
+
+    private async Task CargarUsuarios()
+    {
+        cargando = true;
+        Mensaje = string.Empty;
+
+        var resp = await Http.Get<List<UsuarioDTO>>("api/seguridad/usuarios");
+        if (!resp.Error && resp.Respuesta != null)
+            usuarios = resp.Respuesta;
+        else
+            Mensaje = resp.ObtenerError();
+
+        cargando = false;
+    }
+
+    private async Task AsignarRol(string email, string rol)
+    {
+        var resp = await Http.Post<RolAsignacionDTO, string>("api/seguridad/asignarRol", new RolAsignacionDTO { Email = email, Rol = rol });
+        if (!resp.Error)
+            await CargarUsuarios();
+        else
+            Mensaje = resp.ObtenerError();
+    }
+
+    private async Task RemoverRol(string email, string rol)
+    {
+        var resp = await Http.Post<RolAsignacionDTO, string>("api/seguridad/removerRol", new RolAsignacionDTO { Email = email, Rol = rol });
+        if (!resp.Error)
+            await CargarUsuarios();
+        else
+            Mensaje = resp.ObtenerError();
+    }
+
+    private void LimpiarBusqueda()
+    {
+        textoBusqueda = string.Empty;
+    }
+}

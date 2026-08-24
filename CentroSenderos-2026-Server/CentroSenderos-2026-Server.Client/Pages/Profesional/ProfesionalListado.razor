@@ -143,7 +143,6 @@
             <div class="profesionales-table-wrapper">
 
                 <table class="profesionales-table">
-
                     <thead>
                         <tr>
                             <th>Nombre</th>
@@ -152,23 +151,18 @@
                             <th>R.N.P.</th>
                             <th>CUIT</th>
                             <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>Rol</th>
                         </tr>
                     </thead>
 
                     <tbody>
-
                         @foreach (var profesional in ProfesionalesFiltrados)
                         {
                             <tr @onclick="() => IrADetalle(profesional.Id)">
-
                                 <td class="profesional-nombre">
-
                                     <div class="nombre-con-socio">
-
-                                        <span>
-                                            @MostrarValor(profesional.Nombre)
-                                        </span>
-
+                                        <span>@MostrarValor(profesional.Nombre)</span>
                                         @if (profesional.EsSocio)
                                         {
                                             <span class="socio-badge">
@@ -176,23 +170,20 @@
                                                 Socio
                                             </span>
                                         }
-
                                     </div>
-
                                 </td>
-
                                 <td>@MostrarValor(profesional.Area)</td>
                                 <td>@MostrarValor(profesional.MP)</td>
                                 <td>@MostrarValor(profesional.RNP)</td>
                                 <td>@MostrarValor(profesional.Cuit)</td>
                                 <td>@MostrarValor(profesional.Telefono)</td>
-
+                                <td>@MostrarValor(profesional.Email)</td>
+                                <td>@MostrarValor(profesional.RolAsignado)</td>
                             </tr>
                         }
-
                     </tbody>
-
                 </table>
+
 
             </div>
 

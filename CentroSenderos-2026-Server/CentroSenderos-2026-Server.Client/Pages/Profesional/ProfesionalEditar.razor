@@ -192,6 +192,37 @@
                 </div>
             }
 
+            <!-- =========================================
+                 04 - USUARIO DEL SISTEMA
+            ========================================== -->
+
+            <section class="form-section">
+                <div class="section-title">
+                    <span class="section-number">04</span>
+                    <span>Usuario del Sistema</span>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="field-group">
+                        <label>Email</label>
+                        <InputText class="form-input"
+                                   @bind-Value="modelo.Email"
+                                   placeholder="Ej: profesional@senderos.com" />
+                        <ValidationMessage For="@(() => modelo.Email)" class="validation-message" />
+                    </div>
+
+                    <div class="field-group">
+                        <label>Rol</label>
+                        <InputSelect class="form-input" @bind-Value="modelo.RolAsignado">
+                            <option value="">-- Seleccionar rol --</option>
+                            <option value="admin">Admin</option>
+                            <option value="equipo">Equipo</option>
+                            <option value="profesional">Profesional</option>
+                        </InputSelect>
+                    </div>
+                </div>
+            </section>
+
 
             <!-- =========================================
                  ACCIONES
@@ -369,15 +400,28 @@
 
         if (!resp.Error)
         {
-            Nav.NavigateTo(
-                $"/profesionales/detalle/{id}?estado=actualizado"
-            );
+            // Si se seleccionó un rol, actualizarlo en Identity
+            if (!string.IsNullOrWhiteSpace(modelo.RolAsignado))
+            {
+                var rolResp = await Http.Post<RolAsignacionDTO, string>(
+                    "api/seguridad/asignarRol",
+                    new RolAsignacionDTO { Email = modelo.Email, Rol = modelo.RolAsignado }
+                );
+
+                if (rolResp.Error)
+                {
+                    Mensaje = $"Profesional actualizado, pero error al asignar rol: {rolResp.ObtenerError()}";
+                }
+            }
+
+            Nav.NavigateTo($"/profesionales/detalle/{id}?estado=actualizado");
         }
         else
         {
             Mensaje = resp.ObtenerError();
         }
     }
+
 
 
     private void AbrirConfirmacionEliminar()
@@ -448,7 +492,9 @@
             Cuit = string.Empty,
             MP = string.Empty,
             RNP = string.Empty,
-            Telefono = string.Empty
+            Telefono = string.Empty,
+            Email = string.Empty,
+            RolAsignado = string.Empty
         };
     }
 

@@ -43,5 +43,12 @@ namespace CentroSenderos_2026_Shared.DTO
         public EnumEstadoRegistro EstadoRegistro { get; set; }
 
         public bool EsSocio { get; set; }
+
+        [Required(ErrorMessage = "Ingresá el email.")]
+        [MaxLength(100)]
+        [EmailAddress(ErrorMessage = "El email no es válido.")]
+        public required string Email { get; set; } = string.Empty;
+
+        public string? RolAsignado { get; set; }
     }
 }

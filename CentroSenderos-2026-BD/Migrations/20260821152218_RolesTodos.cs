@@ -5,8 +5,9 @@
 namespace CentroSenderos_2026_BD.Migrations
 {
     /// <inheritdoc />
-    public partial class roles : Migration
+    public partial class RolesTodos : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             InsertarRol(migrationBuilder, "admin");
@@ -30,5 +31,4 @@ namespace CentroSenderos_2026_BD.Migrations
             migrationBuilder.Sql("DELETE FROM \"AspNetRoles\" WHERE \"Name\" IN ('admin','equipo','profesional')");
         }
     }
-
 }

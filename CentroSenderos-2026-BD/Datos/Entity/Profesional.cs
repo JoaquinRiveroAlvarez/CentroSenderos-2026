@@ -40,5 +40,14 @@ namespace CentroSenderos_2026_BD.Datos.Entity
 
         public List<Socio> Socios { get; set; } = new();
         public List<Liquidacion> Liquidaciones { get; set; } = new();
+
+        // Nuevo campo para vincular con Identity
+        [Required(ErrorMessage = "El Email es obligatorio")]
+        [MaxLength(100)]
+        public required string Email { get; set; } = string.Empty;
+
+        // Campo opcional para guardar el rol asignado
+        [MaxLength(50)]
+        public string? RolAsignado { get; set; }
     }
 }

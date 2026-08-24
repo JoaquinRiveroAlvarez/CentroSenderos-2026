@@ -185,6 +185,29 @@
 
             </section>
 
+            <!-- =========================================
+                 04 - USUARIO DEL SISTEMA
+            ========================================== -->
+            
+            <section class="form-section">
+                <div class="section-title">
+                    <span class="section-number">04</span>
+                    <span>Usuario del Sistema</span>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="field-group">
+                        <label>Email</label>
+                        <div class="form-value">@MostrarValor(modelo.Email)</div>
+                    </div>
+
+                    <div class="field-group">
+                        <label>Rol asignado</label>
+                        <div class="form-value">@MostrarValor(modelo.RolAsignado)</div>
+                    </div>
+                </div>
+            </section>
+
 
             <!-- =========================================
                  ACCIONES
@@ -307,7 +330,9 @@
             Cuit = string.Empty,
             MP = string.Empty,
             RNP = string.Empty,
-            Telefono = string.Empty
+            Telefono = string.Empty,
+            Email = string.Empty,
+            RolAsignado = string.Empty
         };
     }
 

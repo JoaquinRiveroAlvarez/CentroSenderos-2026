@@ -1,7 +1,5 @@
 using CentroSenderos_2026_BD;
-using CentroSenderos_2026_BD.Datos;
 using CentroSenderos_2026_Repositorio.Repositorios;
-using CentroSenderos_2026_Server.Client.Pages;
 using CentroSenderos_2026_Server.Components;
 using CentroSenderos_2026_Server.Components.Account;
 using CentroSenderos_2026_Servicio.ServiciosHttp;
@@ -12,6 +10,7 @@ using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configuración de HttpClient para el cliente Blazor
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
     ?? throw new InvalidOperationException("ApiBaseUrl no está configurado.");
 
@@ -20,17 +19,9 @@ builder.Services.AddScoped(sp => new HttpClient
     BaseAddress = new Uri(apiBaseUrl)
 });
 
-//builder.Services.AddScoped(sp => new HttpClient
-//{
-//    BaseAddress = new Uri("https://localhost:7069/")
-//});
-
-// Add services to the container.
-
+// Servicios generales
 builder.Services.AddScoped<IHttpServicio, HttpServicio>();
-
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -41,24 +32,15 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API de gestión",
     });
 });
-//var StrConn = builder.Configuration.GetConnectionString("ConSql")
-//                                 ?? throw new InvalidOperationException(
-//                                    "El string de conexion no existe.");
-//builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//              options.UseSqlServer(StrConn));
 
-//var strConn = builder.Configuration.GetConnectionString("postgresql");
-
-//builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//    options.UseNpgsql(strConn));
-
+// Configuración de base de datos
 var strConn = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("La cadena de conexión no existe.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(strConn));
 
-
+// Repositorios
 builder.Services.AddScoped<IProfesionalRepositorio, ProfesionalRepositorio>();
 builder.Services.AddScoped<IPacienteRepositorio, PacienteRepositorio>();
 builder.Services.AddScoped<ITipoObraSocialRepositorio, TipoObraSocialRepositorio>();
@@ -70,9 +52,7 @@ builder.Services.AddScoped<ITipoPlanillaRepositorio, TipoPlanillaRepositorio>();
 builder.Services.AddScoped<ITurnoRepositorio, TurnoRepositorio>();
 builder.Services.AddScoped<ITipoConsultorioRepositorio, TipoConsultorioRepositorio>();
 
-
-
-// Add services to the container.
+// Razor Components + Auth
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents()
@@ -82,33 +62,39 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
+// Configuración de Identity
 builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-    })
-    .AddIdentityCookies();
+{
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+})
+.AddIdentityCookies();
 
-//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-//builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//    options.UseNpgsql(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<MiUsuario>(options =>
-    {
-        options.SignIn.RequireConfirmedAccount = false;
-        options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
-    })
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddSignInManager()
-    .AddDefaultTokenProviders();
+{
+    options.SignIn.RequireConfirmedAccount = false;
+    options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+})
+.AddRoles<IdentityRole>()
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddSignInManager()
+.AddDefaultTokenProviders();
+
+// Políticas de autorización
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("EsAdmin", policy => policy.RequireRole("admin"));
+    options.AddPolicy("EsEquipo", policy => policy.RequireRole("equipo", "admin"));
+    options.AddPolicy("EsProfesional", policy => policy.RequireRole("profesional", "equipo", "admin"));
+});
 
 builder.Services.AddSingleton<IEmailSender<MiUsuario>, IdentityNoOpEmailSender>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Pipeline HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -118,15 +104,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "CentroSenderos-2026 API v1");
-        c.RoutePrefix = "swagger"; // Swagger en /swagger
+        c.RoutePrefix = "swagger";
     });
 }
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
@@ -140,14 +126,8 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(CentroSenderos_2026_Server.Client._Imports).Assembly);
 
-// Add additional endpoints required by the Identity /Account Razor components.
+// Controllers (incluye SeguridadController)
 app.MapControllers();
-
-//Capaz se no hace falta esto, pero lo dejo por las dudas
-//app.UseBlazorFrameworkFiles();
-//app.UseStaticFiles();
-//app.MapFallbackToFile("index.html");
-
 app.MapAdditionalIdentityEndpoints();
 
 app.Run();

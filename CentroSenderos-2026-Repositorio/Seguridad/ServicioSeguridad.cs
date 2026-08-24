@@ -4,63 +4,126 @@ using CentroSenderos_2026_Shared.Enum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Modelado2025_1.Repositorio.Seguridad;
 
-namespace Modelado2025_1.Repositorio.Seguridad;
-
-public class ServicioSeguridad : IServicioSeguridad
+namespace CentroSenderos_2026_Servicio.Seguridad
 {
-    private readonly ApplicationDbContext context;
-    private readonly UserManager<MiUsuario> userManager;
-    private readonly IHttpContextAccessor contextAccesor;
-    private readonly IAuthorizationService authorizationService;
-
-    public ServicioSeguridad(ApplicationDbContext context,
-                             UserManager<MiUsuario> userManager,
-                             IHttpContextAccessor contextAccesor,
-                             IAuthorizationService authorizationService)
+    public class ServicioSeguridad : IServicioSeguridad
     {
-        this.context = context;
-        this.userManager = userManager;
-        this.contextAccesor = contextAccesor;
-        this.authorizationService = authorizationService;
-    }
+        private readonly ApplicationDbContext context;
+        private readonly UserManager<MiUsuario> userManager;
+        private readonly IHttpContextAccessor contextAccesor;
+        private readonly IAuthorizationService authorizationService;
 
-    public async Task<ResultadoOperacionSeguridad> HacerAdmin(string email)
-    {
-        try
+        public ServicioSeguridad(ApplicationDbContext context,
+                                 UserManager<MiUsuario> userManager,
+                                 IHttpContextAccessor contextAccesor,
+                                 IAuthorizationService authorizationService)
         {
-            var usuarioLogueado = contextAccesor.HttpContext.User;
-            var resultado = await authorizationService.AuthorizeAsync(usuarioLogueado, "EsAdmin");
-
-            if (!resultado.Succeeded)
-            {
-                return ResultadoOperacionSeguridad.SinPermiso;
-            }
-            var usuario = await userManager.FindByEmailAsync(email);
-
-            if (usuario == null)
-            {
-                return ResultadoOperacionSeguridad.NoEncontrado;
-            }
-
-            await userManager.AddToRoleAsync(usuario, "admin");
-            await userManager.UpdateSecurityStampAsync(usuario);
-
-            return ResultadoOperacionSeguridad.Exitoso;
+            this.context = context;
+            this.userManager = userManager;
+            this.contextAccesor = contextAccesor;
+            this.authorizationService = authorizationService;
         }
-        catch (Exception e)
+
+        /// <summary>
+        /// Método genérico para asignar cualquier rol a un usuario.
+        /// </summary>
+        public async Task<ResultadoOperacionSeguridad> AsignarRol(string email, string rol)
         {
-            return ResultadoOperacionSeguridad.Fallido;
+            try
+            {
+                var usuarioLogueado = contextAccesor.HttpContext.User;
+                var resultado = await authorizationService.AuthorizeAsync(usuarioLogueado, "EsAdmin");
+
+                if (!resultado.Succeeded)
+                {
+                    return ResultadoOperacionSeguridad.SinPermiso;
+                }
+
+                var usuario = await userManager.FindByEmailAsync(email);
+                if (usuario == null)
+                {
+                    return ResultadoOperacionSeguridad.NoEncontrado;
+                }
+
+                await userManager.AddToRoleAsync(usuario, rol);
+                await userManager.UpdateSecurityStampAsync(usuario);
+
+                return ResultadoOperacionSeguridad.Exitoso;
+            }
+            catch
+            {
+                return ResultadoOperacionSeguridad.Fallido;
+            }
         }
-    }
 
-    public Task<List<UsuarioDTO>> ObtenerUsuarios(string email)
-    {
-        throw new NotImplementedException();
-    }
+        /// <summary>
+        /// Método genérico para remover cualquier rol de un usuario.
+        /// </summary>
+        public async Task<ResultadoOperacionSeguridad> RemoverRol(string email, string rol)
+        {
+            try
+            {
+                var usuarioLogueado = contextAccesor.HttpContext.User;
+                var resultado = await authorizationService.AuthorizeAsync(usuarioLogueado, "EsAdmin");
 
-    public Task<ResultadoOperacionSeguridad> RemoverAdmin(string email)
-    {
-        throw new NotImplementedException();
+                if (!resultado.Succeeded)
+                {
+                    return ResultadoOperacionSeguridad.SinPermiso;
+                }
+
+                var usuario = await userManager.FindByEmailAsync(email);
+                if (usuario == null)
+                {
+                    return ResultadoOperacionSeguridad.NoEncontrado;
+                }
+
+                await userManager.RemoveFromRoleAsync(usuario, rol);
+                await userManager.UpdateSecurityStampAsync(usuario);
+
+                return ResultadoOperacionSeguridad.Exitoso;
+            }
+            catch
+            {
+                return ResultadoOperacionSeguridad.Fallido;
+            }
+        }
+
+        /// <summary>
+        /// Listado de usuarios con sus roles.
+        /// </summary>
+        public async Task<List<UsuarioDTO>> ObtenerUsuarios(string email)
+        {
+            var usuarios = await context.Users
+                .Where(u => string.IsNullOrEmpty(email) || u.Email!.Contains(email))
+                .Select(u => new UsuarioDTO
+                {
+                    Id = u.Id,
+                    Email = u.Email!,
+                    Nombre = u.UserName!
+                }).ToListAsync();
+
+            // Cargar roles de cada usuario
+            foreach (var u in usuarios)
+            {
+                var usuario = await userManager.FindByEmailAsync(u.Email);
+                if (usuario != null)
+                {
+                    var roles = await userManager.GetRolesAsync(usuario);
+                    u.Roles = roles.ToList();
+                }
+            }
+
+            return usuarios;
+        }
+
+        // Métodos específicos (si querés mantenerlos por comodidad)
+        public Task<ResultadoOperacionSeguridad> HacerAdmin(string email) =>
+            AsignarRol(email, "admin");
+
+        public Task<ResultadoOperacionSeguridad> RemoverAdmin(string email) =>
+            RemoverRol(email, "admin");
     }
 }

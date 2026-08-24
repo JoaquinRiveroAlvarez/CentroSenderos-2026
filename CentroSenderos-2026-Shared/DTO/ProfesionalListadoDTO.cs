@@ -13,6 +13,8 @@ namespace CentroSenderos_2026_Shared.DTO
         public string MP { get; set; } = string.Empty;
         public string RNP { get; set; } = string.Empty;
         public string Telefono { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string? RolAsignado { get; set; }
         public bool EsSocio { get; set; }
     }
 }
