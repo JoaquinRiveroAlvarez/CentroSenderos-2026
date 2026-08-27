@@ -39,7 +39,8 @@ namespace CentroSenderos_2026_Shared.DTO
         [RegularExpression(@"^[0-9+\-\s()]+$", ErrorMessage = "El teléfono solo puede contener números, espacios, +, -, y paréntesis.")]
         public required string Telefono { get; set; } = string.Empty;
 
-
+        public int? TipoPrestacionId { get; set; }
+        public string? TipoPrestacionNombre { get; set; }
         public EnumEstadoRegistro EstadoRegistro { get; set; }
 
         public bool EsSocio { get; set; }

@@ -35,6 +35,8 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         [Required(ErrorMessage = "El Teléfono es obligatorio")]
         [MaxLength(30, ErrorMessage = "El Teléfono no puede exceder los 30 caracteres")]
         public required string Telefono { get; set; } = string.Empty;
+        public int? TipoPrestacionId { get; set; }
+        public TipoPrestacion? TipoPrestacion { get; set; }
 
         public List<TurnoProfesional> TurnoProfesionales { get; set; } = new();
 

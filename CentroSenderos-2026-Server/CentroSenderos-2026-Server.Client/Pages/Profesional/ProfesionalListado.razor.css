@@ -384,42 +384,71 @@
    PROFESIONAL SOCIO
 ===================================================== */
 
-.nombre-con-socio {
+.nombre-con-badges {
     display: flex;
-    align-items: center;
-    gap: 9px;
+    flex-direction: column; /* badges arriba, nombre debajo */
+    align-items: flex-start;
+    gap: 4px;
     min-width: 0;
 }
 
-    .nombre-con-socio > span:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
+.badges-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+}
 
+.nombre-texto {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
-/* Badge */
-
-.socio-badge {
-    flex-shrink: 0;
+/* Rol arriba a la izquierda */
+.rol-badge {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 4px 8px;
+    padding: 3px 6px;
+    background: #e7f1ff;
+    color: #0d6efd;
+    border: 1px solid #cfe2ff;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+    .rol-badge i {
+        font-size: 9px;
+        color: #0d6efd;
+    }
+
+/* Socio a la derecha del rol */
+.socio-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 6px;
     background: #e4ebe1;
     color: #556f4f;
     border: 1px solid #d4dfd0;
-    border-radius: 12px;
-    font-size: 11px;
+    border-radius: 10px;
+    font-size: 10px;
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;
 }
 
     .socio-badge i {
-        color: #647b5b;
         font-size: 9px;
+        color: #647b5b;
     }
+
+
 /* ===========================================
    MENSAJE DE ÉXITO
 =========================================== */

@@ -71,6 +71,20 @@
             <div class="form-grid form-grid-3">
 
                 <div class="field-group">
+                    <label>Prestación</label>
+
+                    <InputSelect class="form-input" @bind-Value="modelo.TipoPrestacionId">
+                        <option value="">-- Seleccionar --</option>
+                        @foreach (var tp in listaTipoPrestaciones)
+                        {
+                            <option value="@tp.Id">@tp.Tipo</option>
+                        }
+                    </InputSelect>
+
+                    <ValidationMessage For="@(() => modelo.TipoPrestacionId)" class="validation-message" />
+                </div>
+
+                <div class="field-group">
                     <label>Área</label>
 
                     <InputText class="form-input"
@@ -150,9 +164,11 @@
                     <label>Rol</label>
                     <InputSelect class="form-input" @bind-Value="modelo.RolAsignado">
                         <option value="">-- Seleccionar rol --</option>
-                        <option value="admin">Admin</option>
+                        <option value="admin">Administrador</option>
                         <option value="equipo">Equipo</option>
                         <option value="profesional">Profesional</option>
+                        <option value="AdministradorEquipo">Administrador/Equipo</option>
+
                     </InputSelect>
                 </div>
             </div>
@@ -211,6 +227,20 @@
         Email = string.Empty,
         RolAsignado = string.Empty
     };
+    private List<TipoPrestacionListadoDTO> listaTipoPrestaciones = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarTipoPrestaciones();
+    }
+
+    private async Task CargarTipoPrestaciones()
+    {
+        var resp = await Http.Get<List<TipoPrestacionListadoDTO>>("api/tipoprestacion/ListaTipoPrestacion");
+        if (!resp.Error && resp.Respuesta != null)
+            listaTipoPrestaciones = resp.Respuesta;
+    }
+
 
     private bool guardando = false;
 

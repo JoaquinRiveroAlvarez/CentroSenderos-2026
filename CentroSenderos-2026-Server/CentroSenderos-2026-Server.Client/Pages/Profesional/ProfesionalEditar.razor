@@ -20,6 +20,17 @@
     <div class="editar-title-row">
 
         <h1>Editar Profesional</h1>
+        @if (!string.IsNullOrWhiteSpace(modelo.RolAsignado))
+        {
+            <span class="rol-badge">
+                <i class="bi bi-person-badge"></i>
+                @(modelo.RolAsignado == "admin" ? "Administrador" :
+                  modelo.RolAsignado == "equipo" ? "Equipo" :
+                  modelo.RolAsignado == "profesional" ? "Profesional" :
+                  modelo.RolAsignado == "AdministradorEquipo" ? "Administrador/Equipo" :
+                  modelo.RolAsignado)
+            </span>
+        }
 
         @if (!cargando && modelo.EsSocio)
         {
@@ -121,6 +132,17 @@
 
                     </div>
 
+                    <div class="field-group">
+                        <label>Tipo de Prestación</label>
+                        <InputSelect class="form-input" @bind-Value="modelo.TipoPrestacionId">
+                            <option value="">-- Seleccionar --</option>
+                            @foreach (var tp in listaTipoPrestaciones)
+                            {
+                                <option value="@tp.Id">@tp.Tipo</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => modelo.TipoPrestacionId)" class="validation-message" />
+                    </div>
 
                     <div class="field-group">
 
@@ -215,14 +237,15 @@
                         <label>Rol</label>
                         <InputSelect class="form-input" @bind-Value="modelo.RolAsignado">
                             <option value="">-- Seleccionar rol --</option>
-                            <option value="admin">Admin</option>
+                            <option value="admin">Administrador</option>
                             <option value="equipo">Equipo</option>
                             <option value="profesional">Profesional</option>
+                            <option value="AdministradorEquipo">Administrador/Equipo</option>
                         </InputSelect>
                     </div>
+
                 </div>
             </section>
-
 
             <!-- =========================================
                  ACCIONES
@@ -347,7 +370,7 @@
 
 
     private ProfesionalDTO modelo = CrearModeloVacio();
-
+    private List<TipoPrestacionDTO> listaTipoPrestaciones = new();
     private bool cargando = true;
     private bool guardando = false;
     private bool eliminando = false;
@@ -360,8 +383,16 @@
     protected override async Task OnInitializedAsync()
     {
         await CargarProfesional();
+        await CargarTipoPrestaciones();
     }
 
+
+    private async Task CargarTipoPrestaciones()
+    {
+        var resp = await Http.Get<List<TipoPrestacionDTO>>("api/tipoprestacion/ListaTipoPrestacion");
+        if (!resp.Error && resp.Respuesta != null)
+            listaTipoPrestaciones = resp.Respuesta;
+    }
 
     private async Task CargarProfesional()
     {

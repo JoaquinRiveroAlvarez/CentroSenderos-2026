@@ -13,33 +13,39 @@
         <span>Volver a Profesionales</span>
     </button>
 
-
     <div class="detalle-title-row">
-
         <h1>Detalle Profesional</h1>
 
-        @if (!cargando && modelo.EsSocio)
-        {
-            <span class="detalle-socio-badge">
-                <i class="bi bi-star-fill"></i>
-                <span>Socio</span>
-            </span>
-        }
+        <div class="badges-row">
+            @if (!string.IsNullOrWhiteSpace(modelo.RolAsignado))
+            {
+                <span class="rol-badge">
+                    <i class="bi bi-person-badge"></i>
+                    @(modelo.RolAsignado == "admin" ? "Administrador" :
+                      modelo.RolAsignado == "equipo" ? "Equipo" :
+                      modelo.RolAsignado == "profesional" ? "Profesional" :
+                      modelo.RolAsignado == "AdministradorEquipo" ? "Administrador/Equipo" :
+                      modelo.RolAsignado)
+                </span>
+            }
 
+            @if (modelo.EsSocio)
+            {
+                <span class="socio-badge">
+                    <i class="bi bi-star-fill"></i>
+                    Socio
+                </span>
+            }
+        </div>
     </div>
-
 
     @if (cargando)
     {
-        <div class="detalle-loading">
-            Cargando datos del profesional...
-        </div>
+        <div class="detalle-loading">Cargando datos del profesional...</div>
     }
     else if (!string.IsNullOrWhiteSpace(Mensaje))
     {
-        <div class="detalle-mensaje">
-            @Mensaje
-        </div>
+        <div class="detalle-mensaje">@Mensaje</div>
     }
     else
     {
@@ -47,7 +53,6 @@
         {
             <div class="success-message">
                 <i class="bi bi-check-circle-fill"></i>
-
                 <div>
                     <strong>Profesional actualizado</strong>
                     <span>Los cambios se guardaron correctamente.</span>
@@ -58,7 +63,6 @@
         {
             <div class="success-message">
                 <i class="bi bi-check-circle-fill"></i>
-
                 <div>
                     <strong>Profesional registrado</strong>
                     <span>El profesional fue registrado correctamente.</span>
@@ -66,274 +70,138 @@
             </div>
         }
 
-
         <div class="profesional-detail">
 
-            <!-- =========================================
-                 01 - INFORMACIÓN PERSONAL
-            ========================================== -->
-
+            <!-- 01 - INFORMACIÓN PERSONAL -->
             <section class="form-section">
-
                 <div class="section-title">
                     <span class="section-number">01</span>
                     <span>Información Personal</span>
                 </div>
-
                 <div class="form-grid form-grid-2">
-
                     <div class="field-group">
-
                         <label>Nombre completo</label>
-
-                        <div class="form-value">
-                            @MostrarValor(modelo.Nombre)
-                        </div>
-
+                        <div class="form-value">@MostrarValor(modelo.Nombre)</div>
                     </div>
-
-
                     <div class="field-group">
-
                         <label>CUIT</label>
-
-                        <div class="form-value">
-                            @MostrarValor(modelo.Cuit)
-                        </div>
-
+                        <div class="form-value">@MostrarValor(modelo.Cuit)</div>
                     </div>
-
                 </div>
-
             </section>
 
-
-            <!-- =========================================
-                 02 - INFORMACIÓN PROFESIONAL
-            ========================================== -->
-
+            <!-- 02 - INFORMACIÓN PROFESIONAL -->
             <section class="form-section">
-
                 <div class="section-title">
                     <span class="section-number">02</span>
                     <span>Información Profesional</span>
                 </div>
-
                 <div class="form-grid form-grid-3">
-
                     <div class="field-group">
-
                         <label>Área</label>
-
-                        <div class="form-value">
-                            @MostrarValor(modelo.Area)
-                        </div>
-
+                        <div class="form-value">@MostrarValor(modelo.Area)</div>
                     </div>
-
-
                     <div class="field-group">
-
-                        <label>M.P. (Matrícula Profesional)</label>
-
-                        <div class="form-value">
-                            @MostrarValor(modelo.MP)
-                        </div>
-
+                        <label>M.P.</label>
+                        <div class="form-value">@MostrarValor(modelo.MP)</div>
                     </div>
-
-
                     <div class="field-group">
-
                         <label>R.N.P.</label>
-
-                        <div class="form-value">
-                            @MostrarValor(modelo.RNP)
-                        </div>
-
+                        <div class="form-value">@MostrarValor(modelo.RNP)</div>
                     </div>
-
                 </div>
-
             </section>
 
-
-            <!-- =========================================
-                 03 - DATOS DE CONTACTO
-            ========================================== -->
-
+            <!-- 03 - DATOS DE CONTACTO -->
             <section class="form-section">
-
                 <div class="section-title">
                     <span class="section-number">03</span>
                     <span>Datos de Contacto</span>
                 </div>
-
                 <div class="form-grid form-grid-2">
-
                     <div class="field-group">
-
                         <label>Teléfono</label>
-
-                        <div class="form-value">
-                            @MostrarValor(modelo.Telefono)
-                        </div>
-
+                        <div class="form-value">@MostrarValor(modelo.Telefono)</div>
                     </div>
-
                 </div>
-
             </section>
 
-            <!-- =========================================
-                 04 - USUARIO DEL SISTEMA
-            ========================================== -->
-            
+            <!-- 04 - USUARIO DEL SISTEMA -->
             <section class="form-section">
                 <div class="section-title">
                     <span class="section-number">04</span>
                     <span>Usuario del Sistema</span>
                 </div>
-
-                <div class="form-grid form-grid-2">
+                <div class="form-grid form-grid-1">
                     <div class="field-group">
                         <label>Email</label>
                         <div class="form-value">@MostrarValor(modelo.Email)</div>
                     </div>
+                </div>
+            </section>
 
+            <!-- 05 - TIPO DE PRESTACIÓN -->
+            <section class="form-section">
+                <div class="section-title">
+                    <span class="section-number">05</span>
+                    <span>Prestación</span>
+                </div>
+                <div class="form-grid form-grid-1">
                     <div class="field-group">
-                        <label>Rol asignado</label>
-                        <div class="form-value">@MostrarValor(modelo.RolAsignado)</div>
+                        <label>Tipo de Prestación</label>
+                        <div class="form-value">@MostrarValor(modelo.TipoPrestacionNombre)</div>
                     </div>
                 </div>
             </section>
 
-
-            <!-- =========================================
-                 ACCIONES
-            ========================================== -->
-
+            <!-- ACCIONES -->
             <div class="form-actions">
-
                 <button type="button"
                         class="edit-button"
                         @onclick="Editar">
-
                     <i class="bi bi-pencil-square"></i>
                     <span>Editar Profesional</span>
-
                 </button>
-
             </div>
-
         </div>
     }
-
 </div>
 
-
 @code {
-
-    [Parameter]
-    public int id { get; set; }
-
-
-    [SupplyParameterFromQuery(Name = "estado")]
-    public string? Estado { get; set; }
-
+    [Parameter] public int id { get; set; }
+    [SupplyParameterFromQuery(Name = "estado")] public string? Estado { get; set; }
 
     private ProfesionalDTO modelo = CrearModeloVacio();
-
     private bool cargando = true;
-
     private string Mensaje = "";
 
-
-    protected override async Task OnInitializedAsync()
-    {
-        await CargarProfesional();
-    }
-
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender &&
-            (Estado == "actualizado" || Estado == "creado"))
-        {
-            await Task.Delay(5000);
-
-            Nav.NavigateTo(
-                $"/profesionales/detalle/{id}",
-                replace: true
-            );
-        }
-    }
+    protected override async Task OnInitializedAsync() => await CargarProfesional();
 
     private async Task CargarProfesional()
     {
         cargando = true;
         Mensaje = "";
-
-        var resp = await Http.Get<ProfesionalDTO>(
-            $"api/profesional/{id}"
-        );
-
-        if (!resp.Error && resp.Respuesta != null)
-        {
-            modelo = resp.Respuesta;
-        }
-        else
-        {
-            modelo = CrearModeloVacio();
-            Mensaje = resp.ObtenerError();
-        }
-
+        var resp = await Http.Get<ProfesionalDTO>($"api/profesional/{id}");
+        modelo = !resp.Error && resp.Respuesta != null ? resp.Respuesta : CrearModeloVacio();
+        if (resp.Error) Mensaje = resp.ObtenerError();
         cargando = false;
     }
 
+    private void Editar() => Nav.NavigateTo($"/profesionales/editar/{id}");
+    private void Volver() => Nav.NavigateTo("/profesionales");
 
-    private void Editar()
+    private static string MostrarValor(object? valor) =>
+        string.IsNullOrWhiteSpace(valor?.ToString()) ? "—" : valor.ToString()!;
+
+    private static ProfesionalDTO CrearModeloVacio() => new()
     {
-        Nav.NavigateTo(
-            $"/profesionales/editar/{id}"
-        );
-    }
-
-
-    private void Volver()
-    {
-        Nav.NavigateTo(
-            "/profesionales"
-        );
-    }
-
-
-    private static string MostrarValor(object? valor)
-    {
-        if (valor is null)
-            return "—";
-
-        var texto = valor.ToString();
-
-        return string.IsNullOrWhiteSpace(texto)
-            ? "—"
-            : texto;
-    }
-
-
-    private static ProfesionalDTO CrearModeloVacio()
-    {
-        return new ProfesionalDTO
-        {
-            Nombre = string.Empty,
-            Area = string.Empty,
-            Cuit = string.Empty,
-            MP = string.Empty,
-            RNP = string.Empty,
-            Telefono = string.Empty,
-            Email = string.Empty,
-            RolAsignado = string.Empty
-        };
-    }
-
+        Nombre = string.Empty,
+        Area = string.Empty,
+        Cuit = string.Empty,
+        MP = string.Empty,
+        RNP = string.Empty,
+        Telefono = string.Empty,
+        Email = string.Empty,
+        RolAsignado = string.Empty
+    };
 }

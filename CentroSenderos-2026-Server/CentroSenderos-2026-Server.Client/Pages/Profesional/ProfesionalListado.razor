@@ -146,13 +146,13 @@
                     <thead>
                         <tr>
                             <th>Nombre</th>
+                            <th>Tipo Prestación</th>
                             <th>Área</th>
                             <th>M.P.</th>
                             <th>R.N.P.</th>
                             <th>CUIT</th>
                             <th>Teléfono</th>
                             <th>Email</th>
-                            <th>Rol</th>
                         </tr>
                     </thead>
 
@@ -160,28 +160,47 @@
                         @foreach (var profesional in ProfesionalesFiltrados)
                         {
                             <tr @onclick="() => IrADetalle(profesional.Id)">
+
                                 <td class="profesional-nombre">
-                                    <div class="nombre-con-socio">
-                                        <span>@MostrarValor(profesional.Nombre)</span>
-                                        @if (profesional.EsSocio)
-                                        {
-                                            <span class="socio-badge">
-                                                <i class="bi bi-star-fill"></i>
-                                                Socio
-                                            </span>
-                                        }
+                                    <div class="nombre-con-badges">
+                                        <div class="badges-row">12za
+                                            @if (!string.IsNullOrWhiteSpace(profesional.RolAsignado))
+                                            {
+                                                <span class="rol-badge">
+                                                    <i class="bi bi-person-badge"></i>
+                                                    @(profesional.RolAsignado == "admin" ? "Administrador" :
+                                                      profesional.RolAsignado == "equipo" ? "Equipo" :
+                                                      profesional.RolAsignado == "profesional" ? "Profesional" :
+                                                      profesional.RolAsignado == "AdministradorEquipo" ? "Administrador/Equipo" :
+                                                      profesional.RolAsignado)
+                                                </span>
+                                            }
+
+                                            @if (profesional.EsSocio)
+                                            {
+                                                <span class="socio-badge">
+                                                    <i class="bi bi-star-fill"></i>
+                                                    Socio
+                                                </span>
+                                            }
+                                        </div>
+
+                                        <span class="nombre-texto">@MostrarValor(profesional.Nombre)</span>
                                     </div>
                                 </td>
+
+
+                                <td>@MostrarValor(profesional.TipoPrestacionNombre)</td>
                                 <td>@MostrarValor(profesional.Area)</td>
                                 <td>@MostrarValor(profesional.MP)</td>
                                 <td>@MostrarValor(profesional.RNP)</td>
                                 <td>@MostrarValor(profesional.Cuit)</td>
                                 <td>@MostrarValor(profesional.Telefono)</td>
                                 <td>@MostrarValor(profesional.Email)</td>
-                                <td>@MostrarValor(profesional.RolAsignado)</td>
                             </tr>
                         }
                     </tbody>
+
                 </table>
 
 

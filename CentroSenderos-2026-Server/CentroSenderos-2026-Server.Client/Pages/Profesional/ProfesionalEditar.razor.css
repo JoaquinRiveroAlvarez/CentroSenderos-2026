@@ -501,26 +501,57 @@
    BADGE SOCIO
 =========================================== */
 
+/* Contenedor de badges arriba del nombre */
+.badges-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+/* Badge de Rol (celeste) */
+.rol-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    background: #e7f1ff; /* fondo celeste */
+    color: #0d6efd; /* azul bootstrap */
+    border: 1px solid #cfe2ff; /* borde celeste */
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+    .rol-badge i {
+        font-size: 10px;
+        color: #0d6efd;
+    }
+
+/* Badge de Socio (verde/gris) */
 .socio-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-    padding: 5px 10px;
+    gap: 5px;
+    padding: 3px 8px;
     background: #e4ebe1;
     color: #556f4f;
     border: 1px solid #d4dfd0;
-    border-radius: 14px;
-    font-size: 12px;
+    border-radius: 12px;
+    font-size: 11px;
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;
 }
 
     .socio-badge i {
-        color: #647b5b;
         font-size: 10px;
+        color: #647b5b;
     }
+
 
 
 /* ===========================================

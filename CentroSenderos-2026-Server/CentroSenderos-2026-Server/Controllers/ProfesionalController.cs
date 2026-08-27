@@ -103,20 +103,5 @@ namespace CentroSenderos_2026_Server.Controllers
             }
             return Ok($"El registro con el id: {id} fue eliminado correctamente.");
         }
-
-        //[HttpGet("ListaProfesionales")]
-        //public async Task<ActionResult<List<ProfesionalListadoDTO>>> GetListaProfesional()
-        //{
-        //    var lista = await repositorio.SelectListaProfesional();
-        //    if (lista == null)
-        //    {
-        //        return NotFound("No se encontro la lista, VERIFICAR.");
-        //    }
-        //    if (lista.Count == 0)
-        //    {
-        //        return Ok("No existen items en la lista en este momento");
-        //    }
-        //    return Ok(lista);
-        //}
     }
 }

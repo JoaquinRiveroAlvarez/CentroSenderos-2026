@@ -38,14 +38,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Email = p.Email,
                     RolAsignado = p.RolAsignado,
                     EstadoRegistro = p.EstadoRegistro,
-
-                    EsSocio = context.Socios.Any(s =>
-                        s.ProfesionalId == p.Id &&
-                        s.EstadoRegistro == EnumEstadoRegistro.activo
-            )
+                    TipoPrestacionId = p.TipoPrestacionId,
+                    TipoPrestacionNombre = p.TipoPrestacion != null ? p.TipoPrestacion.Tipo : null,
+                    EsSocio = context.Socios.Any(s => s.ProfesionalId == p.Id && s.EstadoRegistro == EnumEstadoRegistro.activo)
                 })
                 .FirstOrDefaultAsync();
         }
+
+
         public async Task<ProfesionalListadoDTO?> SelectByCuit(string cod)
         {
             var cuitLimpio = NormalizarCuit(cod);
@@ -83,9 +83,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Telefono = p.Telefono,
                     Email = p.Email,
                     RolAsignado = p.RolAsignado,
-                    EsSocio = context.Socios.Any(s =>
-                    s.ProfesionalId == p.Id &&
-                    s.EstadoRegistro == EnumEstadoRegistro.activo)
+                    TipoPrestacionId = p.TipoPrestacionId,
+                    TipoPrestacionNombre = p.TipoPrestacion != null ? p.TipoPrestacion.Tipo : null,
+                    EsSocio = context.Socios.Any(s => s.ProfesionalId == p.Id && s.EstadoRegistro == EnumEstadoRegistro.activo)
                 })
                 .ToListAsync();
             return lista;
@@ -110,6 +110,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 Telefono = dto.Telefono.Trim(),
                 Email = dto.Email.Trim().ToLower(),
                 RolAsignado = dto.RolAsignado,
+                TipoPrestacionId = dto.TipoPrestacionId,
                 EstadoRegistro = EnumEstadoRegistro.activo
             };
 
@@ -241,6 +242,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             profesional.Telefono = telefonoLimpio;
             profesional.Email = dto.Email.Trim().ToLower();
             profesional.RolAsignado = dto.RolAsignado;
+            profesional.TipoPrestacionId = dto.TipoPrestacionId;
 
             try
             {
