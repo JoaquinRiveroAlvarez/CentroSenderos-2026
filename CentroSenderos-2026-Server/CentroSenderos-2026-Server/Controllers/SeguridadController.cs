@@ -54,18 +54,49 @@ namespace CentroSenderos_2026_Server.Controllers
 
         // POST: api/seguridad/asignarRol
         [HttpPost("asignarRol")]
-        public async Task<ActionResult> AsignarRol([FromBody] RolAsignacionDTO dto)
+        public async Task<ActionResult<string>> AsignarRol(
+    [FromBody] RolAsignacionDTO dto)
         {
-            var usuario = await _userManager.FindByEmailAsync(dto.Email);
-            if (usuario == null) return NotFound("Usuario no encontrado");
+            var usuario = await _userManager
+                .FindByEmailAsync(dto.Email);
+
+            if (usuario == null)
+            {
+                return NotFound("Usuario no encontrado.");
+            }
 
             if (!await _roleManager.RoleExistsAsync(dto.Rol))
-                return BadRequest("Rol no existe");
+            {
+                return BadRequest(
+                    $"El rol '{dto.Rol}' no existe."
+                );
+            }
 
-            var resultado = await _userManager.AddToRoleAsync(usuario, dto.Rol);
-            if (!resultado.Succeeded) return BadRequest(resultado.Errors);
+            var yaTieneRol = await _userManager
+                .IsInRoleAsync(usuario, dto.Rol);
 
-            return Ok();
+            if (yaTieneRol)
+            {
+                return Ok(
+                    "El usuario ya tiene asignado ese rol."
+                );
+            }
+
+            var resultado = await _userManager
+                .AddToRoleAsync(usuario, dto.Rol);
+
+            if (!resultado.Succeeded)
+            {
+                var errores = string.Join(
+                    " ",
+                    resultado.Errors.Select(error =>
+                        error.Description)
+                );
+
+                return BadRequest(errores);
+            }
+
+            return Ok("Rol asignado correctamente.");
         }
 
         // POST: api/seguridad/removerRol

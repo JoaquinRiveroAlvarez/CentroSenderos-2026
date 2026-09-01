@@ -266,6 +266,37 @@
         color: #647b5b;
     }
 
+
+
+.prestaciones-field {
+    grid-column: 1 / -1;
+}
+
+.prestaciones-detalle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.prestacion-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 34px;
+    padding: 7px 12px;
+    color: #3f563a;
+    background-color: #dfe5dc;
+    border: 1px solid #c8d2c4;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+    .prestacion-badge i {
+        color: #556f4f;
+        font-size: 14px;
+    }
 /* ===========================================
    LOADING / MENSAJES
 =========================================== */

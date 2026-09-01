@@ -1,27 +1,23 @@
 ﻿using CentroSenderos_2026_BD;
-using CentroSenderos_2026_BD.Datos;
 using CentroSenderos_2026_BD.Datos.Entity;
 using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Modelado2025_1Repositorio.Repositorios;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CentroSenderos_2026_Repositorio.Repositorios
 {
-    public class ProfesionalRepositorio : Repositorio<Profesional>, IProfesionalRepositorio
+    public class ProfesionalRepositorio
+        : Repositorio<Profesional>, IProfesionalRepositorio
     {
         private readonly ApplicationDbContext context;
 
-        public ProfesionalRepositorio(ApplicationDbContext context) : base(context)
+        public ProfesionalRepositorio(ApplicationDbContext context)
+            : base(context)
         {
             this.context = context;
         }
+
         public async Task<ProfesionalDTO?> SelectPorId(int id)
         {
             return await context.Profesionales
@@ -38,40 +34,29 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Email = p.Email,
                     RolAsignado = p.RolAsignado,
                     EstadoRegistro = p.EstadoRegistro,
-                    TipoPrestacionId = p.TipoPrestacionId,
-                    TipoPrestacionNombre = p.TipoPrestacion != null ? p.TipoPrestacion.Tipo : null,
-                    EsSocio = context.Socios.Any(s => s.ProfesionalId == p.Id && s.EstadoRegistro == EnumEstadoRegistro.activo)
+
+                    TipoPrestacionIds = p.ProfesionalTipoPrestaciones
+                        .Select(x => x.TipoPrestacionId)
+                        .ToList(),
+
+                    TipoPrestacionNombres = p.ProfesionalTipoPrestaciones
+                        .Select(x => x.TipoPrestacion.Tipo)
+                        .OrderBy(nombre => nombre)
+                        .ToList(),
+
+                    EsSocio = context.Socios.Any(s =>
+                        s.ProfesionalId == p.Id &&
+                        s.EstadoRegistro == EnumEstadoRegistro.activo)
                 })
                 .FirstOrDefaultAsync();
         }
-
 
         public async Task<ProfesionalListadoDTO?> SelectByCuit(string cod)
         {
             var cuitLimpio = NormalizarCuit(cod);
 
-            ProfesionalListadoDTO? entidad = await context.Profesionales
-                .Select(p => new ProfesionalListadoDTO
-                {
-                    Id = p.Id,
-                    Nombre = p.Nombre,
-                    Area = p.Area,
-                    Cuit = p.Cuit,
-                    MP = p.MP,
-                    RNP = p.RNP,
-                    Telefono = p.Telefono,
-                    Email = p.Email,
-                    RolAsignado = p.RolAsignado
-                })
-                .FirstOrDefaultAsync(x => x.Cuit == cuitLimpio);
-
-            return entidad;
-        }
-        public async Task<List<ProfesionalListadoDTO>> SelectListaProfesional()
-        {
-            var lista = await context.Profesionales
-                .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
-                .OrderBy(p => p.Area)
+            return await context.Profesionales
+                .Where(p => p.Cuit == cuitLimpio)
                 .Select(p => new ProfesionalListadoDTO
                 {
                     Id = p.Id,
@@ -83,13 +68,58 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Telefono = p.Telefono,
                     Email = p.Email,
                     RolAsignado = p.RolAsignado,
-                    TipoPrestacionId = p.TipoPrestacionId,
-                    TipoPrestacionNombre = p.TipoPrestacion != null ? p.TipoPrestacion.Tipo : null,
-                    EsSocio = context.Socios.Any(s => s.ProfesionalId == p.Id && s.EstadoRegistro == EnumEstadoRegistro.activo)
+
+                    TipoPrestacionIds = p.ProfesionalTipoPrestaciones
+                        .Select(x => x.TipoPrestacionId)
+                        .ToList(),
+
+                    TipoPrestacionNombres = p.ProfesionalTipoPrestaciones
+                        .Select(x => x.TipoPrestacion.Tipo)
+                        .OrderBy(nombre => nombre)
+                        .ToList(),
+
+                    EsSocio = context.Socios.Any(s =>
+                        s.ProfesionalId == p.Id &&
+                        s.EstadoRegistro == EnumEstadoRegistro.activo)
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<ProfesionalListadoDTO>> SelectListaProfesional()
+        {
+            return await context.Profesionales
+                .Where(p =>
+                    p.EstadoRegistro == EnumEstadoRegistro.activo)
+                .OrderBy(p => p.Area)
+                .ThenBy(p => p.Nombre)
+                .Select(p => new ProfesionalListadoDTO
+                {
+                    Id = p.Id,
+                    Nombre = p.Nombre,
+                    Area = p.Area,
+                    Cuit = p.Cuit,
+                    MP = p.MP,
+                    RNP = p.RNP,
+                    Telefono = p.Telefono,
+                    Email = p.Email,
+                    RolAsignado = p.RolAsignado,
+
+                    TipoPrestacionIds = p.ProfesionalTipoPrestaciones
+                        .Select(x => x.TipoPrestacionId)
+                        .ToList(),
+
+                    TipoPrestacionNombres = p.ProfesionalTipoPrestaciones
+                        .Select(x => x.TipoPrestacion.Tipo)
+                        .OrderBy(nombre => nombre)
+                        .ToList(),
+
+                    EsSocio = context.Socios.Any(s =>
+                        s.ProfesionalId == p.Id &&
+                        s.EstadoRegistro == EnumEstadoRegistro.activo)
                 })
                 .ToListAsync();
-            return lista;
         }
+
         public async Task<int> InsertarProfesional(ProfesionalDTO dto)
         {
             var nombreLimpio = NormalizarTexto(dto.Nombre);
@@ -99,19 +129,26 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var rnpLimpio = NormalizarCodigo(dto.RNP);
             var telefonoLimpio = dto.Telefono.Trim();
 
-
             var profesional = new Profesional
             {
-                Nombre = NormalizarTexto(dto.Nombre),
-                Area = NormalizarTexto(dto.Area),
-                Cuit = NormalizarCuit(dto.Cuit),
-                MP = NormalizarCodigo(dto.MP),
-                RNP = NormalizarCodigo(dto.RNP),
-                Telefono = dto.Telefono.Trim(),
-                Email = dto.Email.Trim().ToLower(),
+                Nombre = nombreLimpio,
+                Area = areaLimpia,
+                Cuit = cuitLimpio,
+                MP = mpLimpia,
+                RNP = rnpLimpio,
+                Telefono = telefonoLimpio,
+                Email = dto.Email.Trim().ToLowerInvariant(),
                 RolAsignado = dto.RolAsignado,
-                TipoPrestacionId = dto.TipoPrestacionId,
-                EstadoRegistro = EnumEstadoRegistro.activo
+                EstadoRegistro = EnumEstadoRegistro.activo,
+
+                ProfesionalTipoPrestaciones = dto.TipoPrestacionIds
+                    .Distinct()
+                    .Select(tipoPrestacionId =>
+                        new ProfesionalTipoPrestacion
+                        {
+                            TipoPrestacionId = tipoPrestacionId
+                        })
+                    .ToList()
             };
 
             context.Profesionales.Add(profesional);
@@ -119,63 +156,32 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             try
             {
                 await context.SaveChangesAsync();
+                return profesional.Id;
             }
             catch (DbUpdateException ex)
             {
-                if (ex.InnerException?.Message.Contains(
-                    "Profesional_Cuit_UQ") == true)
-                {
-                    throw new ApplicationException(
-                        $"Ya existe un profesional con el CUIT '{cuitLimpio}'."
-                    );
-                }
-
-                if (ex.InnerException?.Message.Contains(
-                    "Profesional_MP_UQ") == true)
-                {
-                    throw new ApplicationException(
-                        $"Ya existe un profesional con la Matrícula Profesional '{mpLimpia}'."
-                    );
-                }
-
-                if (ex.InnerException?.Message.Contains(
-                    "Profesional_RNP_UQ") == true)
-                {
-                    throw new ApplicationException(
-                        $"Ya existe un profesional con el RNP '{rnpLimpio}'."
-                    );
-                }
+                LanzarErrorDuplicado(
+                    ex,
+                    cuitLimpio,
+                    mpLimpia,
+                    rnpLimpio);
 
                 throw;
             }
-
-
-            return profesional.Id;
         }
-        public async Task<bool> DeleteProfesional(int id)
+
+        public async Task<bool> ActualizarProfesional(
+            int id,
+            ProfesionalDTO dto)
         {
             var profesional = await context.Profesionales
+                .Include(p => p.ProfesionalTipoPrestaciones)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (profesional == null)
+            {
                 return false;
-
-            profesional.EstadoRegistro = EnumEstadoRegistro.borrado;
-
-            await context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<bool> ActualizarProfesional(int id, ProfesionalDTO dto)
-        {
-            var profesional = await context.Profesionales
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (profesional == null)
-                return false;
-
-
-            // NORMALIZAR DATOS
+            }
 
             var nombreLimpio = NormalizarTexto(dto.Nombre);
             var areaLimpia = NormalizarTexto(dto.Area);
@@ -183,9 +189,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var mpLimpia = NormalizarCodigo(dto.MP);
             var rnpLimpio = NormalizarCodigo(dto.RNP);
             var telefonoLimpio = dto.Telefono.Trim();
-
-
-            // VALIDAR CUIT DUPLICADO
 
             var cuitExiste = await context.Profesionales
                 .AnyAsync(p =>
@@ -195,12 +198,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (cuitExiste)
             {
                 throw new ApplicationException(
-                    $"Ya existe un profesional con el CUIT '{cuitLimpio}'."
-                );
+                    $"Ya existe un profesional con el CUIT " +
+                    $"'{cuitLimpio}'.");
             }
-
-
-            // VALIDAR M.P. DUPLICADA
 
             var mpExiste = await context.Profesionales
                 .AnyAsync(p =>
@@ -210,13 +210,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (mpExiste)
             {
                 throw new ApplicationException(
-                    $"Ya existe un profesional con la Matrícula Profesional '{mpLimpia}'."
-                );
+                    $"Ya existe un profesional con la Matrícula " +
+                    $"Profesional '{mpLimpia}'.");
             }
-
-
-            // VALIDAR RNP DUPLICADO
-
 
             var rnpExiste = await context.Profesionales
                 .AnyAsync(p =>
@@ -226,13 +222,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (rnpExiste)
             {
                 throw new ApplicationException(
-                    $"Ya existe un profesional con el RNP '{rnpLimpio}'."
-                );
+                    $"Ya existe un profesional con el RNP " +
+                    $"'{rnpLimpio}'.");
             }
-
-
-            // ACTUALIZAR
-
 
             profesional.Nombre = nombreLimpio;
             profesional.Area = areaLimpia;
@@ -240,60 +232,117 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             profesional.MP = mpLimpia;
             profesional.RNP = rnpLimpio;
             profesional.Telefono = telefonoLimpio;
-            profesional.Email = dto.Email.Trim().ToLower();
+            profesional.Email = dto.Email
+                .Trim()
+                .ToLowerInvariant();
+
             profesional.RolAsignado = dto.RolAsignado;
-            profesional.TipoPrestacionId = dto.TipoPrestacionId;
+
+            // Eliminamos las prestaciones que tenía anteriormente.
+            context.ProfesionalTipoPrestaciones.RemoveRange(
+                profesional.ProfesionalTipoPrestaciones);
+
+            // Creamos las nuevas relaciones seleccionadas.
+            var nuevasPrestaciones = dto.TipoPrestacionIds
+                .Distinct()
+                .Select(tipoPrestacionId =>
+                    new ProfesionalTipoPrestacion
+                    {
+                        ProfesionalId = profesional.Id,
+                        TipoPrestacionId = tipoPrestacionId
+                    })
+                .ToList();
+
+            context.ProfesionalTipoPrestaciones.AddRange(
+                nuevasPrestaciones);
 
             try
             {
-                context.Profesionales.Update(profesional);
-
                 await context.SaveChangesAsync();
-
                 return true;
             }
             catch (DbUpdateException ex)
             {
-                if (ex.InnerException?.Message.Contains(
-                    "Profesional_Cuit_UQ") == true)
-                {
-                    throw new ApplicationException(
-                        $"Ya existe un profesional con el CUIT '{cuitLimpio}'."
-                    );
-                }
-
-                if (ex.InnerException?.Message.Contains(
-                    "Profesional_MP_UQ") == true)
-                {
-                    throw new ApplicationException(
-                        $"Ya existe un profesional con la Matrícula Profesional '{mpLimpia}'."
-                    );
-                }
-
-                if (ex.InnerException?.Message.Contains(
-                    "Profesional_RNP_UQ") == true)
-                {
-                    throw new ApplicationException(
-                        $"Ya existe un profesional con el RNP '{rnpLimpio}'."
-                    );
-                }
+                LanzarErrorDuplicado(
+                    ex,
+                    cuitLimpio,
+                    mpLimpia,
+                    rnpLimpio);
 
                 throw;
             }
         }
 
+        public async Task<bool> DeleteProfesional(int id)
+        {
+            var profesional = await context.Profesionales
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (profesional == null)
+            {
+                return false;
+            }
+
+            profesional.EstadoRegistro =
+                EnumEstadoRegistro.borrado;
+
+            await context.SaveChangesAsync();
+
+            return true;
+        }
+
+        private static void LanzarErrorDuplicado(
+            DbUpdateException ex,
+            string cuit,
+            string mp,
+            string rnp)
+        {
+            var mensajeInterno =
+                ex.InnerException?.Message ?? string.Empty;
+
+            if (mensajeInterno.Contains(
+                "Profesional_Cuit_UQ",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ApplicationException(
+                    $"Ya existe un profesional con el CUIT '{cuit}'.");
+            }
+
+            if (mensajeInterno.Contains(
+                "Profesional_MP_UQ",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ApplicationException(
+                    $"Ya existe un profesional con la Matrícula " +
+                    $"Profesional '{mp}'.");
+            }
+
+            if (mensajeInterno.Contains(
+                "Profesional_RNP_UQ",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ApplicationException(
+                    $"Ya existe un profesional con el RNP '{rnp}'.");
+            }
+        }
+
         private static string NormalizarTexto(string texto)
         {
-            var cultura = new System.Globalization.CultureInfo("es-AR");
+            var cultura =
+                new System.Globalization.CultureInfo("es-AR");
 
-            texto = texto.Trim().ToLower(cultura);
+            texto = texto
+                .Trim()
+                .ToLower(cultura);
 
             return cultura.TextInfo.ToTitleCase(texto);
         }
 
         private static string NormalizarCodigo(string texto)
         {
-            return texto.Trim().ToUpperInvariant();
+            return texto
+                .Trim()
+                .ToUpperInvariant();
         }
 
         private static string NormalizarCuit(string cuit)
@@ -304,11 +353,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 "CUIT: ",
                 StringComparison.OrdinalIgnoreCase))
             {
-                cuitLimpio = cuitLimpio.Substring(6).Trim();
+                cuitLimpio = cuitLimpio
+                    .Substring(6)
+                    .Trim();
             }
 
             return cuitLimpio;
         }
     }
-    
 }
