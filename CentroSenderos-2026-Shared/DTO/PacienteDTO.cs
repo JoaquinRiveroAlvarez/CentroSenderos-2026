@@ -14,6 +14,9 @@ namespace CentroSenderos_2026_Shared.DTO
         [Required(ErrorMessage = "El DNI es obligatorio")]
         [MaxLength(10, ErrorMessage = "El DNI no puede exceder los 10 caracteres")]
         public string DNI { get; set; } = string.Empty;
+        [Required(ErrorMessage = "La fecha de nacimiento es obligatoria")]
+        public DateTime? FechaNacimiento { get; set; }
+        public bool TieneCud { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "La Obra Social es obligatoria")]
         public int TipoObraSocialId { get; set; }
@@ -31,6 +34,7 @@ namespace CentroSenderos_2026_Shared.DTO
         [Required(ErrorMessage = "El Teléfono es obligatorio")]
         [MaxLength(30, ErrorMessage = "El Teléfono no puede exceder los 30 caracteres")]
         public string? Telefono { get; set; }
+        public List<PacienteTelefonoDTO> Telefonos { get; set; } = new();
 
         [Required(ErrorMessage = "El Domicilio es obligatorio")]
         [MaxLength(30, ErrorMessage = "El Domicilio no puede exceder los 30 caracteres")]

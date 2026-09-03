@@ -8,6 +8,7 @@ namespace CentroSenderos_2026_BD
     public class ApplicationDbContext : IdentityDbContext<MiUsuario>
     {
         public DbSet<Paciente> Pacientes { get; set; }
+        public DbSet<PacienteTelefono> PacienteTelefonos { get; set; }
         public DbSet<Profesional> Profesionales { get; set; }
         public DbSet<ProfesionalTipoPrestacion> ProfesionalTipoPrestaciones { get; set; }
         public DbSet<TipoConsultorio> TipoConsultorios { get; set; }
@@ -75,6 +76,11 @@ namespace CentroSenderos_2026_BD
                 .HasOne(p => p.TipoDiagnosticos)
                 .WithMany(d => d.Pacientes)
                 .HasForeignKey(p => p.TipoDiagnosticoId);
+            modelBuilder.Entity<PacienteTelefono>()
+                .HasOne(t => t.Paciente)
+                .WithMany(p => p.Telefonos)
+                .HasForeignKey(t => t.PacienteId)
+                .OnDelete(DeleteBehavior.Restrict);
 
         }
     }
