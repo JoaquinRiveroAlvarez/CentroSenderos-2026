@@ -268,7 +268,7 @@
             var error = resp.ObtenerError();
 
             // El endpoint devuelve NotFound cuando todavía no existen turnos.
-            if (!error.Contains("No hay turnos disponibles para hoy",
+            if (!error.Contains("No hay turnos disponibles.",
                     StringComparison.OrdinalIgnoreCase))
             {
                 Mensaje = error;
