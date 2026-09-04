@@ -11,27 +11,37 @@
     <div class="obra-social-card">
 
         <div class="card-header">
-            
+
             <div>
+
                 <button type="button"
                         class="back-button"
                         @onclick="Volver">
+
                     <i class="bi bi-arrow-left"></i>
                     <span>Volver</span>
+
                 </button>
+
                 <h1>Editar Obra Social</h1>
-                <p>Modifique los datos de la obra social.</p>
+
+                <p>
+                    Modifique los datos de la obra social.
+                </p>
+
             </div>
 
             <button type="button"
                     class="close-button"
                     title="Cerrar"
+                    disabled="@(guardando || eliminando)"
                     @onclick="Cancelar">
+
                 <i class="bi bi-x-lg"></i>
+
             </button>
 
         </div>
-
 
         @if (cargando)
         {
@@ -45,6 +55,28 @@
 
             </div>
         }
+        else if (!obraSocialEncontrada)
+        {
+            <div class="error-state">
+
+                <div class="error-state-icon">
+                    <i class="bi bi-exclamation-circle"></i>
+                </div>
+
+                <h2>No se pudo cargar la obra social</h2>
+
+                <p>@Mensaje</p>
+
+                <button type="button"
+                        class="btn-volver-listado"
+                        @onclick="Volver">
+
+                    Volver al listado
+
+                </button>
+
+            </div>
+        }
         else
         {
             <EditForm Model="@modelo"
@@ -54,7 +86,6 @@
                 <DataAnnotationsValidator />
 
                 <ValidationSummary class="validation-summary" />
-
 
                 <div class="field-group">
 
@@ -68,6 +99,24 @@
 
                 </div>
 
+                <div class="field-group">
+
+                    <label>CUIT</label>
+
+                    <InputText class="senderos-input"
+                               @bind-Value="modelo.Cuit"
+                               @onblur="FormatearCuitModelo"
+                               inputmode="numeric"
+                               maxlength="13"
+                               placeholder="Ej.: 30-12345678-9" />
+
+                    <small class="field-help">
+                        Ingresá los 11 números del CUIT, con o sin guiones.
+                    </small>
+
+                    <ValidationMessage For="@(() => modelo.Cuit)" />
+
+                </div>
 
                 <div class="field-group">
 
@@ -81,19 +130,21 @@
 
                 </div>
 
-
                 @if (!string.IsNullOrWhiteSpace(Mensaje))
                 {
                     <div class="form-message">
-                        @Mensaje
+
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>@Mensaje</span>
+
                     </div>
                 }
-
 
                 <div class="form-actions editar-actions">
 
                     <button type="button"
                             class="btn-eliminar"
+                            disabled="@(guardando || eliminando)"
                             @onclick="AbrirConfirmacionEliminar">
 
                         <i class="bi bi-trash3"></i>
@@ -101,21 +152,20 @@
 
                     </button>
 
-
                     <div class="right-actions">
 
                         <button type="button"
                                 class="btn-cancelar"
+                                disabled="@(guardando || eliminando)"
                                 @onclick="Cancelar">
 
                             Cancelar
 
                         </button>
 
-
                         <button type="submit"
                                 class="btn-guardar"
-                                disabled="@guardando">
+                                disabled="@(guardando || eliminando)">
 
                             @if (guardando)
                             {
@@ -140,7 +190,6 @@
 
 </div>
 
-
 @if (mostrarConfirmacionEliminar)
 {
     <div class="modal-overlay">
@@ -148,20 +197,19 @@
         <div class="delete-modal">
 
             <div class="delete-warning-icon">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
 
+                <i class="bi bi-exclamation-triangle-fill"></i>
+
+            </div>
 
             <h2>
                 ¿Estás seguro que querés eliminar esta obra social?
             </h2>
 
-
             <p>
                 Esta acción no se puede deshacer.
                 La obra social será eliminada definitivamente.
             </p>
-
 
             <div class="delete-modal-actions">
 
@@ -182,7 +230,6 @@
 
                 </button>
 
-
                 <button type="button"
                         class="modal-cancel-button"
                         disabled="@eliminando"
@@ -199,89 +246,88 @@
     </div>
 }
 
-
 @code {
 
     [Parameter]
     public int id { get; set; }
 
-
-    private TipoDTO modelo = CrearModeloVacio();
+    private TipoObraSocialDTO modelo = CrearModeloVacio();
 
     private bool cargando = true;
+    private bool guardando;
+    private bool eliminando;
+    private bool mostrarConfirmacionEliminar;
+    private bool obraSocialEncontrada;
 
-    private bool guardando = false;
+    private string Mensaje = string.Empty;
 
-    private bool eliminando = false;
-
-    private bool mostrarConfirmacionEliminar = false;
-
-    private string Mensaje = "";
-
-
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         await CargarObraSocial();
     }
 
-
     private async Task CargarObraSocial()
     {
         cargando = true;
+        obraSocialEncontrada = false;
+        Mensaje = string.Empty;
 
-        var resp =
-            await Http.Get<TipoDTO>(
-                $"api/tipoobrasocial/{id}"
-            );
+        var resp = await Http.Get<TipoObraSocialDTO>(
+            $"api/tipoobrasocial/{id}"
+        );
 
-        modelo =
-            resp.Error
-                ? CrearModeloVacio()
-                : resp.Respuesta ?? CrearModeloVacio();
-
-        Mensaje =
-            resp.Error
-                ? resp.ObtenerError()
-                : "";
+        if (!resp.Error && resp.Respuesta is not null)
+        {
+            modelo = resp.Respuesta;
+            modelo.Cuit = FormatearCuit(modelo.Cuit);
+            obraSocialEncontrada = true;
+        }
+        else
+        {
+            modelo = CrearModeloVacio();
+            Mensaje = resp.ObtenerError();
+        }
 
         cargando = false;
     }
 
-
     private async Task Grabar()
     {
+        if (guardando || eliminando)
+        {
+            return;
+        }
+
         guardando = true;
+        Mensaje = string.Empty;
 
-        Mensaje = "";
+        modelo.Cuit = NormalizarCuit(modelo.Cuit);
 
-        var resp =
-            await Http.Put<TipoDTO, RespuestaDTO>(
-                $"api/tipoobrasocial/{id}",
-                modelo
-            );
+        var resp = await Http.Put<TipoObraSocialDTO, RespuestaDTO>(
+            $"api/tipoobrasocial/{id}",
+            modelo
+        );
 
         guardando = false;
 
-
         if (!resp.Error)
         {
-            Nav.NavigateTo(
-                "/tipoobrasocial",
-                true
-            );
+            Nav.NavigateTo("/tipoobrasocial", true);
         }
         else
         {
+            modelo.Cuit = FormatearCuit(modelo.Cuit);
             Mensaje = resp.ObtenerError();
         }
     }
 
-
     private void AbrirConfirmacionEliminar()
     {
-        mostrarConfirmacionEliminar = true;
+        if (!guardando && !eliminando)
+        {
+            mostrarConfirmacionEliminar = true;
+        }
     }
-
 
     private void CerrarConfirmacionEliminar()
     {
@@ -291,54 +337,83 @@
         }
     }
 
-
     private async Task ConfirmarEliminar()
     {
+        if (eliminando)
+        {
+            return;
+        }
+
         eliminando = true;
+        Mensaje = string.Empty;
 
-        Mensaje = "";
-
-        var resp =
-            await Http.Delete(
-                $"api/tipoobrasocial/{id}"
-            );
+        var resp = await Http.Delete(
+            $"api/tipoobrasocial/{id}"
+        );
 
         eliminando = false;
-
 
         if (!resp.Error)
         {
             mostrarConfirmacionEliminar = false;
 
-            Nav.NavigateTo(
-                "/tipoobrasocial",
-                true
-            );
+            Nav.NavigateTo("/tipoobrasocial", true);
         }
         else
         {
             Mensaje = resp.ObtenerError();
-
             mostrarConfirmacionEliminar = false;
         }
     }
 
-
-    private void Cancelar()
+    private void FormatearCuitModelo()
     {
-        Nav.NavigateTo($"/tipoobrasocial/detalle/{id}");
+        modelo.Cuit = FormatearCuit(modelo.Cuit);
     }
 
-
-    private static TipoDTO CrearModeloVacio()
+    private static string NormalizarCuit(string? cuit)
     {
-        return new TipoDTO
+        if (string.IsNullOrWhiteSpace(cuit))
+        {
+            return string.Empty;
+        }
+
+        return new string(
+            cuit.Where(char.IsDigit).ToArray()
+        );
+    }
+
+    private static string FormatearCuit(string? cuit)
+    {
+        var cuitNormalizado = NormalizarCuit(cuit);
+
+        if (cuitNormalizado.Length != 11)
+        {
+            return cuit?.Trim() ?? string.Empty;
+        }
+
+        return $"{cuitNormalizado[..2]}-" +
+               $"{cuitNormalizado.Substring(2, 8)}-" +
+               $"{cuitNormalizado[^1]}";
+    }
+
+    private static TipoObraSocialDTO CrearModeloVacio()
+    {
+        return new TipoObraSocialDTO
         {
             Tipo = string.Empty,
+            Cuit = string.Empty,
             Descripcion = string.Empty
         };
     }
 
+    private void Cancelar()
+    {
+        if (!guardando && !eliminando)
+        {
+            Nav.NavigateTo($"/tipoobrasocial/detalle/{id}");
+        }
+    }
 
     private void Volver()
     {

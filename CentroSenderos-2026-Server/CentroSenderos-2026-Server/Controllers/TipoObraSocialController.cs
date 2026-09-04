@@ -10,111 +10,157 @@ namespace CentroSenderos_2026_Server.Controllers
     {
         private readonly ITipoObraSocialRepositorio repositorio;
 
-        public TipoObraSocialController(ITipoObraSocialRepositorio repositorio)
+        public TipoObraSocialController(
+            ITipoObraSocialRepositorio repositorio)
         {
             this.repositorio = repositorio;
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<TipoDTO>> GetById(int id)
+        public async Task<ActionResult<TipoObraSocialDTO>>
+            GetById(int id)
         {
-            var entidad = await repositorio.SelectPorId(id);
-            if (entidad == null) return NotFound($"No existe obra social con id {id}.");
+            var entidad =
+                await repositorio.SelectPorId(id);
+
+            if (entidad == null)
+            {
+                return NotFound(
+                    $"No existe la obra social con el id {id}."
+                );
+            }
+
             return Ok(entidad);
         }
 
-
         [HttpGet("ListaTipoObraSocial")]
-        public async Task<IActionResult> GetListaTipoObraSocial()
+        public async Task<
+            ActionResult<List<TipoObraSocialDTO>>>
+            GetListaTipoObraSocial()
         {
-            var lista = await repositorio.SelectListaTipoObrasocial();
-            if (lista == null || !lista.Any())
-                return NotFound("No hay tipos de obra social registrados.");
+            var lista =
+                await repositorio
+                    .SelectListaTipoObrasocial();
 
             return Ok(lista);
         }
 
-        [HttpGet("Tipo/{cod}")]
-        public async Task<ActionResult<TipoListadoDTO>> SelectByTipo(string cod)
+        [HttpGet("Tipo/{tipo}")]
+        public async Task<ActionResult<TipoObraSocialDTO>>
+            SelectByTipo(string tipo)
         {
-            var tipoPrestacion = await repositorio.SelectByTipoObraSocial(cod);
-            if (tipoPrestacion is null)
+            var obraSocial =
+                await repositorio
+                    .SelectByTipoObraSocial(tipo);
+
+            if (obraSocial == null)
             {
-                return NotFound($"No existe el registro con el tipo: {cod}.");
+                return NotFound(
+                    $"No existe la obra social '{tipo}'."
+                );
             }
 
-            return Ok(tipoPrestacion);
+            return Ok(obraSocial);
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostObraSocial([FromBody] TipoDTO dto)
+        public async Task<ActionResult<int>> PostObraSocial(
+            [FromBody] TipoObraSocialDTO dto)
         {
             try
             {
-                int id = await repositorio.InsertarTipoObraSocial(dto);
+                var id =
+                    await repositorio
+                        .InsertarTipoObraSocial(dto);
+
                 return Ok(id);
             }
             catch (ApplicationException ex)
             {
-                // Esto devuelve el mensaje controlado al cliente
-                return BadRequest(new { mensaje = ex.Message });
+                return BadRequest(
+                    new { mensaje = ex.Message }
+                );
             }
             catch (Exception ex)
             {
-                // Errores no esperados
-                return StatusCode(500, new { mensaje = "Error interno del servidor", detalle = ex.Message });
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        mensaje =
+                            "Error interno del servidor",
+                        detalle = ex.Message
+                    }
+                );
             }
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(int id, TipoDTO dto)
+        public async Task<ActionResult> Put(
+            int id,
+            [FromBody] TipoObraSocialDTO dto)
         {
             try
             {
-                var resultado = await repositorio.ActualizarTipoObraSocial(id, dto);
+                var resultado =
+                    await repositorio
+                        .ActualizarTipoObraSocial(
+                            id,
+                            dto
+                        );
+
                 if (!resultado)
                 {
-                    return NotFound($"No existe el tipo de obra social con el id: {id}.");
+                    return NotFound(
+                        $"No existe la obra social con el id {id}."
+                    );
                 }
-                return Ok(new { mensaje = "Actualizado correctamente", id, datos = dto });
-                //return Ok($"El registro con el id: {id} fue actualizado correctamente.");
+
+                return Ok(new
+                {
+                    mensaje = "Actualizado correctamente",
+                    id
+                });
             }
             catch (ApplicationException ex)
             {
-                // Esto devuelve el mensaje controlado al cliente
-                return BadRequest(new { mensaje = ex.Message });
+                return BadRequest(
+                    new { mensaje = ex.Message }
+                );
             }
             catch (Exception ex)
             {
-                // Errores no esperados
-                return StatusCode(500, new { mensaje = "Error interno del servidor", detalle = ex.Message });
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        mensaje =
+                            "Error interno del servidor",
+                        detalle = ex.Message
+                    }
+                );
             }
         }
 
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var resultado = await repositorio.DeleteTipoObraSocial(id);
+            var resultado =
+                await repositorio
+                    .DeleteTipoObraSocial(id);
+
             if (!resultado)
             {
-                return BadRequest("Datos no validos");
+                return NotFound(
+                    $"No existe la obra social con el id {id}."
+                );
             }
-            return Ok(new { mensaje = "Eliminado correctamente", id });
-        }
 
-        //[HttpGet("ListaProfesionales")]
-        //public async Task<ActionResult<List<ProfesionalListadoDTO>>> GetListaProfesional()
-        //{
-        //    var lista = await repositorio.SelectListaProfesional();
-        //    if (lista == null)
-        //    {
-        //        return NotFound("No se encontro la lista, VERIFICAR.");
-        //    }
-        //    if (lista.Count == 0)
-        //    {
-        //        return Ok("No existen items en la lista en este momento");
-        //    }
-        //    return Ok(lista);
-        //}
+            return Ok(new
+            {
+                mensaje = "Eliminado correctamente",
+                id
+            });
+        }
     }
 }

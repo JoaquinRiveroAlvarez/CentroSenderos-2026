@@ -8,10 +8,6 @@
 
 <div class="obras-sociales-page">
 
-    <!-- =====================================================
-         HEADER
-    ====================================================== -->
-
     <div class="page-header">
 
         <div class="header-title">
@@ -33,7 +29,6 @@
 
         </div>
 
-
         <div class="header-actions">
 
             <div class="search-box">
@@ -41,19 +36,17 @@
                 <i class="bi bi-search"></i>
 
                 <input type="text"
-                       placeholder="Buscar obra social..."
+                       placeholder="Buscar por nombre, CUIT o descripción..."
                        @bind="textoBusqueda"
                        @bind:event="oninput" />
 
             </div>
-
 
             <button type="button"
                     class="btn-nueva"
                     @onclick="AbrirCrear">
 
                 <i class="bi bi-plus-lg"></i>
-
                 Nueva Obra Social
 
             </button>
@@ -62,10 +55,6 @@
 
     </div>
 
-
-    <!-- =====================================================
-         LISTADO
-    ====================================================== -->
     @if (cargando)
     {
         <div class="estado-card">
@@ -97,7 +86,6 @@
                     @onclick="AbrirCrear">
 
                 <i class="bi bi-plus-lg"></i>
-
                 Nueva Obra Social
 
             </button>
@@ -128,13 +116,11 @@
             <div class="list-header">
 
                 <div>OBRA SOCIAL</div>
-
+                <div>CUIT</div>
                 <div>DESCRIPCIÓN</div>
-
                 <div></div>
 
             </div>
-
 
             <div class="list-body">
 
@@ -150,11 +136,14 @@
                             </div>
 
                             <div class="obra-nombre">
-                                @item.Tipo
+                                @MostrarValor(item.Tipo)
                             </div>
 
                         </div>
 
+                        <div class="obra-cuit">
+                            @FormatearCuitParaMostrar(item.Cuit)
+                        </div>
 
                         <div class="obra-descripcion">
 
@@ -171,18 +160,14 @@
 
                         </div>
 
-
                         <div class="obra-action">
-
                             <i class="bi bi-chevron-right"></i>
-
                         </div>
 
                     </div>
                 }
 
             </div>
-
 
             <div class="list-footer">
 
@@ -197,14 +182,12 @@
         </div>
     }
 
-
     @if (!string.IsNullOrWhiteSpace(Mensaje) &&
          modalActual == ModalObraSocial.Ninguno)
     {
         <div class="mensaje-error">
 
             <i class="bi bi-exclamation-circle"></i>
-
             <span>@Mensaje</span>
 
         </div>
@@ -212,10 +195,8 @@
 
 </div>
 
+@* Modal de detalle *@
 
-<!-- =========================================================
-     MODAL DETALLE
-========================================================= -->
 @if (modalActual == ModalObraSocial.Detalle)
 {
     <div class="admin-modal-overlay">
@@ -248,7 +229,6 @@
 
                     </div>
 
-
                     <button type="button"
                             class="close-button"
                             title="Cerrar"
@@ -260,7 +240,6 @@
 
                 </div>
 
-
                 <div class="field-group">
 
                     <label>OBRA SOCIAL</label>
@@ -271,6 +250,15 @@
 
                 </div>
 
+                <div class="field-group">
+
+                    <label>CUIT</label>
+
+                    <div class="detail-value">
+                        @FormatearCuitParaMostrar(modelo.Cuit)
+                    </div>
+
+                </div>
 
                 <div class="field-group">
 
@@ -293,6 +281,15 @@
 
                 </div>
 
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>@Mensaje</span>
+
+                    </div>
+                }
 
                 <div class="modal-actions detail-actions">
 
@@ -304,13 +301,11 @@
 
                     </button>
 
-
                     <button type="button"
                             class="btn-editar"
                             @onclick="AbrirEditar">
 
                         <i class="bi bi-pencil-square"></i>
-
                         Editar
 
                     </button>
@@ -323,10 +318,8 @@
     </div>
 }
 
+@* Modal de creación *@
 
-<!-- =========================================================
-     MODAL CREAR
-========================================================= -->
 @if (modalActual == ModalObraSocial.Crear)
 {
     <div class="admin-modal-overlay">
@@ -345,7 +338,6 @@
 
                 </div>
 
-
                 <button type="button"
                         class="close-button"
                         title="Cerrar"
@@ -358,14 +350,12 @@
 
             </div>
 
-
             <EditForm Model="@modelo"
                       OnValidSubmit="CrearObraSocial">
 
                 <DataAnnotationsValidator />
 
                 <ValidationSummary class="validation-summary" />
-
 
                 <div class="field-group">
 
@@ -379,6 +369,24 @@
 
                 </div>
 
+                <div class="field-group">
+
+                    <label>CUIT</label>
+
+                    <InputText class="senderos-input"
+                               @bind-Value="modelo.Cuit"
+                               @onblur="FormatearCuitModelo"
+                               inputmode="numeric"
+                               maxlength="13"
+                               placeholder="Ej.: 30-12345678-9" />
+
+                    <small class="field-help">
+                        Ingresá los 11 números del CUIT, con o sin guiones.
+                    </small>
+
+                    <ValidationMessage For="@(() => modelo.Cuit)" />
+
+                </div>
 
                 <div class="field-group">
 
@@ -392,14 +400,15 @@
 
                 </div>
 
-
                 @if (!string.IsNullOrWhiteSpace(Mensaje))
                 {
                     <div class="form-message">
-                        @Mensaje
+
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>@Mensaje</span>
+
                     </div>
                 }
-
 
                 <div class="modal-actions">
 
@@ -411,7 +420,6 @@
                         Cancelar
 
                     </button>
-
 
                     <button type="submit"
                             class="btn-guardar"
@@ -438,10 +446,8 @@
     </div>
 }
 
+@* Modal de edición *@
 
-<!-- =========================================================
-     MODAL EDITAR
-========================================================= -->
 @if (modalActual == ModalObraSocial.Editar)
 {
     <div class="admin-modal-overlay">
@@ -460,11 +466,10 @@
 
                 </div>
 
-
                 <button type="button"
                         class="close-button"
                         title="Volver al detalle"
-                        disabled="@guardando"
+                        disabled="@(guardando || eliminando)"
                         @onclick="CancelarEdicion">
 
                     <i class="bi bi-x-lg"></i>
@@ -473,14 +478,12 @@
 
             </div>
 
-
             <EditForm Model="@modelo"
                       OnValidSubmit="GuardarCambios">
 
                 <DataAnnotationsValidator />
 
                 <ValidationSummary class="validation-summary" />
-
 
                 <div class="field-group">
 
@@ -494,6 +497,24 @@
 
                 </div>
 
+                <div class="field-group">
+
+                    <label>CUIT</label>
+
+                    <InputText class="senderos-input"
+                               @bind-Value="modelo.Cuit"
+                               @onblur="FormatearCuitModelo"
+                               inputmode="numeric"
+                               maxlength="13"
+                               placeholder="Ej.: 30-12345678-9" />
+
+                    <small class="field-help">
+                        Ingresá los 11 números del CUIT, con o sin guiones.
+                    </small>
+
+                    <ValidationMessage For="@(() => modelo.Cuit)" />
+
+                </div>
 
                 <div class="field-group">
 
@@ -507,44 +528,42 @@
 
                 </div>
 
-
                 @if (!string.IsNullOrWhiteSpace(Mensaje))
                 {
                     <div class="form-message">
-                        @Mensaje
+
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>@Mensaje</span>
+
                     </div>
                 }
-
 
                 <div class="modal-actions edit-actions">
 
                     <button type="button"
                             class="btn-eliminar"
-                            disabled="@guardando"
+                            disabled="@(guardando || eliminando)"
                             @onclick="AbrirConfirmacionEliminar">
 
                         <i class="bi bi-trash3"></i>
-
                         Eliminar
 
                     </button>
-
 
                     <div class="right-actions">
 
                         <button type="button"
                                 class="btn-cancelar"
-                                disabled="@guardando"
+                                disabled="@(guardando || eliminando)"
                                 @onclick="CancelarEdicion">
 
                             Cancelar
 
                         </button>
 
-
                         <button type="submit"
                                 class="btn-guardar"
-                                disabled="@guardando">
+                                disabled="@(guardando || eliminando)">
 
                             @if (guardando)
                             {
@@ -569,10 +588,8 @@
     </div>
 }
 
+@* Confirmación de eliminación *@
 
-<!-- =========================================================
-     MODAL CONFIRMAR ELIMINACIÓN
-========================================================= -->
 @if (mostrarConfirmacionEliminar)
 {
     <div class="delete-modal-overlay">
@@ -580,22 +597,17 @@
         <div class="delete-modal">
 
             <div class="delete-warning-icon">
-
                 <i class="bi bi-exclamation-triangle-fill"></i>
-
             </div>
-
 
             <h2>
                 ¿Estás seguro que querés eliminar esta obra social?
             </h2>
 
-
             <p>
                 Esta acción no se puede deshacer.
                 La obra social será eliminada definitivamente.
             </p>
-
 
             <div class="delete-modal-actions">
 
@@ -616,7 +628,6 @@
 
                 </button>
 
-
                 <button type="button"
                         class="modal-cancel-button"
                         disabled="@eliminando"
@@ -633,7 +644,6 @@
     </div>
 }
 
-
 @code {
 
     private enum ModalObraSocial
@@ -644,36 +654,23 @@
         Editar
     }
 
+    private List<TipoObraSocialDTO> lista = new();
+    private TipoObraSocialDTO modelo = CrearModeloVacio();
 
-    private List<TipoListadoDTO> lista = new();
-
-    private TipoDTO modelo = CrearModeloVacio();
-
-
-    private ModalObraSocial modalActual =
-        ModalObraSocial.Ninguno;
-
+    private ModalObraSocial modalActual = ModalObraSocial.Ninguno;
 
     private int? idSeleccionado;
 
-
     private bool cargando = true;
+    private bool cargandoDetalle;
+    private bool guardando;
+    private bool eliminando;
+    private bool mostrarConfirmacionEliminar;
 
-    private bool cargandoDetalle = false;
+    private string Mensaje = string.Empty;
+    private string textoBusqueda = string.Empty;
 
-    private bool guardando = false;
-
-    private bool eliminando = false;
-
-    private bool mostrarConfirmacionEliminar = false;
-
-
-    private string Mensaje = "";
-
-    private string textoBusqueda = "";
-
-
-    private IEnumerable<TipoListadoDTO> ObrasSocialesFiltradas =>
+    private IEnumerable<TipoObraSocialDTO> ObrasSocialesFiltradas =>
         lista.Where(x =>
             string.IsNullOrWhiteSpace(textoBusqueda)
             ||
@@ -684,150 +681,109 @@
             (x.Descripcion?.Contains(
                 textoBusqueda,
                 StringComparison.OrdinalIgnoreCase) ?? false)
+            ||
+            CoincideCuit(x.Cuit)
         );
-
 
     protected override async Task OnInitializedAsync()
     {
         await Cargar();
     }
 
-
-    /* =====================================================
-       CARGAR LISTADO
-    ====================================================== */
-
     private async Task Cargar()
     {
         cargando = true;
 
-        var resp =
-            await Http.Get<List<TipoListadoDTO>>(
-                "api/tipoobrasocial/ListaTipoObraSocial"
-            );
+        var resp = await Http.Get<List<TipoObraSocialDTO>>(
+            "api/tipoobrasocial/ListaTipoObraSocial"
+        );
 
+        lista = resp.Error
+            ? new()
+            : resp.Respuesta ?? new();
 
-        lista =
-            resp.Error
-                ? new()
-                : resp.Respuesta ?? new();
-
-
-        Mensaje =
-            resp.Error
-                ? resp.ObtenerError()
-                : "";
-
+        Mensaje = resp.Error
+            ? resp.ObtenerError()
+            : string.Empty;
 
         cargando = false;
     }
 
-
-    /* =====================================================
-       DETALLE
-    ====================================================== */
-
     private async Task AbrirDetalle(int id)
     {
-        Mensaje = "";
-
+        Mensaje = string.Empty;
         idSeleccionado = id;
-
         modelo = CrearModeloVacio();
 
         modalActual = ModalObraSocial.Detalle;
-
         cargandoDetalle = true;
 
+        var resp = await Http.Get<TipoObraSocialDTO>(
+            $"api/tipoobrasocial/{id}"
+        );
 
-        var resp =
-            await Http.Get<TipoDTO>(
-                $"api/tipoobrasocial/{id}"
-            );
-
-
-        if (!resp.Error &&
-            resp.Respuesta != null)
+        if (!resp.Error && resp.Respuesta is not null)
         {
             modelo = resp.Respuesta;
+            modelo.Cuit = FormatearCuit(modelo.Cuit);
         }
         else
         {
             Mensaje = resp.ObtenerError();
-
             modalActual = ModalObraSocial.Ninguno;
         }
-
 
         cargandoDetalle = false;
     }
 
-
-    /* =====================================================
-       CREAR
-    ====================================================== */
-
     private void AbrirCrear()
     {
-        Mensaje = "";
-
+        Mensaje = string.Empty;
         idSeleccionado = null;
-
         modelo = CrearModeloVacio();
-
         modalActual = ModalObraSocial.Crear;
     }
 
-
     private async Task CrearObraSocial()
     {
+        if (guardando)
+        {
+            return;
+        }
+
         guardando = true;
+        Mensaje = string.Empty;
 
-        Mensaje = "";
+        modelo.Cuit = NormalizarCuit(modelo.Cuit);
 
-
-        var resp =
-            await Http.Post<TipoDTO, int>(
-                "api/tipoobrasocial",
-                modelo
-            );
-
+        var resp = await Http.Post<TipoObraSocialDTO, int>(
+            "api/tipoobrasocial",
+            modelo
+        );
 
         guardando = false;
-
 
         if (!resp.Error)
         {
             modalActual = ModalObraSocial.Ninguno;
-
             modelo = CrearModeloVacio();
 
             await Cargar();
         }
         else
         {
+            modelo.Cuit = FormatearCuit(modelo.Cuit);
             Mensaje = resp.ObtenerError();
         }
     }
 
-
-    /* =====================================================
-       EDITAR
-    ====================================================== */
-
     private void AbrirEditar()
     {
-        Mensaje = "";
-
+        Mensaje = string.Empty;
+        modelo.Cuit = FormatearCuit(modelo.Cuit);
         modalActual = ModalObraSocial.Editar;
     }
 
-
-    /*
-     * Al cancelar edición volvemos a cargar el registro
-     * desde la API para descartar cualquier cambio que
-     * haya quedado en el modelo mediante @bind-Value.
-     */
     private async Task CancelarEdicion()
     {
         if (guardando ||
@@ -837,81 +793,68 @@
             return;
         }
 
-
-        Mensaje = "";
-
+        Mensaje = string.Empty;
         cargandoDetalle = true;
-
         modalActual = ModalObraSocial.Detalle;
 
+        var resp = await Http.Get<TipoObraSocialDTO>(
+            $"api/tipoobrasocial/{idSeleccionado.Value}"
+        );
 
-        var resp =
-            await Http.Get<TipoDTO>(
-                $"api/tipoobrasocial/{idSeleccionado.Value}"
-            );
-
-
-        if (!resp.Error &&
-            resp.Respuesta != null)
+        if (!resp.Error && resp.Respuesta is not null)
         {
             modelo = resp.Respuesta;
+            modelo.Cuit = FormatearCuit(modelo.Cuit);
         }
         else
         {
             Mensaje = resp.ObtenerError();
-
             modalActual = ModalObraSocial.Editar;
         }
-
 
         cargandoDetalle = false;
     }
 
-
     private async Task GuardarCambios()
     {
-        if (idSeleccionado is null)
+        if (idSeleccionado is null ||
+            guardando ||
+            eliminando)
+        {
             return;
-
+        }
 
         guardando = true;
+        Mensaje = string.Empty;
 
-        Mensaje = "";
+        modelo.Cuit = NormalizarCuit(modelo.Cuit);
 
-
-        var resp =
-            await Http.Put<TipoDTO, RespuestaDTO>(
-                $"api/tipoobrasocial/{idSeleccionado.Value}",
-                modelo
-            );
-
+        var resp = await Http.Put<TipoObraSocialDTO, RespuestaDTO>(
+            $"api/tipoobrasocial/{idSeleccionado.Value}",
+            modelo
+        );
 
         guardando = false;
-
 
         if (!resp.Error)
         {
             await Cargar();
-
-            // Después de guardar volvemos al detalle.
             await RecargarDetalle();
         }
         else
         {
+            modelo.Cuit = FormatearCuit(modelo.Cuit);
             Mensaje = resp.ObtenerError();
         }
     }
 
-
-    /* =====================================================
-       ELIMINAR
-    ====================================================== */
-
     private void AbrirConfirmacionEliminar()
     {
-        mostrarConfirmacionEliminar = true;
+        if (!guardando && !eliminando)
+        {
+            mostrarConfirmacionEliminar = true;
+        }
     }
-
 
     private void CerrarConfirmacionEliminar()
     {
@@ -921,35 +864,27 @@
         }
     }
 
-
     private async Task ConfirmarEliminar()
     {
-        if (idSeleccionado is null)
+        if (idSeleccionado is null || eliminando)
+        {
             return;
-
+        }
 
         eliminando = true;
+        Mensaje = string.Empty;
 
-        Mensaje = "";
-
-
-        var resp =
-            await Http.Delete(
-                $"api/tipoobrasocial/{idSeleccionado.Value}"
-            );
-
+        var resp = await Http.Delete(
+            $"api/tipoobrasocial/{idSeleccionado.Value}"
+        );
 
         eliminando = false;
-
 
         if (!resp.Error)
         {
             mostrarConfirmacionEliminar = false;
-
             modalActual = ModalObraSocial.Ninguno;
-
             idSeleccionado = null;
-
             modelo = CrearModeloVacio();
 
             await Cargar();
@@ -957,102 +892,132 @@
         else
         {
             Mensaje = resp.ObtenerError();
-
             mostrarConfirmacionEliminar = false;
         }
     }
 
-
-    /* =====================================================
-       RECARGAR DETALLE
-    ====================================================== */
-
     private async Task RecargarDetalle()
     {
         if (idSeleccionado is null)
+        {
             return;
-
+        }
 
         cargandoDetalle = true;
-
         modalActual = ModalObraSocial.Detalle;
 
+        var resp = await Http.Get<TipoObraSocialDTO>(
+            $"api/tipoobrasocial/{idSeleccionado.Value}"
+        );
 
-        var resp =
-            await Http.Get<TipoDTO>(
-                $"api/tipoobrasocial/{idSeleccionado.Value}"
-            );
-
-
-        if (!resp.Error &&
-            resp.Respuesta != null)
+        if (!resp.Error && resp.Respuesta is not null)
         {
             modelo = resp.Respuesta;
+            modelo.Cuit = FormatearCuit(modelo.Cuit);
         }
         else
         {
             Mensaje = resp.ObtenerError();
-
             modalActual = ModalObraSocial.Ninguno;
         }
-
 
         cargandoDetalle = false;
     }
 
-
-    /* =====================================================
-       CERRAR MODAL
-    ====================================================== */
-
     private void CerrarModal()
     {
         if (guardando || eliminando)
+        {
             return;
-
+        }
 
         modalActual = ModalObraSocial.Ninguno;
-
         idSeleccionado = null;
-
         modelo = CrearModeloVacio();
-
-        Mensaje = "";
+        Mensaje = string.Empty;
     }
 
-
-    /* =====================================================
-       AUXILIARES
-    ====================================================== */
-
-    private static TipoDTO CrearModeloVacio()
+    private void FormatearCuitModelo()
     {
-        return new TipoDTO
+        modelo.Cuit = FormatearCuit(modelo.Cuit);
+    }
+
+    private bool CoincideCuit(string? cuit)
+    {
+        var busquedaNormalizada = NormalizarCuit(textoBusqueda);
+
+        if (string.IsNullOrWhiteSpace(busquedaNormalizada))
+        {
+            return false;
+        }
+
+        return NormalizarCuit(cuit).Contains(
+            busquedaNormalizada,
+            StringComparison.OrdinalIgnoreCase
+        );
+    }
+
+    private static string NormalizarCuit(string? cuit)
+    {
+        if (string.IsNullOrWhiteSpace(cuit))
+        {
+            return string.Empty;
+        }
+
+        return new string(
+            cuit.Where(char.IsDigit).ToArray()
+        );
+    }
+
+    private static string FormatearCuit(string? cuit)
+    {
+        var cuitNormalizado = NormalizarCuit(cuit);
+
+        if (cuitNormalizado.Length != 11)
+        {
+            return cuit?.Trim() ?? string.Empty;
+        }
+
+        return $"{cuitNormalizado[..2]}-" +
+               $"{cuitNormalizado.Substring(2, 8)}-" +
+               $"{cuitNormalizado[^1]}";
+    }
+
+    private static string FormatearCuitParaMostrar(string? cuit)
+    {
+        var cuitFormateado = FormatearCuit(cuit);
+
+        return string.IsNullOrWhiteSpace(cuitFormateado)
+            ? "—"
+            : cuitFormateado;
+    }
+
+    private static TipoObraSocialDTO CrearModeloVacio()
+    {
+        return new TipoObraSocialDTO
         {
             Tipo = string.Empty,
+            Cuit = string.Empty,
             Descripcion = string.Empty
         };
     }
 
-
     private static string MostrarValor(object? valor)
     {
         if (valor is null)
+        {
             return "—";
-
+        }
 
         var texto = valor.ToString();
-
 
         return string.IsNullOrWhiteSpace(texto)
             ? "—"
             : texto;
     }
 
-
     private void Volver()
     {
         Nav.NavigateTo("/admin");
     }
-
 }

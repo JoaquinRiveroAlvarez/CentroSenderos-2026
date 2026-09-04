@@ -4,11 +4,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 {
     public interface ITipoObraSocialRepositorio
     {
-        Task<TipoListadoDTO?> SelectByTipoObraSocial(string tipo);
-        Task<List<TipoListadoDTO>> SelectListaTipoObrasocial();
-        Task<int> InsertarTipoObraSocial(TipoDTO dto);
+        Task<TipoObraSocialDTO?> SelectPorId(int id);
+        Task<TipoObraSocialDTO?> SelectByTipoObraSocial(string tipo);
+        Task<List<TipoObraSocialDTO>> SelectListaTipoObrasocial();
+        Task<int> InsertarTipoObraSocial(TipoObraSocialDTO dto);
+        Task<bool> ActualizarTipoObraSocial(int id, TipoObraSocialDTO dto);
         Task<bool> DeleteTipoObraSocial(int id);
-        Task<bool> ActualizarTipoObraSocial(int id, TipoDTO dto);
-        Task<TipoDTO?> SelectPorId(int id);
     }
 }

@@ -1,13 +1,9 @@
-/* CSS for TipoObraSocialCrear component */
 .obra-social-form-page {
     width: 100%;
     padding: 34px 36px 40px;
 }
 
-
-/* =====================================================
-   CARD
-===================================================== */
+/* Tarjeta */
 
 .obra-social-card {
     width: 100%;
@@ -17,22 +13,18 @@
     background: #fffdf9;
     border: 1px solid #e9e5df;
     border-radius: 18px;
-    box-shadow: 0 8px 28px rgba(56, 53, 47, .06);
+    box-shadow: 0 8px 28px rgba(56, 53, 47, 0.06);
 }
 
-
-/* =====================================================
-   HEADER
-===================================================== */
+/* Encabezado */
 
 .card-header {
     display: flex;
-    justify-content: space-between;
     align-items: flex-start;
+    justify-content: space-between;
     gap: 20px;
     margin-bottom: 28px;
 }
-
 
     .card-header h1 {
         margin: 0;
@@ -42,241 +34,13 @@
         line-height: 1.2;
     }
 
-
     .card-header p {
         margin: 7px 0 0;
         color: #92948f;
         font-size: 14px;
     }
 
-
-/* =====================================================
-   CERRAR
-===================================================== */
-
-.close-button {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    padding: 0;
-    background: transparent;
-    color: #555953;
-    border: none;
-    border-radius: 50%;
-    font-size: 17px;
-    cursor: pointer;
-    transition: background .2s ease, color .2s ease;
-}
-
-
-    .close-button:hover {
-        background: #f1efeb;
-        color: #2f332e;
-    }
-
-
-/* =====================================================
-   FORMULARIO
-===================================================== */
-
-.obra-social-form {
-    width: 100%;
-}
-
-
-.field-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 22px;
-}
-
-
-    .field-group label {
-        margin-bottom: 7px;
-        color: #656860;
-        font-size: 13px;
-        font-weight: 500;
-        letter-spacing: .03em;
-    }
-
-
-/* =====================================================
-   INPUT
-===================================================== */
-
-.senderos-input {
-    width: 100%;
-    height: 44px;
-    padding: 0 14px;
-    background: #fffefa;
-    color: #41453f;
-    border: 1px solid #d9ddd6;
-    border-radius: 10px;
-    outline: none;
-    font-family: inherit;
-    font-size: 14px;
-    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
-}
-
-
-    .senderos-input::placeholder {
-        color: #aaa9a4;
-    }
-
-
-    .senderos-input:focus {
-        background: white;
-        border-color: #82947a;
-        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
-    }
-
-
-/* =====================================================
-   TEXTAREA
-===================================================== */
-
-.senderos-textarea {
-    width: 100%;
-    min-height: 125px;
-    resize: vertical;
-    padding: 12px 14px;
-    background: #fffefa;
-    color: #41453f;
-    border: 1px solid #d9ddd6;
-    border-radius: 10px;
-    outline: none;
-    font-family: inherit;
-    font-size: 14px;
-    line-height: 1.5;
-    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
-}
-
-
-    .senderos-textarea::placeholder {
-        color: #aaa9a4;
-    }
-
-
-    .senderos-textarea:focus {
-        background: white;
-        border-color: #82947a;
-        box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
-    }
-
-
-/* =====================================================
-   VALIDACIONES
-===================================================== */
-
-.validation-summary {
-    margin-bottom: 20px;
-    padding: 12px 15px;
-    background: #fff1ee;
-    color: #a74740;
-    border: 1px solid #f0d3cf;
-    border-radius: 10px;
-    font-size: 13px;
-}
-
-
-.validation-message {
-    margin-top: 5px;
-    color: #d34848;
-    font-size: 12px;
-}
-
-
-/* =====================================================
-   MENSAJE API
-===================================================== */
-
-.form-message {
-    margin-bottom: 18px;
-    padding: 12px 15px;
-    background: #fff1ee;
-    color: #a74740;
-    border: 1px solid #f0d3cf;
-    border-radius: 10px;
-    font-size: 14px;
-}
-
-
-/* =====================================================
-   BOTONES
-===================================================== */
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 12px;
-    margin-top: 30px;
-}
-
-
-.btn-cancelar {
-    min-width: 110px;
-    height: 44px;
-    padding: 0 20px;
-    background: #efedeb;
-    color: #555852;
-    border: 1px solid #dedbd6;
-    border-radius: 22px;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background .2s ease;
-}
-
-
-    .btn-cancelar:hover {
-        background: #e6e3df;
-    }
-
-
-.btn-guardar {
-    min-width: 120px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 0 22px;
-    background: #647b5b;
-    color: white;
-    border: none;
-    border-radius: 22px;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background .2s ease, transform .15s ease, opacity .2s ease;
-}
-
-
-    .btn-guardar:hover:not(:disabled) {
-        background: #556f4f;
-    }
-
-
-    .btn-guardar:active:not(:disabled) {
-        transform: scale(.98);
-    }
-
-
-    .btn-guardar:disabled {
-        opacity: .65;
-        cursor: default;
-    }
-
-
-/* =====================================================
-   VOLVER
-===================================================== */
+/* Botón volver */
 
 .back-button {
     display: inline-flex;
@@ -284,9 +48,9 @@
     gap: 8px;
     margin: 0 0 14px;
     padding: 0;
+    color: #6f786a;
     background: transparent;
     border: none;
-    color: #6f786a;
     font-family: inherit;
     font-size: 14px;
     font-weight: 500;
@@ -307,32 +71,260 @@
             transform: translateX(-3px);
         }
 
-/* =====================================================
-   RESPONSIVE
-===================================================== */
+/* Botón cerrar */
+
+.close-button {
+    display: flex;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #555953;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    font-size: 17px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+    .close-button:hover:not(:disabled) {
+        color: #2f332e;
+        background: #f1efeb;
+    }
+
+    .close-button:disabled {
+        cursor: default;
+        opacity: 0.55;
+    }
+
+/* Formulario */
+
+.obra-social-form {
+    width: 100%;
+}
+
+.field-group {
+    display: flex;
+    margin-bottom: 22px;
+    flex-direction: column;
+}
+
+    .field-group label {
+        margin-bottom: 7px;
+        color: #656860;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+    }
+
+/* Campos */
+
+.senderos-input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    color: #41453f;
+    background: #fffefa;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+    .senderos-input::placeholder {
+        color: #aaa9a4;
+    }
+
+    .senderos-input:focus {
+        background: #ffffff;
+        border-color: #82947a;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.10);
+    }
+
+.senderos-textarea {
+    width: 100%;
+    min-height: 125px;
+    padding: 12px 14px;
+    color: #41453f;
+    background: #fffefa;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: vertical;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+    .senderos-textarea::placeholder {
+        color: #aaa9a4;
+    }
+
+    .senderos-textarea:focus {
+        background: #ffffff;
+        border-color: #82947a;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.10);
+    }
+
+/* Texto debajo del CUIT */
+
+.field-help {
+    display: block;
+    margin-top: 6px;
+    color: #91958e;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* Validaciones */
+
+::deep .validation-summary {
+    margin-bottom: 20px;
+    padding: 12px 15px;
+    color: #a74740;
+    background: #fff1ee;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+    ::deep .validation-summary ul {
+        margin: 0;
+        padding-left: 18px;
+    }
+
+    ::deep .validation-summary li + li {
+        margin-top: 4px;
+    }
+
+::deep .validation-message {
+    margin-top: 5px;
+    color: #d34848;
+    font-size: 12px;
+}
+
+::deep .senderos-input.invalid,
+::deep .senderos-textarea.invalid {
+    border-color: #d34848;
+}
+
+::deep .senderos-input.valid.modified,
+::deep .senderos-textarea.valid.modified {
+    border-color: #82947a;
+}
+
+/* Mensaje de la API */
+
+.form-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding: 12px 15px;
+    color: #a74740;
+    background: #fff1ee;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+    .form-message i {
+        margin-top: 1px;
+        flex-shrink: 0;
+    }
+
+/* Acciones */
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+.btn-cancelar {
+    min-width: 110px;
+    height: 44px;
+    padding: 0 20px;
+    color: #555852;
+    background: #efedeb;
+    border: 1px solid #dedbd6;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+    .btn-cancelar:hover:not(:disabled) {
+        background: #e6e3df;
+    }
+
+.btn-guardar {
+    display: flex;
+    min-width: 175px;
+    height: 44px;
+    padding: 0 22px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #ffffff;
+    background: #647b5b;
+    border: none;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+}
+
+    .btn-guardar:hover:not(:disabled) {
+        background: #556f4f;
+    }
+
+    .btn-guardar:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+
+    .btn-cancelar:disabled,
+    .btn-guardar:disabled {
+        cursor: default;
+        opacity: 0.65;
+    }
+
+/* Responsive */
 
 @media (max-width: 650px) {
-
     .obra-social-form-page {
         padding: 22px 15px 30px;
     }
-
 
     .obra-social-card {
         padding: 23px 19px;
     }
 
-
-    .card-header h1 {
-        font-size: 23px;
+    .card-header {
+        gap: 12px;
     }
 
+        .card-header h1 {
+            font-size: 23px;
+        }
 
     .form-actions {
-        flex-direction: column-reverse;
         align-items: stretch;
+        flex-direction: column-reverse;
     }
-
 
     .btn-cancelar,
     .btn-guardar {
