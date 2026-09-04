@@ -424,6 +424,15 @@
 @code {
     [Parameter]
     public int id { get; set; }
+    [SupplyParameterFromQuery(Name = "volverADetalle")]
+    public bool VolverADetalle { get; set; }
+    [SupplyParameterFromQuery(Name = "volverAVista")]
+    public bool VolverAVista { get; set; }
+    [SupplyParameterFromQuery(Name = "vistaOrigen")]
+    public string? VistaOrigen { get; set; }
+    [SupplyParameterFromQuery(Name = "fechaOrigen")]
+    public string? FechaOrigen { get; set; }
+
 
     private TurnoDTO modelo = new();
 
@@ -849,6 +858,37 @@
 
     private void Volver()
     {
+        var vista = string.IsNullOrWhiteSpace(VistaOrigen)
+            ? "diaria"
+            : VistaOrigen;
+
+        var fecha = string.IsNullOrWhiteSpace(FechaOrigen)
+            ? DateTime.Today.ToString("yyyy-MM-dd")
+            : FechaOrigen;
+
+        if (VolverADetalle)
+        {
+            Nav.NavigateTo(
+                $"/turnos" +
+                $"?detalle={id}" +
+                $"&vista={vista}" +
+                $"&fecha={fecha}"
+            );
+
+            return;
+        }
+
+        if (VolverAVista)
+        {
+            Nav.NavigateTo(
+                $"/turnos" +
+                $"?vista={vista}" +
+                $"&fecha={fecha}"
+            );
+
+            return;
+        }
+
         Nav.NavigateTo("/turnos");
     }
 

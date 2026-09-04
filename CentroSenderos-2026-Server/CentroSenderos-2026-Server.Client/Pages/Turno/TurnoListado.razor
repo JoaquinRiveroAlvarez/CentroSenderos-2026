@@ -254,7 +254,8 @@
                                 <div class="lista-turnos">
                                     @foreach (var turno in turnosDia)
                                     {
-                                        <article class="turno-card">
+                                        <article class="turno-card turno-card-clickeable"
+                                                 @onclick="() => AbrirDetalle(turno)">
 
                                             <div class="turno-icono">
                                                 <i class="bi bi-calendar-check"></i>
@@ -299,6 +300,7 @@
                                             <button type="button"
                                                     class="btn-editar-turno"
                                                     title="Editar turno"
+                                                    @onclick:stopPropagation="true"
                                                     @onclick="() => IrAEditar(turno.Id)">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
@@ -414,11 +416,11 @@
                                     }
                                 @foreach (var turno in TurnosGrilla)
                                 {
-                                    <button type="button"
-                                            class="@ObtenerClaseTurnoGrilla(turno)"
-                                            style="@ObtenerPosicionTurno(turno)"
-                                            title="Editar turno"
-                                            @onclick="() => IrAEditar(turno.Id)">
+                            <button type="button"
+                                    class="@ObtenerClaseTurnoGrilla(turno)"
+                                    style="@ObtenerPosicionTurno(turno)"
+                                    title="Ver detalle del turno"
+                                    @onclick="() => AbrirDetalle(turno)">
 
                                         <span class="turno-grilla-tipo">
                                             @(string.IsNullOrWhiteSpace(
@@ -485,7 +487,8 @@
 
                         @foreach (var turno in TurnosDelDia)
                         {
-                            <article class="turno-card">
+                    <article class="turno-card turno-card-clickeable"
+                             @onclick="() => AbrirDetalle(turno)">
 
                                 <div class="turno-icono">
                                     <i class="bi bi-calendar-check"></i>
@@ -530,6 +533,7 @@
                                 <button type="button"
                                         class="btn-editar-turno"
                                         title="Editar turno"
+                                        @onclick:stopPropagation="true"
                                         @onclick="() => IrAEditar(turno.Id)">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -549,6 +553,135 @@
 
 </div>
 
+@if (mostrarDetalle && turnoSeleccionado is not null)
+{
+    <div class="detalle-turno-fondo"
+         @onclick="CerrarDetalle">
+
+        <section class="detalle-turno-modal"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="detalle-turno-titulo"
+                 @onclick:stopPropagation="true">
+
+            <header class="detalle-turno-header">
+
+                <div>
+                    <span class="detalle-turno-consultorio">
+                        @(string.IsNullOrWhiteSpace(
+                            turnoSeleccionado.NombreTipoConsultorio)
+                                ? "Sin consultorio"
+                                : turnoSeleccionado.NombreTipoConsultorio)
+                    </span>
+
+                    <h2 id="detalle-turno-titulo">
+                        @(string.IsNullOrWhiteSpace(
+                            turnoSeleccionado.NombreTipoTurno)
+                                ? "Detalle del turno"
+                                : turnoSeleccionado.NombreTipoTurno)
+                    </h2>
+                </div>
+
+                <button type="button"
+                        class="detalle-turno-cerrar"
+                        title="Cerrar"
+                        @onclick="CerrarDetalle">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+            </header>
+
+            <div class="detalle-turno-estado">
+                <span class="@ObtenerClaseEstado(turnoSeleccionado)">
+                    @ObtenerTextoEstado(turnoSeleccionado)
+                </span>
+            </div>
+
+            <div class="detalle-turno-horario">
+
+                <div class="detalle-turno-fecha-icono">
+                    <i class="bi bi-calendar3"></i>
+                </div>
+
+                <div>
+                    <span>Fecha y horario</span>
+
+                    <strong>
+                        @FormatearFechaDetalle(
+                            turnoSeleccionado.FechaInicio)
+                    </strong>
+
+                    <p>
+                        @turnoSeleccionado.FechaInicio.ToString("HH:mm")
+                        -
+                        @turnoSeleccionado.FechaFin.ToString("HH:mm")
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="detalle-turno-datos">
+
+                <div class="detalle-turno-dato">
+                    <span>Tipo de turno</span>
+
+                    <strong>
+                        @(string.IsNullOrWhiteSpace(
+                            turnoSeleccionado.NombreTipoTurno)
+                                ? "Sin especificar"
+                                : turnoSeleccionado.NombreTipoTurno)
+                    </strong>
+                </div>
+
+                <div class="detalle-turno-dato">
+                    <span>Duración</span>
+
+                    <strong>
+                        @ObtenerDuracion(turnoSeleccionado) minutos
+                    </strong>
+                </div>
+
+                <div class="detalle-turno-dato">
+                    <span>Consultorio</span>
+
+                    <strong>
+                        @(string.IsNullOrWhiteSpace(
+                            turnoSeleccionado.NombreTipoConsultorio)
+                                ? "Sin consultorio"
+                                : turnoSeleccionado.NombreTipoConsultorio)
+                    </strong>
+                </div>
+
+                <div class="detalle-turno-dato">
+                    <span>Número de turno</span>
+                    <strong>#@turnoSeleccionado.Id</strong>
+                </div>
+
+            </div>
+
+            <footer class="detalle-turno-acciones">
+
+                <button type="button"
+                        class="detalle-btn-cerrar"
+                        @onclick="CerrarDetalle">
+                    Cerrar
+                </button>
+
+                <button type="button"
+                        class="detalle-btn-editar"
+                        @onclick="EditarTurnoSeleccionado">
+                    <i class="bi bi-pencil"></i>
+                    <span>Editar turno</span>
+                </button>
+
+            </footer>
+
+        </section>
+    </div>
+}
+
+
+
 @code {
     private List<TurnoListadoDTO> listaTurnos = new();
     private List<TipoConsultorioListadoDTO> consultorios = new();
@@ -567,7 +700,15 @@
     private bool vistaAmpliada;
     private bool mostrarConsultorios = true;
     private bool mostrarServicios = false;
+    private bool mostrarDetalle;
+    private TurnoListadoDTO? turnoSeleccionado;
 
+    [SupplyParameterFromQuery(Name = "detalle")]
+    public int? DetalleTurnoId { get; set; }
+    [SupplyParameterFromQuery(Name = "vista")]
+    public string? VistaDesdeUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "fecha")]
+    public string? FechaDesdeUrl { get; set; }
 
     private List<TurnoListadoDTO> TurnosDelDia =>
         listaTurnos
@@ -701,6 +842,9 @@
     {
         await CargarConsultorios();
         await CargarTurnos();
+
+        RestaurarVistaDesdeUrl();
+        AbrirDetalleDesdeUrl();
     }
 
     private async Task CargarConsultorios()
@@ -959,8 +1103,129 @@
     }
 
     private void IrAEditar(int id)
+{
+    var vistaOrigen = ObtenerVistaActual();
+
+    var fechaOrigen =
+        fechaSeleccionada.ToString("yyyy-MM-dd");
+
+    Nav.NavigateTo(
+        $"/turnos/editar/{id}" +
+        $"?volverAVista=true" +
+        $"&vistaOrigen={vistaOrigen}" +
+        $"&fechaOrigen={fechaOrigen}"
+    );
+}
+    
+    private void AbrirDetalle(TurnoListadoDTO turno)
     {
-        Nav.NavigateTo($"/turnos/editar/{id}");
+        turnoSeleccionado = turno;
+        mostrarDetalle = true;
+    }
+    private void AbrirDetalleDesdeUrl()
+    {
+        if (!DetalleTurnoId.HasValue)
+        {
+            return;
+        }
+
+        var turno = listaTurnos.FirstOrDefault(
+            item => item.Id == DetalleTurnoId.Value
+        );
+
+        if (turno is not null)
+        {
+            AbrirDetalle(turno);
+        }
+    }
+    private void RestaurarVistaDesdeUrl()
+    {
+        if (DateTime.TryParseExact(
+            FechaDesdeUrl,
+            "yyyy-MM-dd",
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None,
+            out var fecha))
+        {
+            fechaSeleccionada = fecha.Date;
+
+            mesVisible = new DateTime(
+                fecha.Year,
+                fecha.Month,
+                1
+            );
+        }
+
+        switch (VistaDesdeUrl?.ToLowerInvariant())
+        {
+            case "semanal":
+                vistaSemanal = true;
+                vistaAmpliada = false;
+                break;
+
+            case "ampliada":
+                vistaSemanal = false;
+                vistaAmpliada = true;
+                break;
+
+            default:
+                vistaSemanal = false;
+                vistaAmpliada = false;
+                break;
+        }
+    }
+    private void CerrarDetalle()
+    {
+        mostrarDetalle = false;
+        turnoSeleccionado = null;
+    }
+
+    private void EditarTurnoSeleccionado()
+    {
+        if (turnoSeleccionado is null)
+        {
+            return;
+        }
+
+        var vistaOrigen = ObtenerVistaActual();
+
+        var fechaOrigen =
+            fechaSeleccionada.ToString("yyyy-MM-dd");
+
+        Nav.NavigateTo(
+            $"/turnos/editar/{turnoSeleccionado.Id}" +
+            $"?volverADetalle=true" +
+            $"&vistaOrigen={vistaOrigen}" +
+            $"&fechaOrigen={fechaOrigen}"
+        );
+    }
+
+    private string ObtenerVistaActual()
+    {
+        if (vistaSemanal)
+        {
+            return "semanal";
+        }
+
+        if (vistaAmpliada)
+        {
+            return "ampliada";
+        }
+
+        return "diaria";
+    }
+
+    private static string FormatearFechaDetalle(DateTime fecha)
+    {
+        var cultura =
+            new System.Globalization.CultureInfo("es-AR");
+
+        var texto = fecha.ToString(
+            "dddd, d 'de' MMMM 'de' yyyy",
+            cultura
+        );
+
+        return char.ToUpper(texto[0]) + texto[1..];
     }
 
     private void IrACrear()
