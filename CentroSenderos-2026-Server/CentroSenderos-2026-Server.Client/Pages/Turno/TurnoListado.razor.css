@@ -402,6 +402,184 @@
     font-size: 14px;
 }
 
+/* Distribución con calendario lateral */
+
+.agenda-layout {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;
+}
+
+.agenda-principal {
+    min-width: 0;
+}
+
+.calendario-panel {
+    position: sticky;
+    top: 84px;
+    padding: 18px;
+    border: 1px solid #e4e1da;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 4px 15px rgba(48, 52, 46, 0.06);
+}
+
+.calendario-cabecera {
+    display: grid;
+    grid-template-columns: 34px 1fr 34px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+    .calendario-cabecera > span {
+        color: #3d423b;
+        font-size: 14px;
+        font-weight: 700;
+        text-align: center;
+    }
+
+.calendario-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background-color: transparent;
+    color: #646961;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+    .calendario-nav:hover {
+        border-color: #dce3d9;
+        background-color: #eef3ec;
+        color: #4d6847;
+    }
+
+.calendario-semana,
+.calendario-dias {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.calendario-semana {
+    margin-bottom: 6px;
+}
+
+    .calendario-semana span {
+        padding: 6px 0;
+        color: #969992;
+        font-size: 10px;
+        font-weight: 700;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+.calendario-dias {
+    gap: 3px;
+}
+
+.calendario-dia {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background-color: transparent;
+    color: #4e534b;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+    .calendario-dia:hover {
+        border-color: #d8e0d5;
+        background-color: #eef3ec;
+        color: #435b3e;
+    }
+
+    .calendario-dia.otro-mes {
+        color: #b9bbb7;
+    }
+
+    .calendario-dia.dia-hoy {
+        border-color: #aebca9;
+        color: #4d6847;
+        font-weight: 700;
+    }
+
+    .calendario-dia.dia-seleccionado {
+        border-color: #556f4f;
+        background-color: #556f4f;
+        color: #ffffff;
+        font-weight: 700;
+    }
+
+        .calendario-dia.dia-seleccionado:hover {
+            border-color: #435b3e;
+            background-color: #435b3e;
+            color: #ffffff;
+        }
+
+.indicador-turnos {
+    position: absolute;
+    bottom: 3px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: #647b5b;
+}
+
+.dia-seleccionado .indicador-turnos {
+    background-color: #ffffff;
+}
+
+/* Adaptación del calendario */
+
+@media (max-width: 1100px) {
+    .agenda-layout {
+        grid-template-columns: 245px minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .calendario-panel {
+        padding: 14px;
+    }
+}
+
+@media (max-width: 950px) {
+    .agenda-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .calendario-panel {
+        position: static;
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 680px) {
+    .agenda-layout {
+        gap: 18px;
+    }
+
+    .calendario-panel {
+        max-width: none;
+    }
+}
+
 /* Tablets */
 
 @media (max-width: 950px) {

@@ -66,107 +66,177 @@
 
     </div>
 
-    @if (cargando)
-    {
-        <div class="estado-pagina">
-            <div class="spinner-border text-secondary" role="status"></div>
-            <p>Cargando turnos...</p>
-        </div>
-    }
-    else if (!string.IsNullOrWhiteSpace(Mensaje))
-    {
-        <div class="mensaje-error">
-            <i class="bi bi-exclamation-circle"></i>
-            <span>@Mensaje</span>
-        </div>
-    }
-    else if (TurnosDelDia.Count == 0)
-    {
-        <div class="estado-vacio">
-            <i class="bi bi-calendar-x"></i>
-            <h2>No hay turnos programados</h2>
-            <p>No se encontraron turnos para esta fecha.</p>
+    <div class="agenda-layout">
 
-            <button type="button"
-                    class="btn-nuevo-turno"
-                    @onclick="IrACrear">
-                Crear turno
-            </button>
-        </div>
-    }
-    else
-    {
-        <div class="agenda-contenido">
+        <aside class="calendario-panel">
 
-            <div class="resumen-dia">
-                <span>
-                    @TurnosDelDia.Count
-                    @(TurnosDelDia.Count == 1 ? "turno programado" : "turnos programados")
-                </span>
+            <div class="calendario-cabecera">
+                <button type="button"
+                        class="calendario-nav"
+                        title="Mes anterior"
+                        @onclick="IrMesAnterior">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <span>@FormatearMes(mesVisible)</span>
+
+                <button type="button"
+                        class="calendario-nav"
+                        title="Mes siguiente"
+                        @onclick="IrMesSiguiente">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
             </div>
 
-            <div class="lista-turnos">
-                @foreach (var turno in TurnosDelDia.OrderBy(t => t.FechaInicio))
+            <div class="calendario-semana">
+                <span>Lu</span>
+                <span>Ma</span>
+                <span>Mi</span>
+                <span>Ju</span>
+                <span>Vi</span>
+                <span>Sá</span>
+                <span>Do</span>
+            </div>
+
+            <div class="calendario-dias">
+                @foreach (var dia in ObtenerDiasCalendario())
                 {
-                    <article class="turno-card">
+                    <button type="button"
+                            class="@ObtenerClaseDia(dia)"
+                            @onclick="() => SeleccionarFecha(dia)">
 
-                        <div class="turno-horario">
-                            <span class="hora-inicio">
-                                @turno.FechaInicio.ToString("HH:mm")
-                            </span>
+                        <span>@dia.Day</span>
 
-                            <span class="hora-fin">
-                                @turno.FechaFin.ToString("HH:mm")
-                            </span>
-                        </div>
+                        @if (TieneTurnos(dia))
+                        {
+                            <span class="indicador-turnos"></span>
+                        }
 
-                        <div class="turno-icono">
-                            <i class="bi bi-calendar-check"></i>
-                        </div>
-
-                        <div class="turno-informacion">
-                            <span class="turno-consultorio">
-                                @(string.IsNullOrWhiteSpace(turno.NombreTipoConsultorio)
-                                    ? "Sin consultorio"
-                                    : turno.NombreTipoConsultorio)
-                            </span>
-
-                            <h2>
-                                @(string.IsNullOrWhiteSpace(turno.NombreTipoTurno)
-                                    ? "Turno"
-                                    : turno.NombreTipoTurno)
-                            </h2>
-
-                            <span class="turno-duracion">
-                                @ObtenerDuracion(turno) minutos
-                            </span>
-                        </div>
-
-                        <div class="turno-estado">
-                            <span class="@ObtenerClaseEstado(turno)">
-                                @ObtenerTextoEstado(turno)
-                            </span>
-                        </div>
-
-                        <button type="button"
-                                class="btn-editar-turno"
-                                title="Editar turno"
-                                @onclick="() => IrAEditar(turno.Id)">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-
-                    </article>
+                    </button>
                 }
             </div>
 
-        </div>
-    }
+        </aside>
 
+        <main class="agenda-principal">
+
+            @if (cargando)
+            {
+                <div class="estado-pagina">
+                    <div class="spinner-border text-secondary"
+                         role="status">
+                    </div>
+
+                    <p>Cargando turnos...</p>
+                </div>
+            }
+            else if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <div class="mensaje-error">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@Mensaje</span>
+                </div>
+            }
+            else if (TurnosDelDia.Count == 0)
+            {
+                <div class="estado-vacio">
+                    <i class="bi bi-calendar-x"></i>
+
+                    <h2>No hay turnos programados</h2>
+
+                    <p>
+                        No se encontraron turnos para esta fecha.
+                    </p>
+
+                    <button type="button"
+                            class="btn-nuevo-turno"
+                            @onclick="IrACrear">
+                        Crear turno
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="agenda-contenido">
+
+                    <div class="resumen-dia">
+                        <span>
+                            @TurnosDelDia.Count
+                            @(TurnosDelDia.Count == 1
+                                ? "turno programado"
+                                : "turnos programados")
+                        </span>
+                    </div>
+
+                    <div class="lista-turnos">
+                        @foreach (var turno in TurnosDelDia
+                            .OrderBy(t => t.FechaInicio))
+                        {
+                            <article class="turno-card">
+
+                                <div class="turno-horario">
+                                    <span class="hora-inicio">
+                                        @turno.FechaInicio.ToString("HH:mm")
+                                    </span>
+
+                                    <span class="hora-fin">
+                                        @turno.FechaFin.ToString("HH:mm")
+                                    </span>
+                                </div>
+
+                                <div class="turno-icono">
+                                    <i class="bi bi-calendar-check"></i>
+                                </div>
+
+                                <div class="turno-informacion">
+                                    <span class="turno-consultorio">
+                                        @(string.IsNullOrWhiteSpace(
+                                            turno.NombreTipoConsultorio)
+                                                ? "Sin consultorio"
+                                                : turno.NombreTipoConsultorio)
+                                    </span>
+
+                                    <h2>
+                                        @(string.IsNullOrWhiteSpace(
+                                            turno.NombreTipoTurno)
+                                                ? "Turno"
+                                                : turno.NombreTipoTurno)
+                                    </h2>
+
+                                    <span class="turno-duracion">
+                                        @ObtenerDuracion(turno) minutos
+                                    </span>
+                                </div>
+
+                                <div class="turno-estado">
+                                    <span class="@ObtenerClaseEstado(turno)">
+                                        @ObtenerTextoEstado(turno)
+                                    </span>
+                                </div>
+
+                                <button type="button"
+                                        class="btn-editar-turno"
+                                        title="Editar turno"
+                                        @onclick="() => IrAEditar(turno.Id)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+
+                            </article>
+                        }
+                    </div>
+
+                </div>
+            }
+
+        </main>
+
+    </div>
 </div>
 
 @code {
     private List<TurnoListadoDTO> listaTurnos = new();
     private DateTime fechaSeleccionada = DateTime.Today;
+    private DateTime mesVisible = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
 
     private bool cargando = true;
     private string Mensaje = string.Empty;
@@ -198,7 +268,7 @@
             var error = resp.ObtenerError();
 
             // El endpoint devuelve NotFound cuando todavía no existen turnos.
-            if (!error.Contains("No hay turnos disponibles",
+            if (!error.Contains("No hay turnos disponibles para hoy",
                     StringComparison.OrdinalIgnoreCase))
             {
                 Mensaje = error;
@@ -211,71 +281,179 @@
         }
 
         cargando = false;
-    }
+        }
 
-    private void IrDiaAnterior()
-    {
-        fechaSeleccionada = fechaSeleccionada.AddDays(-1);
-    }
-
-    private void IrDiaSiguiente()
-    {
-        fechaSeleccionada = fechaSeleccionada.AddDays(1);
-    }
-
-    private void IrAHoy()
-    {
-        fechaSeleccionada = DateTime.Today;
-    }
-
-    private static string FormatearFecha(DateTime fecha)
-    {
-        var texto = fecha.ToString(
-            "dddd d 'de' MMMM 'de' yyyy",
-            new System.Globalization.CultureInfo("es-AR")
-        );
-
-        return char.ToUpper(texto[0]) + texto[1..];
-    }
-
-    private static int ObtenerDuracion(TurnoListadoDTO turno)
-    {
-        return (int)(turno.FechaFin - turno.FechaInicio).TotalMinutes;
-    }
-
-    private static string ObtenerTextoEstado(TurnoListadoDTO turno)
-    {
-        return turno.EstadoTurno switch
+        private void IrDiaAnterior()
         {
-            EnumEstadoTurno.disponible => "Disponible",
-            EnumEstadoTurno.reservado => "Reservado",
-            EnumEstadoTurno.atendido => "Atendido",
-            EnumEstadoTurno.cancelado => "Cancelado",
-            EnumEstadoTurno.ausente => "No asistió",
-            _ => turno.EstadoTurno.ToString()
-        };
-    }
+            fechaSeleccionada = fechaSeleccionada.AddDays(-1);
 
-    private static string ObtenerClaseEstado(TurnoListadoDTO turno)
-    {
-        return turno.EstadoTurno switch
+            mesVisible = new DateTime(
+                fechaSeleccionada.Year,
+                fechaSeleccionada.Month,
+                1
+            );
+        }
+
+        private void IrDiaSiguiente()
         {
-            EnumEstadoTurno.disponible => "estado-badge estado-disponible",
-            EnumEstadoTurno.reservado => "estado-badge estado-reservado",
-            EnumEstadoTurno.atendido => "estado-badge estado-atendido",
-            EnumEstadoTurno.cancelado => "estado-badge estado-cancelado",
-            EnumEstadoTurno.ausente => "estado-badge estado-ausente",
-            _ => "estado-badge"
+            fechaSeleccionada = fechaSeleccionada.AddDays(1);
+
+            mesVisible = new DateTime(
+                fechaSeleccionada.Year,
+                fechaSeleccionada.Month,
+                1
+            );
+        }
+
+        private void IrAHoy()
+        {
+            fechaSeleccionada = DateTime.Today;
+
+            mesVisible = new DateTime(
+                DateTime.Today.Year,
+                DateTime.Today.Month,
+                1
+            );
+        }
+
+        private void IrMesAnterior()
+        {
+            mesVisible = mesVisible.AddMonths(-1);
+        }
+
+        private void IrMesSiguiente()
+        {
+            mesVisible = mesVisible.AddMonths(1);
+        }
+
+        private void SeleccionarFecha(DateTime dia)
+        {
+            fechaSeleccionada = dia.Date;
+
+            mesVisible = new DateTime(
+                dia.Year,
+                dia.Month,
+                1
+            );
+        }
+
+        private List<DateTime> ObtenerDiasCalendario()
+        {
+            var primerDiaMes = new DateTime(
+                mesVisible.Year,
+                mesVisible.Month,
+                1
+            );
+
+            // Convierte la semana para que empiece el lunes.
+            var desplazamiento =
+                ((int)primerDiaMes.DayOfWeek + 6) % 7;
+
+            var primerDiaVisible =
+                primerDiaMes.AddDays(-desplazamiento);
+
+            return Enumerable
+                .Range(0, 42)
+                .Select(numero =>
+                    primerDiaVisible.AddDays(numero))
+                .ToList();
+        }
+
+        private bool TieneTurnos(DateTime dia)
+        {
+            return listaTurnos.Any(
+                turno => turno.FechaInicio.Date == dia.Date
+            );
+        }
+
+        private string ObtenerClaseDia(DateTime dia)
+        {
+            var clases = new List<string>
+        {
+            "calendario-dia"
         };
-    }
 
-    private void IrAEditar(int id)
-    {
-        Nav.NavigateTo($"/turnos/editar/{id}");
-    }
+            if (dia.Month != mesVisible.Month)
+            {
+                clases.Add("otro-mes");
+            }
 
-    private void IrACrear()
-    {
-        Nav.NavigateTo("/turnos/crear");
-    }
+            if (dia.Date == DateTime.Today)
+            {
+                clases.Add("dia-hoy");
+            }
+
+            if (dia.Date == fechaSeleccionada.Date)
+            {
+                clases.Add("dia-seleccionado");
+            }
+
+            if (TieneTurnos(dia))
+            {
+                clases.Add("dia-con-turnos");
+            }
+
+            return string.Join(" ", clases);
+        }
+
+        private static string FormatearMes(DateTime fecha)
+        {
+            var texto = fecha.ToString(
+                "MMMM yyyy",
+                new System.Globalization.CultureInfo("es-AR")
+            );
+
+            return char.ToUpper(texto[0]) + texto[1..];
+        }
+
+        private static string FormatearFecha(DateTime fecha)
+        {
+            var texto = fecha.ToString(
+                "dddd d 'de' MMMM 'de' yyyy",
+                new System.Globalization.CultureInfo("es-AR")
+            );
+
+            return char.ToUpper(texto[0]) + texto[1..];
+        }
+
+        private static int ObtenerDuracion(TurnoListadoDTO turno)
+        {
+            return (int)(turno.FechaFin - turno.FechaInicio).TotalMinutes;
+        }
+
+        private static string ObtenerTextoEstado(TurnoListadoDTO turno)
+        {
+            return turno.EstadoTurno switch
+            {
+                EnumEstadoTurno.disponible => "Disponible",
+                EnumEstadoTurno.reservado => "Reservado",
+                EnumEstadoTurno.atendido => "Atendido",
+                EnumEstadoTurno.cancelado => "Cancelado",
+                EnumEstadoTurno.ausente => "No asistió",
+                _ => turno.EstadoTurno.ToString()
+            };
+        }
+
+        private static string ObtenerClaseEstado(TurnoListadoDTO turno)
+        {
+            return turno.EstadoTurno switch
+            {
+                EnumEstadoTurno.disponible => "estado-badge estado-disponible",
+                EnumEstadoTurno.reservado => "estado-badge estado-reservado",
+                EnumEstadoTurno.atendido => "estado-badge estado-atendido",
+                EnumEstadoTurno.cancelado => "estado-badge estado-cancelado",
+                EnumEstadoTurno.ausente => "estado-badge estado-ausente",
+                _ => "estado-badge"
+            };
+        }
+
+        private void IrAEditar(int id)
+        {
+            Nav.NavigateTo($"/turnos/editar/{id}");
+        }
+
+        private void IrACrear()
+        {
+            Nav.NavigateTo("/turnos/crear");
+        }
 }
