@@ -1,121 +1,861 @@
 ﻿@page "/turnos/editar/{id:int}"
 @attribute [Authorize]
+
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
+
 @inject IHttpServicio Http
 @inject NavigationManager Nav
+
 @rendermode InteractiveAuto
 
-<h3>Editar Turno</h3>
+<PageTitle>Editar turno</PageTitle>
 
-@if (cargando)
-{
-    <p>Cargando...</p>
-}
-else
-{
-    <EditForm Model="@modelo" OnValidSubmit="Grabar">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+<div class="turno-editar-page">
 
-        <!-- Fecha -->
-        <div class="form-group">
-            <label>Fecha</label>
-            <InputDate class="form-control" @bind-Value="modelo.Fecha" />
+    <button type="button"
+            class="btn-volver"
+            @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver a la agenda</span>
+    </button>
+
+    <header class="editar-header">
+        <div>
+            <h1>Editar turno</h1>
+            <p>Modificá los datos, el horario o el estado del turno.</p>
         </div>
 
-        <!-- Hora -->
-        <div class="form-group">
-            <label>Hora</label>
-            <input type="time" class="form-control" @bind="modelo.Hora" />
-        </div>
-
-        <!-- Tipo de Turno -->
-        <div class="form-group">
-            <label>Tipo de Turno</label>
-            <InputSelect class="form-control" @bind-Value="modelo.TipoTurnoId">
-                <option value="0">-- Seleccione un tipo de turno --</option>
-                @foreach (var tipo in tiposTurno)
-                {
-                    <option value="@tipo.Id">@tipo.Tipo (@tipo.DuracionMinutos min)</option>
-                }
-                <option value="-1">Otro</option>
-            </InputSelect>
-        </div>
-
-        @if (modelo.TipoTurnoId == -1)
+        @if (!cargando && string.IsNullOrWhiteSpace(errorCarga))
         {
-            <div class="form-group">
-                <label>Duración personalizada (minutos)</label>
-                <InputNumber class="form-control" @bind-Value="modelo.DuracionPersonalizada" />
-            </div>
+            <span class="turno-identificador">
+                Turno #@id
+            </span>
         }
+    </header>
 
-        <!-- Consultorio -->
-        <div class="form-group">
-            <label>Tipo de Consultorio</label>
-            <InputSelect class="form-control" @bind-Value="modelo.TipoConsultorioId">
-                <option value="0">-- Seleccione un consultorio --</option>
-                @foreach (var cons in consultorios)
-                {
-                    <option value="@cons.Id">@cons.Tipo</option>
-                }
-            </InputSelect>
+    @if (cargando)
+    {
+        <div class="estado-pagina">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+            <span>Cargando los datos del turno...</span>
         </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorCarga))
+    {
+        <div class="estado-pagina estado-error">
+            <i class="bi bi-exclamation-circle"></i>
 
-        <br />
-        <button class="btn btn-primary" type="submit">Guardar Cambios</button>@* 
-        <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button> *@
-        <button class="btn btn-secondary" type="button" @onclick="Cancelar">Cancelar</button>
-        <button class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
-    </EditForm>
+            <div>
+                <strong>No pudimos cargar el turno</strong>
+                <p>@errorCarga</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="@modelo"
+                  OnValidSubmit="Grabar"
+                  class="turno-editar-form">
+
+            <DataAnnotationsValidator />
+
+            <div class="editar-contenido">
+
+                <section class="editar-card datos-card">
+
+                    <div class="seccion-encabezado">
+                        <span class="seccion-numero">01</span>
+
+                        <div>
+                            <h2>Datos del turno</h2>
+                            <p>Actualizá la fecha, la hora y el consultorio.</p>
+                        </div>
+                    </div>
+
+                    <div class="campos-grid">
+
+                        <div class="campo campo-completo">
+                            <label for="tipoTurno">Tipo de turno</label>
+
+                            <div class="select-contenedor">
+                                <InputSelect id="tipoTurno"
+                                             class="control-formulario"
+                                             @bind-Value="modelo.TipoTurnoId">
+                                    <option value="0">Seleccionar tipo de turno</option>
+
+                                    @foreach (var tipo in tiposTurno)
+                                    {
+                                        <option value="@tipo.Id">
+                                            @tipo.Tipo (@tipo.DuracionMinutos min)
+                                        </option>
+                                    }
+
+                                    <option value="-1">Otro</option>
+                                </InputSelect>
+
+                                <i class="bi bi-chevron-down"></i>
+                            </div>
+
+                            <ValidationMessage For="@(() => modelo.TipoTurnoId)" />
+                        </div>
+
+                        @if (modelo.TipoTurnoId == -1)
+                        {
+                            <div class="campo campo-completo">
+                                <label for="duracionPersonalizada">
+                                    Duración personalizada
+                                </label>
+
+                                <div class="input-con-sufijo">
+                                    <InputNumber id="duracionPersonalizada"
+                                                 class="control-formulario"
+                                                 min="1"
+                                                 max="480"
+                                                 @bind-Value="modelo.DuracionPersonalizada" />
+
+                                    <span>minutos</span>
+                                </div>
+
+                                <ValidationMessage For="@(() => modelo.DuracionPersonalizada)" />
+                            </div>
+                        }
+
+                        <div class="campo campo-completo">
+                            <label for="consultorio">Consultorio</label>
+
+                            <div class="select-contenedor">
+                                <InputSelect id="consultorio"
+                                             class="control-formulario"
+                                             @bind-Value="modelo.TipoConsultorioId">
+                                    <option value="0">Seleccionar consultorio</option>
+
+                                    @foreach (var consultorio in consultorios)
+                                    {
+                                        <option value="@consultorio.Id">
+                                            @consultorio.Tipo
+                                        </option>
+                                    }
+                                </InputSelect>
+
+                                <i class="bi bi-chevron-down"></i>
+                            </div>
+
+                            <ValidationMessage For="@(() => modelo.TipoConsultorioId)" />
+                        </div>
+
+                        <div class="campo fecha-campo">
+                            <label>Fecha</label>
+
+                            <button type="button"
+                                    class="selector-fecha"
+                                    @onclick="AlternarCalendario">
+
+                                <span>
+                                    @TextoFechaSeleccionada
+                                </span>
+
+                                <i class="bi bi-calendar3"></i>
+                            </button>
+
+                            @if (calendarioAbierto)
+                            {
+                                <div class="calendario-personalizado">
+
+                                    <div class="calendario-cabecera">
+                                        <button type="button"
+                                                class="calendario-flecha"
+                                                title="Mes anterior"
+                                                @onclick="MesAnterior">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </button>
+
+                                        <strong>@TituloMesCalendario</strong>
+
+                                        <button type="button"
+                                                class="calendario-flecha"
+                                                title="Mes siguiente"
+                                                @onclick="MesSiguiente">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="calendario-semana">
+                                        <span>Lu</span>
+                                        <span>Ma</span>
+                                        <span>Mi</span>
+                                        <span>Ju</span>
+                                        <span>Vi</span>
+                                        <span>Sá</span>
+                                        <span>Do</span>
+                                    </div>
+
+                                    <div class="calendario-dias">
+                                        @foreach (var dia in DiasCalendario)
+                                        {
+                                            <button type="button"
+                                                    class="@ObtenerClaseDia(dia)"
+                                                    disabled="@EsDiaPasado(dia)"
+                                                    @onclick="() => SeleccionarFecha(dia.Fecha)">
+                                                @dia.Fecha.Day
+                                            </button>
+                                        }
+                                    </div>
+
+                                    <div class="calendario-pie">
+                                        <button type="button"
+                                                @onclick="SeleccionarHoy">
+                                            Hoy
+                                        </button>
+
+                                        <button type="button"
+                                                @onclick="CerrarCalendario">
+                                            Cerrar
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="campo">
+                            <label for="horaTurno">Hora de inicio</label>
+
+                            <div class="input-con-icono">
+                                <input id="horaTurno"
+                                       type="time"
+                                       class="control-formulario"
+                                       @bind="modelo.Hora" />
+
+                                <i class="bi bi-clock"></i>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <aside class="editar-lateral">
+
+                    <section class="editar-card estado-card">
+
+                        <div class="seccion-encabezado">
+                            <span class="seccion-numero">02</span>
+
+                            <div>
+                                <h2>Estado del turno</h2>
+                                <p>Indicá la situación actual.</p>
+                            </div>
+                        </div>
+
+                        <div class="estados-lista">
+
+                            @foreach (var estado in EstadosDisponibles)
+                            {
+                                <button type="button"
+                                        class="@ObtenerClaseEstado(estado)"
+                                        @onclick="() => SeleccionarEstado(estado)">
+
+                                    <span class="estado-indicador"></span>
+                                    <span>@ObtenerNombreEstado(estado)</span>
+
+                                    @if (modelo.EstadoTurno == estado)
+                                    {
+                                        <i class="bi bi-check-lg"></i>
+                                    }
+                                </button>
+                            }
+
+                        </div>
+                    </section>
+
+                    <section class="editar-card resumen-card">
+
+                        <div class="seccion-encabezado resumen-encabezado">
+                            <span class="seccion-numero">03</span>
+
+                            <div>
+                                <h2>Resumen</h2>
+                                <p>Revisá los cambios antes de guardar.</p>
+                            </div>
+                        </div>
+
+                        <div class="resumen-datos">
+
+                            <div class="resumen-fila">
+                                <span>Fecha</span>
+                                <strong>@TextoFechaResumen</strong>
+                            </div>
+
+                            <div class="resumen-fila">
+                                <span>Horario</span>
+                                <strong>@TextoHorarioResumen</strong>
+                            </div>
+
+                            <div class="resumen-fila">
+                                <span>Tipo</span>
+                                <strong>@NombreTipoTurno</strong>
+                            </div>
+
+                            <div class="resumen-fila">
+                                <span>Consultorio</span>
+                                <strong>@NombreConsultorio</strong>
+                            </div>
+
+                            <div class="resumen-fila">
+                                <span>Estado</span>
+                                <strong class="resumen-estado">
+                                    @ObtenerNombreEstado(modelo.EstadoTurno)
+                                </strong>
+                            </div>
+
+                        </div>
+                    </section>
+
+                </aside>
+            </div>
+
+            <ValidationSummary class="mensaje-validacion" />
+
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <div class="mensaje-formulario @(operacionExitosa ? "mensaje-exito" : "mensaje-error")">
+                    <i class="bi @(operacionExitosa ? "bi-check-circle" : "bi-exclamation-circle")"></i>
+                    <span>@Mensaje</span>
+                </div>
+            }
+
+            <footer class="acciones-formulario">
+
+                <button type="button"
+                        class="btn-eliminar"
+                        disabled="@(guardando || eliminando)"
+                        @onclick="SolicitarEliminacion">
+                    <i class="bi bi-trash3"></i>
+                    <span>Eliminar turno</span>
+                </button>
+
+                <div class="acciones-principales">
+
+                    <button type="button"
+                            class="btn-cancelar"
+                            disabled="@(guardando || eliminando)"
+                            @onclick="Volver">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="btn-guardar"
+                            disabled="@(!PuedeGuardar || guardando || eliminando)">
+
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"
+                                  role="status">
+                            </span>
+
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-check-lg"></i>
+                            <span>Guardar cambios</span>
+                        }
+                    </button>
+
+                </div>
+            </footer>
+
+        </EditForm>
+    }
+</div>
+
+@if (mostrarConfirmacionEliminar)
+{
+    <div class="modal-fondo" @onclick="CancelarEliminacion">
+
+        <div class="modal-eliminar" @onclick:stopPropagation="true">
+
+            <div class="modal-icono">
+                <i class="bi bi-trash3"></i>
+            </div>
+
+            <h2>¿Eliminar este turno?</h2>
+
+            <p>
+                Esta acción eliminará el turno del
+                <strong>@TextoFechaResumen</strong>
+                a las
+                <strong>@modelo.Hora.ToString("HH:mm")</strong>.
+            </p>
+
+            <div class="modal-acciones">
+
+                <button type="button"
+                        class="btn-cancelar"
+                        disabled="@eliminando"
+                        @onclick="CancelarEliminacion">
+                    No, conservar
+                </button>
+
+                <button type="button"
+                        class="btn-confirmar-eliminar"
+                        disabled="@eliminando"
+                        @onclick="Eliminar">
+
+                    @if (eliminando)
+                    {
+                        <span class="spinner-border spinner-border-sm"
+                              role="status">
+                        </span>
+
+                        <span>Eliminando...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-trash3"></i>
+                        <span>Sí, eliminar</span>
+                    }
+                </button>
+
+            </div>
+        </div>
+    </div>
 }
-
-<p>@Mensaje</p>
 
 @code {
-    [Parameter] public int id { get; set; }
-    private TurnoDTO modelo = new TurnoDTO();
+    [Parameter]
+    public int id { get; set; }
+
+    private TurnoDTO modelo = new();
+
     private List<TipoTurnoListadoDTO> tiposTurno = new();
     private List<TipoConsultorioListadoDTO> consultorios = new();
+
     private bool cargando = true;
-    private string Mensaje = "";
+    private bool guardando;
+    private bool eliminando;
+    private bool operacionExitosa;
+    private bool calendarioAbierto;
+    private bool mostrarConfirmacionEliminar;
+
+    private string Mensaje = string.Empty;
+    private string errorCarga = string.Empty;
+
+    private DateTime mesCalendario = new(
+        DateTime.Today.Year,
+        DateTime.Today.Month,
+        1
+    );
+
+    private readonly EnumEstadoTurno[] EstadosDisponibles =
+    {
+        EnumEstadoTurno.disponible,
+        EnumEstadoTurno.reservado,
+        EnumEstadoTurno.atendido,
+        EnumEstadoTurno.cancelado,
+        EnumEstadoTurno.ausente
+    };
 
     protected override async Task OnInitializedAsync()
     {
-        var resp = await Http.Get<TurnoDTO>($"api/turno/{id}");
-        modelo = resp.Error ? new TurnoDTO() : resp.Respuesta ?? new TurnoDTO();
+        cargando = true;
 
-        var respTurno = await Http.Get<List<TipoTurnoListadoDTO>>("api/tipoturno/ListaTipoTurno");
-        if (!respTurno.Error && respTurno.Respuesta != null)
-            tiposTurno = respTurno.Respuesta;
+        var respuestaTurno =
+            await Http.Get<TurnoDTO>($"api/turno/{id}");
 
-        var respCons = await Http.Get<List<TipoConsultorioListadoDTO>>("api/tipoconsultorio/ListaTipoConsultorio");
-        if (!respCons.Error && respCons.Respuesta != null)
-            consultorios = respCons.Respuesta;
+        if (respuestaTurno.Error || respuestaTurno.Respuesta is null)
+        {
+            errorCarga = respuestaTurno.Error
+                ? respuestaTurno.ObtenerError()
+                : "No se encontró el turno solicitado.";
 
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
-        await Task.Delay(200);
+            cargando = false;
+            return;
+        }
+
+        modelo = respuestaTurno.Respuesta;
+
+        if (modelo.Fecha != default)
+        {
+            mesCalendario = new DateTime(
+                modelo.Fecha.Year,
+                modelo.Fecha.Month,
+                1
+            );
+        }
+
+        var respuestaTipos =
+            await Http.Get<List<TipoTurnoListadoDTO>>(
+                "api/tipoturno/ListaTipoTurno"
+            );
+
+        if (!respuestaTipos.Error &&
+            respuestaTipos.Respuesta is not null)
+        {
+            tiposTurno = respuestaTipos.Respuesta;
+        }
+
+        var respuestaConsultorios =
+            await Http.Get<List<TipoConsultorioListadoDTO>>(
+                "api/tipoconsultorio/ListaTipoConsultorio"
+            );
+
+        if (!respuestaConsultorios.Error &&
+            respuestaConsultorios.Respuesta is not null)
+        {
+            consultorios = respuestaConsultorios.Respuesta;
+        }
+
         cargando = false;
+    }
+
+    private bool PuedeGuardar
+    {
+        get
+        {
+            var datosPrincipalesValidos =
+                modelo.Fecha != default &&
+                modelo.Hora != TimeOnly.MinValue &&
+                modelo.TipoTurnoId != 0 &&
+                modelo.TipoConsultorioId > 0;
+
+            var duracionValida =
+                modelo.TipoTurnoId != -1 ||
+                modelo.DuracionPersonalizada > 0;
+
+            return datosPrincipalesValidos && duracionValida;
+        }
+    }
+
+    private string TextoFechaSeleccionada =>
+        modelo.Fecha == default
+            ? "Seleccionar fecha"
+            : modelo.Fecha.ToString(
+                "dddd, d 'de' MMMM 'de' yyyy",
+                new System.Globalization.CultureInfo("es-AR")
+            );
+
+    private string TextoFechaResumen =>
+        modelo.Fecha == default
+            ? "Sin seleccionar"
+            : modelo.Fecha.ToString(
+                "dd/MM/yyyy",
+                new System.Globalization.CultureInfo("es-AR")
+            );
+
+    private string TextoHorarioResumen
+    {
+        get
+        {
+            if (modelo.Hora == TimeOnly.MinValue)
+            {
+                return "Sin seleccionar";
+            }
+
+            var duracion = ObtenerDuracionSeleccionada();
+
+            if (duracion <= 0)
+            {
+                return modelo.Hora.ToString("HH:mm");
+            }
+
+            var horaFin = modelo.Hora.AddMinutes(duracion);
+
+            return $"{modelo.Hora:HH\\:mm} - {horaFin:HH\\:mm}";
+        }
+    }
+
+    private string NombreTipoTurno
+    {
+        get
+        {
+            if (modelo.TipoTurnoId == -1)
+            {
+                return modelo.DuracionPersonalizada > 0
+                    ? $"Otro ({modelo.DuracionPersonalizada} min)"
+                    : "Otro";
+            }
+
+            var tipo = tiposTurno.FirstOrDefault(
+                item => item.Id == modelo.TipoTurnoId
+            );
+
+            return tipo?.Tipo ?? "Sin seleccionar";
+        }
+    }
+
+    private string NombreConsultorio
+    {
+        get
+        {
+            var consultorio = consultorios.FirstOrDefault(
+                item => item.Id == modelo.TipoConsultorioId
+            );
+
+            return consultorio?.Tipo ?? "Sin seleccionar";
+        }
+    }
+
+    private string TituloMesCalendario =>
+        mesCalendario.ToString(
+            "MMMM 'de' yyyy",
+            new System.Globalization.CultureInfo("es-AR")
+        );
+
+    private List<DiaCalendario> DiasCalendario
+    {
+        get
+        {
+            var primerDiaMes = new DateTime(
+                mesCalendario.Year,
+                mesCalendario.Month,
+                1
+            );
+
+            var desplazamiento =
+                ((int)primerDiaMes.DayOfWeek + 6) % 7;
+
+            var primerDiaVisible =
+                primerDiaMes.AddDays(-desplazamiento);
+
+            return Enumerable
+                .Range(0, 42)
+                .Select(indice => new DiaCalendario
+                {
+                    Fecha = primerDiaVisible.AddDays(indice),
+                    PerteneceAlMes =
+                        primerDiaVisible.AddDays(indice).Month ==
+                        mesCalendario.Month
+                })
+                .ToList();
+        }
+    }
+
+    private int ObtenerDuracionSeleccionada()
+    {
+        if (modelo.TipoTurnoId == -1)
+        {
+            return modelo.DuracionPersonalizada;
+        }
+
+        var tipo = tiposTurno.FirstOrDefault(
+            item => item.Id == modelo.TipoTurnoId
+        );
+
+        return tipo?.DuracionMinutos ?? 0;
+    }
+
+    private void AlternarCalendario()
+    {
+        calendarioAbierto = !calendarioAbierto;
+    }
+
+    private void CerrarCalendario()
+    {
+        calendarioAbierto = false;
+    }
+
+    private void MesAnterior()
+    {
+        mesCalendario = mesCalendario.AddMonths(-1);
+    }
+
+    private void MesSiguiente()
+    {
+        mesCalendario = mesCalendario.AddMonths(1);
+    }
+
+    private void SeleccionarHoy()
+    {
+        SeleccionarFecha(DateTime.Today);
+    }
+
+    private void SeleccionarFecha(DateTime fecha)
+    {
+        if (EsDiaPasado(new DiaCalendario { Fecha = fecha }))
+        {
+            return;
+        }
+
+        modelo.Fecha = fecha.Date;
+
+        mesCalendario = new DateTime(
+            fecha.Year,
+            fecha.Month,
+            1
+        );
+
+        calendarioAbierto = false;
+    }
+
+    private bool EsDiaPasado(DiaCalendario dia)
+    {
+        return dia.Fecha.Date < DateTime.Today;
+    }
+
+    private string ObtenerClaseDia(DiaCalendario dia)
+    {
+        var clases = new List<string>
+        {
+            "calendario-dia"
+        };
+
+        if (!dia.PerteneceAlMes)
+        {
+            clases.Add("otro-mes");
+        }
+
+        if (dia.Fecha.Date == DateTime.Today)
+        {
+            clases.Add("dia-hoy");
+        }
+
+        if (modelo.Fecha != default &&
+            dia.Fecha.Date == modelo.Fecha.Date)
+        {
+            clases.Add("dia-seleccionado");
+        }
+
+        if (EsDiaPasado(dia))
+        {
+            clases.Add("dia-deshabilitado");
+        }
+
+        return string.Join(" ", clases);
+    }
+
+    private void SeleccionarEstado(EnumEstadoTurno estado)
+    {
+        modelo.EstadoTurno = estado;
+    }
+
+    private string ObtenerClaseEstado(EnumEstadoTurno estado)
+    {
+        var clase = "estado-opcion";
+
+        if (modelo.EstadoTurno == estado)
+        {
+            clase += " estado-seleccionado";
+        }
+
+        clase += estado switch
+        {
+            EnumEstadoTurno.disponible => " estado-disponible",
+            EnumEstadoTurno.reservado => " estado-reservado",
+            EnumEstadoTurno.atendido => " estado-atendido",
+            EnumEstadoTurno.cancelado => " estado-cancelado",
+            EnumEstadoTurno.ausente => " estado-ausente",
+            _ => string.Empty
+        };
+
+        return clase;
+    }
+
+    private static string ObtenerNombreEstado(
+        EnumEstadoTurno estado
+    )
+    {
+        return estado switch
+        {
+            EnumEstadoTurno.disponible => "Disponible",
+            EnumEstadoTurno.reservado => "Reservado",
+            EnumEstadoTurno.atendido => "Atendido",
+            EnumEstadoTurno.cancelado => "Cancelado",
+            EnumEstadoTurno.ausente => "Ausente",
+            _ => "Sin estado"
+        };
     }
 
     private async Task Grabar()
     {
-        var resp = await Http.Put<TurnoDTO, RespuestaDTO>($"api/turno/{id}", modelo);
-        Mensaje = resp.Error ? resp.ObtenerError() : resp.Respuesta?.mensaje!;
-        if (!resp.Error) Nav.NavigateTo("/turnos", true);
+        if (!PuedeGuardar || guardando)
+        {
+            return;
+        }
+
+        guardando = true;
+        operacionExitosa = false;
+        Mensaje = string.Empty;
+
+        var respuesta =
+            await Http.Put<TurnoDTO, RespuestaDTO>(
+                $"api/turno/{id}",
+                modelo
+            );
+
+        if (respuesta.Error)
+        {
+            Mensaje = respuesta.ObtenerError();
+            guardando = false;
+            return;
+        }
+
+        operacionExitosa = true;
+        Mensaje = respuesta.Respuesta?.mensaje
+            ?? "Turno actualizado correctamente.";
+
+        guardando = false;
+
+        await Task.Delay(500);
+
+        Nav.NavigateTo(
+            "/turnos?estado=actualizado",
+            forceLoad: true
+        );
+    }
+
+    private void SolicitarEliminacion()
+    {
+        mostrarConfirmacionEliminar = true;
+    }
+
+    private void CancelarEliminacion()
+    {
+        if (!eliminando)
+        {
+            mostrarConfirmacionEliminar = false;
+        }
     }
 
     private async Task Eliminar()
     {
-        var resp = await Http.Delete($"api/turno/{id}");
-        Mensaje = resp.Error ? resp.ObtenerError() : "Turno eliminado correctamente.";
-        if (!resp.Error)
+        if (eliminando)
         {
-            await Task.Delay(500);
-            Nav.NavigateTo("/turnos", true);
+            return;
         }
+
+        eliminando = true;
+        operacionExitosa = false;
+        Mensaje = string.Empty;
+
+        var respuesta =
+            await Http.Delete($"api/turno/{id}");
+
+        if (respuesta.Error)
+        {
+            Mensaje = respuesta.ObtenerError();
+            eliminando = false;
+            mostrarConfirmacionEliminar = false;
+            return;
+        }
+
+        operacionExitosa = true;
+        Mensaje = "Turno eliminado correctamente.";
+
+        Nav.NavigateTo(
+            "/turnos?estado=eliminado",
+            forceLoad: true
+        );
     }
 
-    private void Cancelar() => Nav.NavigateTo("/turnos");
+    private void Volver()
+    {
+        Nav.NavigateTo("/turnos");
+    }
+
+    private sealed class DiaCalendario
+    {
+        public DateTime Fecha { get; set; }
+
+        public bool PerteneceAlMes { get; set; }
+    }
 }
