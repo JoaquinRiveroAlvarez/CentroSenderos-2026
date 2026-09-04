@@ -62,16 +62,29 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .Where(p =>
                     p.EstadoRegistro ==
                     EnumEstadoRegistro.activo)
-                .Include(p => p.TipoObraSociales)
-                .Include(p => p.TipoDiagnosticos)
-                .OrderBy(p => p.TipoObraSociales!.Tipo)
+                .OrderBy(p => p.Nombre)
                 .Select(p => new PacienteResumenDTO
                 {
                     Id = p.Id,
                     Nombre = p.Nombre,
                     DNI = p.DNI,
+                    FechaNacimiento = p.FechaNacimiento,
+                    TieneCud = p.TieneCud,
                     NumeroAfiliado = p.NumeroAfiliado,
+                    Telefono = p.Telefono ?? string.Empty,
                     EstadoRegistro = p.EstadoRegistro,
+
+                    Telefonos = p.Telefonos
+                        .Where(t =>
+                            t.EstadoRegistro ==
+                            EnumEstadoRegistro.activo)
+                        .Select(t => new PacienteTelefonoDTO
+                        {
+                            Id = t.Id,
+                            Numero = t.Numero,
+                            Etiqueta = t.Etiqueta
+                        })
+                        .ToList(),
 
                     TipoObraSocialId = p.TipoObraSocialId,
                     TipoObraSocialNombre =

@@ -1,6 +1,4 @@
-/* ===========================================
-   PÁGINA EDITAR PACIENTE
-=========================================== */
+/* PÁGINA */
 
 .editar-paciente-page {
     width: 100%;
@@ -15,9 +13,7 @@
     }
 
 
-/* ===========================================
-   FORMULARIO PRINCIPAL
-=========================================== */
+/* FORMULARIO */
 
 .paciente-form {
     width: 100%;
@@ -30,24 +26,33 @@
 }
 
 
-/* ===========================================
-   SECCIONES
-=========================================== */
+/* SECCIONES */
 
 .form-section {
-    margin-bottom: 26px;
+    margin-bottom: 28px;
 }
 
 .section-title {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 13px;
     margin-bottom: 16px;
     color: #9b7163;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+.section-title-actions {
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.section-title-content {
+    display: flex;
+    align-items: center;
+    gap: 13px;
 }
 
 .section-number {
@@ -65,9 +70,7 @@
 }
 
 
-/* ===========================================
-   GRILLAS
-=========================================== */
+/* GRILLAS */
 
 .form-grid {
     display: grid;
@@ -75,17 +78,19 @@
 }
 
 .form-grid-2 {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .form-grid-3 {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-grid-medical {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 
-/* ===========================================
-   CAMPOS
-=========================================== */
+/* CAMPOS */
 
 .field-group {
     display: flex;
@@ -93,7 +98,7 @@
     min-width: 0;
 }
 
-    .field-group label {
+    .field-group > label:first-child {
         margin: 0 0 7px 6px;
         color: #656565;
         font-size: 13px;
@@ -101,10 +106,13 @@
         text-transform: uppercase;
     }
 
+.address-field {
+    width: calc(50% - 9px);
+    margin-top: 20px;
+}
 
-/* ===========================================
-   INPUTS Y SELECTS
-=========================================== */
+
+/* INPUTS Y SELECTS */
 
 ::deep .form-input {
     width: 100%;
@@ -115,14 +123,20 @@
     border: 1px solid #d9ddd6;
     border-radius: 22px;
     color: #444444;
+    font-family: inherit;
     font-size: 14px;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    transition: backgroundpx;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
     ::deep .form-input::placeholder {
         color: #999999;
         opacity: 1;
+    }
+
+    ::deep .form-input:hover {
+        border-color: #bbc5b7;
     }
 
     ::deep .form-input:focus {
@@ -131,14 +145,251 @@
         box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
     }
 
+    ::deep .form-input.invalid {
+        border-color: #d8857e;
+        box-shadow: 0 0 0 3px rgba(181, 75, 67, 0.08);
+    }
+
 ::deep select.form-input {
     cursor: pointer;
 }
 
+::deep input[type="date"].form-input {
+    color-scheme: light;
+    cursor: pointer;
+}
 
-/* ===========================================
-   ACCIONES DEL FORMULARIO
-=========================================== */
+    ::deep input[type="date"].form-input::-webkit-calendar-picker-indicator {
+        opacity: 0.65;
+        cursor: pointer;
+    }
+
+
+/* NÚMERO DE AFILIADO NO EDITABLE */
+
+.readonly-number-field {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    box-sizing: border-box;
+    padding: 6px 15px;
+    background: #f4f7f2;
+    border: 1px dashed #b9c8b5;
+    border-radius: 22px;
+    color: #556f4f;
+}
+
+    .readonly-number-field > i {
+        flex-shrink: 0;
+        font-size: 17px;
+    }
+
+    .readonly-number-field > div {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+.readonly-number-value {
+    color: #465b41;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.readonly-number-description {
+    overflow: hidden;
+    color: #7d817a;
+    font-size: 11px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* CAMPO CUD */
+
+.cud-field {
+    min-width: 0;
+}
+
+.cud-option {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 8px 15px;
+    background: #fafbf9;
+    border: 1px solid #d9ddd6;
+    border-radius: 22px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .cud-option:hover {
+        background: #f4f7f2;
+        border-color: #aebda9;
+    }
+
+    .cud-option:focus-within {
+        border-color: #789175;
+        box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
+    }
+
+::deep .cud-checkbox {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    margin: 0;
+    accent-color: #647b5b;
+    cursor: pointer;
+}
+
+.cud-option-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 1px;
+}
+
+.cud-option-title {
+    color: #4f5f4b;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.cud-option-description {
+    overflow: hidden;
+    color: #7d817a;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    text-transform: none;
+    letter-spacing: normal;
+    white-space: nowrap;
+}
+
+
+/* TELÉFONOS */
+
+.phones-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.phone-row {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.8fr) minmax(220px, 1.2fr) 42px;
+    align-items: end;
+    gap: 14px;
+    padding: 16px;
+    background: #fafbf9;
+    border: 1px solid #e2e7df;
+    border-radius: 16px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .phone-row:hover {
+        border-color: #cbd5c7;
+        box-shadow: 0 4px 14px rgba(85, 111, 79, 0.06);
+    }
+
+
+/* AGREGAR TELÉFONO */
+
+.add-phone-button {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex-shrink: 0;
+    padding: 0 15px;
+    background: #eef2ec;
+    border: 1px solid #cbd5c7;
+    border-radius: 18px;
+    color: #556f4f;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+    .add-phone-button i {
+        font-size: 14px;
+    }
+
+    .add-phone-button:hover:not(:disabled) {
+        background: #dfe7dc;
+        border-color: #aebda9;
+        color: #42593d;
+    }
+
+    .add-phone-button:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+
+
+/* ELIMINAR TELÉFONO */
+
+.remove-phone-button {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: #ffffff;
+    border: 1px solid #e1c7c4;
+    border-radius: 50%;
+    color: #b85b53;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+    .remove-phone-button:hover:not(:disabled) {
+        background: #fff1ef;
+        border-color: #d99a94;
+        color: #9f4039;
+    }
+
+    .remove-phone-button:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+
+
+/* VALIDACIONES */
+
+.validation-summary {
+    margin-bottom: 18px;
+    color: #b54b43;
+    font-size: 14px;
+}
+
+::deep .validation-message {
+    margin: 5px 0 0 6px;
+    color: #b54b43;
+    font-size: 13px;
+}
+
+.phone-validation {
+    margin: 8px 0 0 6px;
+    color: #b54b43;
+    font-size: 13px;
+}
+
+
+/* ACCIONES */
 
 .form-actions {
     display: flex;
@@ -154,85 +405,67 @@
     gap: 14px;
 }
 
-
-/* ===========================================
-   BOTÓN ELIMINAR PACIENTE
-=========================================== */
-
-.delete-button {
-    min-width: 145px;
+.delete-button,
+.cancel-button,
+.save-button {
     height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     padding: 0 22px;
-    background: #ef4545;
-    border: none;
     border-radius: 22px;
-    color: #ffffff;
-    font-size: 12px;
+    font-family: inherit;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
 }
 
-    .delete-button:hover {
+.delete-button {
+    min-width: 155px;
+    background: #ef4545;
+    border: none;
+    color: #ffffff;
+}
+
+    .delete-button:hover:not(:disabled) {
         background: #d93c3c;
     }
 
-    .delete-button:active {
-        transform: scale(0.98);
-    }
-
-
-/* ===========================================
-   BOTÓN CANCELAR
-=========================================== */
-
 .cancel-button {
     min-width: 120px;
-    height: 42px;
-    padding: 0 22px;
     background: #ffffff;
     border: 1px solid #9d9d96;
-    border-radius: 22px;
     color: #555555;
-    font-size: 14px;
     font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
 }
 
-    .cancel-button:hover {
+    .cancel-button:hover:not(:disabled) {
         background: #f5f5f3;
         border-color: #777770;
     }
 
-
-/* ===========================================
-   BOTÓN GUARDAR
-=========================================== */
-
 .save-button {
-    min-width: 150px;
-    height: 42px;
-    padding: 0 24px;
+    min-width: 155px;
     background: #647b5b;
     border: none;
-    border-radius: 22px;
     color: #ffffff;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
 }
 
-    .save-button:hover {
+    .save-button:hover:not(:disabled) {
         background: #52694a;
     }
 
-    .save-button:active {
+    .delete-button:active:not(:disabled),
+    .cancel-button:active:not(:disabled),
+    .save-button:active:not(:disabled) {
         transform: scale(0.98);
     }
 
-/*boton volver*/
+
+/* VOLVER */
+
 .back-button {
     display: inline-flex;
     align-items: center;
@@ -254,35 +487,24 @@
         transition: transform 0.2s ease;
     }
 
-    .back-button:hover {
+    .back-button:hover:not(:disabled) {
         color: #556f4f;
     }
 
-        .back-button:hover i {
+        .back-button:hover:not(:disabled) i {
             transform: translateX(-3px);
         }
 
 
-/* ===========================================
-   VALIDACIONES
-=========================================== */
+/* DESHABILITADOS */
 
-.validation-summary {
-    margin-bottom: 18px;
-    color: #b54b43;
-    font-size: 14px;
-}
-
-::deep .validation-message {
-    margin: 5px 0 0 6px;
-    color: #b54b43;
-    font-size: 13px;
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
 }
 
 
-/* ===========================================
-   MENSAJES / CARGANDO
-=========================================== */
+/* MENSAJES */
 
 .editar-loading,
 .editar-mensaje {
@@ -291,63 +513,48 @@
     font-size: 14px;
 }
 
+.paciente-form > .editar-mensaje {
+    padding: 12px 16px;
+    background: #fdf2f0;
+    border: 1px solid #efd0cc;
+    border-radius: 12px;
+    color: #a94b44;
+}
 
-/* ===========================================
-   MODAL - FONDO OSCURO
-=========================================== */
+
+/* MODAL */
 
 .modal-overlay {
     position: fixed;
-    /*
-       inset: 0 equivale a:
-       top: 0;
-       right: 0;
-       bottom: 0;
-       left: 0;
-    */
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
     box-sizing: border-box;
+    padding: 20px;
     background: rgba(0, 0, 0, 0.60);
-    /*
-       Tiene que ser mayor al z-index
-       del sidebar y del header.
-    */
     z-index: 9999;
 }
-
-
-/* ===========================================
-   MODAL - TARJETA
-=========================================== */
 
 .delete-modal {
     width: 100%;
     max-width: 400px;
-    padding: 28px 30px 24px;
     box-sizing: border-box;
+    padding: 28px 30px 24px;
     background: #fffdfa;
     border: 1px solid #e7e2dd;
-    border-radius: 12px;
+    border-radius: 14px;
     text-align: center;
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
 }
 
-
-/* ===========================================
-   MODAL - ICONO ADVERTENCIA
-=========================================== */
-
 .delete-warning-icon {
     width: 52px;
     height: 52px;
-    margin: 0 auto 18px;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 auto 18px;
     background: #ffd8ca;
     border-radius: 50%;
     color: #8b5c51;
@@ -360,11 +567,6 @@
         justify-content: center;
     }
 
-
-/* ===========================================
-   MODAL - TÍTULO
-=========================================== */
-
 .delete-modal h2 {
     margin: 0 0 14px;
     color: #242424;
@@ -373,24 +575,27 @@
     line-height: 1.2;
 }
 
-
-/* ===========================================
-   MODAL - DESCRIPCIÓN
-=========================================== */
-
 .delete-modal p {
     max-width: 320px;
     margin: 0 auto 24px;
     color: #777777;
     font-size: 13px;
-    font-weight: 400;
     line-height: 1.5;
 }
 
-
-/* ===========================================
-   MODAL - CONTENEDOR DE BOTONES
-=========================================== */
+.delete-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding: 11px 13px;
+    background: #fff1ef;
+    border: 1px solid #efd0cc;
+    border-radius: 10px;
+    color: #a94b44;
+    font-size: 13px;
+    text-align: left;
+}
 
 .delete-modal-actions {
     display: flex;
@@ -399,75 +604,61 @@
     gap: 12px;
 }
 
-
-/* ===========================================
-   MODAL - CONFIRMAR ELIMINACIÓN
-=========================================== */
-
-.confirm-delete-button {
-    flex: 1;
-    height: 42px;
-    padding: 0 20px;
-    background: #ef4545;
-    border: none;
-    border-radius: 22px;
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-}
-
-    .confirm-delete-button:hover {
-        background: #d93c3c;
-    }
-
-    .confirm-delete-button:active {
-        transform: scale(0.98);
-    }
-
-
-/* ===========================================
-   MODAL - CANCELAR
-=========================================== */
-
+.confirm-delete-button,
 .modal-cancel-button {
     flex: 1;
     height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     padding: 0 20px;
-    background: #efedeb;
     border: none;
     border-radius: 22px;
-    color: #555555;
+    font-family: inherit;
     font-size: 13px;
-    font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
-    .modal-cancel-button:hover {
+.confirm-delete-button {
+    background: #ef4545;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+    .confirm-delete-button:hover:not(:disabled) {
+        background: #d93c3c;
+    }
+
+.modal-cancel-button {
+    background: #efedeb;
+    color: #555555;
+    font-weight: 500;
+}
+
+    .modal-cancel-button:hover:not(:disabled) {
         background: #dfdcda;
     }
 
 
-/* ===========================================
-   RESPONSIVE - TABLET
-=========================================== */
+/* TABLET */
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
+    .form-grid-3,
+    .form-grid-medical {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 
-    .form-grid-3 {
-        grid-template-columns: repeat(2, 1fr);
+    .phone-row {
+        grid-template-columns: minmax(160px, 0.8fr) minmax(200px, 1.2fr) 42px;
     }
 }
 
 
-/* ===========================================
-   RESPONSIVE - CELULAR
-=========================================== */
+/* CELULAR */
 
-@media (max-width: 650px) {
-
+@media (max-width: 700px) {
     .editar-paciente-page h1 {
         font-size: 24px;
     }
@@ -478,8 +669,30 @@
     }
 
     .form-grid-2,
-    .form-grid-3 {
+    .form-grid-3,
+    .form-grid-medical {
         grid-template-columns: 1fr;
+    }
+
+    .section-title-actions {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .add-phone-button {
+        margin-left: 39px;
+    }
+
+    .phone-row {
+        grid-template-columns: 1fr 42px;
+    }
+
+        .phone-row .field-group:first-child {
+            grid-column: 1 / -1;
+        }
+
+    .address-field {
+        width: 100%;
     }
 
     .form-actions {
@@ -500,11 +713,30 @@
 }
 
 
-/* ===========================================
-   RESPONSIVE - MODAL
-=========================================== */
+/* CELULAR PEQUEÑO */
 
-@media (max-width: 480px) {
+@media (max-width: 500px) {
+    .paciente-form {
+        padding: 18px 15px;
+    }
+
+    .phone-row {
+        grid-template-columns: 1fr;
+        padding: 14px;
+    }
+
+        .phone-row .field-group:first-child {
+            grid-column: auto;
+        }
+
+    .remove-phone-button {
+        width: 100%;
+        border-radius: 20px;
+    }
+
+    .add-phone-button {
+        width: calc(100% - 39px);
+    }
 
     .delete-modal {
         max-width: 360px;

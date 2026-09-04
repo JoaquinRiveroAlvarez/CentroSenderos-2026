@@ -1,4 +1,6 @@
 ﻿@page "/pacientes/detalle/{id:int}"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
 @inject IHttpServicio Http
 @inject NavigationManager Nav
@@ -18,45 +20,45 @@
     @if (Estado == "creado")
     {
         <div class="success-message">
+
             <i class="bi bi-check-circle-fill"></i>
 
             <div>
                 <strong>Paciente registrado</strong>
                 <span>El paciente fue registrado correctamente.</span>
             </div>
+
         </div>
     }
     else if (Estado == "actualizado")
     {
         <div class="success-message">
+
             <i class="bi bi-check-circle-fill"></i>
 
             <div>
                 <strong>Paciente actualizado</strong>
                 <span>Los cambios se guardaron correctamente.</span>
             </div>
+
         </div>
     }
 
     @if (cargando)
     {
-        <div class="editar-loading">
+        <div class="detalle-loading">
             Cargando datos del paciente...
         </div>
     }
     else if (modelo == null)
     {
-        <div class="editar-mensaje">
+        <div class="detalle-mensaje">
             No se encontró el paciente.
         </div>
     }
     else
     {
-        <div class="paciente-detail">
-
-            <!-- =========================================
-                 01 - INFORMACIÓN PERSONAL
-            ========================================== -->
+        <div class="paciente-form">
 
             <section class="form-section">
 
@@ -65,32 +67,41 @@
                     <span>Información Personal</span>
                 </div>
 
-                <div class="form-grid form-grid-2">
+                <div class="form-grid form-grid-3">
 
                     <div class="field-group">
+
                         <label>Nombre completo</label>
 
                         <div class="form-input read-only-field">
                             @MostrarValor(modelo.Nombre)
                         </div>
+
                     </div>
 
                     <div class="field-group">
+
                         <label>DNI</label>
 
                         <div class="form-input read-only-field">
                             @MostrarValor(modelo.DNI)
                         </div>
+
+                    </div>
+
+                    <div class="field-group">
+
+                        <label>Fecha de nacimiento</label>
+
+                        <div class="form-input read-only-field">
+                            @MostrarFecha(modelo.FechaNacimiento)
+                        </div>
+
                     </div>
 
                 </div>
 
             </section>
-
-
-            <!-- =========================================
-                 02 - INFORMACIÓN MÉDICA
-            ========================================== -->
 
             <section class="form-section">
 
@@ -99,74 +110,150 @@
                     <span>Información Médica / Administrativa</span>
                 </div>
 
-                <div class="form-grid form-grid-3">
+                <div class="form-grid form-grid-medical">
 
                     <div class="field-group">
+
                         <label>Obra Social / Prepaga</label>
 
                         <div class="form-input read-only-field">
                             @MostrarValor(modelo.TipoObraSocialNombre)
                         </div>
+
                     </div>
 
                     <div class="field-group">
+
                         <label>Nro. Afiliado</label>
 
-                        <div class="form-input read-only-field">
-                            @MostrarValor(modelo.NumeroAfiliado)
+                        <div class="automatic-field">
+
+                            <i class="bi bi-hash"></i>
+
+                            <div>
+                                <span class="automatic-field-title">
+                                    N.º @modelo.NumeroAfiliado
+                                </span>
+
+                                <span class="automatic-field-description">
+                                    Asignado automáticamente
+                                </span>
+                            </div>
+
                         </div>
+
+                    </div>
+
+                    <div class="field-group cud-field">
+
+                        <label>Certificado Único de Discapacidad</label>
+
+                        <div class="cud-option read-only-option">
+
+                            <input type="checkbox"
+                                   class="cud-checkbox"
+                                   checked="@modelo.TieneCud"
+                                   disabled />
+
+                            <span class="cud-option-content">
+
+                                <span class="cud-option-title">
+                                    @(modelo.TieneCud
+                                        ? "Tiene CUD"
+                                        : "No tiene CUD")
+                                </span>
+
+                                <span class="cud-option-description">
+                                    Registro informado manualmente
+                                </span>
+
+                            </span>
+
+                        </div>
+
                     </div>
 
                     <div class="field-group">
+
                         <label>Diagnóstico / Motivo de Consulta</label>
 
                         <div class="form-input read-only-field">
                             @MostrarValor(modelo.TipoDiagnosticoNombre)
                         </div>
+
                     </div>
 
                 </div>
 
             </section>
 
-
-            <!-- =========================================
-                 03 - DATOS DE CONTACTO
-            ========================================== -->
-
             <section class="form-section">
 
                 <div class="section-title">
-                    <span class="section-number">03</span>
-                    <span>Datos de Contacto</span>
-                </div>
 
-                <div class="form-grid form-grid-2">
-
-                    <div class="field-group">
-                        <label>Teléfono</label>
-
-                        <div class="form-input read-only-field">
-                            @MostrarValor(modelo.Telefono)
-                        </div>
+                    <div class="section-title-content">
+                        <span class="section-number">03</span>
+                        <span>Datos de Contacto</span>
                     </div>
 
+                </div>
+
+                <div class="phones-list">
+
+                    @if (TelefonosAMostrar.Any())
+                    {
+                        @foreach (var telefono in TelefonosAMostrar)
+                        {
+                            <div class="phone-row"
+                                 @key="telefono">
+
+                                <div class="field-group">
+
+                                    <label>Etiqueta</label>
+
+                                    <div class="form-input read-only-field">
+                                        @MostrarValor(telefono.Etiqueta)
+                                    </div>
+
+                                </div>
+
+                                <div class="field-group">
+
+                                    <label>Número de teléfono</label>
+
+                                    <div class="form-input read-only-field">
+                                        @MostrarValor(telefono.Numero)
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-phones">
+                            No hay teléfonos registrados.
+                        </div>
+                    }
+
+                </div>
+
+                <div class="form-grid form-grid-2 contact-address">
+
                     <div class="field-group">
+
                         <label>Domicilio</label>
 
                         <div class="form-input read-only-field">
                             @MostrarValor(modelo.Domicilio)
                         </div>
+
                     </div>
 
                 </div>
 
             </section>
-
-
-            <!-- =========================================
-                 ACCIONES
-            ========================================== -->
 
             <div class="form-actions detail-actions">
 
@@ -174,7 +261,7 @@
                         class="edit-button"
                         @onclick="Editar">
                     <i class="bi bi-pencil-square"></i>
-                    Editar Paciente
+                    <span>Editar Paciente</span>
                 </button>
 
             </div>
@@ -184,7 +271,7 @@
 
     @if (!string.IsNullOrWhiteSpace(Mensaje))
     {
-        <div class="editar-mensaje">
+        <div class="detalle-mensaje">
             @Mensaje
         </div>
     }
@@ -192,7 +279,6 @@
 </div>
 
 @code {
-
     [Parameter]
     public int Id { get; set; }
 
@@ -202,24 +288,54 @@
     private PacienteDTO? modelo;
 
     private bool cargando = true;
+    private string Mensaje = string.Empty;
 
-    private string Mensaje = "";
+    private IEnumerable<PacienteTelefonoDTO> TelefonosAMostrar
+    {
+        get
+        {
+            if (modelo?.Telefonos != null &&
+                modelo.Telefonos.Count > 0)
+            {
+                return modelo.Telefonos;
+            }
 
+            /*
+             * Compatibilidad con pacientes registrados antes
+             * de crear la tabla PacienteTelefonos.
+             */
+            if (!string.IsNullOrWhiteSpace(modelo?.Telefono))
+            {
+                return new List<PacienteTelefonoDTO>
+                {
+                    new()
+                    {
+                        Etiqueta = "Principal",
+                        Numero = modelo.Telefono
+                    }
+                };
+            }
+
+            return Enumerable.Empty<PacienteTelefonoDTO>();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         cargando = true;
+        Mensaje = string.Empty;
 
         var resp = await Http.Get<PacienteDTO>(
             $"api/paciente/{Id}"
         );
 
-        if (!resp.Error)
+        if (!resp.Error && resp.Respuesta != null)
         {
             modelo = resp.Respuesta;
         }
         else
         {
+            modelo = null;
             Mensaje = resp.ObtenerError();
         }
 
@@ -231,7 +347,7 @@
         if (firstRender &&
             (Estado == "creado" || Estado == "actualizado"))
         {
-            await Task.Delay(3000);
+            await Task.Delay(5000);
 
             Nav.NavigateTo(
                 $"/pacientes/detalle/{Id}",
@@ -242,15 +358,22 @@
 
     private void Editar()
     {
-        Nav.NavigateTo($"/pacientes/editar/{Id}");
+        Nav.NavigateTo(
+            $"/pacientes/editar/{Id}"
+        );
     }
-
 
     private void Volver()
     {
         Nav.NavigateTo("/pacientes");
     }
 
+    private static string MostrarFecha(DateTime? fecha)
+    {
+        return fecha.HasValue
+            ? fecha.Value.ToString("dd/MM/yyyy")
+            : "—";
+    }
 
     private static string MostrarValor(object? valor)
     {

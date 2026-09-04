@@ -1,21 +1,17 @@
-/* CSS for PacienteListado component */
-/* ===========================================
-   PÁGINA PACIENTES
-=========================================== */
+/* PÁGINA */
 
 .pacientes-page {
     width: 100%;
     box-sizing: border-box;
-    padding: 30px 40px;
+    padding: 30px 12px;
 }
 
 
-/* ===========================================
-   CABECERA
-=========================================== */
+/* CABECERA */
 
 .pacientes-header {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     gap: 24px;
@@ -30,9 +26,7 @@
     }
 
 
-/* ===========================================
-   ACCIONES
-=========================================== */
+/* ACCIONES */
 
 .pacientes-actions {
     display: flex;
@@ -41,24 +35,29 @@
 }
 
 
-/* ===========================================
-   BUSCADOR
-=========================================== */
+/* BUSCADOR */
 
 .search-box {
-    width: 280px;
+    width: 300px;
     height: 42px;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 0 14px;
     box-sizing: border-box;
+    padding: 0 14px;
     background: #ffffff;
     border: 1px solid #e1e1e1;
     border-radius: 22px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+    .search-box:focus-within {
+        border-color: #789175;
+        box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
+    }
+
     .search-box i {
+        flex-shrink: 0;
         color: #8a8a8a;
         font-size: 14px;
     }
@@ -66,10 +65,11 @@
     .search-box input {
         flex: 1;
         min-width: 0;
+        background: transparent;
         border: none;
         outline: none;
-        background: transparent;
-        color: #444;
+        color: #444444;
+        font-family: inherit;
         font-size: 14px;
     }
 
@@ -78,52 +78,25 @@
         }
 
 
-/* ===========================================
-   BOTÓN FILTROS
-=========================================== */
-
-.filter-button {
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 0 16px;
-    background: #ffffff;
-    border: 1px solid #e1e1e1;
-    border-radius: 22px;
-    color: #5f5f5f;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-}
-
-    .filter-button:hover {
-        background: #f5f5f5;
-        border-color: #d4d4d4;
-    }
-
-
-/* ===========================================
-   BOTÓN NUEVO PACIENTE
-=========================================== */
+/* BOTÓN NUEVO PACIENTE */
 
 .new-patient-button {
     height: 42px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    flex-shrink: 0;
     padding: 0 18px;
     background: #647b5b;
     border: none;
     border-radius: 22px;
     color: #ffffff;
+    font-family: inherit;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
     .new-patient-button:hover {
@@ -135,98 +108,247 @@
     }
 
 
-/* ===========================================
-   CARD DE LA TABLA
-=========================================== */
+/* TARJETA DE LA TABLA */
 
 .pacientes-card {
     width: 100%;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(230, 230, 230, 0.8);
-    border-radius: 24px;
-    overflow: hidden;
     box-sizing: border-box;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #e4e1dc;
+    border-radius: 22px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
 }
 
 
-/* ===========================================
-   CONTENEDOR DE TABLA
-=========================================== */
+/* CONTENEDOR DE TABLA */
 
 .pacientes-table-wrapper {
     width: 100%;
-    overflow-x: auto;
+    overflow: visible;
 }
 
 
-/* ===========================================
-   TABLA
-=========================================== */
+/* TABLA */
 
 .pacientes-table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: auto;
+    table-layout: fixed;
 }
 
-
-    /* ===========================================
-   CABECERA DE TABLA
-=========================================== */
-
     .pacientes-table thead {
-        background: rgba(250, 250, 250, 0.75);
+        background: rgba(250, 250, 250, 0.85);
     }
 
     .pacientes-table th {
-        padding: 16px 18px;
+        padding: 16px 9px;
         color: #999999;
         font-size: 12px;
         font-weight: 600;
+        line-height: 1.25;
         text-align: left;
         text-transform: uppercase;
         letter-spacing: 0.3px;
-        white-space: nowrap;
+        white-space: normal;
     }
 
-
-    /* ===========================================
-   FILAS
-=========================================== */
-
     .pacientes-table td {
-        padding: 16px 18px;
+        padding: 16px 9px;
         color: #555555;
         font-size: 14px;
+        line-height: 1.35;
         border-top: 1px solid #f0f0f0;
         vertical-align: middle;
+        overflow-wrap: anywhere;
     }
 
     .pacientes-table tbody tr {
         cursor: pointer;
-        transition: background 0.15s;
+        transition: background 0.15s ease;
     }
 
         .pacientes-table tbody tr:hover {
             background: #fafbf9;
         }
 
+        .pacientes-table tbody tr:active {
+            background: #f4f7f2;
+        }
 
-/* ===========================================
-   NOMBRE DEL PACIENTE
-=========================================== */
+
+    /* ANCHOS DE COLUMNAS */
+
+    .pacientes-table th:nth-child(1),
+    .pacientes-table td:nth-child(1) {
+        width: 13%;
+    }
+
+    .pacientes-table th:nth-child(2),
+    .pacientes-table td:nth-child(2) {
+        width: 8%;
+    }
+
+    .pacientes-table th:nth-child(3),
+    .pacientes-table td:nth-child(3) {
+        width: 11%;
+    }
+
+    .pacientes-table th:nth-child(4),
+    .pacientes-table td:nth-child(4) {
+        width: 9%;
+    }
+
+    .pacientes-table th:nth-child(5),
+    .pacientes-table td:nth-child(5) {
+        width: 15%;
+    }
+
+    .pacientes-table th:nth-child(6),
+    .pacientes-table td:nth-child(6) {
+        width: 14%;
+    }
+
+    .pacientes-table th:nth-child(7),
+    .pacientes-table td:nth-child(7) {
+        width: 22%;
+    }
+
+    .pacientes-table th:nth-child(8),
+    .pacientes-table td:nth-child(8) {
+        width: 8%;
+    }
+
+
+/* NOMBRE */
 
 .paciente-nombre {
     color: #252525 !important;
-    font-size: 14px;
+    font-size: 14px !important;
     font-weight: 600;
 }
 
 
-/* ===========================================
-   ESTADOS DEL LISTADO
-=========================================== */
+/* FECHA */
+
+.fecha-cell {
+    color: #555555;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+
+/* NÚMERO DE AFILIADO */
+
+.affiliate-number {
+    color: #555555;
+    font-size: 14px;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* TELÉFONOS */
+
+.phones-cell {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+
+.patient-phones {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 5px;
+}
+
+.phone-badge {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-sizing: border-box;
+    padding: 5px 8px;
+    overflow: hidden;
+    background: #fafbf9;
+    border: 1px solid #dfe5dc;
+    border-radius: 12px;
+}
+
+.phone-label {
+    flex-shrink: 0;
+    max-width: 38%;
+    overflow: hidden;
+    color: #8b665b;
+    font-size: 10px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.phone-number {
+    min-width: 0;
+    overflow: hidden;
+    color: #50584d;
+    font-size: 12px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.empty-value {
+    color: #aaaaaa;
+}
+
+
+/* CUD */
+
+.cud-cell {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.cud-indicator {
+    min-width: 58px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    border: 1px solid;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+    .cud-indicator input {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+        margin: 0;
+        accent-color: #647b5b;
+        cursor: default;
+        opacity: 1;
+    }
+
+    .cud-indicator.has-cud {
+        background: #edf4e9;
+        border-color: #cbdcc5;
+        color: #526c4b;
+    }
+
+    .cud-indicator.no-cud {
+        background: #f6f5f3;
+        border-color: #ddd9d4;
+        color: #817d77;
+    }
+
+
+/* ESTADOS DEL LISTADO */
 
 .pacientes-estado {
     min-height: 230px;
@@ -234,11 +356,11 @@
     align-items: center;
     justify-content: center;
     gap: 18px;
-    padding: 40px;
     box-sizing: border-box;
+    padding: 40px;
     background: rgba(255, 255, 255, 0.82);
     border: 1px solid #e7e3dc;
-    border-radius: 24px;
+    border-radius: 22px;
     text-align: left;
 }
 
@@ -266,17 +388,15 @@
         }
 
 
-/* ===========================================
-   ICONOS DE ESTADO
-=========================================== */
+/* ICONOS DE ESTADO */
 
 .estado-icono {
     width: 46px;
     height: 46px;
-    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     background: #edf1eb;
     border-radius: 50%;
     color: #647b5b;
@@ -289,9 +409,7 @@
 }
 
 
-/* ===========================================
-   BOTONES DE ESTADO
-=========================================== */
+/* BOTONES DE ESTADO */
 
 .estado-button {
     min-height: 38px;
@@ -302,10 +420,11 @@
     margin-top: 18px;
     padding: 0 15px;
     border-radius: 20px;
+    font-family: inherit;
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
+    transition: background 0.2s ease, border-color 0.2s ease;
 }
 
     .estado-button.principal {
@@ -331,9 +450,7 @@
         }
 
 
-/* ===========================================
-   SPINNER
-=========================================== */
+/* SPINNER */
 
 .estado-spinner {
     width: 30px;
@@ -352,9 +469,7 @@
 }
 
 
-/* ===========================================
-   FOOTER DEL LISTADO
-=========================================== */
+/* FOOTER */
 
 .pacientes-footer {
     padding: 14px 18px;
@@ -369,16 +484,14 @@
     }
 
 
-
-/* ===========================================
-   MENSAJE DE ÉXITO
-=========================================== */
+/* MENSAJE DE ÉXITO */
 
 .success-message {
+    width: 100%;
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 20px;
+    box-sizing: border-box;
     padding: 13px 16px;
     background: #edf3ea;
     border: 1px solid #d7e3d2;
@@ -407,19 +520,17 @@
         font-size: 13px;
     }
 
-/* ===========================================
-   RESPONSIVE
-=========================================== */
 
-@media (max-width: 1000px) {
+/* TABLET */
 
+@media (max-width: 1100px) {
     .pacientes-page {
-        padding: 24px;
+        padding: 24px 8px;
     }
 
     .pacientes-header {
-        flex-direction: column;
         align-items: flex-start;
+        flex-direction: column;
     }
 
     .pacientes-actions {
@@ -427,21 +538,37 @@
     }
 
     .search-box {
-        flex: 1;
         width: auto;
+        flex: 1;
+    }
+
+    .pacientes-table th,
+    .pacientes-table td {
+        padding-right: 6px;
+        padding-left: 6px;
+    }
+
+    .phone-badge {
+        padding-right: 5px;
+        padding-left: 5px;
     }
 }
 
 
+/* CELULAR */
+
 @media (max-width: 700px) {
-
     .pacientes-page {
-        padding: 18px;
+        padding: 18px 4px;
     }
 
-    .pacientes-header h1 {
-        font-size: 24px;
+    .pacientes-header {
+        gap: 16px;
     }
+
+        .pacientes-header h1 {
+            font-size: 24px;
+        }
 
     .pacientes-actions {
         flex-wrap: wrap;
@@ -452,24 +579,58 @@
         flex-basis: 100%;
     }
 
-    .filter-button,
     .new-patient-button {
-        flex: 1;
-        font-size: 14px;
+        width: 100%;
     }
 
-    .pacientes-card {
+    .pacientes-card,
+    .pacientes-estado {
         border-radius: 16px;
     }
 
     .pacientes-table th,
     .pacientes-table td {
-        padding: 14px 12px;
+        padding-right: 3px;
+        padding-left: 3px;
+    }
+
+    .phone-badge {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 1px;
+        padding: 4px;
+    }
+
+    .phone-label {
+        max-width: 100%;
+    }
+
+    .phone-number {
+        width: 100%;
+    }
+
+    .cud-indicator {
+        min-width: 0;
+        gap: 3px;
+        padding: 5px 4px;
+    }
+
+    .pacientes-estado {
+        lv min-height: 200px;
+        padding: 28px 20px;
+    }
+}
+
+
+/* CELULAR PEQUEÑO */
+
+@media (max-width: 480px) {
+    .pacientes-page {
+        padding: 14px 2px;
     }
 
     .pacientes-estado {
         min-height: 200px;
         padding: 28px 20px;
     }
-
 }
