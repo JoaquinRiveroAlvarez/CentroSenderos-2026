@@ -8,6 +8,48 @@
 
 <div class="agenda-page">
 
+
+    @if (mostrarMensajeResultado && Estado == "creado")
+    {
+        <div class="success-message">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            <div>
+                <strong>Turno creado</strong>
+                <span>El turno fue creado correctamente.</span>
+            </div>
+
+        </div>
+    }
+    else if (mostrarMensajeResultado && Estado == "actualizado")
+    {
+        <div class="success-message">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            <div>
+                <strong>Turno actualizado</strong>
+                <span>Los cambios fueron guardados correctamente.</span>
+            </div>
+
+        </div>
+    }
+    else if (mostrarMensajeResultado && Estado == "eliminado")
+    {
+        <div class="success-message">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            <div>
+                <strong>Turno eliminado</strong>
+                <span>El turno fue eliminado correctamente.</span>
+            </div>
+
+        </div>
+    }
+    
+
     <div class="agenda-toolbar">
 
         <div class="navegacion-fecha">
@@ -701,10 +743,13 @@
     private bool mostrarConsultorios = true;
     private bool mostrarServicios = false;
     private bool mostrarDetalle;
+    private bool mostrarMensajeResultado = true;
     private TurnoListadoDTO? turnoSeleccionado;
 
     [SupplyParameterFromQuery(Name = "detalle")]
     public int? DetalleTurnoId { get; set; }
+    [SupplyParameterFromQuery(Name = "estado")]
+    public string? Estado { get; set; }
     [SupplyParameterFromQuery(Name = "vista")]
     public string? VistaDesdeUrl { get; set; }
     [SupplyParameterFromQuery(Name = "fecha")]
@@ -1379,7 +1424,30 @@
 
         return $"turno-grilla {claseEstado}";
     }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || string.IsNullOrWhiteSpace(Estado))
+        {
+            return;
+        }
 
+        var esResultadoValido =
+            Estado == "creado" ||
+            Estado == "actualizado" ||
+            Estado == "eliminado";
+
+        if (!esResultadoValido)
+        {
+            return;
+        }
+
+        await Task.Delay(4000);
+
+        mostrarMensajeResultado = false;
+
+        await InvokeAsync(StateHasChanged);
+    }
 
 
 
