@@ -121,7 +121,7 @@
 
 .periodo-inactivo {
     color: #8e918b;
-    cursor: not-allowed;
+    cursor: pointer;
 }
 
 /* Botón de nuevo turno */
@@ -633,6 +633,153 @@
     background-color: #fceaea;
     color: #9b3636;
     font-size: 13px;
+}
+
+/* Navegación Diaria / Semanal */
+
+.periodo-activo,
+.periodo-inactivo {
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.periodo-inactivo {
+    color: #8e918b;
+}
+
+    .periodo-inactivo:hover {
+        color: #526c4d;
+    }
+
+.periodo-activo {
+    color: #41443f;
+    font-weight: 600;
+}
+
+/* Vista semanal */
+
+.agenda-semanal {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+}
+
+.dia-semana {
+    overflow: hidden;
+    border: 1px solid #deded9;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.55);
+}
+
+.dia-semana-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 50px;
+    padding: 9px 13px;
+    border-bottom: 1px solid #deded9;
+    background-color: rgba(250, 249, 247, 0.9);
+}
+
+    .dia-semana-header > div {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        min-width: 0;
+    }
+
+.dia-semana-nombre {
+    color: #3d413a;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.dia-semana-fecha {
+    color: #858881;
+    font-size: 11px;
+    font-weight: 400;
+}
+
+.dia-semana-cantidad {
+    color: #777b74;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.dia-semana .lista-turnos {
+    gap: 5px;
+    padding: 7px;
+}
+
+.dia-semana .turno-card {
+    min-height: 68px;
+    border-radius: 7px;
+    box-shadow: none;
+}
+
+    .dia-semana .turno-card:hover {
+        box-shadow: 0 3px 8px rgba(48, 52, 46, 0.07);
+    }
+
+.dia-semana-vacio {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 14px;
+    color: #a0a39d;
+    font-size: 11px;
+    font-style: italic;
+}
+
+/* Día seleccionado dentro de la semana */
+
+.dia-semana:has(.turno-card) {
+    background-color: rgba(255, 255, 255, 0.75);
+}
+
+/* Responsive semanal */
+
+@media (max-width: 850px) {
+    .agenda-semanal {
+        gap: 14px;
+    }
+
+    .dia-semana-header {
+        min-height: 46px;
+    }
+}
+
+@media (max-width: 600px) {
+    .dia-semana {
+        border-radius: 7px;
+    }
+
+    .dia-semana-header {
+        align-items: flex-start;
+        padding: 10px 11px;
+    }
+
+        .dia-semana-header > div {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+    .dia-semana-nombre {
+        font-size: 13px;
+    }
+
+    .dia-semana-fecha,
+    .dia-semana-cantidad {
+        font-size: 10px;
+    }
+
+    .dia-semana .lista-turnos {
+        padding: 5px;
+    }
 }
 
 /* Pantallas medianas */

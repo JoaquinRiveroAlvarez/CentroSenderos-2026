@@ -18,7 +18,9 @@
             </button>
 
             <span class="fecha-actual">
-                @FormatearFechaCorta(fechaSeleccionada)
+                @(vistaSemanal
+                    ? FormatearRangoSemana()
+                    : FormatearFechaCorta(fechaSeleccionada))
             </span>
         </div>
 
@@ -38,16 +40,23 @@
         </div>
 
         <div class="selector-periodo">
+
             <button type="button"
-                    class="periodo-activo">
+                    class="@(vistaSemanal
+                                ? "periodo-inactivo"
+                                : "periodo-activo")"
+                    @onclick="MostrarVistaDiaria">
                 Diaria
             </button>
 
             <button type="button"
-                    class="periodo-inactivo"
-                    disabled>
+                    class="@(vistaSemanal
+                                ? "periodo-activo"
+                                : "periodo-inactivo")"
+                    @onclick="MostrarVistaSemanal">
                 Semanal
             </button>
+
         </div>
 
         <button type="button"
@@ -225,6 +234,109 @@
                     <span>@Mensaje</span>
                 </div>
             }
+            else if (vistaSemanal)
+            {
+                <div class="agenda-semanal">
+
+                    @foreach (var dia in DiasDeLaSemana)
+                    {
+                        var turnosDia = ObtenerTurnosDelDia(dia);
+
+                        <section class="dia-semana">
+
+                            <header class="dia-semana-header">
+
+                                <div>
+                                    <span class="dia-semana-nombre">
+                                        @FormatearNombreDia(dia)
+                                    </span>
+
+                                    <span class="dia-semana-fecha">
+                                        @dia.ToString(
+                                            "d 'de' MMMM",
+                                            new System.Globalization.CultureInfo("es-AR"))
+                                    </span>
+                                </div>
+
+                                <span class="dia-semana-cantidad">
+                                    @turnosDia.Count
+                                    @(turnosDia.Count == 1
+                                        ? "turno"
+                                        : "turnos")
+                                </span>
+
+                            </header>
+
+                            @if (turnosDia.Count == 0)
+                            {
+                                <div class="dia-semana-vacio">
+                                    Sin turnos programados
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="lista-turnos">
+                                    @foreach (var turno in turnosDia)
+                                    {
+                                        <article class="turno-card">
+
+                                            <div class="turno-icono">
+                                                <i class="bi bi-calendar-check"></i>
+                                            </div>
+
+                                            <div class="turno-informacion">
+
+                                                <span class="turno-consultorio">
+                                                    @(string.IsNullOrWhiteSpace(
+                                                        turno.NombreTipoConsultorio)
+                                                            ? "Sin consultorio"
+                                                            : turno.NombreTipoConsultorio)
+                                                </span>
+
+                                                <h2>
+                                                    @(string.IsNullOrWhiteSpace(
+                                                        turno.NombreTipoTurno)
+                                                            ? "Turno"
+                                                            : turno.NombreTipoTurno)
+                                                </h2>
+
+                                                <div class="turno-detalles">
+                                                    <span>
+                                                        @turno.FechaInicio.ToString("HH:mm")
+                                                        -
+                                                        @turno.FechaFin.ToString("HH:mm")
+                                                    </span>
+
+                                                    <span>
+                                                        @ObtenerDuracion(turno) minutos
+                                                    </span>
+                                                </div>
+
+                                            </div>
+
+                                            <div class="turno-estado">
+                                                <span class="@ObtenerClaseEstado(turno)">
+                                                    @ObtenerTextoEstado(turno)
+                                                </span>
+                                            </div>
+
+                                            <button type="button"
+                                                    class="btn-editar-turno"
+                                                    title="Editar turno"
+                                                    @onclick="() => IrAEditar(turno.Id)">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+
+                                        </article>
+                                    }
+                                </div>
+                            }
+
+                        </section>
+                    }
+
+                </div>
+            }
             else if (TurnosDelDia.Count == 0)
             {
                 <div class="estado-vacio">
@@ -261,8 +373,7 @@
 
                     <div class="lista-turnos">
 
-                        @foreach (var turno in TurnosDelDia
-                            .OrderBy(t => t.FechaInicio))
+                        @foreach (var turno in TurnosDelDia)
                         {
                             <article class="turno-card">
 
@@ -287,7 +398,6 @@
                                     </h2>
 
                                     <div class="turno-detalles">
-
                                         <span>
                                             @turno.FechaInicio.ToString("HH:mm")
                                             -
@@ -297,7 +407,6 @@
                                         <span>
                                             @ObtenerDuracion(turno) minutos
                                         </span>
-
                                     </div>
 
                                 </div>
@@ -322,6 +431,7 @@
 
                 </div>
             }
+            }
 
         </main>
 
@@ -345,6 +455,7 @@
 
     private bool cargando = true;
     private string Mensaje = string.Empty;
+    private bool vistaSemanal;
     private bool mostrarConsultorios = true;
     private bool mostrarServicios = false;
 
@@ -359,6 +470,44 @@
                     turno.TipoTurnoId))
             .OrderBy(turno => turno.FechaInicio)
             .ToList();
+
+
+    private DateTime InicioSemana
+    {
+        get
+        {
+            var desplazamiento =
+                ((int)fechaSeleccionada.DayOfWeek + 6) % 7;
+
+            return fechaSeleccionada.Date
+                .AddDays(-desplazamiento);
+        }
+    }
+
+    private DateTime FinSemana =>
+        InicioSemana.AddDays(6);
+
+    private List<DateTime> DiasDeLaSemana =>
+        Enumerable
+            .Range(0, 7)
+            .Select(numero =>
+                InicioSemana.AddDays(numero))
+            .ToList();
+
+    private List<TurnoListadoDTO> ObtenerTurnosDelDia(
+        DateTime dia)
+    {
+        return listaTurnos
+            .Where(turno =>
+                turno.FechaInicio.Date == dia.Date
+                && EstaConsultorioSeleccionado(
+                    turno.TipoConsultorioId)
+                && EstaTipoSeleccionado(
+                    turno.TipoTurnoId))
+            .OrderBy(turno => turno.FechaInicio)
+            .ToList();
+    }
+
 
     private List<OpcionFiltro> ConsultoriosDisponibles =>
         listaTurnos
@@ -677,4 +826,51 @@
     {
         mostrarServicios = !mostrarServicios;
     }
+
+    private void MostrarVistaDiaria()
+    {
+        vistaSemanal = false;
+    }
+
+    private void MostrarVistaSemanal()
+    {
+        vistaSemanal = true;
+    }
+    private string FormatearRangoSemana()
+    {
+        var cultura =
+            new System.Globalization.CultureInfo("es-AR");
+
+        if (InicioSemana.Month == FinSemana.Month)
+        {
+            return $"{InicioSemana.Day} - " +
+                   $"{FinSemana.Day} de " +
+                   $"{FinSemana.ToString("MMMM", cultura)} de " +
+                   $"{FinSemana.Year}";
+        }
+
+        if (InicioSemana.Year == FinSemana.Year)
+        {
+            return $"{InicioSemana.Day} de " +
+                   $"{InicioSemana.ToString("MMMM", cultura)} - " +
+                   $"{FinSemana.Day} de " +
+                   $"{FinSemana.ToString("MMMM", cultura)} de " +
+                   $"{FinSemana.Year}";
+        }
+
+        return $"{InicioSemana:dd/MM/yyyy} - " +
+               $"{FinSemana:dd/MM/yyyy}";
+    }
+
+    
+    private static string FormatearNombreDia(DateTime fecha)
+    {
+        var texto = fecha.ToString(
+            "dddd",
+            new System.Globalization.CultureInfo("es-AR")
+        );
+
+        return char.ToUpper(texto[0]) + texto[1..];
+    }
+
 }
