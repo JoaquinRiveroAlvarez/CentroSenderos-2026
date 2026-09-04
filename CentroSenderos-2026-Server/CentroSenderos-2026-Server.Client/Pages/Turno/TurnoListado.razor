@@ -8,61 +8,54 @@
 
 <div class="agenda-page">
 
-    <div class="agenda-header">
-        <div>
-            <h1>Agenda de Turnos</h1>
-            <p>Consultá y administrá los turnos programados.</p>
-        </div>
-
-        <button type="button"
-                class="btn-nuevo-turno"
-                @onclick="IrACrear">
-            <i class="bi bi-plus-lg"></i>
-            Nuevo turno
-        </button>
-    </div>
-
     <div class="agenda-toolbar">
 
         <div class="navegacion-fecha">
-            <button type="button"
-                    class="btn-fecha"
-                    title="Día anterior"
-                    @onclick="IrDiaAnterior">
-                <i class="bi bi-chevron-left"></i>
-            </button>
-
             <button type="button"
                     class="btn-hoy"
                     @onclick="IrAHoy">
                 Hoy
             </button>
 
+            <span class="fecha-actual">
+                @FormatearFechaCorta(fechaSeleccionada)
+            </span>
+        </div>
+
+        <div class="selector-presentacion">
             <button type="button"
-                    class="btn-fecha"
-                    title="Día siguiente"
-                    @onclick="IrDiaSiguiente">
-                <i class="bi bi-chevron-right"></i>
+                    class="btn-presentacion"
+                    title="Agenda ampliada"
+                    disabled>
+                <i class="bi bi-grid-fill"></i>
+            </button>
+
+            <button type="button"
+                    class="btn-presentacion activo"
+                    title="Agenda diaria">
+                <i class="bi bi-list-ul"></i>
             </button>
         </div>
 
-        <div class="fecha-actual">
-            <i class="bi bi-calendar3"></i>
-            <span>@FormatearFecha(fechaSeleccionada)</span>
-        </div>
-
-        <div class="selector-vista">
+        <div class="selector-periodo">
             <button type="button"
-                    class="vista-activa">
+                    class="periodo-activo">
                 Diaria
             </button>
 
             <button type="button"
-                    class="vista-inactiva"
+                    class="periodo-inactivo"
                     disabled>
                 Semanal
             </button>
         </div>
+
+        <button type="button"
+                class="btn-nuevo-turno"
+                @onclick="IrACrear">
+            <i class="bi bi-plus-lg"></i>
+            Turno
+        </button>
 
     </div>
 
@@ -71,6 +64,7 @@
         <aside class="calendario-panel">
 
             <div class="calendario-cabecera">
+
                 <button type="button"
                         class="calendario-nav"
                         title="Mes anterior"
@@ -86,6 +80,7 @@
                         @onclick="IrMesSiguiente">
                     <i class="bi bi-chevron-right"></i>
                 </button>
+
             </div>
 
             <div class="calendario-semana">
@@ -116,18 +111,111 @@
                 }
             </div>
 
-        </aside>
+            <div class="filtros-agenda">
 
+                <div class="filtro-bloque">
+
+                    <button type="button"
+                            class="filtro-titulo"
+                            @onclick="AlternarConsultorios">
+
+                        <span>Consultorios</span>
+
+                        <i class="bi @(mostrarConsultorios
+                                           ? "bi-chevron-up"
+                                           : "bi-chevron-down")">
+                        </i>
+
+                    </button>
+
+                    @if (mostrarConsultorios)
+                    {
+                        <div class="filtro-opciones">
+                            @foreach (var consultorio in ConsultoriosDisponibles)
+                            {
+                                <label class="filtro-check">
+
+                                    <input type="checkbox"
+                                           checked="@consultoriosSeleccionados.Contains(consultorio.Id)"
+                                           @onchange="e => CambiarFiltroConsultorio(
+                                                                       consultorio.Id,
+                                                                       Convert.ToBoolean(e.Value))" />
+
+<span>@consultorio.Nombre</span>
+
+</label>
+                            }
+                        </div>
+                    }
+
+                </div>
+
+                <div class="filtro-bloque">
+
+                    <button type="button"
+                            class="filtro-titulo"
+                            @onclick="AlternarServicios">
+
+                        <span>Servicios</span>
+
+                        <i class="bi @(mostrarServicios
+                                           ? "bi-chevron-up"
+                                           : "bi-chevron-down")">
+                        </i>
+
+                    </button>
+
+                    @if (mostrarServicios)
+                    {
+                        <div class="filtro-opciones">
+                            @foreach (var tipo in TiposTurnoDisponibles)
+                            {
+                                <label class="filtro-check">
+
+                                    <input type="checkbox"
+                                           checked="@tiposSeleccionados.Contains(tipo.Id)"
+                                           @onchange="e => CambiarFiltroTipo(
+                                                                       tipo.Id,
+                                                                       Convert.ToBoolean(e.Value))" />
+
+<span>@tipo.Nombre</span>
+
+</label>
+                            }
+                        </div>
+                    }
+
+                </div>
+
+                <button type="button"
+                        class="filtro-no-disponible"
+                        disabled>
+                    <span>Profesionales</span>
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+
+                <button type="button"
+                        class="filtro-no-disponible"
+                        disabled>
+                    <span>Pacientes</span>
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+
+            </div>
+
+        </aside>
         <main class="agenda-principal">
 
             @if (cargando)
             {
                 <div class="estado-pagina">
+
                     <div class="spinner-border text-secondary"
                          role="status">
                     </div>
 
                     <p>Cargando turnos...</p>
+
                 </div>
             }
             else if (!string.IsNullOrWhiteSpace(Mensaje))
@@ -140,12 +228,14 @@
             else if (TurnosDelDia.Count == 0)
             {
                 <div class="estado-vacio">
+
                     <i class="bi bi-calendar-x"></i>
 
                     <h2>No hay turnos programados</h2>
 
                     <p>
-                        No se encontraron turnos para esta fecha.
+                        No se encontraron turnos para esta fecha
+                        con los filtros seleccionados.
                     </p>
 
                     <button type="button"
@@ -153,6 +243,7 @@
                             @onclick="IrACrear">
                         Crear turno
                     </button>
+
                 </div>
             }
             else
@@ -169,26 +260,18 @@
                     </div>
 
                     <div class="lista-turnos">
+
                         @foreach (var turno in TurnosDelDia
                             .OrderBy(t => t.FechaInicio))
                         {
                             <article class="turno-card">
-
-                                <div class="turno-horario">
-                                    <span class="hora-inicio">
-                                        @turno.FechaInicio.ToString("HH:mm")
-                                    </span>
-
-                                    <span class="hora-fin">
-                                        @turno.FechaFin.ToString("HH:mm")
-                                    </span>
-                                </div>
 
                                 <div class="turno-icono">
                                     <i class="bi bi-calendar-check"></i>
                                 </div>
 
                                 <div class="turno-informacion">
+
                                     <span class="turno-consultorio">
                                         @(string.IsNullOrWhiteSpace(
                                             turno.NombreTipoConsultorio)
@@ -203,9 +286,20 @@
                                                 : turno.NombreTipoTurno)
                                     </h2>
 
-                                    <span class="turno-duracion">
-                                        @ObtenerDuracion(turno) minutos
-                                    </span>
+                                    <div class="turno-detalles">
+
+                                        <span>
+                                            @turno.FechaInicio.ToString("HH:mm")
+                                            -
+                                            @turno.FechaFin.ToString("HH:mm")
+                                        </span>
+
+                                        <span>
+                                            @ObtenerDuracion(turno) minutos
+                                        </span>
+
+                                    </div>
+
                                 </div>
 
                                 <div class="turno-estado">
@@ -223,6 +317,7 @@
 
                             </article>
                         }
+
                     </div>
 
                 </div>
@@ -231,19 +326,78 @@
         </main>
 
     </div>
+
 </div>
 
 @code {
     private List<TurnoListadoDTO> listaTurnos = new();
+
     private DateTime fechaSeleccionada = DateTime.Today;
-    private DateTime mesVisible = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    private DateTime mesVisible = new(
+        DateTime.Today.Year,
+        DateTime.Today.Month,
+        1
+    );
+
+    private HashSet<int> consultoriosSeleccionados = new();
+    private HashSet<int> tiposSeleccionados = new();
 
     private bool cargando = true;
     private string Mensaje = string.Empty;
+    private bool mostrarConsultorios = true;
+    private bool mostrarServicios = false;
+
 
     private List<TurnoListadoDTO> TurnosDelDia =>
         listaTurnos
-            .Where(t => t.FechaInicio.Date == fechaSeleccionada.Date)
+            .Where(turno =>
+                turno.FechaInicio.Date == fechaSeleccionada.Date
+                && EstaConsultorioSeleccionado(
+                    turno.TipoConsultorioId)
+                && EstaTipoSeleccionado(
+                    turno.TipoTurnoId))
+            .OrderBy(turno => turno.FechaInicio)
+            .ToList();
+
+    private List<OpcionFiltro> ConsultoriosDisponibles =>
+        listaTurnos
+            .Where(turno => turno.TipoConsultorioId > 0)
+            .GroupBy(turno => new
+            {
+                turno.TipoConsultorioId,
+                turno.NombreTipoConsultorio
+            })
+            .Select(grupo => new OpcionFiltro
+            {
+                Id = grupo.Key.TipoConsultorioId,
+
+                Nombre = string.IsNullOrWhiteSpace(
+                    grupo.Key.NombreTipoConsultorio)
+                        ? "Sin consultorio"
+                        : grupo.Key.NombreTipoConsultorio
+            })
+            .OrderBy(item => item.Nombre)
+            .ToList();
+
+    private List<OpcionFiltro> TiposTurnoDisponibles =>
+        listaTurnos
+            .Where(turno => turno.TipoTurnoId != 0)
+            .GroupBy(turno => new
+            {
+                turno.TipoTurnoId,
+                turno.NombreTipoTurno
+            })
+            .Select(grupo => new OpcionFiltro
+            {
+                Id = grupo.Key.TipoTurnoId,
+
+                Nombre = string.IsNullOrWhiteSpace(
+                    grupo.Key.NombreTipoTurno)
+                        ? "Turno"
+                        : grupo.Key.NombreTipoTurno
+            })
+            .OrderBy(item => item.Nombre)
             .ToList();
 
     protected override async Task OnInitializedAsync()
@@ -267,9 +421,9 @@
 
             var error = resp.ObtenerError();
 
-            // El endpoint devuelve NotFound cuando todavía no existen turnos.
-            if (!error.Contains("No hay turnos disponibles.",
-                    StringComparison.OrdinalIgnoreCase))
+            if (!error.Contains(
+                "No hay turnos disponibles",
+                StringComparison.OrdinalIgnoreCase))
             {
                 Mensaje = error;
             }
@@ -278,182 +432,249 @@
         {
             listaTurnos =
                 resp.Respuesta ?? new List<TurnoListadoDTO>();
+
+            InicializarFiltros();
         }
 
         cargando = false;
-        }
+    }
 
-        private void IrDiaAnterior()
+    private void InicializarFiltros()
+    {
+        consultoriosSeleccionados = listaTurnos
+            .Where(turno => turno.TipoConsultorioId > 0)
+            .Select(turno => turno.TipoConsultorioId)
+            .ToHashSet();
+
+        tiposSeleccionados = listaTurnos
+            .Where(turno => turno.TipoTurnoId != 0)
+            .Select(turno => turno.TipoTurnoId)
+            .ToHashSet();
+    }
+
+    private bool EstaConsultorioSeleccionado(int id)
+    {
+        return consultoriosSeleccionados.Count == 0
+            || consultoriosSeleccionados.Contains(id);
+    }
+
+    private bool EstaTipoSeleccionado(int id)
+    {
+        return tiposSeleccionados.Count == 0
+            || tiposSeleccionados.Contains(id);
+    }
+
+    private void CambiarFiltroConsultorio(
+        int id,
+        bool seleccionado)
+    {
+        if (seleccionado)
         {
-            fechaSeleccionada = fechaSeleccionada.AddDays(-1);
-
-            mesVisible = new DateTime(
-                fechaSeleccionada.Year,
-                fechaSeleccionada.Month,
-                1
-            );
+            consultoriosSeleccionados.Add(id);
         }
-
-        private void IrDiaSiguiente()
+        else
         {
-            fechaSeleccionada = fechaSeleccionada.AddDays(1);
-
-            mesVisible = new DateTime(
-                fechaSeleccionada.Year,
-                fechaSeleccionada.Month,
-                1
-            );
+            consultoriosSeleccionados.Remove(id);
         }
+    }
 
-        private void IrAHoy()
+    private void CambiarFiltroTipo(
+        int id,
+        bool seleccionado)
+    {
+        if (seleccionado)
         {
-            fechaSeleccionada = DateTime.Today;
-
-            mesVisible = new DateTime(
-                DateTime.Today.Year,
-                DateTime.Today.Month,
-                1
-            );
+            tiposSeleccionados.Add(id);
         }
-
-        private void IrMesAnterior()
+        else
         {
-            mesVisible = mesVisible.AddMonths(-1);
+            tiposSeleccionados.Remove(id);
         }
+    }
 
-        private void IrMesSiguiente()
-        {
-            mesVisible = mesVisible.AddMonths(1);
-        }
+    private void IrAHoy()
+    {
+        fechaSeleccionada = DateTime.Today;
 
-        private void SeleccionarFecha(DateTime dia)
-        {
-            fechaSeleccionada = dia.Date;
+        mesVisible = new DateTime(
+            DateTime.Today.Year,
+            DateTime.Today.Month,
+            1
+        );
+    }
 
-            mesVisible = new DateTime(
-                dia.Year,
-                dia.Month,
-                1
-            );
-        }
+    private void IrMesAnterior()
+    {
+        mesVisible = mesVisible.AddMonths(-1);
+    }
 
-        private List<DateTime> ObtenerDiasCalendario()
-        {
-            var primerDiaMes = new DateTime(
-                mesVisible.Year,
-                mesVisible.Month,
-                1
-            );
+    private void IrMesSiguiente()
+    {
+        mesVisible = mesVisible.AddMonths(1);
+    }
 
-            // Convierte la semana para que empiece el lunes.
-            var desplazamiento =
-                ((int)primerDiaMes.DayOfWeek + 6) % 7;
+    private void SeleccionarFecha(DateTime dia)
+    {
+        fechaSeleccionada = dia.Date;
 
-            var primerDiaVisible =
-                primerDiaMes.AddDays(-desplazamiento);
+        mesVisible = new DateTime(
+            dia.Year,
+            dia.Month,
+            1
+        );
+    }
 
-            return Enumerable
-                .Range(0, 42)
-                .Select(numero =>
-                    primerDiaVisible.AddDays(numero))
-                .ToList();
-        }
+    private List<DateTime> ObtenerDiasCalendario()
+    {
+        var primerDiaMes = new DateTime(
+            mesVisible.Year,
+            mesVisible.Month,
+            1
+        );
 
-        private bool TieneTurnos(DateTime dia)
-        {
-            return listaTurnos.Any(
-                turno => turno.FechaInicio.Date == dia.Date
-            );
-        }
+        // Convierte el inicio de semana de domingo a lunes.
+        var desplazamiento =
+            ((int)primerDiaMes.DayOfWeek + 6) % 7;
 
-        private string ObtenerClaseDia(DateTime dia)
-        {
-            var clases = new List<string>
+        var primerDiaVisible =
+            primerDiaMes.AddDays(-desplazamiento);
+
+        return Enumerable
+            .Range(0, 42)
+            .Select(numero =>
+                primerDiaVisible.AddDays(numero))
+            .ToList();
+    }
+
+    private bool TieneTurnos(DateTime dia)
+    {
+        return listaTurnos.Any(
+            turno => turno.FechaInicio.Date == dia.Date
+        );
+    }
+
+    private string ObtenerClaseDia(DateTime dia)
+    {
+        var clases = new List<string>
         {
             "calendario-dia"
         };
 
-            if (dia.Month != mesVisible.Month)
-            {
-                clases.Add("otro-mes");
-            }
-
-            if (dia.Date == DateTime.Today)
-            {
-                clases.Add("dia-hoy");
-            }
-
-            if (dia.Date == fechaSeleccionada.Date)
-            {
-                clases.Add("dia-seleccionado");
-            }
-
-            if (TieneTurnos(dia))
-            {
-                clases.Add("dia-con-turnos");
-            }
-
-            return string.Join(" ", clases);
-        }
-
-        private static string FormatearMes(DateTime fecha)
+        if (dia.Month != mesVisible.Month)
         {
-            var texto = fecha.ToString(
-                "MMMM yyyy",
-                new System.Globalization.CultureInfo("es-AR")
-            );
-
-            return char.ToUpper(texto[0]) + texto[1..];
+            clases.Add("otro-mes");
         }
 
-        private static string FormatearFecha(DateTime fecha)
+        if (dia.Date == DateTime.Today)
         {
-            var texto = fecha.ToString(
-                "dddd d 'de' MMMM 'de' yyyy",
-                new System.Globalization.CultureInfo("es-AR")
-            );
-
-            return char.ToUpper(texto[0]) + texto[1..];
+            clases.Add("dia-hoy");
         }
 
-        private static int ObtenerDuracion(TurnoListadoDTO turno)
+        if (dia.Date == fechaSeleccionada.Date)
         {
-            return (int)(turno.FechaFin - turno.FechaInicio).TotalMinutes;
+            clases.Add("dia-seleccionado");
         }
 
-        private static string ObtenerTextoEstado(TurnoListadoDTO turno)
+        if (TieneTurnos(dia))
         {
-            return turno.EstadoTurno switch
-            {
-                EnumEstadoTurno.disponible => "Disponible",
-                EnumEstadoTurno.reservado => "Reservado",
-                EnumEstadoTurno.atendido => "Atendido",
-                EnumEstadoTurno.cancelado => "Cancelado",
-                EnumEstadoTurno.ausente => "No asistió",
-                _ => turno.EstadoTurno.ToString()
-            };
+            clases.Add("dia-con-turnos");
         }
 
-        private static string ObtenerClaseEstado(TurnoListadoDTO turno)
-        {
-            return turno.EstadoTurno switch
-            {
-                EnumEstadoTurno.disponible => "estado-badge estado-disponible",
-                EnumEstadoTurno.reservado => "estado-badge estado-reservado",
-                EnumEstadoTurno.atendido => "estado-badge estado-atendido",
-                EnumEstadoTurno.cancelado => "estado-badge estado-cancelado",
-                EnumEstadoTurno.ausente => "estado-badge estado-ausente",
-                _ => "estado-badge"
-            };
-        }
+        return string.Join(" ", clases);
+    }
 
-        private void IrAEditar(int id)
-        {
-            Nav.NavigateTo($"/turnos/editar/{id}");
-        }
+    private static string FormatearMes(DateTime fecha)
+    {
+        var texto = fecha.ToString(
+            "MMMM yyyy",
+            new System.Globalization.CultureInfo("es-AR")
+        );
 
-        private void IrACrear()
+        return char.ToUpper(texto[0]) + texto[1..];
+    }
+
+    private static string FormatearFechaCorta(DateTime fecha)
+    {
+        var texto = fecha.ToString(
+            "d 'de' MMMM 'de' yyyy",
+            new System.Globalization.CultureInfo("es-AR")
+        );
+
+        return char.ToUpper(texto[0]) + texto[1..];
+    }
+
+    private static int ObtenerDuracion(
+        TurnoListadoDTO turno)
+    {
+        return (int)(
+            turno.FechaFin - turno.FechaInicio
+        ).TotalMinutes;
+    }
+
+    private static string ObtenerTextoEstado(
+        TurnoListadoDTO turno)
+    {
+        return turno.EstadoTurno switch
         {
-            Nav.NavigateTo("/turnos/crear");
-        }
+            EnumEstadoTurno.disponible => "Disponible",
+            EnumEstadoTurno.reservado => "Reservado",
+            EnumEstadoTurno.atendido => "Atendido",
+            EnumEstadoTurno.cancelado => "Cancelado",
+            EnumEstadoTurno.ausente => "No asistió",
+            _ => turno.EstadoTurno.ToString()
+        };
+    }
+
+    private static string ObtenerClaseEstado(
+        TurnoListadoDTO turno)
+    {
+        return turno.EstadoTurno switch
+        {
+            EnumEstadoTurno.disponible =>
+                "estado-badge estado-disponible",
+
+            EnumEstadoTurno.reservado =>
+                "estado-badge estado-reservado",
+
+            EnumEstadoTurno.atendido =>
+                "estado-badge estado-atendido",
+
+            EnumEstadoTurno.cancelado =>
+                "estado-badge estado-cancelado",
+
+            EnumEstadoTurno.ausente =>
+                "estado-badge estado-ausente",
+
+            _ => "estado-badge"
+        };
+    }
+
+    private void IrAEditar(int id)
+    {
+        Nav.NavigateTo($"/turnos/editar/{id}");
+    }
+
+    private void IrACrear()
+    {
+        Nav.NavigateTo("/turnos/crear");
+    }
+
+    private class OpcionFiltro
+    {
+        public int Id { get; set; }
+
+        public string Nombre { get; set; } =
+            string.Empty;
+    }
+
+    
+    private void AlternarConsultorios()
+    {
+        mostrarConsultorios = !mostrarConsultorios;
+    }
+
+    private void AlternarServicios()
+    {
+        mostrarServicios = !mostrarServicios;
+    }
 }
