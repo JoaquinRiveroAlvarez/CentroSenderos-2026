@@ -1,7 +1,9 @@
 .agenda-page {
-    width: 100%;
+    width: calc(100% + 36px);
     min-height: calc(100vh - 60px);
-    padding: 20px 28px 40px;
+    margin-top: -32px;
+    margin-left: -36px;
+    padding: 8px 16px 40px 8px;
     color: #30332e;
 }
 
@@ -162,9 +164,9 @@
 
 .agenda-layout {
     display: grid;
-    grid-template-columns: 268px minmax(0, 1fr);
+    grid-template-columns: 205px minmax(0, 1fr);
     align-items: start;
-    gap: 10px;
+    gap: 8px;
 }
 
 .agenda-principal {
@@ -741,165 +743,533 @@
 }
 
 /* Responsive semanal */
+/* Agenda diaria ampliada */
 
-@media (max-width: 850px) {
-    .agenda-semanal {
-        gap: 14px;
-    }
-
-    .dia-semana-header {
-        min-height: 46px;
-    }
+.agenda-ampliada {
+    width: 100%;
+    min-width: 0;
 }
 
-@media (max-width: 600px) {
-    .dia-semana {
-        border-radius: 7px;
+/* Navegación de lunes a domingo */
+
+.dias-agenda-ampliada {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(68px, 1fr));
+    align-items: stretch;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #d8d8d3;
+}
+
+.dia-ampliado {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 42px;
+    padding: 7px 5px;
+    border: 0;
+    background-color: transparent;
+    color: #7a7d77;
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+    .dia-ampliado:hover {
+        background-color: rgba(238, 243, 236, 0.7);
+        color: #526c4d;
     }
 
-    .dia-semana-header {
-        align-items: flex-start;
-        padding: 10px 11px;
+    .dia-ampliado.activo {
+        color: #343833;
+        font-weight: 600;
     }
 
-        .dia-semana-header > div {
-            align-items: flex-start;
-            flex-direction: column;
-            gap: 2px;
+        .dia-ampliado.activo::after {
+            position: absolute;
+            right: 8px;
+            bottom: -1px;
+            left: 8px;
+            height: 2px;
+            border-radius: 2px;
+            background-color: #526c4d;
+            content: "";
         }
 
-    .dia-semana-nombre {
-        font-size: 13px;
+.dia-ampliado-nombre {
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dia-ampliado-numero {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 21px;
+    height: 21px;
+    padding: 0 5px;
+    border-radius: 50%;
+    background-color: #f0f0ed;
+    color: #63665f;
+    font-size: 10px;
+}
+
+.dia-ampliado.activo .dia-ampliado-numero {
+    background-color: #526c4d;
+    color: #ffffff;
+}
+
+/* Contenedor con desplazamiento */
+
+.grilla-agenda-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    width: 100%;
+    max-height: calc(100vh - 190px);
+    border: 1px solid #d4d4cf;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.84);
+    scrollbar-color: #8a8d87 #eeeeea;
+    scrollbar-width: thin;
+}
+
+    .grilla-agenda-scroll::-webkit-scrollbar {
+        width: 9px;
+        height: 9px;
     }
 
-    .dia-semana-fecha,
-    .dia-semana-cantidad {
+    .grilla-agenda-scroll::-webkit-scrollbar-track {
+        background-color: #eeeeea;
+    }
+
+    .grilla-agenda-scroll::-webkit-scrollbar-thumb {
+        border: 2px solid #eeeeea;
+        border-radius: 10px;
+        background-color: #8a8d87;
+    }
+
+        .grilla-agenda-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: #696d66;
+        }
+
+/* Grilla horaria */
+
+.grilla-agenda {
+    position: relative;
+    display: grid;
+    grid-template-columns: 62px repeat( var(--cantidad-consultorios), minmax(175px, 1fr) );
+    grid-template-rows: 42px repeat(36, 20px);
+    min-width: 780px;
+    min-height: 762px;
+    isolation: isolate;
+}
+
+/* Cabecera superior */
+
+.grilla-esquina,
+.grilla-consultorio {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    padding: 6px;
+    border-bottom: 1px solid #bfc0bc;
+    background-color: rgba(250, 249, 247, 0.98);
+    color: #444741;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.grilla-esquina {
+    left: 0;
+    z-index: 7;
+    border-right: 1px solid #c9cac6;
+    color: #81847e;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.grilla-consultorio {
+    border-left: 1px solid #d6d6d1;
+}
+
+/* Columna horaria */
+
+.grilla-hora {
+    position: relative;
+    z-index: 3;
+    align-self: start;
+    padding: 0 8px 0 4px;
+    background-color: rgba(250, 249, 247, 0.95);
+    color: #696c66;
+    font-size: 10px;
+    line-height: 20px;
+    text-align: right;
+    transform: translateY(-10px);
+}
+
+    .grilla-hora::after {
+        position: absolute;
+        top: 10px;
+        right: 0;
+        width: 6px;
+        height: 1px;
+        background-color: #c8c9c5;
+        content: "";
+    }
+
+/* Líneas horizontales */
+
+.grilla-linea {
+    z-index: 1;
+    align-self: start;
+    width: 100%;
+    border-top: 1px solid #d4d4cf;
+    pointer-events: none;
+}
+
+/*
+   Líneas suaves cada 20 minutos.
+   Las principales de cada hora son las generadas
+   desde el componente Razor.
+*/
+
+.grilla-agenda::after {
+    position: absolute;
+    z-index: 0;
+    top: 42px;
+    right: 0;
+    bottom: 0;
+    left: 62px;
+    background-image: repeating-linear-gradient( to bottom, transparent 0, transparent 19px, rgba(210, 210, 205, 0.38) 19px, rgba(210, 210, 205, 0.38) 20px );
+    pointer-events: none;
+    content: "";
+}
+
+/* Turnos dentro de la grilla */
+
+.turno-grilla {
+    position: relative;
+    z-index: 4;
+    display: flex;
+    overflow: hidden;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 2px;
+    min-width: 0;
+    margin: 2px 3px;
+    padding: 6px 7px;
+    border: 1px solid #cdd5ca;
+    border-left: 3px solid #60785a;
+    border-radius: 6px;
+    background-color: #f5f8f4;
+    color: #343833;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(48, 52, 46, 0.09);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+    .turno-grilla:hover {
+        z-index: 5;
+        border-color: #9eae99;
+        box-shadow: 0 5px 12px rgba(48, 52, 46, 0.16);
+        transform: translateY(-1px);
+    }
+
+.turno-grilla-tipo {
+    overflow: hidden;
+    width: 100%;
+    color: #343833;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.turno-grilla-horario {
+    color: #6f736c;
+    font-size: 9px;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.turno-grilla-estado {
+    overflow: hidden;
+    width: 100%;
+    margin-top: auto;
+    color: #686c65;
+    font-size: 9px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Colores según estado */
+
+.turno-grilla-disponible {
+    border-color: #c5d5c0;
+    border-left-color: #5f7b58;
+    background-color: #edf4ea;
+}
+
+.turno-grilla-reservado {
+    border-color: #ded3ae;
+    border-left-color: #a58c3c;
+    background-color: #f8f3df;
+}
+
+.turno-grilla-atendido {
+    border-color: #bcd8c8;
+    border-left-color: #3f8562;
+    background-color: #e8f4ed;
+}
+
+.turno-grilla-cancelado {
+    border-color: #edc3c3;
+    border-left-color: #b84e4e;
+    background-color: #fceaea;
+}
+
+.turno-grilla-ausente {
+    border-color: #d7c9df;
+    border-left-color: #80618e;
+    background-color: #f2eaf5;
+}
+
+/* Botones Lista / Grilla */
+
+.btn-presentacion {
+    cursor: pointer;
+}
+
+    .btn-presentacion:not(.activo):hover:not(:disabled) {
+        border-color: #d5ddd2;
+        background-color: #eef3ec;
+        color: #526c4d;
+    }
+
+    .btn-presentacion:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+    }
+
+/* Columnas completas por consultorio */
+
+.grilla-columna-fondo {
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    border-left: 1px solid #bfc1bc;
+    pointer-events: none;
+}
+
+    .grilla-columna-fondo:last-of-type {
+        border-right: 1px solid #bfc1bc;
+    }
+
+    .grilla-columna-fondo.columna-par {
+        background-color: rgba(255, 255, 255, 0.42);
+    }
+
+    .grilla-columna-fondo.columna-impar {
+        background-color: rgba(248, 248, 245, 0.58);
+    }
+
+.grilla-consultorio {
+    border-left: 1px solid #bfc1bc;
+    border-right: 0;
+    background-color: #f7f7f4;
+}
+
+    .grilla-consultorio:last-of-type {
+        border-right: 1px solid #bfc1bc;
+    }
+
+/* Las líneas horarias quedan por encima del fondo */
+
+.grilla-linea {
+    z-index: 1;
+}
+
+/* Los turnos quedan por encima de líneas y columnas */
+
+.turno-grilla {
+    z-index: 4;
+}
+
+
+/* Evita que 08:00 se superponga con la cabecera */
+
+.grilla-hora.primera-hora {
+    z-index: 4;
+    padding-top: 3px;
+    background-color: #f7f7f4;
+    line-height: 16px;
+    transform: translateY(0);
+}
+
+/* Panel lateral compacto */
+
+.calendario-cabecera {
+    grid-template-columns: 28px 1fr 28px;
+    padding: 8px 8px 4px;
+}
+
+    .calendario-cabecera > span {
+        font-size: 12px;
+    }
+
+.calendario-nav {
+    width: 28px;
+    height: 28px;
+}
+
+.calendario-semana {
+    padding: 0 7px;
+}
+
+    .calendario-semana span {
+        padding: 4px 0;
+        font-size: 8px;
+    }
+
+.calendario-dias {
+    gap: 1px;
+    padding: 0 7px 8px;
+}
+
+.calendario-dia {
+    border-radius: 5px;
+    font-size: 10px;
+}
+
+.indicador-turnos {
+    bottom: 2px;
+    width: 3px;
+    height: 3px;
+}
+
+
+.filtro-bloque {
+    padding: 9px 10px;
+}
+
+.filtro-titulo {
+    min-height: 22px;
+    margin-bottom: 6px;
+    font-size: 11px;
+}
+
+    .filtro-titulo i {
         font-size: 10px;
     }
 
-    .dia-semana .lista-turnos {
-        padding: 5px;
+.filtro-opciones {
+    gap: 6px;
+}
+
+.filtro-check {
+    gap: 7px;
+    font-size: 11px;
+}
+
+    .filtro-check input {
+        width: 12px;
+        height: 12px;
     }
+
+.filtro-no-disponible {
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 11px;
 }
 
 /* Pantallas medianas */
 
-@media (max-width: 1050px) {
-    .agenda-page {
-        padding: 18px 20px 35px;
+@media (max-width: 1100px) {
+    .dias-agenda-ampliada {
+        overflow-x: auto;
+        grid-template-columns: repeat(7, minmax(82px, 1fr));
     }
 
-    .agenda-layout {
-        grid-template-columns: 240px minmax(0, 1fr);
+    .grilla-agenda {
+        grid-template-columns: 58px repeat( var(--cantidad-consultorios), minmax(165px, 1fr) );
+        min-width: 730px;
     }
 
-    .turno-card {
-        grid-template-columns: 34px minmax(150px, 1fr) auto 30px;
-        gap: 8px;
-    }
+        .grilla-agenda::after {
+            left: 58px;
+        }
 }
 
 /* Tablets */
 
 @media (max-width: 850px) {
-    .agenda-toolbar {
-        grid-template-columns: 1fr auto auto;
+    .grilla-agenda-scroll {
+        max-height: 620px;
     }
 
-    .navegacion-fecha {
-        grid-column: 1;
+    .dias-agenda-ampliada {
+        margin-bottom: 8px;
     }
 
-    .selector-presentacion {
-        grid-column: 2;
+    .dia-ampliado {
+        min-height: 40px;
     }
-
-    .selector-periodo {
-        display: none;
-    }
-
-    .btn-nuevo-turno {
-        grid-column: 3;
-    }
-
-    .agenda-layout {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-
-    .calendario-panel {
+    .agenda-page {
         width: 100%;
-        max-width: 380px;
+        margin-left: 0;
+        padding-right: 20px;
+        padding-left: 20px;
     }
 }
 
 /* Celulares */
 
 @media (max-width: 600px) {
-    .agenda-page {
-        padding: 14px 12px 30px;
+    .dias-agenda-ampliada {
+        grid-template-columns: repeat(7, minmax(72px, 1fr));
     }
 
-    .agenda-toolbar {
-        grid-template-columns: 1fr auto;
-        gap: 8px;
-        margin-bottom: 10px;
+    .dia-ampliado {
+        flex-direction: column;
+        gap: 2px;
+        min-height: 48px;
     }
 
-    .navegacion-fecha {
-        min-width: 0;
+    .dia-ampliado-nombre {
+        font-size: 10px;
     }
 
-    .fecha-actual {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+    .dia-ampliado-numero {
+        min-width: 19px;
+        height: 19px;
+        font-size: 9px;
     }
 
-    .selector-presentacion {
-        display: none;
+    .grilla-agenda-scroll {
+        max-height: 560px;
     }
 
-    .btn-nuevo-turno {
-        grid-column: 2;
-        grid-row: 1;
+    .grilla-agenda {
+        grid-template-columns: 54px repeat( var(--cantidad-consultorios), minmax(150px, 1fr) );
+        min-width: 680px;
     }
 
-    .calendario-panel {
-        max-width: none;
-    }
-
-    .turno-card {
-        grid-template-columns: 32px minmax(0, 1fr) 30px;
-        gap: 8px;
-        min-height: 76px;
-        padding: 9px;
-    }
-
-    .turno-icono {
-        width: 30px;
-        height: 30px;
-    }
-
-        .turno-icono i {
-            font-size: 20px;
+        .grilla-agenda::after {
+            left: 54px;
         }
 
-    .turno-estado {
-        grid-column: 2;
-        justify-content: flex-start;
-    }
-
-    .btn-editar-turno {
-        grid-column: 3;
-        grid-row: 1 / span 2;
-    }
-
-    .turno-informacion h2 {
-        font-size: 14px;
-    }
-
-    .estado-badge {
-        min-width: 0;
+    .turno-grilla {
+        padding: 5px;
     }
 }

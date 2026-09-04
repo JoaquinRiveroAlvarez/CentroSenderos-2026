@@ -21,18 +21,27 @@
         </div>
 
         <div class="selector-presentacion">
+
             <button type="button"
-                    class="btn-presentacion"
+                    class="@(vistaAmpliada && !vistaSemanal
+                                ? "btn-presentacion activo"
+                                : "btn-presentacion")"
                     title="Agenda ampliada"
-                    disabled>
+                    disabled="@vistaSemanal"
+                    @onclick="MostrarVistaAmpliada">
                 <i class="bi bi-grid-fill"></i>
             </button>
 
             <button type="button"
-                    class="btn-presentacion activo"
-                    title="Agenda diaria">
+                    class="@(!vistaAmpliada && !vistaSemanal
+                                ? "btn-presentacion activo"
+                                : "btn-presentacion")"
+                    title="Agenda en lista"
+                    disabled="@vistaSemanal"
+                    @onclick="MostrarVistaLista">
                 <i class="bi bi-list-ul"></i>
             </button>
+
         </div>
 
         <div class="selector-periodo">
@@ -304,6 +313,140 @@
 
                 </div>
             }
+
+            else if (vistaAmpliada)
+            {
+                <div class="agenda-ampliada">
+
+                    <div class="dias-agenda-ampliada">
+
+                        @foreach (var dia in DiasDeLaSemana)
+                        {
+                            <button type="button"
+                                    class="@(dia.Date == fechaSeleccionada.Date
+                                                            ? "dia-ampliado activo"
+                                                            : "dia-ampliado")"
+                                    @onclick="() => SeleccionarFecha(dia)">
+
+                                <span class="dia-ampliado-nombre">
+                                    @FormatearNombreDia(dia)
+                                </span>
+
+                                <span class="dia-ampliado-numero">
+                                    @dia.Day
+                                </span>
+
+                            </button>
+                        }
+
+                    </div>
+
+                    @if (ConsultoriosVisibles.Count == 0)
+                    {
+                        <div class="estado-vacio">
+
+                            <i class="bi bi-building-x"></i>
+
+                            <h2>No hay consultorios seleccionados</h2>
+
+                            <p>
+                                Seleccioná al menos un consultorio
+                                desde los filtros.
+                            </p>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="grilla-agenda-scroll">
+
+                            <div class="grilla-agenda"
+                                 style="--cantidad-consultorios: @ConsultoriosVisibles.Count;">
+
+                                <div class="grilla-esquina">
+                                    Hora
+                                </div>
+                                @for (var indice = 0;
+                                    indice < ConsultoriosVisibles.Count;
+                                    indice++)
+                                {
+                                    var consultorio = ConsultoriosVisibles[indice];
+                                    var columna = indice + 2;
+
+                                    <div class="grilla-consultorio"
+                                         style="grid-column: @columna; grid-row: 1;">
+
+                                        @consultorio.Nombre
+
+                                    </div>
+
+                                    <div class="grilla-columna-fondo @(indice % 2 == 0
+                                            ? "columna-par"
+                                            : "columna-impar")"
+                                         style="grid-column: @columna; grid-row: 2 / 38;">
+                                    </div>
+                                }
+                                @for (var hora = 0; hora <= 12; hora++)
+                                    {
+                                        var horaActual = 8 + hora;
+                                        var fila = 2 + (hora * 3);
+
+                                        var claseHora = hora == 0
+                                            ? "grilla-hora primera-hora"
+                                            : "grilla-hora";
+
+                                        var estiloHora =
+                                            $"grid-column: 1; grid-row: {fila};";
+
+                                        var estiloLinea =
+                                            $"grid-column: 2 / -1; grid-row: {fila};";
+
+                                        <div class="@claseHora"
+                                             style="@estiloHora">
+
+                                            @($"{horaActual:00}:00")
+
+                                        </div>
+
+                                        <div class="grilla-linea"
+                                             style="@estiloLinea">
+                                        </div>
+                                    }
+                                @foreach (var turno in TurnosGrilla)
+                                {
+                                    <button type="button"
+                                            class="@ObtenerClaseTurnoGrilla(turno)"
+                                            style="@ObtenerPosicionTurno(turno)"
+                                            title="Editar turno"
+                                            @onclick="() => IrAEditar(turno.Id)">
+
+                                        <span class="turno-grilla-tipo">
+                                            @(string.IsNullOrWhiteSpace(
+                                                turno.NombreTipoTurno)
+                                                    ? "Turno"
+                                                    : turno.NombreTipoTurno)
+                                        </span>
+
+                                        <span class="turno-grilla-horario">
+                                            @turno.FechaInicio.ToString("HH:mm")
+                                            -
+                                            @turno.FechaFin.ToString("HH:mm")
+                                        </span>
+
+                                        <span class="turno-grilla-estado">
+                                            @ObtenerTextoEstado(turno)
+                                        </span>
+
+                                    </button>
+                                }
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
             else if (TurnosDelDia.Count == 0)
             {
                 <div class="estado-vacio">
@@ -408,13 +551,11 @@
 
 @code {
     private List<TurnoListadoDTO> listaTurnos = new();
+    private List<TipoConsultorioListadoDTO> consultorios = new();
 
     private DateTime fechaSeleccionada = DateTime.Today;
 
-    private DateTime mesVisible = new(
-        DateTime.Today.Year,
-        DateTime.Today.Month,
-        1
+    private DateTime mesVisible = new(DateTime.Today.Year, DateTime.Today.Month,1
     );
 
     private HashSet<int> consultoriosSeleccionados = new();
@@ -423,6 +564,7 @@
     private bool cargando = true;
     private string Mensaje = string.Empty;
     private bool vistaSemanal;
+    private bool vistaAmpliada;
     private bool mostrarConsultorios = true;
     private bool mostrarServicios = false;
 
@@ -436,6 +578,22 @@
                 && EstaTipoSeleccionado(
                     turno.TipoTurnoId))
             .OrderBy(turno => turno.FechaInicio)
+            .ToList();
+
+    
+    private List<OpcionFiltro> ConsultoriosVisibles =>
+    ConsultoriosDisponibles
+        .Where(consultorio =>
+            EstaConsultorioSeleccionado(consultorio.Id))
+        .ToList();
+
+    private List<TurnoListadoDTO> TurnosGrilla =>
+        TurnosDelDia
+            .Where(turno =>
+                turno.FechaInicio.TimeOfDay >=
+                    new TimeSpan(8, 0, 0)
+                && turno.FechaInicio.TimeOfDay <
+                    new TimeSpan(20, 0, 0))
             .ToList();
 
 
@@ -476,25 +634,48 @@
     }
 
 
-    private List<OpcionFiltro> ConsultoriosDisponibles =>
-        listaTurnos
-            .Where(turno => turno.TipoConsultorioId > 0)
-            .GroupBy(turno => new
+    private List<OpcionFiltro> ConsultoriosDisponibles
+    {
+        get
+        {
+            if (consultorios.Count > 0)
             {
-                turno.TipoConsultorioId,
-                turno.NombreTipoConsultorio
-            })
-            .Select(grupo => new OpcionFiltro
-            {
-                Id = grupo.Key.TipoConsultorioId,
+                return consultorios
+                    .Select(consultorio => new OpcionFiltro
+                    {
+                        Id = consultorio.Id,
 
-                Nombre = string.IsNullOrWhiteSpace(
-                    grupo.Key.NombreTipoConsultorio)
-                        ? "Sin consultorio"
-                        : grupo.Key.NombreTipoConsultorio
-            })
-            .OrderBy(item => item.Nombre)
-            .ToList();
+                        Nombre = string.IsNullOrWhiteSpace(
+                            consultorio.Tipo)
+                                ? "Sin nombre"
+                                : consultorio.Tipo
+                    })
+                    .OrderBy(item => item.Nombre)
+                    .ToList();
+            }
+
+            // Si el catálogo no se puede cargar, usamos los
+            // consultorios encontrados en los turnos.
+            return listaTurnos
+                .Where(turno => turno.TipoConsultorioId > 0)
+                .GroupBy(turno => new
+                {
+                    turno.TipoConsultorioId,
+                    turno.NombreTipoConsultorio
+                })
+                .Select(grupo => new OpcionFiltro
+                {
+                    Id = grupo.Key.TipoConsultorioId,
+
+                    Nombre = string.IsNullOrWhiteSpace(
+                        grupo.Key.NombreTipoConsultorio)
+                            ? "Sin consultorio"
+                            : grupo.Key.NombreTipoConsultorio
+                })
+                .OrderBy(item => item.Nombre)
+                .ToList();
+        }
+    }
 
     private List<OpcionFiltro> TiposTurnoDisponibles =>
         listaTurnos
@@ -518,7 +699,20 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await CargarConsultorios();
         await CargarTurnos();
+    }
+
+    private async Task CargarConsultorios()
+    {
+        var resp =
+            await Http.Get<List<TipoConsultorioListadoDTO>>(
+                "api/tipoconsultorio/ListaTipoConsultorio"
+            );
+
+        consultorios = resp.Error
+            ? new List<TipoConsultorioListadoDTO>()
+            : resp.Respuesta ?? new List<TipoConsultorioListadoDTO>();
     }
 
     private async Task CargarTurnos()
@@ -557,10 +751,9 @@
 
     private void InicializarFiltros()
     {
-        consultoriosSeleccionados = listaTurnos
-            .Where(turno => turno.TipoConsultorioId > 0)
-            .Select(turno => turno.TipoConsultorioId)
-            .ToHashSet();
+        consultoriosSeleccionados = ConsultoriosDisponibles
+        .Select(consultorio => consultorio.Id)
+        .ToHashSet();
 
         tiposSeleccionados = listaTurnos
             .Where(turno => turno.TipoTurnoId != 0)
@@ -839,5 +1032,95 @@
 
         return char.ToUpper(texto[0]) + texto[1..];
     }
+
+    private void MostrarVistaLista()
+    {
+        vistaAmpliada = false;
+    }
+
+    private void MostrarVistaAmpliada()
+    {
+        vistaAmpliada = true;
+    }
+
+    
+
+    private string ObtenerPosicionTurno(
+    TurnoListadoDTO turno)
+    {
+        var indiceConsultorio =
+            ConsultoriosVisibles.FindIndex(
+                consultorio =>
+                    consultorio.Id ==
+                    turno.TipoConsultorioId
+            );
+
+        if (indiceConsultorio < 0)
+        {
+            return "display: none;";
+        }
+
+        var inicioAgenda =
+            fechaSeleccionada.Date.AddHours(8);
+
+        var minutosDesdeInicio =
+            (turno.FechaInicio - inicioAgenda).TotalMinutes;
+
+        var duracionMinutos =
+            (turno.FechaFin - turno.FechaInicio).TotalMinutes;
+
+        var filaInicio =
+            2 + Math.Max(
+                0,
+                (int)Math.Floor(minutosDesdeInicio / 20)
+            );
+
+        var cantidadFilas =
+            Math.Max(
+                1,
+                (int)Math.Ceiling(duracionMinutos / 20)
+            );
+
+        var columna = indiceConsultorio + 2;
+
+        return
+            $"grid-column: {columna}; " +
+            $"grid-row: {filaInicio} / span {cantidadFilas};";
+    }
+
+
+    private string ObtenerClaseTurnoGrilla(
+    TurnoListadoDTO turno)
+    {
+        var claseEstado = turno.EstadoTurno switch
+        {
+            EnumEstadoTurno.disponible =>
+                "turno-grilla-disponible",
+
+            EnumEstadoTurno.reservado =>
+                "turno-grilla-reservado",
+
+            EnumEstadoTurno.atendido =>
+                "turno-grilla-atendido",
+
+            EnumEstadoTurno.cancelado =>
+                "turno-grilla-cancelado",
+
+            EnumEstadoTurno.ausente =>
+                "turno-grilla-ausente",
+
+            _ => string.Empty
+        };
+
+        return $"turno-grilla {claseEstado}";
+    }
+
+
+
+
+
+
+
+
 
 }
