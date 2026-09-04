@@ -1,0 +1,570 @@
+.turno-crear-page {
+    width: 100%;
+    max-width: 1180px;
+    min-height: calc(100vh - 60px);
+    margin: -24px auto 0;
+    padding: 8px 24px 42px;
+    color: #30332e;
+}
+
+/* Volver */
+
+.btn-volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    color: #63705f;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+    .btn-volver:hover {
+        color: #435b3e;
+        transform: translateX(-2px);
+    }
+
+    .btn-volver i {
+        font-size: 15px;
+    }
+
+/* Encabezado */
+
+.crear-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+
+    .crear-header h1 {
+        margin: 0;
+        color: #343a32;
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .crear-header p {
+        margin: 7px 0 0;
+        color: #777b74;
+        font-size: 13px;
+    }
+
+/* Carga */
+
+.estado-carga {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 340px;
+    border: 1px solid #deded9;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.76);
+    color: #747871;
+    font-size: 13px;
+}
+
+/* Formulario */
+
+.turno-form {
+    width: 100%;
+}
+
+.form-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 0.85fr);
+    align-items: stretch;
+    gap: 18px;
+}
+
+.form-card {
+    padding: 22px;
+    border: 1px solid #deded9;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 4px 15px rgba(48, 52, 46, 0.05);
+}
+
+/* Encabezados de secciones */
+
+.seccion-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.seccion-numero {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background-color: #dfe5dc;
+    color: #4c6746;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.seccion-header h2 {
+    margin: 0;
+    color: #3b4038;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.seccion-header p {
+    margin: 4px 0 0;
+    color: #848780;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+/* Campos */
+
+.campos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 17px 14px;
+}
+
+.campo {
+    min-width: 0;
+}
+
+.campo-completo {
+    grid-column: 1 / -1;
+}
+
+.campo label {
+    display: block;
+    margin-bottom: 7px;
+    color: #4a4e47;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.campo .form-control,
+.campo .form-select {
+    width: 100%;
+    min-height: 43px;
+    padding: 9px 12px;
+    border: 1px solid #d7d8d3;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #383c36;
+    font-size: 13px;
+    box-shadow: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+    .campo .form-control:hover,
+    .campo .form-select:hover {
+        border-color: #b8c3b4;
+    }
+
+    .campo .form-control:focus,
+    .campo .form-select:focus {
+        border-color: #647b5b;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.13);
+        outline: none;
+    }
+
+/* Consultar horarios */
+
+.btn-consultar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 43px;
+    margin-top: 20px;
+    padding: 9px 15px;
+    border: 1px solid #647b5b;
+    border-radius: 8px;
+    background-color: #eef3ec;
+    color: #4b6545;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+    .btn-consultar:hover:not(:disabled) {
+        border-color: #526b4c;
+        background-color: #dfe8dc;
+        color: #3e5939;
+        transform: translateY(-1px);
+    }
+
+    .btn-consultar:disabled {
+        cursor: wait;
+        opacity: 0.7;
+    }
+
+/* Horarios */
+
+.horarios-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 310px;
+}
+
+.horarios-vacio {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 178px;
+    padding: 25px;
+    border: 1px dashed #d8d9d4;
+    border-radius: 9px;
+    background-color: #fafaf8;
+    text-align: center;
+}
+
+    .horarios-vacio i {
+        margin-bottom: 12px;
+        color: #91a28c;
+        font-size: 30px;
+    }
+
+    .horarios-vacio p {
+        max-width: 230px;
+        margin: 0;
+        color: #858981;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+.horarios-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(64px, 1fr));
+    align-content: start;
+    gap: 9px;
+    max-height: 220px;
+    padding: 2px;
+    overflow-y: auto;
+    scrollbar-color: #a0a49d #eeeeea;
+    scrollbar-width: thin;
+}
+
+.horario-opcion {
+    min-height: 39px;
+    padding: 7px 8px;
+    border: 1px solid #d7d8d3;
+    border-radius: 7px;
+    background-color: #ffffff;
+    color: #4c5049;
+    font-size: 12px;
+    font-weight: 550;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+    .horario-opcion:hover {
+        border-color: #9dac98;
+        background-color: #f0f4ee;
+        color: #455f40;
+        transform: translateY(-1px);
+    }
+
+    .horario-opcion.seleccionado {
+        border-color: #556f4f;
+        background-color: #556f4f;
+        color: #ffffff;
+        box-shadow: 0 3px 8px rgba(85, 111, 79, 0.2);
+    }
+
+/* Resumen */
+
+.resumen-turno {
+    margin-top: 18px;
+    padding: 20px 22px;
+    border: 1px solid #cfd9cc;
+    border-radius: 12px;
+    background-color: rgba(239, 244, 237, 0.94);
+}
+
+.resumen-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    margin-bottom: 17px;
+}
+
+    .resumen-header > i {
+        color: #556f4f;
+        font-size: 23px;
+    }
+
+    .resumen-header h2 {
+        margin: 0;
+        color: #3f523b;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .resumen-header p {
+        margin: 3px 0 0;
+        color: #73806f;
+        font-size: 11px;
+    }
+
+.resumen-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 0.8fr 1fr 1.2fr;
+    gap: 12px;
+}
+
+.resumen-item {
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid rgba(100, 123, 91, 0.18);
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.72);
+}
+
+.resumen-label {
+    display: block;
+    margin-bottom: 4px;
+    color: #7e887a;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.resumen-item strong {
+    display: block;
+    overflow: hidden;
+    color: #3f493c;
+    font-size: 12px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Validaciones */
+
+::deep .validation-message {
+    display: block;
+    margin-top: 5px;
+    color: #b44242;
+    font-size: 11px;
+}
+
+::deep .validation-summary {
+    margin: 16px 0 0;
+}
+
+::deep .validation-summary-errors {
+    padding: 12px 15px;
+    border: 1px solid #edc7c7;
+    border-radius: 8px;
+    background-color: #fceaea;
+    color: #9d3d3d;
+    font-size: 12px;
+}
+
+    ::deep .validation-summary-errors ul {
+        margin: 0;
+        padding-left: 18px;
+    }
+
+    ::deep .validation-summary-errors li + li {
+        margin-top: 4px;
+    }
+
+.mensaje-form {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 16px;
+    padding: 12px 15px;
+    border: 1px solid #edc7c7;
+    border-radius: 8px;
+    background-color: #fceaea;
+    color: #9d3d3d;
+    font-size: 12px;
+}
+
+/* Acciones */
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid #deded9;
+}
+
+.btn-cancelar,
+.btn-guardar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-width: 128px;
+    min-height: 42px;
+    padding: 9px 17px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-cancelar {
+    border: 1px solid #d3d4cf;
+    background-color: #ffffff;
+    color: #61655e;
+}
+
+    .btn-cancelar:hover:not(:disabled) {
+        border-color: #aeb5aa;
+        background-color: #f5f6f3;
+        color: #424740;
+    }
+
+.btn-guardar {
+    border: 1px solid #556f4f;
+    background-color: #556f4f;
+    color: #ffffff;
+}
+
+    .btn-guardar:hover:not(:disabled) {
+        border-color: #435b3e;
+        background-color: #435b3e;
+        box-shadow: 0 5px 12px rgba(67, 91, 62, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .btn-cancelar:disabled,
+    .btn-guardar:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+    }
+
+    .btn-cancelar:active:not(:disabled),
+    .btn-guardar:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+/* Pantallas medianas */
+
+@media (max-width: 1050px) {
+    .turno-crear-page {
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .form-layout {
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 0.8fr);
+        gap: 14px;
+    }
+
+    .form-card {
+        padding: 18px;
+    }
+
+    .horarios-grid {
+        grid-template-columns: repeat(3, minmax(64px, 1fr));
+    }
+
+    .resumen-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* Tablets */
+
+@media (max-width: 800px) {
+    .turno-crear-page {
+        margin-top: 0;
+        padding-top: 18px;
+    }
+
+    .form-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .horarios-card {
+        min-height: auto;
+    }
+
+    .horarios-grid {
+        grid-template-columns: repeat(4, minmax(60px, 1fr));
+        max-height: none;
+    }
+
+    .resumen-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Celulares */
+
+@media (max-width: 560px) {
+    .turno-crear-page {
+        padding: 14px 12px 30px;
+    }
+
+    .crear-header {
+        margin-bottom: 17px;
+    }
+
+        .crear-header h1 {
+            font-size: 24px;
+        }
+
+    .form-card {
+        padding: 16px 14px;
+        border-radius: 10px;
+    }
+
+    .campos-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .campo-completo {
+        grid-column: auto;
+    }
+
+    .horarios-grid {
+        grid-template-columns: repeat(3, minmax(58px, 1fr));
+    }
+
+    .resumen-turno {
+        padding: 17px 14px;
+    }
+
+    .resumen-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        align-items: stretch;
+        flex-direction: column-reverse;
+    }
+
+    .btn-cancelar,
+    .btn-guardar {
+        width: 100%;
+    }
+}
