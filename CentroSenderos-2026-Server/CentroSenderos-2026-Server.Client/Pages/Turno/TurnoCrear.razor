@@ -128,15 +128,91 @@
 
                         </div>
 
-                        <div class="campo">
+                        <div class="campo campo-fecha">
 
-                            <label for="fechaTurno">
+                            <label>
                                 Fecha
                             </label>
 
-                            <InputDate id="fechaTurno"
-                                       class="form-control"
-                                       @bind-Value="modelo.Fecha" />
+                            <button type="button"
+                                    class="fecha-selector"
+                                    aria-expanded="@calendarioAbierto"
+                                    @onclick="AlternarCalendario">
+
+                                <span>
+                                    @modelo.Fecha.ToString("dd/MM/yyyy")
+                                </span>
+
+                                <i class="bi bi-calendar3"></i>
+
+                            </button>
+
+                            @if (calendarioAbierto)
+                            {
+                                <div class="calendario-crear">
+
+                                    <div class="calendario-crear-header">
+
+                                        <button type="button"
+                                                class="calendario-crear-nav"
+                                                title="Mes anterior"
+                                                @onclick="IrMesAnteriorCalendario">
+
+                                            <i class="bi bi-chevron-left"></i>
+
+                                        </button>
+
+                                        <strong>
+                                            @FormatearMesCalendario(mesCalendario)
+                                        </strong>
+
+                                        <button type="button"
+                                                class="calendario-crear-nav"
+                                                title="Mes siguiente"
+                                                @onclick="IrMesSiguienteCalendario">
+
+                                            <i class="bi bi-chevron-right"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                    <div class="calendario-crear-semana">
+                                        <span>Lu</span>
+                                        <span>Ma</span>
+                                        <span>Mi</span>
+                                        <span>Ju</span>
+                                        <span>Vi</span>
+                                        <span>Sá</span>
+                                        <span>Do</span>
+                                    </div>
+
+                                    <div class="calendario-crear-dias">
+
+                                        @foreach (var dia in ObtenerDiasCalendarioCrear())
+                                        {
+                                            <button type="button"
+                                                    class="@ObtenerClaseDiaCalendario(dia)"
+                                                    @onclick="() => SeleccionarFechaCalendario(dia)">
+
+                                                @dia.Day
+
+                                            </button>
+                                        }
+
+                                    </div>
+
+                                    <div class="calendario-crear-footer">
+
+                                        <button type="button"
+                                                @onclick="SeleccionarHoy">
+                                            Hoy
+                                        </button>
+
+                                    </div>
+
+                                </div>
+                            }
 
                             <ValidationMessage For="@(() => modelo.Fecha)" />
 
@@ -370,6 +446,14 @@
         && modelo.Fecha != DateTime.MinValue
         && !string.IsNullOrWhiteSpace(horaSeleccionada);
 
+    private bool calendarioAbierto;
+
+    private DateTime mesCalendario = new(
+        DateTime.Today.Year,
+        DateTime.Today.Month,
+        1
+    );
+
     protected override async Task OnInitializedAsync()
     {
         cargando = true;
@@ -527,6 +611,130 @@
     {
         var texto = fecha.ToString(
             "dddd d 'de' MMMM 'de' yyyy",
+            new System.Globalization.CultureInfo("es-AR")
+        );
+
+        return char.ToUpper(texto[0]) + texto[1..];
+    }
+
+    private void AlternarCalendario()
+    {
+        calendarioAbierto = !calendarioAbierto;
+
+        if (calendarioAbierto)
+        {
+            mesCalendario = new DateTime(
+                modelo.Fecha.Year,
+                modelo.Fecha.Month,
+                1
+            );
+        }
+    }
+
+    private void IrMesAnteriorCalendario()
+    {
+        mesCalendario =
+            mesCalendario.AddMonths(-1);
+    }
+
+    private void IrMesSiguienteCalendario()
+    {
+        mesCalendario =
+            mesCalendario.AddMonths(1);
+    }
+
+    private List<DateTime> ObtenerDiasCalendarioCrear()
+    {
+        var primerDiaMes = new DateTime(
+            mesCalendario.Year,
+            mesCalendario.Month,
+            1
+        );
+
+        var desplazamiento =
+            ((int)primerDiaMes.DayOfWeek + 6) % 7;
+
+        var primerDiaVisible =
+            primerDiaMes.AddDays(-desplazamiento);
+
+        return Enumerable
+            .Range(0, 42)
+            .Select(numero =>
+                primerDiaVisible.AddDays(numero))
+            .ToList();
+    }
+
+    private void SeleccionarFechaCalendario(
+        DateTime fecha)
+    {
+        modelo.Fecha = fecha.Date;
+
+        mesCalendario = new DateTime(
+            fecha.Year,
+            fecha.Month,
+            1
+        );
+
+        calendarioAbierto = false;
+
+        ReiniciarDisponibilidad();
+    }
+
+    private void SeleccionarHoy()
+    {
+        modelo.Fecha = DateTime.Today;
+
+        mesCalendario = new DateTime(
+            DateTime.Today.Year,
+            DateTime.Today.Month,
+            1
+        );
+
+        calendarioAbierto = false;
+
+        ReiniciarDisponibilidad();
+    }
+
+    private void ReiniciarDisponibilidad()
+    {
+        horasDisponibles.Clear();
+        horaSeleccionada = string.Empty;
+        modelo.Hora = TimeOnly.MinValue;
+        horariosConsultados = false;
+        Mensaje = string.Empty;
+    }
+
+    private string ObtenerClaseDiaCalendario(
+        DateTime dia)
+    {
+        var clases = new List<string>
+    {
+        "calendario-crear-dia"
+    };
+
+        if (dia.Month != mesCalendario.Month)
+        {
+            clases.Add("otro-mes");
+        }
+
+        if (dia.Date == DateTime.Today)
+        {
+            clases.Add("hoy");
+        }
+
+        if (dia.Date == modelo.Fecha.Date)
+        {
+            clases.Add("seleccionado");
+        }
+
+        return string.Join(" ", clases);
+    }
+
+    private static string FormatearMesCalendario(
+        DateTime fecha)
+    {
+        var texto = fecha.ToString(
+            "MMMM yyyy",
             new System.Globalization.CultureInfo("es-AR")
         );
 
