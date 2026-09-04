@@ -11,16 +11,12 @@
     <div class="agenda-toolbar">
 
         <div class="navegacion-fecha">
-            <button type="button"
-                    class="btn-hoy"
-                    @onclick="IrAHoy">
+            <button type="button" class="btn-hoy"@onclick="IrAHoy">
                 Hoy
             </button>
 
             <span class="fecha-actual">
-                @(vistaSemanal
-                    ? FormatearRangoSemana()
-                    : FormatearFechaCorta(fechaSeleccionada))
+                @(vistaSemanal? FormatearRangoSemana() : FormatearFechaCorta(fechaSeleccionada))
             </span>
         </div>
 
@@ -41,27 +37,17 @@
 
         <div class="selector-periodo">
 
-            <button type="button"
-                    class="@(vistaSemanal
-                                ? "periodo-inactivo"
-                                : "periodo-activo")"
-                    @onclick="MostrarVistaDiaria">
+            <button type="button"class="@(vistaSemanal? "periodo-inactivo" : "periodo-activo")" @onclick="MostrarVistaDiaria">
                 Diaria
             </button>
 
-            <button type="button"
-                    class="@(vistaSemanal
-                                ? "periodo-activo"
-                                : "periodo-inactivo")"
-                    @onclick="MostrarVistaSemanal">
+            <button type="button" class="@(vistaSemanal? "periodo-activo" : "periodo-inactivo")" @onclick="MostrarVistaSemanal">
                 Semanal
             </button>
 
         </div>
 
-        <button type="button"
-                class="btn-nuevo-turno"
-                @onclick="IrACrear">
+        <button type="button" class="btn-nuevo-turno" @onclick="IrACrear">
             <i class="bi bi-plus-lg"></i>
             Turno
         </button>
@@ -74,19 +60,13 @@
 
             <div class="calendario-cabecera">
 
-                <button type="button"
-                        class="calendario-nav"
-                        title="Mes anterior"
-                        @onclick="IrMesAnterior">
+                <button type="button" class="calendario-nav" title="Mes anterior" @onclick="IrMesAnterior">
                     <i class="bi bi-chevron-left"></i>
                 </button>
 
                 <span>@FormatearMes(mesVisible)</span>
 
-                <button type="button"
-                        class="calendario-nav"
-                        title="Mes siguiente"
-                        @onclick="IrMesSiguiente">
+                <button type="button" class="calendario-nav" title="Mes siguiente" @onclick="IrMesSiguiente">
                     <i class="bi bi-chevron-right"></i>
                 </button>
 
@@ -105,10 +85,7 @@
             <div class="calendario-dias">
                 @foreach (var dia in ObtenerDiasCalendario())
                 {
-                    <button type="button"
-                            class="@ObtenerClaseDia(dia)"
-                            @onclick="() => SeleccionarFecha(dia)">
-
+                    <button type="button"class="@ObtenerClaseDia(dia)" @onclick="() => SeleccionarFecha(dia)">
                         <span>@dia.Day</span>
 
                         @if (TieneTurnos(dia))
@@ -130,32 +107,25 @@
 
                         <span>Consultorios</span>
 
-                        <i class="bi @(mostrarConsultorios
-                                           ? "bi-chevron-up"
-                                           : "bi-chevron-down")">
+                        <i class="bi @(mostrarConsultorios? "bi-chevron-up"  : "bi-chevron-down")">
                         </i>
 
                     </button>
 
-                    @if (mostrarConsultorios)
-                    {
-                        <div class="filtro-opciones">
-                            @foreach (var consultorio in ConsultoriosDisponibles)
-                            {
-                                <label class="filtro-check">
+                        @if (mostrarConsultorios)
+                        {
+                            <div class="filtro-opciones">
+                                @foreach (var consultorio in ConsultoriosDisponibles)
+                                {
+                                    <label class="filtro-check">
 
-                                    <input type="checkbox"
-                                           checked="@consultoriosSeleccionados.Contains(consultorio.Id)"
-                                           @onchange="e => CambiarFiltroConsultorio(
-                                                                       consultorio.Id,
-                                                                       Convert.ToBoolean(e.Value))" />
-
-<span>@consultorio.Nombre</span>
-
-</label>
-                            }
-                        </div>
-                    }
+                                       <input type="checkbox"checked="@consultoriosSeleccionados.Contains(consultorio.Id)" 
+                                       @onchange="e => CambiarFiltroConsultorio( consultorio.Id, Convert.ToBoolean(e.Value))" />
+                                       <span>@consultorio.Nombre</span>
+                                     </label>
+                                }
+                            </div>
+                        }
 
                 </div>
 
@@ -183,13 +153,9 @@
 
                                     <input type="checkbox"
                                            checked="@tiposSeleccionados.Contains(tipo.Id)"
-                                           @onchange="e => CambiarFiltroTipo(
-                                                                       tipo.Id,
-                                                                       Convert.ToBoolean(e.Value))" />
-
-<span>@tipo.Nombre</span>
-
-</label>
+                                           @onchange="e => CambiarFiltroTipo(tipo.Id,Convert.ToBoolean(e.Value))" />
+                                            <span>@tipo.Nombre</span>
+                                </label>
                             }
                         </div>
                     }
@@ -213,6 +179,7 @@
             </div>
 
         </aside>
+
         <main class="agenda-principal">
 
             @if (cargando)
