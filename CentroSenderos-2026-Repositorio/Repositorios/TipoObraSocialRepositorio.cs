@@ -4,6 +4,7 @@ using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
 using Microsoft.EntityFrameworkCore;
 using Modelado2025_1Repositorio.Repositorios;
+using CentroSenderos_2026_Shared.Validaciones;
 using System.Globalization;
 
 namespace CentroSenderos_2026_Repositorio.Repositorios
@@ -273,30 +274,22 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
         private static string NormalizarCuit(string cuit)
         {
-            return cuit
-                .Trim()
-                .Replace("-", "")
-                .Replace(".", "")
-                .Replace(" ", "");
+            return CuitValidador.Normalizar(cuit);
         }
 
         private static void ValidarCuit(string cuit)
         {
-            if (cuit.Length != 11 ||
-                !cuit.All(char.IsDigit))
+            if (!CuitValidador.EsValido(cuit))
             {
                 throw new ApplicationException(
-                    "El CUIT debe contener exactamente 11 números."
+                    "El CUIT ingresado no es válido."
                 );
             }
         }
 
         private static string FormatearCuit(string cuit)
         {
-            if (cuit.Length != 11)
-                return cuit;
-
-            return $"{cuit[..2]}-{cuit.Substring(2, 8)}-{cuit[^1]}";
+            return CuitValidador.Formatear(cuit);
         }
     }
 }

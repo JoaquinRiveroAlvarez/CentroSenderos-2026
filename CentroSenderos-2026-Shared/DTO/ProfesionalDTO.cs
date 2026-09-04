@@ -1,4 +1,5 @@
 ﻿using CentroSenderos_2026_Shared.Enum;
+using CentroSenderos_2026_Shared.Validaciones;
 using System.ComponentModel.DataAnnotations;
 
 namespace CentroSenderos_2026_Shared.DTO
@@ -19,8 +20,7 @@ namespace CentroSenderos_2026_Shared.DTO
 
 
         [Required(ErrorMessage = "Ingresá el CUIT.")]
-        [MaxLength(30, ErrorMessage = "El CUIT no puede superar los 30 caracteres.")]
-        [RegularExpression(@"^\d{2}-\d{8}-\d{1}$",ErrorMessage = "El CUIT debe tener el formato XX-XXXXXXXX-X.")]
+        [CuitValido(ErrorMessage = "El CUIT ingresado no es válido.")]
         public required string Cuit { get; set; } = string.Empty;
 
 

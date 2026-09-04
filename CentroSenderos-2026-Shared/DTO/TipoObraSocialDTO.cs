@@ -1,5 +1,6 @@
 ﻿using CentroSenderos_2026_Shared.Enum;
 using System.ComponentModel.DataAnnotations;
+using CentroSenderos_2026_Shared.Validaciones;
 
 namespace CentroSenderos_2026_Shared.DTO
 {
@@ -15,7 +16,7 @@ namespace CentroSenderos_2026_Shared.DTO
         public string Descripcion { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El CUIT es obligatorio")]
-        [RegularExpression(@"^\d{2}-?\d{8}-?\d$",ErrorMessage = "El CUIT debe tener un formato válido")]
+        [CuitValido(ErrorMessage = "El CUIT ingresado no es válido.")]
         public string Cuit { get; set; } = string.Empty;
 
 
