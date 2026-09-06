@@ -1668,7 +1668,264 @@
         color: #687565;
         font-size: 13px;
     }
+/* Personas asociadas al turno */
 
+.detalle-turno-modal {
+    max-width: 620px;
+}
+
+.detalle-turno-personas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 19px;
+}
+
+.detalle-personas-grupo {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid #e1e4de;
+    border-radius: 13px;
+    background-color: #ffffff;
+}
+
+.detalle-personas-encabezado {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 14px;
+    border-bottom: 1px solid #eceee9;
+    background-color: #f7f9f6;
+}
+
+.detalle-personas-icono {
+    width: 35px;
+    height: 35px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background-color: #e3eae0;
+    color: #506a4b;
+    font-size: 15px;
+}
+
+.detalle-personas-encabezado > div {
+    min-width: 0;
+}
+
+    .detalle-personas-encabezado > div > span {
+        display: block;
+        margin-bottom: 2px;
+        color: #858c82;
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+.detalle-personas-encabezado strong {
+    display: block;
+    color: #354135;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.detalle-personas-lista {
+    max-height: 145px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+}
+
+.detalle-persona-item {
+    width: 100%;
+    min-height: 35px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #e7e9e4;
+    border-radius: 8px;
+    background-color: #fcfdfc;
+    color: #3f4940;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 550;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+    .detalle-persona-item i {
+        flex-shrink: 0;
+        color: #647b5b;
+        font-size: 13px;
+    }
+
+.detalle-persona-vacio {
+    padding: 13px 8px;
+    color: #91978f;
+    font-family: inherit;
+    font-size: 11px;
+    font-style: italic;
+    text-align: center;
+}
+
+/* Scroll sutil de las listas */
+
+.detalle-personas-lista {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd3c7 transparent;
+}
+
+    .detalle-personas-lista::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .detalle-personas-lista::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+
+    .detalle-personas-lista::-webkit-scrollbar-thumb {
+        border-radius: 10px;
+        background-color: #cbd3c7;
+    }
+
+/* Adaptación para pantallas pequeñas */
+
+@media (max-width: 600px) {
+    .detalle-turno-personas {
+        grid-template-columns: 1fr;
+    }
+
+    .detalle-personas-lista {
+        max-height: 125px;
+    }
+}
+
+/* Escala vertical más legible para la agenda */
+
+.grilla-agenda {
+    grid-template-rows: 42px repeat(36, 28px);
+    min-height: 1050px;
+}
+
+    .grilla-agenda::after {
+        background-image: repeating-linear-gradient( to bottom, transparent 0, transparent 27px, rgba(210, 210, 205, 0.38) 27px, rgba(210, 210, 205, 0.38) 28px );
+    }
+
+.grilla-hora {
+    line-height: 28px;
+    transform: translateY(-14px);
+}
+
+    .grilla-hora::after {
+        top: 14px;
+    }
+
+    .grilla-hora.primera-hora {
+        line-height: 28px;
+    }
+
+/* Información de personas dentro del turno */
+
+.turno-grilla-persona {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #60675e;
+    font-family: inherit;
+    font-size: 9px;
+    font-weight: 500;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+    .turno-grilla-persona i {
+        flex-shrink: 0;
+        color: #647b5b;
+        font-size: 9px;
+    }
+
+    .turno-grilla-persona:first-of-type {
+        margin-top: 2px;
+    }
+
+/* Mejor distribución del contenido */
+
+.turno-grilla {
+    gap: 3px;
+}
+
+.turno-grilla-tipo {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.turno-grilla-horario {
+    color: #485444;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.turno-grilla-estado {
+    padding-top: 2px;
+    font-size: 9px;
+    font-weight: 600;
+}
+
+/* La recurrencia ocupa menos espacio en la tarjeta */
+
+.turno-recurrencia-grilla {
+    max-width: 100%;
+    margin-top: 1px;
+    padding: 2px 5px;
+    overflow: hidden;
+    font-size: 8px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Expansión visual sin modificar el horario real */
+
+@media (hover: hover) and (pointer: fine) {
+    .turno-grilla:hover {
+        z-index: 30;
+        min-height: 132px;
+        overflow: visible;
+        padding: 8px 9px;
+        border-color: #879b82;
+        background-color: #ffffff;
+        box-shadow: 0 12px 25px rgba(42, 54, 40, 0.22);
+    }
+
+        .turno-grilla:hover .turno-grilla-tipo,
+        .turno-grilla:hover .turno-grilla-persona,
+        .turno-grilla:hover .turno-grilla-estado,
+        .turno-grilla:hover .turno-recurrencia-grilla {
+            overflow: visible;
+            text-overflow: clip;
+            white-space: normal;
+        }
+
+        .turno-grilla:hover .turno-grilla-persona {
+            font-size: 10px;
+        }
+
+        .turno-grilla:hover .turno-grilla-horario {
+            font-size: 11px;
+        }
+}
 
 /*abajo*/
 

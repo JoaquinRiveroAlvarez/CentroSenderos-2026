@@ -502,6 +502,24 @@
                                             @turno.FechaFin.ToString("HH:mm")
                                         </span>
 
+                                        <span class="turno-grilla-persona">
+                                            <i class="bi bi-person-workspace"></i>
+
+                                            @ObtenerResumenPersonas(
+                                                turno.NombresProfesionales,
+                                                "Sin profesional"
+                                            )
+                                        </span>
+
+                                        <span class="turno-grilla-persona">
+                                            <i class="bi bi-person"></i>
+
+                                            @ObtenerResumenPersonas(
+                                                turno.NombresPacientes,
+                                                "Sin paciente"
+                                            )
+                                        </span>
+
                                         <span class="turno-grilla-estado">
                                             @ObtenerTextoEstado(turno)
                                         </span>
@@ -693,8 +711,7 @@
                         {
                             <p>
                                 Serie programada hasta el
-                                @turnoSeleccionado.FechaHastaRecurrencia.Value
-                                .ToString("dd/MM/yyyy")
+                                @turnoSeleccionado.FechaHastaRecurrencia.Value.ToString("dd/MM/yyyy")
                             </p>
                         }
                     </div>
@@ -761,6 +778,104 @@
                     <span>Número de turno</span>
                     <strong>#@turnoSeleccionado.Id</strong>
                 </div>
+
+            </div>
+
+            <div class="detalle-turno-personas">
+
+                <section class="detalle-personas-grupo">
+
+                    <div class="detalle-personas-encabezado">
+
+                        <span class="detalle-personas-icono">
+                            <i class="bi bi-person-workspace"></i>
+                        </span>
+
+                        <div>
+                            <span>Profesionales</span>
+
+                            <strong>
+                                @turnoSeleccionado.NombresProfesionales.Count
+                                @(turnoSeleccionado.NombresProfesionales.Count == 1
+                                    ? "profesional"
+                                    : "profesionales")
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <div class="detalle-personas-lista">
+
+                        @if (turnoSeleccionado.NombresProfesionales.Count > 0)
+                        {
+                            @foreach (
+                                var profesional in
+                                turnoSeleccionado.NombresProfesionales
+                            )
+                            {
+                                <span class="detalle-persona-item">
+                                    <i class="bi bi-person"></i>
+                                    @profesional
+                                </span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="detalle-persona-vacio">
+                                Sin profesionales asignados
+                            </span>
+                        }
+
+                    </div>
+
+                </section>
+
+                <section class="detalle-personas-grupo">
+
+                    <div class="detalle-personas-encabezado">
+
+                        <span class="detalle-personas-icono">
+                            <i class="bi bi-people"></i>
+                        </span>
+
+                        <div>
+                            <span>Pacientes</span>
+
+                            <strong>
+                                @turnoSeleccionado.NombresPacientes.Count
+                                @(turnoSeleccionado.NombresPacientes.Count == 1
+                                    ? "paciente"
+                                    : "pacientes")
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <div class="detalle-personas-lista">
+
+                        @if (turnoSeleccionado.NombresPacientes.Count > 0)
+                        {
+                            @foreach (
+                                var paciente in
+                                turnoSeleccionado.NombresPacientes
+                            )
+                            {
+                                <span class="detalle-persona-item">
+                                    <i class="bi bi-person"></i>
+                                    @paciente
+                                </span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="detalle-persona-vacio">
+                                Sin pacientes asignados
+                            </span>
+                        }
+
+                    </div>
+
+                </section>
 
             </div>
 
@@ -1557,7 +1672,23 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private static string ObtenerResumenPersonas(
+    List<string> nombres,
+    string textoVacio
+)
+    {
+        if (nombres.Count == 0)
+        {
+            return textoVacio;
+        }
 
+        if (nombres.Count == 1)
+        {
+            return nombres[0];
+        }
+
+        return $"{nombres[0]} +{nombres.Count - 1}";
+    }
 
 
 
