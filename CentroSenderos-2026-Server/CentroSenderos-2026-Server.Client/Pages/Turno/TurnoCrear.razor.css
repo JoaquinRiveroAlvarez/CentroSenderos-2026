@@ -181,6 +181,59 @@
         outline: none;
     }
 
+/* Buscadores de los selectores */
+
+.buscador-selector {
+    position: relative;
+    width: 100%;
+    margin-bottom: 7px;
+}
+
+    .buscador-selector > i {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        z-index: 1;
+        color: #899087;
+        font-size: 13px;
+        pointer-events: none;
+        transform: translateY(-50%);
+    }
+
+.buscador-selector-input {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 12px 8px 36px;
+    border: 1px solid #d7d8d3;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #383c36;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .buscador-selector-input::placeholder {
+        color: #a0a49d;
+    }
+
+    .buscador-selector-input:hover {
+        border-color: #b8c3b4;
+    }
+
+    .buscador-selector-input:focus {
+        border-color: #647b5b;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.13);
+    }
+
+.selector-con-buscador {
+    margin-top: 0;
+}
+
+
+
+
+
 /* Consultar horarios */
 
 .btn-consultar {

@@ -217,7 +217,81 @@
                             <ValidationMessage For="@(() => modelo.Fecha)" />
 
                         </div>
+                        <div class="campo">
 
+                            <label for="profesional">
+                                Profesional
+                            </label>
+
+                            <div class="buscador-selector">
+
+                                <i class="bi bi-search"></i>
+
+                                <input type="text"
+                                       class="buscador-selector-input"
+                                       placeholder="Buscar profesional..."
+                                       autocomplete="off"
+                                       @bind="busquedaProfesional"
+                                       @bind:event="oninput" />
+
+                            </div>
+
+                            <InputSelect id="profesional"
+                                         class="form-select selector-con-buscador"
+                                         @bind-Value="modelo.ProfesionalId">
+
+                                <option value="0">
+                                    Seleccione un profesional
+                                </option>
+
+                                @foreach (var profesional in ProfesionalesFiltrados)
+                                {
+                                    <option value="@profesional.Id">
+                                        @profesional.Nombre
+                                    </option>
+                                }
+
+                            </InputSelect>
+
+                        </div>
+
+                        <div class="campo">
+
+                            <label for="paciente">
+                                Paciente
+                            </label>
+
+                            <div class="buscador-selector">
+
+                                <i class="bi bi-search"></i>
+
+                                <input type="text"
+                                       class="buscador-selector-input"
+                                       placeholder="Buscar por nombre o DNI..."
+                                       autocomplete="off"
+                                       @bind="busquedaPaciente"
+                                       @bind:event="oninput" />
+
+                            </div>
+
+                            <InputSelect id="paciente"
+                                         class="form-select selector-con-buscador"
+                                         @bind-Value="modelo.PacienteId">
+
+                                <option value="0">
+                                    Seleccione un paciente
+                                </option>
+
+                                @foreach (var paciente in PacientesFiltrados)
+                                {
+                                    <option value="@paciente.Id">
+                                        @paciente.Nombre — DNI @paciente.DNI
+                                    </option>
+                                }
+
+                            </InputSelect>
+
+                        </div>
                     </div>
 
                     <button type="button"
@@ -430,10 +504,15 @@
 
     private List<TipoTurnoListadoDTO> tiposTurno = new();
     private List<TipoConsultorioListadoDTO> consultorios = new();
+    private List<ProfesionalListadoDTO> profesionales = new();
+    private List<PacienteResumenDTO> pacientes = new();
     private List<string> horasDisponibles = new();
 
     private string horaSeleccionada = string.Empty;
     private string Mensaje = string.Empty;
+    private string busquedaProfesional = string.Empty;
+    private string busquedaPaciente = string.Empty;
+
 
     private bool cargando = true;
     private bool consultandoHorarios;
@@ -441,10 +520,43 @@
     private bool guardando;
 
     private bool PuedeGuardar =>
-        modelo.TipoTurnoId > 0
-        && modelo.TipoConsultorioId > 0
-        && modelo.Fecha != DateTime.MinValue
-        && !string.IsNullOrWhiteSpace(horaSeleccionada);
+    modelo.TipoTurnoId > 0
+    && modelo.TipoConsultorioId > 0
+    && modelo.ProfesionalId > 0
+    && modelo.PacienteId > 0
+    && modelo.Fecha != DateTime.MinValue
+    && !string.IsNullOrWhiteSpace(horaSeleccionada);
+
+    private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
+    string.IsNullOrWhiteSpace(busquedaProfesional)
+        ? profesionales
+        : profesionales
+            .Where(profesional =>
+                profesional.Nombre.Contains(
+                    busquedaProfesional,
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            .ToList();
+    
+    private List<PacienteResumenDTO> PacientesFiltrados =>
+        string.IsNullOrWhiteSpace(busquedaPaciente)
+            ? pacientes
+            : pacientes
+                .Where(paciente =>
+                    paciente.Nombre.Contains(
+                        busquedaPaciente,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                    || paciente.DNI.Contains(
+                        busquedaPaciente,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                )
+                .ToList();
+
+
+
 
     private bool calendarioAbierto;
 
@@ -488,6 +600,42 @@
             && string.IsNullOrWhiteSpace(Mensaje))
         {
             Mensaje = respConsultorios.ObtenerError();
+        }
+
+        var respProfesionales =
+    await Http.Get<List<ProfesionalListadoDTO>>(
+        "api/profesional/ListaProfesional"
+    );
+
+        if (!respProfesionales.Error
+            && respProfesionales.Respuesta is not null)
+        {
+            profesionales = respProfesionales.Respuesta
+                .OrderBy(profesional => profesional.Nombre)
+                .ToList();
+        }
+        else if (respProfesionales.Error
+            && string.IsNullOrWhiteSpace(Mensaje))
+        {
+            Mensaje = respProfesionales.ObtenerError();
+        }
+
+        var respPacientes =
+    await Http.Get<List<PacienteResumenDTO>>(
+        "api/paciente/ListaPaciente"
+    );
+
+        if (!respPacientes.Error
+            && respPacientes.Respuesta is not null)
+        {
+            pacientes = respPacientes.Respuesta
+                .OrderBy(paciente => paciente.Nombre)
+                .ToList();
+        }
+        else if (respPacientes.Error
+            && string.IsNullOrWhiteSpace(Mensaje))
+        {
+            Mensaje = respPacientes.ObtenerError();
         }
 
         cargando = false;
