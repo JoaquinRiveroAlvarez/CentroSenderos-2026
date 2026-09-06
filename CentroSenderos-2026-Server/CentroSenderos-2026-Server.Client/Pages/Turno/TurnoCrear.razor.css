@@ -155,7 +155,7 @@
 }
 
 .campo .form-control,
-.campo .form-select {
+.campo ::deep .form-select {
     width: 100%;
     min-height: 43px;
     padding: 9px 12px;
@@ -163,58 +163,142 @@
     border-radius: 8px;
     background-color: #ffffff;
     color: #383c36;
+    font-family: inherit;
     font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
     box-shadow: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-    .campo .form-control:hover,
-    .campo .form-select:hover {
+    .campo ::deep .form-select:hover {
         border-color: #b8c3b4;
     }
 
-    .campo .form-control:focus,
-    .campo .form-select:focus {
+    .campo ::deep .form-select:focus {
         border-color: #647b5b;
         background-color: #ffffff;
         box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.13);
         outline: none;
     }
 
-/* Buscadores de los selectores */
-
-.buscador-selector {
-    position: relative;
-    width: 100%;
-    margin-bottom: 7px;
-}
-
-    .buscador-selector > i {
-        position: absolute;
-        top: 50%;
-        left: 12px;
-        z-index: 1;
-        color: #899087;
+    .campo ::deep .form-select option {
+        font-family: inherit;
         font-size: 13px;
-        pointer-events: none;
-        transform: translateY(-50%);
+        font-weight: 400;
     }
 
-.buscador-selector-input {
+   
+
+/* Buscadores de los selectores */
+
+/* Selector múltiple con búsqueda */
+
+/* Selector múltiple desplegable */
+
+.selector-desplegable {
+    position: relative;
     width: 100%;
-    min-height: 40px;
-    padding: 8px 12px 8px 36px;
+}
+
+.selector-desplegable-boton {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    min-height: 43px;
+    padding: 9px 12px;
     border: 1px solid #d7d8d3;
     border-radius: 8px;
     background-color: #ffffff;
     color: #383c36;
+    font-family: inherit;
     font-size: 13px;
-    outline: none;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.campo .form-select option {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+    .selector-desplegable-boton:hover {
+        border-color: #b8c3b4;
+        background-color: #fdfdfc;
+    }
+
+    .selector-desplegable-boton[aria-expanded="true"] {
+        border-color: #647b5b;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.13);
+    }
+
+    .selector-desplegable-boton > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .selector-desplegable-boton > i {
+        flex: 0 0 auto;
+        color: #647b5b;
+        font-size: 12px;
+    }
+
+/* Menú desplegable */
+
+.selector-desplegable-menu {
+    position: absolute;
+    z-index: 40;
+    top: calc(100% + 7px);
+    right: 0;
+    left: 0;
+    overflow: hidden;
+    border: 1px solid #d2d8cf;
+    border-radius: 10px;
+    background-color: #ffffff;
+    box-shadow: 0 14px 32px rgba(48, 52, 46, 0.16), 0 4px 10px rgba(48, 52, 46, 0.07);
+}
+
+    /* Buscador */
+
+    .selector-desplegable-menu .buscador-selector {
+        position: relative;
+        width: auto;
+        margin: 10px;
+    }
+
+.buscador-selector > i {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    z-index: 1;
+    color: #899087;
+    font-size: 13px;
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+.buscador-selector-input {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 12px 8px 35px;
+    border: 1px solid #d7d8d3;
+    border-radius: 7px;
+    background-color: #ffffff;
+    color: #383c36;
+    font-size: 12px;
+    box-shadow: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
     .buscador-selector-input::placeholder {
-        color: #a0a49d;
+        color: #9a9e97;
     }
 
     .buscador-selector-input:hover {
@@ -224,12 +308,175 @@
     .buscador-selector-input:focus {
         border-color: #647b5b;
         box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.13);
+        outline: none;
     }
 
-.selector-con-buscador {
-    margin-top: 0;
+.buscador-selector:focus-within > i {
+    color: #556f4f;
 }
 
+/* Opciones */
+
+.selector-desplegable-opciones {
+    max-height: 190px;
+    overflow-y: auto;
+    border-top: 1px solid #eeeeea;
+    border-bottom: 1px solid #eeeeea;
+    scrollbar-color: #a0a49d #eeeeea;
+    scrollbar-width: thin;
+}
+
+.selector-desplegable-opcion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    min-height: 40px;
+    padding: 9px 12px;
+    border: 0;
+    border-bottom: 1px solid #f0f0ed;
+    background-color: #ffffff;
+    color: #4a4e47;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+    .selector-desplegable-opcion:last-child {
+        border-bottom: 0;
+    }
+
+    .selector-desplegable-opcion:hover {
+        background-color: #f0f4ee;
+        color: #40583b;
+    }
+
+    .selector-desplegable-opcion.seleccionado {
+        background-color: #e7eee4;
+        color: #40583b;
+        font-weight: 650;
+    }
+
+    .selector-desplegable-opcion > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .selector-desplegable-opcion > i {
+        flex: 0 0 auto;
+        color: #556f4f;
+        font-size: 14px;
+    }
+
+/* Sin resultados */
+
+.selector-multiple-vacio {
+    padding: 18px 12px;
+    color: #858981;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* Pie del desplegable */
+
+.selector-desplegable-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 10px;
+    background-color: #fafaf8;
+}
+
+    .selector-desplegable-footer > span {
+        color: #7b8178;
+        font-size: 11px;
+    }
+
+    .selector-desplegable-footer > button {
+        min-height: 30px;
+        padding: 5px 12px;
+        border: 1px solid #647b5b;
+        border-radius: 6px;
+        background-color: #eef3ec;
+        color: #486143;
+        font-size: 11px;
+        font-weight: 650;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+
+        .selector-desplegable-footer > button:hover {
+            border-color: #526b4c;
+            background-color: #dfe8dc;
+            color: #3e5939;
+        }
+
+/* Elementos seleccionados */
+
+.selector-multiple-seleccionados {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 9px;
+}
+
+.selector-multiple-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 100%;
+    min-height: 28px;
+    padding: 4px 5px 4px 10px;
+    border: 1px solid #cbd7c7;
+    border-radius: 999px;
+    background-color: #e7eee4;
+    color: #40583b;
+    font-size: 11px;
+    font-weight: 650;
+}
+
+    .selector-multiple-chip > button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background-color: transparent;
+        color: #647b5b;
+        cursor: pointer;
+        transition: background-color 0.18s ease, color 0.18s ease;
+    }
+
+        .selector-multiple-chip > button:hover {
+            background-color: #cfdcc9;
+            color: #354a31;
+        }
+
+        .selector-multiple-chip > button i {
+            font-size: 14px;
+        }
+
+/* Ajustes para celulares */
+
+@media (max-width: 560px) {
+    .selector-desplegable-menu {
+        position: static;
+        margin-top: 7px;
+        box-shadow: 0 8px 20px rgba(48, 52, 46, 0.12);
+    }
+
+    .selector-desplegable-opciones {
+        max-height: 220px;
+    }
+}
 
 
 

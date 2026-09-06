@@ -1,5 +1,6 @@
 ﻿using CentroSenderos_2026_Shared.Enum;
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 public class TurnoDTO
 {
     public int Id { get; set; }
@@ -23,10 +24,16 @@ public class TurnoDTO
 
     public int DuracionPersonalizada { get; set; } = 0;
 
+    // Propiedades anteriores.
+    // Se mantienen temporalmente mientras adaptamos el repositorio y el frontend.
     public int ProfesionalId { get; set; }
     public int PacienteId { get; set; }
 
     public string? NombreProfesional { get; set; }
     public string? NombrePaciente { get; set; }
+
+    // Nuevas propiedades para permitir múltiples profesionales y pacientes.
+    public List<int> ProfesionalIds { get; set; } = new();
+    public List<int> PacienteIds { get; set; } = new();
 }
 

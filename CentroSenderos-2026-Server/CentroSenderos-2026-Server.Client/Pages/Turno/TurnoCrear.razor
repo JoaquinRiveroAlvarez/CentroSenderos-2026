@@ -101,6 +101,7 @@
 
                         </div>
 
+                    </div>
                         <div class="campo">
 
                             <label for="consultorio">
@@ -219,80 +220,269 @@
                         </div>
                         <div class="campo">
 
-                            <label for="profesional">
-                                Profesional
+                            <label>
+                                Profesionales
                             </label>
 
-                            <div class="buscador-selector">
+                            <div class="selector-desplegable">
 
-                                <i class="bi bi-search"></i>
+                                <button type="button"
+                                        class="selector-desplegable-boton"
+                                        aria-expanded="@mostrarSelectorProfesionales"
+                                        @onclick="AlternarSelectorProfesionales">
 
-                                <input type="text"
-                                       class="buscador-selector-input"
-                                       placeholder="Buscar profesional..."
-                                       autocomplete="off"
-                                       @bind="busquedaProfesional"
-                                       @bind:event="oninput" />
+                                    <span>
+                                        @TextoProfesionalesSeleccionados
+                                    </span>
+
+                                    <i class="bi @(mostrarSelectorProfesionales
+                                                       ? "bi-chevron-up"
+                                                       : "bi-chevron-down")">
+                                    </i>
+
+                                </button>
+
+                                @if (mostrarSelectorProfesionales)
+                                {
+                                    <div class="selector-desplegable-menu">
+
+                                        <div class="buscador-selector">
+
+                                            <i class="bi bi-search"></i>
+
+                                            <input type="text"
+                                                   class="buscador-selector-input"
+                                                   placeholder="Buscar profesional..."
+                                                   autocomplete="off"
+                                                   @bind="busquedaProfesional"
+                                                   @bind:event="oninput" />
+
+                                        </div>
+
+                                        <div class="selector-desplegable-opciones">
+
+                                            @if (ProfesionalesFiltrados.Count == 0)
+                                            {
+                                                <div class="selector-multiple-vacio">
+                                                    No se encontraron profesionales.
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var profesional in ProfesionalesFiltrados)
+                                                {
+                                                    var estaSeleccionado =
+                                                        modelo.ProfesionalIds.Contains(
+                                                            profesional.Id
+                                                        );
+
+                                                    <button type="button"
+                                                            class="@(estaSeleccionado
+                                                                                                ? "selector-desplegable-opcion seleccionado"
+                                                                                                : "selector-desplegable-opcion")"
+                                                            @onclick="() => AlternarProfesional(
+                                                                                                profesional.Id
+                                                                                            )">
+
+<span>@profesional.Nombre</span>
+
+                                @if (estaSeleccionado)
+                                                        {
+                                                            <i class="bi bi-check-lg"></i>
+                                                        }
+
+                                                    </button>
+                                                }
+                                            }
+
+                                        </div>
+
+                                        <div class="selector-desplegable-footer">
+
+                                            <span>
+                                                @modelo.ProfesionalIds.Count
+                                                @(modelo.ProfesionalIds.Count == 1
+                                                    ? "seleccionado"
+                                                    : "seleccionados")
+                                            </span>
+
+                                            <button type="button"
+                                                    @onclick="CerrarSelectorProfesionales">
+                                                Listo
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+                                }
 
                             </div>
 
-                            <InputSelect id="profesional"
-                                         class="form-select selector-con-buscador"
-                                         @bind-Value="modelo.ProfesionalId">
+                            @if (modelo.ProfesionalIds.Count > 0)
+                            {
+                                <div class="selector-multiple-seleccionados">
 
-                                <option value="0">
-                                    Seleccione un profesional
-                                </option>
+                                    @foreach (var profesionalId in modelo.ProfesionalIds)
+                                    {
+                                        var profesional = profesionales.FirstOrDefault(
+                                            item => item.Id == profesionalId
+                                        );
 
-                                @foreach (var profesional in ProfesionalesFiltrados)
-                                {
-                                    <option value="@profesional.Id">
-                                        @profesional.Nombre
-                                    </option>
-                                }
+                                        if (profesional is not null)
+                                        {
+                                            <span class="selector-multiple-chip">
 
-                            </InputSelect>
+                                                @profesional.Nombre
+
+                                                <button type="button"
+                                                        title="Quitar profesional"
+                                                        @onclick="() => QuitarProfesional(
+                                                                                        profesional.Id
+                                                                                    )">
+                                                        <i class="bi bi-x"></i>
+                                                        </button>
+
+                                            </span>
+                                        }
+                                    }
+
+                                </div>
+                            }
 
                         </div>
 
                         <div class="campo">
 
-                            <label for="paciente">
-                                Paciente
+                            <label>
+                                Pacientes
                             </label>
 
-                            <div class="buscador-selector">
+                            <div class="selector-desplegable">
 
-                                <i class="bi bi-search"></i>
+                                <button type="button"
+                                        class="selector-desplegable-boton"
+                                        aria-expanded="@mostrarSelectorPacientes"
+                                        @onclick="AlternarSelectorPacientes">
 
-                                <input type="text"
-                                       class="buscador-selector-input"
-                                       placeholder="Buscar por nombre o DNI..."
-                                       autocomplete="off"
-                                       @bind="busquedaPaciente"
-                                       @bind:event="oninput" />
+                                    <span>
+                                        @TextoPacientesSeleccionados
+                                    </span>
+
+                                    <i class="bi @(mostrarSelectorPacientes
+                                                       ? "bi-chevron-up"
+                                                       : "bi-chevron-down")">
+                                    </i>
+
+                                </button>
+
+                                @if (mostrarSelectorPacientes)
+                                {
+                                    <div class="selector-desplegable-menu">
+
+                                        <div class="buscador-selector">
+
+                                            <i class="bi bi-search"></i>
+
+                                            <input type="text"
+                                                   class="buscador-selector-input"
+                                                   placeholder="Buscar por nombre o DNI..."
+                                                   autocomplete="off"
+                                                   @bind="busquedaPaciente"
+                                                   @bind:event="oninput" />
+
+                                        </div>
+
+                                        <div class="selector-desplegable-opciones">
+
+                                            @if (PacientesFiltrados.Count == 0)
+                                            {
+                                                <div class="selector-multiple-vacio">
+                                                    No se encontraron pacientes.
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var paciente in PacientesFiltrados)
+                                                {
+                                                    var estaSeleccionado =
+                                                        modelo.PacienteIds.Contains(
+                                                            paciente.Id
+                                                        );
+
+                                                    <button type="button"
+                                                            class="@(estaSeleccionado
+                                                                                                ? "selector-desplegable-opcion seleccionado"
+                                                                                                : "selector-desplegable-opcion")"
+                                                            @onclick="() => AlternarPaciente(
+                                                                                                paciente.Id
+                                                                                            )">
+
+<span>
+                                                            @paciente.Nombre — DNI @paciente.DNI
+                                                        </span>
+
+                                                        @if (estaSeleccionado)
+                                                        {
+                                                            <i class="bi bi-check-lg"></i>
+                                                        }
+
+                                                    </button>
+                                                }
+                                            }
+
+                                        </div>
+
+                                        <div class="selector-desplegable-footer">
+
+                                            <span>
+                                                @modelo.PacienteIds.Count
+                                                @(modelo.PacienteIds.Count == 1
+                                                    ? "seleccionado"
+                                                    : "seleccionados")
+                                            </span>
+
+                                            <button type="button"
+                                                    @onclick="CerrarSelectorPacientes">
+                                                Listo
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+                                }
 
                             </div>
 
-                            <InputSelect id="paciente"
-                                         class="form-select selector-con-buscador"
-                                         @bind-Value="modelo.PacienteId">
+                            @if (modelo.PacienteIds.Count > 0)
+                            {
+                                <div class="selector-multiple-seleccionados">
 
-                                <option value="0">
-                                    Seleccione un paciente
-                                </option>
+                                    @foreach (var pacienteId in modelo.PacienteIds)
+                                    {
+                                        var paciente = pacientes.FirstOrDefault(
+                                            item => item.Id == pacienteId
+                                        );
 
-                                @foreach (var paciente in PacientesFiltrados)
-                                {
-                                    <option value="@paciente.Id">
-                                        @paciente.Nombre — DNI @paciente.DNI
-                                    </option>
-                                }
+                                        if (paciente is not null)
+                                        {
+                                            <span class="selector-multiple-chip">
 
-                            </InputSelect>
+                                                @paciente.Nombre
+
+                                                <button type="button"
+                                                        title="Quitar paciente"
+                                                        @onclick="() => QuitarPaciente(paciente.Id)">
+                                                        <i class="bi bi-x"></i>
+                                                </button>
+
+                                            </span>
+                                        }
+                                    }
+
+                                </div>
+                            }
 
                         </div>
-                    </div>
 
                     <button type="button"
                             class="btn-consultar"
@@ -518,27 +708,94 @@
     private bool consultandoHorarios;
     private bool horariosConsultados;
     private bool guardando;
+    private bool mostrarSelectorProfesionales;
+    private bool mostrarSelectorPacientes;
+
 
     private bool PuedeGuardar =>
     modelo.TipoTurnoId > 0
     && modelo.TipoConsultorioId > 0
-    && modelo.ProfesionalId > 0
-    && modelo.PacienteId > 0
+    && modelo.ProfesionalIds.Count > 0
+    && modelo.PacienteIds.Count > 0
     && modelo.Fecha != DateTime.MinValue
     && !string.IsNullOrWhiteSpace(horaSeleccionada);
 
-    private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
-    string.IsNullOrWhiteSpace(busquedaProfesional)
-        ? profesionales
-        : profesionales
-            .Where(profesional =>
-                profesional.Nombre.Contains(
-                    busquedaProfesional,
-                    StringComparison.OrdinalIgnoreCase
-                )
+                private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
+                string.IsNullOrWhiteSpace(busquedaProfesional)
+                    ? profesionales
+                    : profesionales
+                        .Where(profesional =>
+                            profesional.Nombre.Contains(
+                                busquedaProfesional,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                        )
+                        .ToList();
+                private void CambiarSeleccionProfesional(
+                int profesionalId,
+                bool seleccionado
             )
-            .ToList();
-    
+                {
+                    if (seleccionado)
+                    {
+                        if (!modelo.ProfesionalIds.Contains(profesionalId))
+                        {
+                            modelo.ProfesionalIds.Add(profesionalId);
+                        }
+                    }
+                    else
+                    {
+                        modelo.ProfesionalIds.Remove(profesionalId);
+                    }
+
+                    // Compatibilidad temporal con la propiedad anterior.
+                    modelo.ProfesionalId =
+                        modelo.ProfesionalIds.FirstOrDefault();
+
+                    Mensaje = string.Empty;
+                }
+                private void QuitarProfesional(int profesionalId)
+                {
+                    modelo.ProfesionalIds.Remove(profesionalId);
+
+                    modelo.ProfesionalId =
+                        modelo.ProfesionalIds.FirstOrDefault();
+
+                    Mensaje = string.Empty;
+                }
+
+                    private string TextoProfesionalesSeleccionados =>
+                modelo.ProfesionalIds.Count switch
+                {
+                0 => "Seleccione profesionales",
+                1 => "1 profesional seleccionado",
+                _ => $"{modelo.ProfesionalIds.Count} profesionales seleccionados"
+                };
+
+
+                private void AlternarSelectorProfesionales()
+                {
+                    mostrarSelectorProfesionales =
+                        !mostrarSelectorProfesionales;
+                }
+
+                private void CerrarSelectorProfesionales()
+                {
+                    mostrarSelectorProfesionales = false;
+                    busquedaProfesional = string.Empty;
+                }
+
+                private void AlternarProfesional(int profesionalId)
+                {
+                    var estaSeleccionado =
+                        modelo.ProfesionalIds.Contains(profesionalId);
+
+                    CambiarSeleccionProfesional(
+                        profesionalId,
+                        !estaSeleccionado
+                    );
+                }
+
     private List<PacienteResumenDTO> PacientesFiltrados =>
         string.IsNullOrWhiteSpace(busquedaPaciente)
             ? pacientes
@@ -554,7 +811,72 @@
                     )
                 )
                 .ToList();
+    
+    private string TextoPacientesSeleccionados =>
+        modelo.PacienteIds.Count switch
+        {
+            0 => "Seleccione pacientes",
+            1 => "1 paciente seleccionado",
+            _ => $"{modelo.PacienteIds.Count} pacientes seleccionados"
+        };
 
+
+    private void AlternarSelectorPacientes()
+    {
+        mostrarSelectorPacientes =
+            !mostrarSelectorPacientes;
+    }
+
+    private void CerrarSelectorPacientes()
+    {
+        mostrarSelectorPacientes = false;
+        busquedaPaciente = string.Empty;
+    }
+
+    private void AlternarPaciente(int pacienteId)
+    {
+        var estaSeleccionado =
+            modelo.PacienteIds.Contains(pacienteId);
+
+        CambiarSeleccionPaciente(
+            pacienteId,
+            !estaSeleccionado
+        );
+    }
+
+    private void CambiarSeleccionPaciente(
+        int pacienteId,
+        bool seleccionado
+    )
+    {
+        if (seleccionado)
+        {
+            if (!modelo.PacienteIds.Contains(pacienteId))
+            {
+                modelo.PacienteIds.Add(pacienteId);
+            }
+        }
+        else
+        {
+            modelo.PacienteIds.Remove(pacienteId);
+        }
+
+        // Compatibilidad temporal con la propiedad anterior.
+        modelo.PacienteId =
+            modelo.PacienteIds.FirstOrDefault();
+
+        Mensaje = string.Empty;
+    }
+
+    private void QuitarPaciente(int pacienteId)
+    {
+        modelo.PacienteIds.Remove(pacienteId);
+
+        modelo.PacienteId =
+            modelo.PacienteIds.FirstOrDefault();
+
+        Mensaje = string.Empty;
+    }
 
 
 
