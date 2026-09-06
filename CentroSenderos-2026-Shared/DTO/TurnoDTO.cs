@@ -11,6 +11,7 @@ public class TurnoDTO
     public TimeOnly Hora { get; set; }
 
     public EnumEstadoTurno EstadoTurno { get; set; }
+
     public DateTime FechaInicio => Fecha.Date.Add(Hora.ToTimeSpan());
     public DateTime FechaFin { get; set; }
 
@@ -21,4 +22,11 @@ public class TurnoDTO
     public int TipoConsultorioId { get; set; }
 
     public int DuracionPersonalizada { get; set; } = 0;
+
+    public int ProfesionalId { get; set; }
+    public int PacienteId { get; set; }
+
+    public string? NombreProfesional { get; set; }
+    public string? NombrePaciente { get; set; }
 }
+

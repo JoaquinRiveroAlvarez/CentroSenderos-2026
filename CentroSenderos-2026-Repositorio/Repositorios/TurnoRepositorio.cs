@@ -19,12 +19,13 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         public async Task<TurnoDTO?> SelectPorId(int id)
         {
             return await context.Turnos
+                .Include(t => t.TurnoProfesionales).ThenInclude(tp => tp.Profesionales)
+                .Include(t => t.TurnoPacientes).ThenInclude(tp => tp.Pacientes)
                 .Where(t => t.Id == id)
                 .Select(t => new TurnoDTO
                 {
                     Id = t.Id,
-                    // Ahora Fecha es DateTime en el DTO
-                    Fecha = t.FechaInicio.ToLocalTime().Date, // devuelve DateTime con solo la fecha
+                    Fecha = t.FechaInicio.ToLocalTime().Date,
                     Hora = TimeOnly.FromDateTime(t.FechaInicio.ToLocalTime()),
                     FechaFin = t.FechaFin.ToLocalTime(),
                     EstadoTurno = t.EstadoTurno,
@@ -32,32 +33,45 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     TipoConsultorioId = t.TipoConsultorioId,
                     DuracionPersonalizada = t.TipoTurnoId == null
                         ? (int)(t.FechaFin - t.FechaInicio).TotalMinutes
-                        : 0
+                        : 0,
+
+                    ProfesionalId = t.TurnoProfesionales.Select(tp => tp.ProfesionalId).FirstOrDefault(),
+                    NombreProfesional = t.TurnoProfesionales.Select(tp => tp.Profesionales!.Nombre).FirstOrDefault(),
+                    PacienteId = t.TurnoPacientes.Select(tp => tp.PacienteId).FirstOrDefault(),
+                    NombrePaciente = t.TurnoPacientes.Select(tp => tp.Pacientes!.Nombre).FirstOrDefault()
                 })
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<TurnoListadoDTO>> SelectListaTurnos()
+public async Task<List<TurnoListadoDTO>> SelectListaTurnos()
+{
+    return await context.Turnos
+        .Include(t => t.TipoTurnos)
+        .Include(t => t.TipoConsultorios)
+        .Include(t => t.TurnoProfesionales).ThenInclude(tp => tp.Profesionales)
+        .Include(t => t.TurnoPacientes).ThenInclude(tp => tp.Pacientes)
+        .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
+        .Select(t => new TurnoListadoDTO
         {
-            return await context.Turnos
-                .Include(t => t.TipoTurnos)
-                .Include(t => t.TipoConsultorios)
-                .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
-                .Select(t => new TurnoListadoDTO
-                {
-                    Id = t.Id,
-                    FechaInicio = t.FechaInicio.ToLocalTime(),
-                    FechaFin = t.FechaFin.ToLocalTime(),
-                    EstadoTurno = t.EstadoTurno,
-                    TipoTurnoId = t.TipoTurnoId ?? -1,
-                    NombreTipoTurno = t.TipoTurnos != null
-                        ? t.TipoTurnos.Tipo
-                        : $"Otro ({(int)(t.FechaFin - t.FechaInicio).TotalMinutes} min)",
-                    TipoConsultorioId = t.TipoConsultorioId,
-                    NombreTipoConsultorio = t.TipoConsultorios != null ? t.TipoConsultorios.Tipo : ""
-                })
-                .ToListAsync();
-        }
+            Id = t.Id,
+            FechaInicio = t.FechaInicio.ToLocalTime(),
+            FechaFin = t.FechaFin.ToLocalTime(),
+            EstadoTurno = t.EstadoTurno,
+            TipoTurnoId = t.TipoTurnoId ?? -1,
+            NombreTipoTurno = t.TipoTurnos != null
+                ? t.TipoTurnos.Tipo
+                : $"Otro ({(int)(t.FechaFin - t.FechaInicio).TotalMinutes} min)",
+            TipoConsultorioId = t.TipoConsultorioId,
+            NombreTipoConsultorio = t.TipoConsultorios != null ? t.TipoConsultorios.Tipo : "",
+
+            ProfesionalId = t.TurnoProfesionales.Select(tp => tp.ProfesionalId).FirstOrDefault(),
+            NombreProfesional = t.TurnoProfesionales.Select(tp => tp.Profesionales!.Nombre).FirstOrDefault(),
+            PacienteId = t.TurnoPacientes.Select(tp => tp.PacienteId).FirstOrDefault(),
+            NombrePaciente = t.TurnoPacientes.Select(tp => tp.Pacientes!.Nombre).FirstOrDefault()
+        })
+        .ToListAsync();
+}
+
 
         public async Task<int> InsertarTurno(TurnoDTO dto)
         {
@@ -68,12 +82,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (dto.TipoConsultorioId <= 0)
                 throw new ApplicationException("Debe seleccionar un consultorio válido.");
 
-            // Convertir DateTime del front a DateOnly y luego a UTC
             DateOnly fecha = DateOnly.FromDateTime(dto.Fecha);
             DateTime fechaInicioUtc = DateTime.SpecifyKind(fecha.ToDateTime(dto.Hora), DateTimeKind.Utc);
-
-            //if (fechaInicioUtc < DateTime.UtcNow)
-            //    throw new ApplicationException("No se pueden cargar turnos en el pasado.");
 
             var existe = await context.Turnos.AnyAsync(t =>
                 t.EstadoRegistro == EnumEstadoRegistro.activo &&
@@ -111,8 +121,27 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             context.Turnos.Add(turno);
             await context.SaveChangesAsync();
+
+            // Relación con Profesional
+            var turnoProfesional = new TurnoProfesional
+            {
+                TurnoId = turno.Id,
+                ProfesionalId = dto.ProfesionalId
+            };
+            context.Add(turnoProfesional);
+
+            // Relación con Paciente
+            var turnoPaciente = new TurnoPaciente
+            {
+                TurnoId = turno.Id,
+                PacienteId = dto.PacienteId
+            };
+            context.Add(turnoPaciente);
+
+            await context.SaveChangesAsync();
             return turno.Id;
         }
+
 
         public async Task<List<TimeOnly>> HorariosDisponibles(DateOnly fecha, int tipoTurnoId, int consultorioId)
         {
@@ -154,7 +183,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (dto.TipoConsultorioId <= 0)
                 throw new ApplicationException("Debe seleccionar un consultorio válido.");
 
-            var turno = await context.Turnos.FirstOrDefaultAsync(t => t.Id == id);
+            var turno = await context.Turnos
+                .Include(t => t.TurnoProfesionales)
+                .Include(t => t.TurnoPacientes)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
             if (turno == null) return false;
 
             DateOnly fecha = DateOnly.FromDateTime(dto.Fecha);
@@ -194,10 +227,27 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             turno.TipoTurnoId = tipoTurnoId;
             turno.TipoConsultorioId = dto.TipoConsultorioId;
 
+            // Actualizar relaciones
+            turno.TurnoProfesionales.Clear();
+            turno.TurnoPacientes.Clear();
+
+            turno.TurnoProfesionales.Add(new TurnoProfesional
+            {
+                TurnoId = turno.Id,
+                ProfesionalId = dto.ProfesionalId
+            });
+
+            turno.TurnoPacientes.Add(new TurnoPaciente
+            {
+                TurnoId = turno.Id,
+                PacienteId = dto.PacienteId
+            });
+
             context.Turnos.Update(turno);
             await context.SaveChangesAsync();
             return true;
         }
+
 
         public async Task<bool> DeleteTurno(int id)
         {

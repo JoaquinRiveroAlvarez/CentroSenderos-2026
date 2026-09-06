@@ -1,7 +1,5 @@
 ﻿using CentroSenderos_2026_Shared.Enum;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CentroSenderos_2026_Shared.DTO
 {
@@ -17,6 +15,13 @@ namespace CentroSenderos_2026_Shared.DTO
 
         public int TipoConsultorioId { get; set; }
         public string? NombreTipoConsultorio { get; set; }
+
+        public int ProfesionalId { get; set; }
+        public string? NombreProfesional { get; set; }
+
+        public int PacienteId { get; set; }
+        public string? NombrePaciente { get; set; }
     }
 }
+
 
