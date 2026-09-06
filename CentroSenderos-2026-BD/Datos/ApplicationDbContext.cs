@@ -22,6 +22,7 @@ namespace CentroSenderos_2026_BD
         public DbSet<TipoPrestacion> TipoPrestaciones { get; set; }
         public DbSet<TipoTurno> TipoTurnos { get; set; }
         public DbSet<Turno> Turnos { get; set; }
+        public DbSet<SerieTurno> SeriesTurnos { get; set; }
         public DbSet<TipoObraSocial> TipoObraSociales { get; set; }
         public DbSet<DetalleLiquidacion> DetalleLiquidaciones { get; set; }
         public DbSet<Liquidacion> Liquidaciones { get; set; }
@@ -80,6 +81,12 @@ namespace CentroSenderos_2026_BD
                 .HasOne(t => t.Paciente)
                 .WithMany(p => p.Telefonos)
                 .HasForeignKey(t => t.PacienteId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Turno>()
+                .HasOne(turno => turno.SerieTurno)
+                .WithMany(serie => serie.Turnos)
+                .HasForeignKey(turno => turno.SerieTurnoId)
                 .OnDelete(DeleteBehavior.Restrict);
 
         }

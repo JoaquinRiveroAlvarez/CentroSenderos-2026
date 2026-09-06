@@ -24,6 +24,12 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         public int TipoConsultorioId { get; set; }
         public TipoConsultorio? TipoConsultorios { get; set; }
 
+
+        // Es nullable porque un turno puede no ser recurrente.
+        public int? SerieTurnoId { get; set; }
+        public SerieTurno? SerieTurno { get; set; }
+
+
         public List<TurnoProfesional> TurnoProfesionales { get; set; } = new();
         public List<TurnoPaciente> TurnoPacientes { get; set; } = new();
         public List<TurnoTipoPrestacion> TurnoTipoPrestaciones { get; set; } = new();
