@@ -16,7 +16,7 @@ namespace CentroSenderos_2026_Shared.DTO
         public string Email { get; set; } = string.Empty;
         public string? RolAsignado { get; set; }
         public bool EsSocio { get; set; }
-        public int? TipoPrestacionId { get; set; }
-        public string? TipoPrestacionNombre { get; set; }
+        public List<int> TipoPrestacionIds { get; set; } = new();
+        public List<string> TipoPrestacionNombres { get; set; } = new();
     }
 }

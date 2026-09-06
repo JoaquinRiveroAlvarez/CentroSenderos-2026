@@ -275,6 +275,61 @@
     font-size: 14px;
 }
 
+.prestaciones-field {
+    grid-column: 1 / -1;
+}
+
+.prestaciones-seleccionadas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.prestacion-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 6px 8px 6px 12px;
+    color: #3f563a;
+    background-color: #dfe5dc;
+    border: 1px solid #c8d2c4;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.prestacion-chip-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    color: #556f4f;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+    .prestacion-chip-remove:hover {
+        color: #ffffff;
+        background-color: #ef4545;
+    }
+
+    .prestacion-chip-remove i {
+        font-size: 16px;
+        line-height: 1;
+    }
+
+.prestaciones-help {
+    display: block;
+    margin-top: 8px;
+    color: #77736d;
+    font-size: 12px;
+}
 
 /* ===========================================
    RESPONSIVE

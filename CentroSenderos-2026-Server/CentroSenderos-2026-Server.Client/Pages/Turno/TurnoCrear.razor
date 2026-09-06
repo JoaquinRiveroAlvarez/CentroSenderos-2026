@@ -6,83 +6,425 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<h3>Crear Nuevo Turno</h3>
+<div class="turno-crear-page">
 
-@if (cargando)
-{
-    <p>Cargando datos...</p>
-}
-else
-{
-    <EditForm Model="@modelo" OnValidSubmit="Grabar">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    <button type="button"
+            class="btn-volver"
+            @onclick="Cancelar">
 
-        <!-- Fecha -->
-        <div class="form-group">
-            <label>Fecha</label>
-            <InputDate class="form-control" @bind-Value="modelo.Fecha" />
-            <ValidationMessage For="@(() => modelo.Fecha)" />
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver a la agenda</span>
+
+    </button>
+
+    <header class="crear-header">
+
+        <div>
+            <h1>Nuevo turno</h1>
+
+            <p>
+                Seleccioná los datos del turno y consultá
+                los horarios disponibles.
+            </p>
         </div>
 
-        <!-- Consultorio -->
-        <div class="form-group">
-            <label>Consultorio</label>
-            <InputSelect class="form-control" @bind-Value="modelo.TipoConsultorioId">
-                <option value="0">-- Seleccione un consultorio --</option>
-                @foreach (var cons in consultorios)
-                {
-                    <option value="@cons.Id">@cons.Tipo</option>
-                }
-            </InputSelect>
-            <ValidationMessage For="@(() => modelo.TipoConsultorioId)" />
+    </header>
+
+    @if (cargando)
+    {
+        <div class="estado-carga">
+
+            <div class="spinner-border text-secondary"
+                 role="status">
+            </div>
+
+            <span>Cargando datos...</span>
+
         </div>
+    }
+    else
+    {
+        <EditForm Model="@modelo"
+                  OnValidSubmit="Grabar"
+                  class="turno-form">
 
-        <!-- Tipo de Turno -->
-        <div class="form-group">
-            <label>Tipo de Turno</label>
-            <InputSelect class="form-control" @bind-Value="modelo.TipoTurnoId">
-                <option value="0">-- Seleccione un tipo de turno --</option>
-                @foreach (var tipo in tiposTurno)
-                {
-                    <option value="@tipo.Id">@tipo.Tipo (@tipo.DuracionMinutos min)</option>
-                }
-                <option value="-1">Otro</option>
-            </InputSelect>
-            <ValidationMessage For="@(() => modelo.TipoTurnoId)" />
-        </div>
+            <DataAnnotationsValidator />
 
-        <!-- Botón para cargar horas -->
-        <button type="button" class="btn btn-info" @onclick="CargarHorasDisponibles">
-            Cargar horas disponibles
-        </button>
+            <div class="form-layout">
 
-        <!-- Lista de horas disponibles -->
-        <div class="form-group mt-2">
-            <label>Horas disponibles</label>
-            <InputSelect class="form-control" TValue="string" @bind-Value="horaSeleccionada" @onchange="OnHoraSeleccionada">
-                <option value="">-- Seleccione una hora --</option>
-                @foreach (var h in horasDisponibles)
-                {
-                    <option value="@h">@h</option>
-                }
-            </InputSelect>
-            <ValidationMessage For="@(() => modelo.Hora)" />
-        </div>
+                <section class="form-card datos-turno-card">
 
-        <br />
-        <button class="btn btn-primary" type="submit">Guardar Turno</button>
-        <button class="btn btn-secondary" type="button" @onclick="Cancelar">Cancelar</button>
-    </EditForm>
-}
+                    <div class="seccion-header">
 
-<p>@Mensaje</p>
+                        <div class="seccion-numero">
+                            01
+                        </div>
+
+                        <div>
+                            <h2>Datos del turno</h2>
+
+                            <p>
+                                Completá la fecha, el tipo de turno
+                                y el consultorio.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="campos-grid">
+
+                        <div class="campo campo-completo">
+
+                            <label for="tipoTurno">
+                                Tipo de turno
+                            </label>
+
+                            <InputSelect id="tipoTurno"
+                                         class="form-select"
+                                         @bind-Value="modelo.TipoTurnoId">
+
+                                <option value="0">
+                                    Seleccione un tipo de turno
+                                </option>
+
+                                @foreach (var tipo in tiposTurno)
+                                {
+                                    <option value="@tipo.Id">
+                                        @tipo.Tipo
+                                        (@tipo.DuracionMinutos min)
+                                    </option>
+                                }
+
+                            </InputSelect>
+
+                            <ValidationMessage For="@(() => modelo.TipoTurnoId)" />
+
+                        </div>
+
+                        <div class="campo">
+
+                            <label for="consultorio">
+                                Consultorio
+                            </label>
+
+                            <InputSelect id="consultorio"
+                                         class="form-select"
+                                         @bind-Value="modelo.TipoConsultorioId">
+
+                                <option value="0">
+                                    Seleccione un consultorio
+                                </option>
+
+                                @foreach (var consultorio in consultorios)
+                                {
+                                    <option value="@consultorio.Id">
+                                        @consultorio.Tipo
+                                    </option>
+                                }
+
+                            </InputSelect>
+
+                            <ValidationMessage For="@(() => modelo.TipoConsultorioId)" />
+
+                        </div>
+
+                        <div class="campo campo-fecha">
+
+                            <label>
+                                Fecha
+                            </label>
+
+                            <button type="button"
+                                    class="fecha-selector"
+                                    aria-expanded="@calendarioAbierto"
+                                    @onclick="AlternarCalendario">
+
+                                <span>
+                                    @modelo.Fecha.ToString("dd/MM/yyyy")
+                                </span>
+
+                                <i class="bi bi-calendar3"></i>
+
+                            </button>
+
+                            @if (calendarioAbierto)
+                            {
+                                <div class="calendario-crear">
+
+                                    <div class="calendario-crear-header">
+
+                                        <button type="button"
+                                                class="calendario-crear-nav"
+                                                title="Mes anterior"
+                                                @onclick="IrMesAnteriorCalendario">
+
+                                            <i class="bi bi-chevron-left"></i>
+
+                                        </button>
+
+                                        <strong>
+                                            @FormatearMesCalendario(mesCalendario)
+                                        </strong>
+
+                                        <button type="button"
+                                                class="calendario-crear-nav"
+                                                title="Mes siguiente"
+                                                @onclick="IrMesSiguienteCalendario">
+
+                                            <i class="bi bi-chevron-right"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                    <div class="calendario-crear-semana">
+                                        <span>Lu</span>
+                                        <span>Ma</span>
+                                        <span>Mi</span>
+                                        <span>Ju</span>
+                                        <span>Vi</span>
+                                        <span>Sá</span>
+                                        <span>Do</span>
+                                    </div>
+
+                                    <div class="calendario-crear-dias">
+
+                                        @foreach (var dia in ObtenerDiasCalendarioCrear())
+                                        {
+                                            <button type="button"
+                                                    class="@ObtenerClaseDiaCalendario(dia)"
+                                                    @onclick="() => SeleccionarFechaCalendario(dia)">
+
+                                                @dia.Day
+
+                                            </button>
+                                        }
+
+                                    </div>
+
+                                    <div class="calendario-crear-footer">
+
+                                        <button type="button"
+                                                @onclick="SeleccionarHoy">
+                                            Hoy
+                                        </button>
+
+                                    </div>
+
+                                </div>
+                            }
+
+                            <ValidationMessage For="@(() => modelo.Fecha)" />
+
+                        </div>
+
+                    </div>
+
+                    <button type="button"
+                            class="btn-consultar"
+                            disabled="@consultandoHorarios"
+                            @onclick="CargarHorasDisponibles">
+
+                        @if (consultandoHorarios)
+                        {
+                            <span class="spinner-border spinner-border-sm"
+                                  role="status">
+                            </span>
+
+                            <span>Consultando...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-search"></i>
+                            <span>Consultar horarios disponibles</span>
+                        }
+
+                    </button>
+
+                </section>
+
+                <section class="form-card horarios-card">
+
+                    <div class="seccion-header">
+
+                        <div class="seccion-numero">
+                            02
+                        </div>
+
+                        <div>
+                            <h2>Horarios disponibles</h2>
+
+                            <p>
+                                Elegí el horario de inicio
+                                para el turno.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    @if (!horariosConsultados)
+                    {
+                        <div class="horarios-vacio">
+
+                            <i class="bi bi-clock"></i>
+
+                            <p>
+                                Completá los datos del turno
+                                y consultá la disponibilidad.
+                            </p>
+
+                        </div>
+                    }
+                    else if (horasDisponibles.Count == 0)
+                    {
+                        <div class="horarios-vacio">
+
+                            <i class="bi bi-calendar-x"></i>
+
+                            <p>
+                                No hay horarios disponibles
+                                para esta selección.
+                            </p>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="horarios-grid">
+
+                            @foreach (var hora in horasDisponibles)
+                            {
+                                <button type="button"
+                                        class="@ObtenerClaseHorario(hora)"
+                                        @onclick="() => SeleccionarHora(hora)">
+
+                                    @hora
+
+                                </button>
+                            }
+
+                        </div>
+                    }
+
+                </section>
+
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(horaSeleccionada))
+            {
+                <section class="resumen-turno">
+
+                    <div class="resumen-header">
+                        <i class="bi bi-calendar-check"></i>
+
+                        <div>
+                            <h2>Resumen del turno</h2>
+                            <p>Revisá los datos antes de guardar.</p>
+                        </div>
+                    </div>
+
+                    <div class="resumen-grid">
+
+                        <div class="resumen-item">
+                            <span class="resumen-label">Fecha</span>
+
+                            <strong>
+                                @FormatearFecha(modelo.Fecha)
+                            </strong>
+                        </div>
+
+                        <div class="resumen-item">
+                            <span class="resumen-label">Horario</span>
+
+                            <strong>
+                                @horaSeleccionada
+                                -
+                                @CalcularHoraFin()
+                            </strong>
+                        </div>
+
+                        <div class="resumen-item">
+                            <span class="resumen-label">Duración</span>
+
+                            <strong>
+                                @ObtenerDuracionSeleccionada() minutos
+                            </strong>
+                        </div>
+
+                        <div class="resumen-item">
+                            <span class="resumen-label">Consultorio</span>
+
+                            <strong>
+                                @ObtenerNombreConsultorio()
+                            </strong>
+                        </div>
+
+                        <div class="resumen-item">
+                            <span class="resumen-label">
+                                Tipo de turno
+                            </span>
+
+                            <strong>
+                                @ObtenerNombreTipoTurno()
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </section>
+            }
+
+            <ValidationSummary class="validation-summary" />
+
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <div class="mensaje-form">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@Mensaje</span>
+                </div>
+            }
+
+            <footer class="form-actions">
+
+                <button type="button"
+                        class="btn-cancelar"
+                        disabled="@guardando"
+                        @onclick="Cancelar">
+                    Cancelar
+                </button>
+
+                <button type="submit"
+                        class="btn-guardar"
+                        disabled="@(!PuedeGuardar || guardando)">
+
+                    @if (guardando)
+                    {
+                        <span class="spinner-border spinner-border-sm"
+                              role="status">
+                        </span>
+
+                        <span>Guardando...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-check-lg"></i>
+                        <span>Guardar turno</span>
+                    }
+
+                </button>
+
+            </footer>
+
+        </EditForm>
+    }
+
+</div>
 
 @code {
-    private TurnoDTO modelo = new TurnoDTO
+    private TurnoDTO modelo = new()
     {
         EstadoTurno = EnumEstadoTurno.reservado,
-        Fecha = DateTime.Today,   // ✅ ahora DateTime
+        Fecha = DateTime.Today,
         Hora = TimeOnly.MinValue
     };
 
@@ -90,72 +432,354 @@ else
     private List<TipoConsultorioListadoDTO> consultorios = new();
     private List<string> horasDisponibles = new();
 
-    private string horaSeleccionada = "";
-    private bool cargando = false;
-    private string Mensaje = "";
+    private string horaSeleccionada = string.Empty;
+    private string Mensaje = string.Empty;
+
+    private bool cargando = true;
+    private bool consultandoHorarios;
+    private bool horariosConsultados;
+    private bool guardando;
+
+    private bool PuedeGuardar =>
+        modelo.TipoTurnoId > 0
+        && modelo.TipoConsultorioId > 0
+        && modelo.Fecha != DateTime.MinValue
+        && !string.IsNullOrWhiteSpace(horaSeleccionada);
+
+    private bool calendarioAbierto;
+
+    private DateTime mesCalendario = new(
+        DateTime.Today.Year,
+        DateTime.Today.Month,
+        1
+    );
 
     protected override async Task OnInitializedAsync()
     {
         cargando = true;
+        Mensaje = string.Empty;
 
-        var respTurno = await Http.Get<List<TipoTurnoListadoDTO>>("api/tipoturno/ListaTipoTurno");
-        if (!respTurno.Error && respTurno.Respuesta != null)
-            tiposTurno = respTurno.Respuesta;
+        var respTurnos =
+            await Http.Get<List<TipoTurnoListadoDTO>>(
+                "api/tipoturno/ListaTipoTurno"
+            );
 
-        var respCons = await Http.Get<List<TipoConsultorioListadoDTO>>("api/tipoconsultorio/ListaTipoConsultorio");
-        if (!respCons.Error && respCons.Respuesta != null)
-            consultorios = respCons.Respuesta;
+        if (!respTurnos.Error
+            && respTurnos.Respuesta is not null)
+        {
+            tiposTurno = respTurnos.Respuesta;
+        }
+        else if (respTurnos.Error)
+        {
+            Mensaje = respTurnos.ObtenerError();
+        }
+
+        var respConsultorios =
+            await Http.Get<List<TipoConsultorioListadoDTO>>(
+                "api/tipoconsultorio/ListaTipoConsultorio"
+            );
+
+        if (!respConsultorios.Error
+            && respConsultorios.Respuesta is not null)
+        {
+            consultorios = respConsultorios.Respuesta;
+        }
+        else if (respConsultorios.Error
+            && string.IsNullOrWhiteSpace(Mensaje))
+        {
+            Mensaje = respConsultorios.ObtenerError();
+        }
 
         cargando = false;
     }
 
     private async Task CargarHorasDisponibles()
     {
-        if (modelo.Fecha != DateTime.MinValue && modelo.TipoTurnoId > 0 && modelo.TipoConsultorioId > 0)
+        Mensaje = string.Empty;
+        horasDisponibles.Clear();
+        horaSeleccionada = string.Empty;
+        modelo.Hora = TimeOnly.MinValue;
+        horariosConsultados = false;
+
+        if (modelo.TipoTurnoId <= 0)
         {
-            var resp = await Http.Get<List<string>>(
-                $"api/turno/Disponibles?fecha={modelo.Fecha:yyyy-MM-dd}&tipoTurnoId={modelo.TipoTurnoId}&consultorioId={modelo.TipoConsultorioId}"
+            Mensaje = "Seleccioná un tipo de turno.";
+            return;
+        }
+
+        if (modelo.TipoConsultorioId <= 0)
+        {
+            Mensaje = "Seleccioná un consultorio.";
+            return;
+        }
+
+        if (modelo.Fecha == DateTime.MinValue)
+        {
+            Mensaje = "Seleccioná una fecha.";
+            return;
+        }
+
+        consultandoHorarios = true;
+
+        var resp =
+            await Http.Get<List<string>>(
+                $"api/turno/Disponibles" +
+                $"?fecha={modelo.Fecha:yyyy-MM-dd}" +
+                $"&tipoTurnoId={modelo.TipoTurnoId}" +
+                $"&consultorioId={modelo.TipoConsultorioId}"
             );
-            if (!resp.Error && resp.Respuesta != null)
-            {
-                horasDisponibles = resp.Respuesta;
-                StateHasChanged();
-            }
+
+        horariosConsultados = true;
+        consultandoHorarios = false;
+
+        if (resp.Error)
+        {
+            Mensaje = resp.ObtenerError();
+            return;
+        }
+
+        horasDisponibles =
+            resp.Respuesta ?? new List<string>();
+    }
+
+    private void SeleccionarHora(string hora)
+    {
+        horaSeleccionada = hora;
+
+        modelo.Hora =
+            TimeOnly.ParseExact(hora, "HH:mm");
+
+        Mensaje = string.Empty;
+    }
+
+    private string ObtenerClaseHorario(string hora)
+    {
+        return hora == horaSeleccionada
+            ? "horario-opcion seleccionado"
+            : "horario-opcion";
+    }
+
+    private TipoTurnoListadoDTO? ObtenerTipoSeleccionado()
+    {
+        return tiposTurno.FirstOrDefault(
+            tipo => tipo.Id == modelo.TipoTurnoId
+        );
+    }
+
+    private int ObtenerDuracionSeleccionada()
+    {
+        return ObtenerTipoSeleccionado()
+            ?.DuracionMinutos ?? 0;
+    }
+
+    private string CalcularHoraFin()
+    {
+        if (string.IsNullOrWhiteSpace(horaSeleccionada))
+        {
+            return "—";
+        }
+
+        var horaInicio =
+            TimeOnly.ParseExact(
+                horaSeleccionada,
+                "HH:mm"
+            );
+
+        return horaInicio
+            .AddMinutes(ObtenerDuracionSeleccionada())
+            .ToString("HH:mm");
+    }
+
+    private string ObtenerNombreTipoTurno()
+    {
+        return ObtenerTipoSeleccionado()
+            ?.Tipo ?? "—";
+    }
+
+    private string ObtenerNombreConsultorio()
+    {
+        return consultorios
+            .FirstOrDefault(
+                consultorio =>
+                    consultorio.Id ==
+                    modelo.TipoConsultorioId
+            )
+            ?.Tipo ?? "—";
+    }
+
+    private static string FormatearFecha(DateTime fecha)
+    {
+        var texto = fecha.ToString(
+            "dddd d 'de' MMMM 'de' yyyy",
+            new System.Globalization.CultureInfo("es-AR")
+        );
+
+        return char.ToUpper(texto[0]) + texto[1..];
+    }
+
+    private void AlternarCalendario()
+    {
+        calendarioAbierto = !calendarioAbierto;
+
+        if (calendarioAbierto)
+        {
+            mesCalendario = new DateTime(
+                modelo.Fecha.Year,
+                modelo.Fecha.Month,
+                1
+            );
         }
     }
 
-    private void OnHoraSeleccionada(ChangeEventArgs e)
+    private void IrMesAnteriorCalendario()
     {
-        var horaStr = e.Value?.ToString();
-        if (!string.IsNullOrEmpty(horaStr))
+        mesCalendario =
+            mesCalendario.AddMonths(-1);
+    }
+
+    private void IrMesSiguienteCalendario()
+    {
+        mesCalendario =
+            mesCalendario.AddMonths(1);
+    }
+
+    private List<DateTime> ObtenerDiasCalendarioCrear()
+    {
+        var primerDiaMes = new DateTime(
+            mesCalendario.Year,
+            mesCalendario.Month,
+            1
+        );
+
+        var desplazamiento =
+            ((int)primerDiaMes.DayOfWeek + 6) % 7;
+
+        var primerDiaVisible =
+            primerDiaMes.AddDays(-desplazamiento);
+
+        return Enumerable
+            .Range(0, 42)
+            .Select(numero =>
+                primerDiaVisible.AddDays(numero))
+            .ToList();
+    }
+
+    private void SeleccionarFechaCalendario(
+        DateTime fecha)
+    {
+        modelo.Fecha = fecha.Date;
+
+        mesCalendario = new DateTime(
+            fecha.Year,
+            fecha.Month,
+            1
+        );
+
+        calendarioAbierto = false;
+
+        ReiniciarDisponibilidad();
+    }
+
+    private void SeleccionarHoy()
+    {
+        modelo.Fecha = DateTime.Today;
+
+        mesCalendario = new DateTime(
+            DateTime.Today.Year,
+            DateTime.Today.Month,
+            1
+        );
+
+        calendarioAbierto = false;
+
+        ReiniciarDisponibilidad();
+    }
+
+    private void ReiniciarDisponibilidad()
+    {
+        horasDisponibles.Clear();
+        horaSeleccionada = string.Empty;
+        modelo.Hora = TimeOnly.MinValue;
+        horariosConsultados = false;
+        Mensaje = string.Empty;
+    }
+
+    private string ObtenerClaseDiaCalendario(
+        DateTime dia)
+    {
+        var clases = new List<string>
+    {
+        "calendario-crear-dia"
+    };
+
+        if (dia.Month != mesCalendario.Month)
         {
-            horaSeleccionada = horaStr;
-            modelo.Hora = TimeOnly.ParseExact(horaStr, "HH:mm");
+            clases.Add("otro-mes");
         }
+
+        if (dia.Date == DateTime.Today)
+        {
+            clases.Add("hoy");
+        }
+
+        if (dia.Date == modelo.Fecha.Date)
+        {
+            clases.Add("seleccionado");
+        }
+
+        return string.Join(" ", clases);
+    }
+
+    private static string FormatearMesCalendario(
+        DateTime fecha)
+    {
+        var texto = fecha.ToString(
+            "MMMM yyyy",
+            new System.Globalization.CultureInfo("es-AR")
+        );
+
+        return char.ToUpper(texto[0]) + texto[1..];
     }
 
     private async Task Grabar()
     {
-        if (string.IsNullOrEmpty(horaSeleccionada))
+        if (!PuedeGuardar)
         {
-            Mensaje = "Debe seleccionar una hora válida.";
+            Mensaje =
+                "Completá los datos y seleccioná un horario.";
             return;
         }
 
-        modelo.Hora = TimeOnly.ParseExact(horaSeleccionada, "HH:mm");
+        guardando = true;
+        Mensaje = string.Empty;
 
-        var resp = await Http.Post<TurnoDTO, int>("api/turno", modelo);
-        if (!resp.Error)
-        {
-            Mensaje = "Turno guardado correctamente.";
-            await Task.Delay(500);
-            Nav.NavigateTo("/turnos", forceLoad: true);
-        }
-        else
+        modelo.Hora =
+            TimeOnly.ParseExact(
+                horaSeleccionada,
+                "HH:mm"
+            );
+
+        var resp =
+            await Http.Post<TurnoDTO, int>(
+                "api/turno",
+                modelo
+            );
+
+        if (resp.Error)
         {
             Mensaje = resp.ObtenerError();
+            guardando = false;
+            return;
         }
+
+        Nav.NavigateTo(
+        "/turnos?estado=creado",
+        forceLoad: true
+        );
     }
 
-    private void Cancelar() => Nav.NavigateTo("/turnos");
+    private void Cancelar()
+    {
+        Nav.NavigateTo("/turnos");
+    }
 }

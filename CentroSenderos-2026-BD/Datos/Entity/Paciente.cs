@@ -1,6 +1,7 @@
 ﻿using CentroSenderos_2026_Shared.Enum;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -41,6 +42,11 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         public int? DocumentoId { get; set; }
         public Documento? Documentos { get; set; }
 
+        [Column(TypeName = "date")]
+        public DateTime? FechaNacimiento { get; set; }
+        public bool TieneCud { get; set; } = false;
+
+        public List<PacienteTelefono> Telefonos { get; set; } = new();
         public List<TurnoPaciente> TurnoPacientes { get; set; } = new();
 
     }

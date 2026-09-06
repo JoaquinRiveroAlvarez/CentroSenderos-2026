@@ -1,7 +1,4 @@
-/* CSS for PacienteCrear component */
-/* ===========================================
-   PÁGINA
-=========================================== */
+/* PÁGINA */
 
 .crear-paciente-page {
     width: 100%;
@@ -16,9 +13,7 @@
     }
 
 
-/* ===========================================
-   FORMULARIO PRINCIPAL
-=========================================== */
+/* FORMULARIO PRINCIPAL */
 
 .paciente-form {
     width: 100%;
@@ -31,12 +26,10 @@
 }
 
 
-/* ===========================================
-   SECCIONES
-=========================================== */
+/* SECCIONES */
 
 .form-section {
-    margin-bottom: 26px;
+    margin-bottom: 28px;
 }
 
 .section-title {
@@ -51,8 +44,16 @@
     letter-spacing: 1px;
 }
 
+.section-title-actions {
+    justify-content: space-between;
+    gap: 18px;
+}
 
-/* Número 01, 02, 03 */
+.section-title-content {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
 
 .section-number {
     width: 26px;
@@ -69,9 +70,7 @@
 }
 
 
-/* ===========================================
-   GRILLAS
-=========================================== */
+/* GRILLAS */
 
 .form-grid {
     display: grid;
@@ -79,17 +78,19 @@
 }
 
 .form-grid-2 {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .form-grid-3 {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.contact-address {
+    margin-top: 20px;
 }
 
 
-/* ===========================================
-   GRUPOS DE CAMPOS
-=========================================== */
+/* GRUPOS DE CAMPOS */
 
 .field-group {
     display: flex;
@@ -106,9 +107,7 @@
     }
 
 
-/* ===========================================
-   INPUTS / SELECTS
-=========================================== */
+/* INPUTS Y SELECTS */
 
 ::deep .form-input {
     width: 100%;
@@ -119,21 +118,20 @@
     border: 1px solid #d9ddd6;
     border-radius: 22px;
     color: #444444;
+    font-family: inherit;
     font-size: 14px;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
-
-
-    /* Placeholder */
 
     ::deep .form-input::placeholder {
         color: #999999;
         opacity: 1;
     }
 
-
-    /* Focus */
+    ::deep .form-input:hover {
+        border-color: #bbc5b7;
+    }
 
     ::deep .form-input:focus {
         background: #ffffff;
@@ -141,17 +139,120 @@
         box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
     }
 
-
-/* Select */
+    ::deep .form-input.invalid {
+        border-color: #d8857e;
+        box-shadow: 0 0 0 3px rgba(181, 75, 67, 0.08);
+    }
 
 ::deep select.form-input {
     cursor: pointer;
 }
 
+::deep input[type="date"].form-input {
+    color-scheme: light;
+    cursor: pointer;
+}
 
-/* ===========================================
-   BOTONES
-=========================================== */
+    ::deep input[type="date"].form-input::-webkit-calendar-picker-indicator {
+        opacity: 0.65;
+        cursor: pointer;
+    }
+
+
+/* LISTA DE TELÉFONOS */
+
+.phones-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.phone-row {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.8fr) minmax(220px, 1.2fr) 42px;
+    align-items: end;
+    gap: 14px;
+    padding: 16px;
+    background: #fafbf9;
+    border: 1px solid #e2e7df;
+    border-radius: 16px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .phone-row:hover {
+        border-color: #cbd5c7;
+        box-shadow: 0 4px 14px rgba(85, 111, 79, 0.06);
+    }
+
+
+/* BOTÓN AGREGAR TELÉFONO */
+
+.add-phone-button {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex-shrink: 0;
+    padding: 0 15px;
+    background: #eef2ec;
+    border: 1px solid #cbd5c7;
+    border-radius: 18px;
+    color: #556f4f;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+    .add-phone-button i {
+        font-size: 14px;
+    }
+
+    .add-phone-button:hover:not(:disabled) {
+        background: #dfe7dc;
+        border-color: #aebda9;
+        color: #42593d;
+    }
+
+    .add-phone-button:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+
+
+/* BOTÓN ELIMINAR TELÉFONO */
+
+.remove-phone-button {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: #ffffff;
+    border: 1px solid #e1c7c4;
+    border-radius: 50%;
+    color: #b85b53;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+    .remove-phone-button:hover:not(:disabled) {
+        background: #fff1ef;
+        border-color: #d99a94;
+        color: #9f4039;
+    }
+
+    .remove-phone-button:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+
+
+/* ACCIONES DEL FORMULARIO */
 
 .form-actions {
     display: flex;
@@ -161,9 +262,6 @@
     margin-top: 16px;
 }
 
-
-/* Cancelar */
-
 .cancel-button {
     min-width: 120px;
     height: 42px;
@@ -172,44 +270,48 @@
     border: 1px solid #9d9d96;
     border-radius: 22px;
     color: #555555;
+    font-family: inherit;
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
+    transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-    .cancel-button:hover {
+    .cancel-button:hover:not(:disabled) {
         background: #f5f5f3;
         border-color: #777770;
     }
 
-
-/* Guardar */
-
 .save-button {
     min-width: 150px;
     height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     padding: 0 24px;
     background: #647b5b;
     border: none;
     border-radius: 22px;
     color: #ffffff;
+    font-family: inherit;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
-    .save-button:hover {
+    .save-button:hover:not(:disabled) {
         background: #52694a;
     }
 
-    .save-button:active {
+    .save-button:active:not(:disabled) {
         transform: scale(0.98);
     }
 
 
-    /*boton volver*/
+/* BOTÓN VOLVER */
+
 .back-button {
     display: inline-flex;
     align-items: center;
@@ -231,17 +333,24 @@
         transition: transform 0.2s ease;
     }
 
-    .back-button:hover {
+    .back-button:hover:not(:disabled) {
         color: #556f4f;
     }
 
-        .back-button:hover i {
+        .back-button:hover:not(:disabled) i {
             transform: translateX(-3px);
         }
 
-/* ===========================================
-   VALIDACIONES
-=========================================== */
+
+/* BOTONES DESHABILITADOS */
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+
+/* VALIDACIONES */
 
 .validation-summary {
     margin-bottom: 18px;
@@ -255,14 +364,22 @@
     font-size: 13px;
 }
 
+.phone-validation {
+    margin: 8px 0 0 6px;
+    color: #b54b43;
+    font-size: 13px;
+}
 
-/* ===========================================
-   MENSAJES
-=========================================== */
+
+/* MENSAJES */
 
 .form-message {
     margin-top: 12px;
-    color: #60745a;
+    padding: 12px 16px;
+    background: #fdf2f0;
+    border: 1px solid #efd0cc;
+    border-radius: 12px;
+    color: #a94b44;
     font-size: 14px;
 }
 
@@ -273,28 +390,174 @@
 }
 
 
-/* ===========================================
-   RESPONSIVE
-=========================================== */
+/* GRILLA MÉDICA */
 
-@media (max-width: 900px) {
-
-    .form-grid-3 {
-        grid-template-columns: repeat(2, 1fr);
-    }
+.form-grid-medical {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 
-@media (max-width: 650px) {
+/* CAMPO CUD */
 
+.cud-field {
+    justify-content: flex-end;
+}
+
+.cud-option {
+    min-height: 66px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 12px 16px;
+    background: #fafbf9;
+    border: 1px solid #d9e1d6;
+    border-radius: 16px;
+    cursor: pointer;
+    text-transform: none;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .cud-option:hover {
+        background: #f4f7f2;
+        border-color: #b9c8b5;
+        box-shadow: 0 3px 10px rgba(85, 111, 79, 0.06);
+    }
+
+::deep .cud-checkbox {
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+    margin: 0;
+    accent-color: #647b5b;
+    cursor: pointer;
+}
+
+.cud-option-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.cud-option-title {
+    color: #4f5f4b;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: none;
+}
+
+.cud-option-description {
+    color: #7d817a;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.35;
+    text-transform: none;
+}
+
+
+.automatic-field {
+    min-height: 66px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    background: #f4f7f2;
+    border: 1px dashed #b9c8b5;
+    border-radius: 16px;
+    color: #556f4f;
+}
+
+    .automatic-field > i {
+        flex-shrink: 0;
+        font-size: 19px;
+    }
+
+    .automatic-field > div {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+.automatic-field-title {
+    color: #4f5f4b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.automatic-field-description {
+    color: #7d817a;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+    .form-grid-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .phone-row {
+        grid-template-columns: minmax(160px, 0.8fr) minmax(200px, 1.2fr) 42px;
+    }
+}
+
+@media (max-width: 700px) {
     .paciente-form {
         padding: 20px;
         border-radius: 16px;
     }
 
+    .crear-paciente-page h1 {
+        font-size: 25px;
+    }
+
     .form-grid-2,
     .form-grid-3 {
         grid-template-columns: 1fr;
+    }
+
+    .section-title-actions {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .add-phone-button {
+        margin-left: 39px;
+    }
+
+    .phone-row {
+        grid-template-columns: 1fr 42px;
+    }
+
+        .phone-row .field-group:first-child {
+            grid-column: 1 / -1;
+        }
+
+    .contact-address {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 500px) {
+    .paciente-form {
+        padding: 18px 15px;
+    }
+
+    .phone-row {
+        grid-template-columns: 1fr;
+        padding: 14px;
+    }
+
+        .phone-row .field-group:first-child {
+            grid-column: auto;
+        }
+
+    .remove-phone-button {
+        width: 100%;
+        border-radius: 20px;
     }
 
     .form-actions {
@@ -303,7 +566,11 @@
 
     .cancel-button,
     .save-button {
-        font-size: 14px;
         width: 100%;
+        font-size: 14px;
+    }
+
+    .add-phone-button {
+        width: calc(100% - 39px);
     }
 }

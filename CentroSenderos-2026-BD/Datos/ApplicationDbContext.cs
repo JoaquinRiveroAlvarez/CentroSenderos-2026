@@ -8,7 +8,9 @@ namespace CentroSenderos_2026_BD
     public class ApplicationDbContext : IdentityDbContext<MiUsuario>
     {
         public DbSet<Paciente> Pacientes { get; set; }
+        public DbSet<PacienteTelefono> PacienteTelefonos { get; set; }
         public DbSet<Profesional> Profesionales { get; set; }
+        public DbSet<ProfesionalTipoPrestacion> ProfesionalTipoPrestaciones { get; set; }
         public DbSet<TipoConsultorio> TipoConsultorios { get; set; }
         public DbSet<TipoDiagnostico> TipoDiagnosticos { get; set; }
         public DbSet<Socio> Socios { get; set; }
@@ -35,6 +37,25 @@ namespace CentroSenderos_2026_BD
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<ProfesionalTipoPrestacion>()
+    .HasIndex(x => new
+    {
+        x.ProfesionalId,
+        x.TipoPrestacionId
+    })
+    .IsUnique();
+
+            modelBuilder.Entity<ProfesionalTipoPrestacion>()
+                .HasOne(x => x.Profesional)
+                .WithMany(p => p.ProfesionalTipoPrestaciones)
+                .HasForeignKey(x => x.ProfesionalId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProfesionalTipoPrestacion>()
+                .HasOne(x => x.TipoPrestacion)
+                .WithMany(tp => tp.ProfesionalTipoPrestaciones)
+                .HasForeignKey(x => x.TipoPrestacionId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             var cascadeFKs = modelBuilder.Model
                 .G­etEntityTypes()
@@ -55,6 +76,11 @@ namespace CentroSenderos_2026_BD
                 .HasOne(p => p.TipoDiagnosticos)
                 .WithMany(d => d.Pacientes)
                 .HasForeignKey(p => p.TipoDiagnosticoId);
+            modelBuilder.Entity<PacienteTelefono>()
+                .HasOne(t => t.Paciente)
+                .WithMany(p => p.Telefonos)
+                .HasForeignKey(t => t.PacienteId)
+                .OnDelete(DeleteBehavior.Restrict);
 
         }
     }

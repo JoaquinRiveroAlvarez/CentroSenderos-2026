@@ -16,19 +16,15 @@
         <span>Volver</span>
     </button>
 
-
     <div class="editar-title-row">
 
         <h1>Editar Profesional</h1>
+
         @if (!string.IsNullOrWhiteSpace(modelo.RolAsignado))
         {
             <span class="rol-badge">
                 <i class="bi bi-person-badge"></i>
-                @(modelo.RolAsignado == "admin" ? "Administrador" :
-                  modelo.RolAsignado == "equipo" ? "Equipo" :
-                  modelo.RolAsignado == "profesional" ? "Profesional" :
-                  modelo.RolAsignado == "AdministradorEquipo" ? "Administrador/Equipo" :
-                  modelo.RolAsignado)
+                @ObtenerNombreRol(modelo.RolAsignado)
             </span>
         }
 
@@ -41,7 +37,6 @@
         }
 
     </div>
-
 
     @if (cargando)
     {
@@ -58,13 +53,6 @@
 
             <DataAnnotationsValidator />
 
-@*             <ValidationSummary class="validation-summary" /> *@
-
-
-            <!-- =========================================
-                 01 - INFORMACIÓN PERSONAL
-            ========================================== -->
-
             <section class="form-section">
 
                 <div class="section-title">
@@ -75,7 +63,6 @@
                 <div class="form-grid form-grid-2">
 
                     <div class="field-group">
-
                         <label>Nombre completo</label>
 
                         <InputText class="form-input"
@@ -84,12 +71,9 @@
 
                         <ValidationMessage For="@(() => modelo.Nombre)"
                                            class="validation-message" />
-
                     </div>
 
-
                     <div class="field-group">
-
                         <label>CUIT</label>
 
                         <InputText class="form-input"
@@ -98,17 +82,11 @@
 
                         <ValidationMessage For="@(() => modelo.Cuit)"
                                            class="validation-message" />
-
                     </div>
 
                 </div>
 
             </section>
-
-
-            <!-- =========================================
-                 02 - INFORMACIÓN PROFESIONAL
-            ========================================== -->
 
             <section class="form-section">
 
@@ -119,8 +97,68 @@
 
                 <div class="form-grid form-grid-3">
 
-                    <div class="field-group">
+                    <div class="field-group prestaciones-field">
+                        <label>Prestaciones</label>
 
+                        <InputSelect class="form-input"
+                                     @bind-Value="prestacionSeleccionadaId"
+                                     @bind-Value:after="AgregarPrestacion"
+                                     disabled="@(guardando || eliminando)">
+
+                            <option value="">
+                                -- Seleccionar prestación --
+                            </option>
+
+                            @foreach (var prestacion in PrestacionesDisponibles)
+                            {
+                                <option value="@prestacion.Id">
+                                    @prestacion.Tipo
+                                </option>
+                            }
+
+                        </InputSelect>
+
+                        @if (modelo.TipoPrestacionIds.Count > 0)
+                        {
+                            <div class="prestaciones-seleccionadas">
+
+                                @foreach (var prestacionId in modelo.TipoPrestacionIds)
+                                {
+                                    var prestacion =
+                                        ObtenerPrestacion(prestacionId);
+
+                                    if (prestacion != null)
+                                    {
+                                        <div class="prestacion-chip">
+
+                                            <span>@prestacion.Tipo</span>
+
+                                            <button type="button"
+                                                    class="prestacion-chip-remove"
+                                                    title="Quitar prestación"
+                                                    disabled="@(guardando || eliminando)"
+                                                    @onclick="() => QuitarPrestacion(prestacion.Id)">
+
+                                                <i class="bi bi-x"></i>
+
+                                            </button>
+
+                                        </div>
+                                    }
+                                }
+
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="prestaciones-help">
+                                Todavía no hay prestaciones asignadas.
+                            </span>
+                        }
+
+                    </div>
+
+                    <div class="field-group">
                         <label>Área</label>
 
                         <InputText class="form-input"
@@ -129,23 +167,9 @@
 
                         <ValidationMessage For="@(() => modelo.Area)"
                                            class="validation-message" />
-
                     </div>
 
                     <div class="field-group">
-                        <label>Tipo de Prestación</label>
-                        <InputSelect class="form-input" @bind-Value="modelo.TipoPrestacionId">
-                            <option value="">-- Seleccionar --</option>
-                            @foreach (var tp in listaTipoPrestaciones)
-                            {
-                                <option value="@tp.Id">@tp.Tipo</option>
-                            }
-                        </InputSelect>
-                        <ValidationMessage For="@(() => modelo.TipoPrestacionId)" class="validation-message" />
-                    </div>
-
-                    <div class="field-group">
-
                         <label>M.P. (Matrícula Profesional)</label>
 
                         <InputText class="form-input"
@@ -154,12 +178,9 @@
 
                         <ValidationMessage For="@(() => modelo.MP)"
                                            class="validation-message" />
-
                     </div>
 
-
                     <div class="field-group">
-
                         <label>R.N.P.</label>
 
                         <InputText class="form-input"
@@ -168,17 +189,11 @@
 
                         <ValidationMessage For="@(() => modelo.RNP)"
                                            class="validation-message" />
-
                     </div>
 
                 </div>
 
             </section>
-
-
-            <!-- =========================================
-                 03 - DATOS DE CONTACTO
-            ========================================== -->
 
             <section class="form-section">
 
@@ -190,7 +205,6 @@
                 <div class="form-grid form-grid-2">
 
                     <div class="field-group">
-
                         <label>Teléfono</label>
 
                         <InputText class="form-input"
@@ -199,13 +213,65 @@
 
                         <ValidationMessage For="@(() => modelo.Telefono)"
                                            class="validation-message" />
+                    </div>
 
+                    <div class="field-group">
+                        <label>Email</label>
+
+                        <InputText class="form-input"
+                                   @bind-Value="modelo.Email"
+                                   placeholder="Ej: profesional@senderos.com" />
+
+                        <ValidationMessage For="@(() => modelo.Email)"
+                                           class="validation-message" />
                     </div>
 
                 </div>
 
             </section>
 
+            <section class="form-section">
+
+                <div class="section-title">
+                    <span class="section-number">04</span>
+                    <span>Usuario del Sistema</span>
+                </div>
+
+                <div class="form-grid form-grid-2">
+
+                    <div class="field-group">
+                        <label>Rol</label>
+
+                        <InputSelect class="form-input"
+                                     @bind-Value="modelo.RolAsignado"
+                                     disabled="@(guardando || eliminando)">
+
+                            <option value="">
+                                -- Seleccionar rol --
+                            </option>
+
+                            <option value="admin">
+                                Administrador
+                            </option>
+
+                            <option value="equipo">
+                                Equipo
+                            </option>
+
+                            <option value="profesional">
+                                Profesional
+                            </option>
+
+                            <option value="AdministradorEquipo">
+                                Administrador/Equipo
+                            </option>
+
+                        </InputSelect>
+                    </div>
+
+                </div>
+
+            </section>
 
             @if (!string.IsNullOrWhiteSpace(Mensaje))
             {
@@ -213,43 +279,6 @@
                     @Mensaje
                 </div>
             }
-
-            <!-- =========================================
-                 04 - USUARIO DEL SISTEMA
-            ========================================== -->
-
-            <section class="form-section">
-                <div class="section-title">
-                    <span class="section-number">04</span>
-                    <span>Usuario del Sistema</span>
-                </div>
-
-                <div class="form-grid form-grid-2">
-                    <div class="field-group">
-                        <label>Email</label>
-                        <InputText class="form-input"
-                                   @bind-Value="modelo.Email"
-                                   placeholder="Ej: profesional@senderos.com" />
-                        <ValidationMessage For="@(() => modelo.Email)" class="validation-message" />
-                    </div>
-
-                    <div class="field-group">
-                        <label>Rol</label>
-                        <InputSelect class="form-input" @bind-Value="modelo.RolAsignado">
-                            <option value="">-- Seleccionar rol --</option>
-                            <option value="admin">Administrador</option>
-                            <option value="equipo">Equipo</option>
-                            <option value="profesional">Profesional</option>
-                            <option value="AdministradorEquipo">Administrador/Equipo</option>
-                        </InputSelect>
-                    </div>
-
-                </div>
-            </section>
-
-            <!-- =========================================
-                 ACCIONES
-            ========================================== -->
 
             <div class="form-actions">
 
@@ -263,7 +292,6 @@
 
                 </button>
 
-
                 <div class="form-actions-right">
 
                     <button type="button"
@@ -272,7 +300,6 @@
                             @onclick="Cancelar">
                         Cancelar
                     </button>
-
 
                     <button type="submit"
                             class="save-button"
@@ -299,7 +326,6 @@
 
 </div>
 
-
 @if (mostrarConfirmacionEliminar)
 {
     <div class="modal-overlay">
@@ -318,7 +344,6 @@
                 El profesional dejará de aparecer entre los registros activos.
             </p>
 
-
             @if (!string.IsNullOrWhiteSpace(MensajeEliminar))
             {
                 <div class="delete-error">
@@ -326,7 +351,6 @@
                     <span>@MensajeEliminar</span>
                 </div>
             }
-
 
             <div class="delete-modal-actions">
 
@@ -362,120 +386,199 @@
     </div>
 }
 
-
 @code {
-
     [Parameter]
     public int id { get; set; }
 
-
     private ProfesionalDTO modelo = CrearModeloVacio();
-    private List<TipoPrestacionDTO> listaTipoPrestaciones = new();
+
+    private List<TipoPrestacionListadoDTO>
+        listaTipoPrestaciones = new();
+
+    private int? prestacionSeleccionadaId;
+
     private bool cargando = true;
-    private bool guardando = false;
-    private bool eliminando = false;
-    private bool mostrarConfirmacionEliminar = false;
+    private bool guardando;
+    private bool eliminando;
+    private bool mostrarConfirmacionEliminar;
 
-    private string Mensaje = "";
-    private string MensajeEliminar = "";
+    private string Mensaje = string.Empty;
+    private string MensajeEliminar = string.Empty;
+    private string rolOriginal = string.Empty;
 
+    private IEnumerable<TipoPrestacionListadoDTO> PrestacionesDisponibles =>
+        listaTipoPrestaciones
+            .Where(prestacion =>
+                !modelo.TipoPrestacionIds.Contains(prestacion.Id))
+            .OrderBy(prestacion => prestacion.Tipo);
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarProfesional();
-        await CargarTipoPrestaciones();
+        await CargarDatos();
     }
 
-
-    private async Task CargarTipoPrestaciones()
-    {
-        var resp = await Http.Get<List<TipoPrestacionDTO>>("api/tipoprestacion/ListaTipoPrestacion");
-        if (!resp.Error && resp.Respuesta != null)
-            listaTipoPrestaciones = resp.Respuesta;
-    }
-
-    private async Task CargarProfesional()
+    private async Task CargarDatos()
     {
         cargando = true;
-        Mensaje = "";
+        Mensaje = string.Empty;
 
-        var resp = await Http.Get<ProfesionalDTO>(
-            $"api/profesional/{id}"
+        var prestacionesTask =
+            Http.Get<List<TipoPrestacionListadoDTO>>(
+                "api/tipoprestacion/ListaTipoPrestacion"
+            );
+
+        var profesionalTask =
+            Http.Get<ProfesionalDTO>(
+                $"api/profesional/{id}"
+            );
+
+        await Task.WhenAll(
+            prestacionesTask,
+            profesionalTask
         );
 
-        if (!resp.Error && resp.Respuesta != null)
+        var prestacionesResp = await prestacionesTask;
+        var profesionalResp = await profesionalTask;
+
+        if (!prestacionesResp.Error &&
+            prestacionesResp.Respuesta != null)
         {
-            modelo = resp.Respuesta;
+            listaTipoPrestaciones =
+                prestacionesResp.Respuesta;
+        }
+        else
+        {
+            Mensaje = prestacionesResp.ObtenerError();
+        }
+
+        if (!profesionalResp.Error &&
+            profesionalResp.Respuesta != null)
+        {
+            modelo = profesionalResp.Respuesta;
+
+            modelo.TipoPrestacionIds ??= new List<int>();
+            modelo.TipoPrestacionNombres ??= new List<string>();
+
+            rolOriginal =
+                modelo.RolAsignado ?? string.Empty;
         }
         else
         {
             modelo = CrearModeloVacio();
-            Mensaje = resp.ObtenerError();
+            Mensaje = profesionalResp.ObtenerError();
         }
 
         cargando = false;
     }
 
+    private void AgregarPrestacion()
+    {
+        if (!prestacionSeleccionadaId.HasValue)
+        {
+            return;
+        }
+
+        var prestacionId =
+            prestacionSeleccionadaId.Value;
+
+        if (!modelo.TipoPrestacionIds.Contains(prestacionId))
+        {
+            modelo.TipoPrestacionIds.Add(prestacionId);
+        }
+
+        prestacionSeleccionadaId = null;
+    }
+
+    private void QuitarPrestacion(int prestacionId)
+    {
+        modelo.TipoPrestacionIds.Remove(prestacionId);
+    }
+
+    private TipoPrestacionListadoDTO? ObtenerPrestacion(
+        int prestacionId)
+    {
+        return listaTipoPrestaciones
+            .FirstOrDefault(prestacion =>
+                prestacion.Id == prestacionId);
+    }
 
     private async Task Grabar()
     {
         guardando = true;
-        Mensaje = "";
+        Mensaje = string.Empty;
+
+        var rolCambio =
+            !string.Equals(
+                modelo.RolAsignado ?? string.Empty,
+                rolOriginal,
+                StringComparison.OrdinalIgnoreCase
+            );
 
         var resp = await Http.Put<ProfesionalDTO, RespuestaDTO>(
             $"api/profesional/{id}",
             modelo
         );
 
-        guardando = false;
-
-        if (!resp.Error)
-        {
-            // Si se seleccionó un rol, actualizarlo en Identity
-            if (!string.IsNullOrWhiteSpace(modelo.RolAsignado))
-            {
-                var rolResp = await Http.Post<RolAsignacionDTO, string>(
-                    "api/seguridad/asignarRol",
-                    new RolAsignacionDTO { Email = modelo.Email, Rol = modelo.RolAsignado }
-                );
-
-                if (rolResp.Error)
-                {
-                    Mensaje = $"Profesional actualizado, pero error al asignar rol: {rolResp.ObtenerError()}";
-                }
-            }
-
-            Nav.NavigateTo($"/profesionales/detalle/{id}?estado=actualizado");
-        }
-        else
+        if (resp.Error)
         {
             Mensaje = resp.ObtenerError();
+            guardando = false;
+            return;
         }
+
+        if (rolCambio &&
+            !string.IsNullOrWhiteSpace(modelo.RolAsignado))
+        {
+            var rolResp =
+                await Http.Post<RolAsignacionDTO, string>(
+                    "api/seguridad/asignarRol",
+                    new RolAsignacionDTO
+                    {
+                        Email = modelo.Email,
+                        Rol = modelo.RolAsignado
+                    }
+                );
+
+            if (rolResp.Error)
+            {
+                Mensaje =
+                    "Los datos del profesional se actualizaron, " +
+                    "pero ocurrió un error al asignar el rol: " +
+                    rolResp.ObtenerError();
+
+                guardando = false;
+                return;
+            }
+        }
+
+        guardando = false;
+
+        Nav.NavigateTo(
+            $"/profesionales/detalle/{id}?estado=actualizado"
+        );
     }
-
-
 
     private void AbrirConfirmacionEliminar()
     {
-        MensajeEliminar = "";
+        MensajeEliminar = string.Empty;
         mostrarConfirmacionEliminar = true;
     }
 
-
     private void CerrarConfirmacionEliminar()
     {
-        if (!eliminando)
+        if (eliminando)
         {
-            MensajeEliminar = "";
-            mostrarConfirmacionEliminar = false;
+            return;
         }
-    }
 
+        MensajeEliminar = string.Empty;
+        mostrarConfirmacionEliminar = false;
+    }
 
     private async Task ConfirmarEliminar()
     {
         eliminando = true;
-        MensajeEliminar = "";
+        MensajeEliminar = string.Empty;
 
         var resp = await Http.Delete(
             $"api/profesional/{id}"
@@ -490,13 +593,24 @@
             Nav.NavigateTo(
                 "/profesionales?estado=eliminado"
             );
+
+            return;
         }
-        else
-        {
-            MensajeEliminar = resp.ObtenerError();
-        }
+
+        MensajeEliminar = resp.ObtenerError();
     }
 
+    private static string ObtenerNombreRol(string rol)
+    {
+        return rol switch
+        {
+            "admin" => "Administrador",
+            "equipo" => "Equipo",
+            "profesional" => "Profesional",
+            "AdministradorEquipo" => "Administrador/Equipo",
+            _ => rol
+        };
+    }
 
     private void Cancelar()
     {
@@ -505,14 +619,12 @@
         );
     }
 
-
     private void Volver()
     {
         Nav.NavigateTo(
             $"/profesionales/detalle/{id}"
         );
     }
-
 
     private static ProfesionalDTO CrearModeloVacio()
     {
@@ -525,8 +637,9 @@
             RNP = string.Empty,
             Telefono = string.Empty,
             Email = string.Empty,
-            RolAsignado = string.Empty
+            RolAsignado = string.Empty,
+            TipoPrestacionIds = new List<int>(),
+            TipoPrestacionNombres = new List<string>()
         };
     }
-
 }

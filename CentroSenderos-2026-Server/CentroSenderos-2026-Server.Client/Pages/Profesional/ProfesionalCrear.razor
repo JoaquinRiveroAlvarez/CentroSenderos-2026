@@ -16,7 +16,6 @@
         <span>Volver</span>
     </button>
 
-
     <h1>Crear Profesional</h1>
 
     <EditForm Model="@modelo"
@@ -70,18 +69,64 @@
 
             <div class="form-grid form-grid-3">
 
-                <div class="field-group">
-                    <label>Prestación</label>
+                <div class="field-group prestaciones-field">
+                    <label>Prestaciones</label>
 
-                    <InputSelect class="form-input" @bind-Value="modelo.TipoPrestacionId">
-                        <option value="">-- Seleccionar --</option>
-                        @foreach (var tp in listaTipoPrestaciones)
+                    <InputSelect class="form-input"
+                                 @bind-Value="prestacionSeleccionadaId"
+                                 @bind-Value:after="AgregarPrestacion"
+                                 disabled="@guardando">
+
+                        <option value="">
+                            -- Seleccionar prestación --
+                        </option>
+
+                        @foreach (var prestacion in PrestacionesDisponibles)
                         {
-                            <option value="@tp.Id">@tp.Tipo</option>
+                            <option value="@prestacion.Id">
+                                @prestacion.Tipo
+                            </option>
                         }
+
                     </InputSelect>
 
-                    <ValidationMessage For="@(() => modelo.TipoPrestacionId)" class="validation-message" />
+                    @if (modelo.TipoPrestacionIds.Count > 0)
+                    {
+                        <div class="prestaciones-seleccionadas">
+
+                            @foreach (var prestacionId in modelo.TipoPrestacionIds)
+                            {
+                                var prestacion =
+                                    ObtenerPrestacion(prestacionId);
+
+                                if (prestacion != null)
+                                {
+                                    <div class="prestacion-chip">
+
+                                        <span>@prestacion.Tipo</span>
+
+                                        <button type="button"
+                                                class="prestacion-chip-remove"
+                                                title="Quitar prestación"
+                                                disabled="@guardando"
+                                                @onclick="() => QuitarPrestacion(prestacion.Id)">
+
+                                            <i class="bi bi-x"></i>
+
+                                        </button>
+
+                                    </div>
+                                }
+                            }
+
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="prestaciones-help">
+                            Todavía no seleccionaste ninguna prestación.
+                        </span>
+                    }
                 </div>
 
                 <div class="field-group">
@@ -146,35 +191,57 @@
         </section>
 
         <section class="form-section">
+
             <div class="section-title">
                 <span class="section-number">04</span>
                 <span>Usuario del Sistema</span>
             </div>
 
             <div class="form-grid form-grid-2">
+
                 <div class="field-group">
                     <label>Email</label>
+
                     <InputText class="form-input"
                                @bind-Value="modelo.Email"
                                placeholder="Ej: profesional@senderos.com" />
-                    <ValidationMessage For="@(() => modelo.Email)" class="validation-message" />
+
+                    <ValidationMessage For="@(() => modelo.Email)"
+                                       class="validation-message" />
                 </div>
 
                 <div class="field-group">
                     <label>Rol</label>
-                    <InputSelect class="form-input" @bind-Value="modelo.RolAsignado">
-                        <option value="">-- Seleccionar rol --</option>
-                        <option value="admin">Administrador</option>
-                        <option value="equipo">Equipo</option>
-                        <option value="profesional">Profesional</option>
-                        <option value="AdministradorEquipo">Administrador/Equipo</option>
+
+                    <InputSelect class="form-input"
+                                 @bind-Value="modelo.RolAsignado">
+
+                        <option value="">
+                            -- Seleccionar rol --
+                        </option>
+
+                        <option value="admin">
+                            Administrador
+                        </option>
+
+                        <option value="equipo">
+                            Equipo
+                        </option>
+
+                        <option value="profesional">
+                            Profesional
+                        </option>
+
+                        <option value="AdministradorEquipo">
+                            Administrador/Equipo
+                        </option>
 
                     </InputSelect>
                 </div>
+
             </div>
+
         </section>
-
-
 
         @if (!string.IsNullOrWhiteSpace(Mensaje))
         {
@@ -215,7 +282,6 @@
 </div>
 
 @code {
-
     private ProfesionalDTO modelo = new()
     {
         Nombre = string.Empty,
@@ -225,9 +291,23 @@
         RNP = string.Empty,
         Telefono = string.Empty,
         Email = string.Empty,
-        RolAsignado = string.Empty
+        RolAsignado = string.Empty,
+        TipoPrestacionIds = new List<int>(),
+        TipoPrestacionNombres = new List<string>()
     };
+
     private List<TipoPrestacionListadoDTO> listaTipoPrestaciones = new();
+
+    private int? prestacionSeleccionadaId;
+
+    private bool guardando;
+    private string Mensaje = string.Empty;
+
+    private IEnumerable<TipoPrestacionListadoDTO> PrestacionesDisponibles =>
+        listaTipoPrestaciones
+            .Where(prestacion =>
+                !modelo.TipoPrestacionIds.Contains(prestacion.Id))
+            .OrderBy(prestacion => prestacion.Tipo);
 
     protected override async Task OnInitializedAsync()
     {
@@ -236,49 +316,98 @@
 
     private async Task CargarTipoPrestaciones()
     {
-        var resp = await Http.Get<List<TipoPrestacionListadoDTO>>("api/tipoprestacion/ListaTipoPrestacion");
+        var resp =
+            await Http.Get<List<TipoPrestacionListadoDTO>>(
+                "api/tipoprestacion/ListaTipoPrestacion"
+            );
+
         if (!resp.Error && resp.Respuesta != null)
+        {
             listaTipoPrestaciones = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
     }
 
+    private void AgregarPrestacion()
+    {
+        if (!prestacionSeleccionadaId.HasValue)
+        {
+            return;
+        }
 
-    private bool guardando = false;
+        var prestacionId = prestacionSeleccionadaId.Value;
 
-    private string Mensaje = "";
+        if (!modelo.TipoPrestacionIds.Contains(prestacionId))
+        {
+            modelo.TipoPrestacionIds.Add(prestacionId);
+        }
+
+        // Vacía el selector después de agregar.
+        prestacionSeleccionadaId = null;
+    }
+
+    private void QuitarPrestacion(int prestacionId)
+    {
+        modelo.TipoPrestacionIds.Remove(prestacionId);
+    }
+
+    private TipoPrestacionListadoDTO? ObtenerPrestacion(
+        int prestacionId)
+    {
+        return listaTipoPrestaciones
+            .FirstOrDefault(prestacion =>
+                prestacion.Id == prestacionId);
+    }
 
     private async Task Grabar()
     {
         guardando = true;
-        Mensaje = "";
+        Mensaje = string.Empty;
 
         var resp = await Http.Post<ProfesionalDTO, int>(
             "api/profesional",
             modelo
         );
 
-        guardando = false;
-
-        if (!resp.Error)
+        if (resp.Error)
         {
-            var profesionalId = resp.Respuesta;
-
-            // Asignar rol en Identity si se seleccionó
-            if (!string.IsNullOrWhiteSpace(modelo.RolAsignado))
-            {
-                var rolResp = await Http.Post<RolAsignacionDTO, string>(
-                    "api/seguridad/asignarRol",
-                    new RolAsignacionDTO { Email = modelo.Email, Rol = modelo.RolAsignado }
-                );
-
-                if (rolResp.Error)
-                {
-                    Mensaje = $"Profesional creado, pero error al asignar rol: {rolResp.ObtenerError()}";
-                }
-            }
-
-            Nav.NavigateTo($"/profesionales/detalle/{profesionalId}?estado=creado");
+            Mensaje = resp.ObtenerError();
+            guardando = false;
+            return;
         }
 
+        var profesionalId = resp.Respuesta;
+
+        if (!string.IsNullOrWhiteSpace(modelo.RolAsignado))
+        {
+            var rolResp = await Http.Post<RolAsignacionDTO, string>(
+                "api/seguridad/asignarRol",
+                new RolAsignacionDTO
+                {
+                    Email = modelo.Email,
+                    Rol = modelo.RolAsignado
+                }
+            );
+
+            if (rolResp.Error)
+            {
+                Mensaje =
+                    "Profesional creado, pero ocurrió un error " +
+                    $"al asignar el rol: {rolResp.ObtenerError()}";
+
+                guardando = false;
+                return;
+            }
+        }
+
+        guardando = false;
+
+        Nav.NavigateTo(
+            $"/profesionales/detalle/{profesionalId}?estado=creado"
+        );
     }
 
     private void Cancelar()

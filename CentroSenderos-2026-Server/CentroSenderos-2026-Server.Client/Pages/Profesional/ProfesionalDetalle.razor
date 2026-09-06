@@ -92,66 +92,97 @@
 
             <!-- 02 - INFORMACIÓN PROFESIONAL -->
             <section class="form-section">
+
                 <div class="section-title">
                     <span class="section-number">02</span>
                     <span>Información Profesional</span>
                 </div>
+
                 <div class="form-grid form-grid-3">
+
                     <div class="field-group">
                         <label>Área</label>
-                        <div class="form-value">@MostrarValor(modelo.Area)</div>
+
+                        <div class="form-value">
+                            @MostrarValor(modelo.Area)
+                        </div>
                     </div>
+
                     <div class="field-group">
                         <label>M.P.</label>
-                        <div class="form-value">@MostrarValor(modelo.MP)</div>
+
+                        <div class="form-value">
+                            @MostrarValor(modelo.MP)
+                        </div>
                     </div>
+
                     <div class="field-group">
                         <label>R.N.P.</label>
-                        <div class="form-value">@MostrarValor(modelo.RNP)</div>
+
+                        <div class="form-value">
+                            @MostrarValor(modelo.RNP)
+                        </div>
                     </div>
+
+                    <div class="field-group prestaciones-field">
+                        <label>Prestaciones</label>
+
+                        @if (modelo.TipoPrestacionNombres.Count > 0)
+                        {
+                            <div class="prestaciones-detalle">
+
+                                @foreach (var prestacion
+                                    in modelo.TipoPrestacionNombres)
+                                {
+                                    <span class="prestacion-badge">
+                                        <i class="bi bi-check-circle"></i>
+                                        @prestacion
+                                    </span>
+                                }
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="form-value">
+                                No tiene prestaciones asignadas
+                            </div>
+                        }
+
+                    </div>
+
                 </div>
+
             </section>
 
             <!-- 03 - DATOS DE CONTACTO -->
             <section class="form-section">
+
                 <div class="section-title">
                     <span class="section-number">03</span>
                     <span>Datos de Contacto</span>
                 </div>
+
                 <div class="form-grid form-grid-2">
+
                     <div class="field-group">
                         <label>Teléfono</label>
-                        <div class="form-value">@MostrarValor(modelo.Telefono)</div>
-                    </div>
-                </div>
-            </section>
 
-            <!-- 04 - USUARIO DEL SISTEMA -->
-            <section class="form-section">
-                <div class="section-title">
-                    <span class="section-number">04</span>
-                    <span>Usuario del Sistema</span>
-                </div>
-                <div class="form-grid form-grid-1">
+                        <div class="form-value">
+                            @MostrarValor(modelo.Telefono)
+                        </div>
+                    </div>
+
                     <div class="field-group">
                         <label>Email</label>
-                        <div class="form-value">@MostrarValor(modelo.Email)</div>
-                    </div>
-                </div>
-            </section>
 
-            <!-- 05 - TIPO DE PRESTACIÓN -->
-            <section class="form-section">
-                <div class="section-title">
-                    <span class="section-number">05</span>
-                    <span>Prestación</span>
-                </div>
-                <div class="form-grid form-grid-1">
-                    <div class="field-group">
-                        <label>Tipo de Prestación</label>
-                        <div class="form-value">@MostrarValor(modelo.TipoPrestacionNombre)</div>
+                        <div class="form-value">
+                            @MostrarValor(modelo.Email)
+                        </div>
                     </div>
+
                 </div>
+
             </section>
 
             <!-- ACCIONES -->

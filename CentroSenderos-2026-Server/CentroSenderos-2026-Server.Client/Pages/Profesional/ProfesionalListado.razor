@@ -146,7 +146,7 @@
                     <thead>
                         <tr>
                             <th>Nombre</th>
-                            <th>Tipo Prestación</th>
+                            <th>Prestaciones</th>
                             <th>Área</th>
                             <th>M.P.</th>
                             <th>R.N.P.</th>
@@ -190,7 +190,28 @@
                                 </td>
 
 
-                                <td>@MostrarValor(profesional.TipoPrestacionNombre)</td>
+                                <td class="prestaciones-cell">
+
+                                    @if (profesional.TipoPrestacionNombres.Count > 0)
+                                    {
+                                        <div class="prestaciones-listado">
+
+                                            @foreach (var prestacion
+                                                in profesional.TipoPrestacionNombres)
+                                            {
+                                                <span class="prestacion-listado-badge">
+                                                    @prestacion
+                                                </span>
+                                            }
+
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="sin-dato">—</span>
+                                    }
+
+                                </td>
                                 <td>@MostrarValor(profesional.Area)</td>
                                 <td>@MostrarValor(profesional.MP)</td>
                                 <td>@MostrarValor(profesional.RNP)</td>
@@ -245,6 +266,10 @@
                 (p.Area?.Contains(
                     textoBusqueda,
                     StringComparison.OrdinalIgnoreCase) ?? false) ||
+
+                p.TipoPrestacionNombres.Any(prestacion => prestacion.Contains(
+                    textoBusqueda,
+                    StringComparison.OrdinalIgnoreCase)) ||
 
                 (p.Cuit?.Contains(
                     textoBusqueda,

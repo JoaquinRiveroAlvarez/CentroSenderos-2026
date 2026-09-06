@@ -3,6 +3,7 @@ using System;
 using CentroSenderos_2026_BD;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CentroSenderos_2026_BD.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260901125048_ProfesionalMultiplesPrestaciones")]
+    partial class ProfesionalMultiplesPrestaciones
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -233,9 +236,6 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Property<int>("EstadoRegistro")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("FechaNacimiento")
-                        .HasColumnType("date");
-
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -252,9 +252,6 @@ namespace CentroSenderos_2026_BD.Migrations
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
-
-                    b.Property<bool>("TieneCud")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("TipoDiagnosticoId")
                         .HasColumnType("integer");
@@ -277,41 +274,6 @@ namespace CentroSenderos_2026_BD.Migrations
                         .IsUnique();
 
                     b.ToTable("Pacientes");
-                });
-
-            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.PacienteTelefono", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("EstadoRegistro")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Etiqueta")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("Numero")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<string>("Observacion")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("PacienteId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PacienteId");
-
-                    b.ToTable("PacienteTelefonos");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Profesional", b =>
@@ -607,10 +569,6 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Cuit")
-                        .HasMaxLength(11)
-                        .HasColumnType("character varying(11)");
-
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasColumnType("text");
@@ -627,9 +585,6 @@ namespace CentroSenderos_2026_BD.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex(new[] { "Cuit" }, "TipoObraSocial_Cuit_UQ")
-                        .IsUnique();
 
                     b.HasIndex(new[] { "Tipo" }, "TipoObraSocial_Tipo_UQ")
                         .IsUnique();
@@ -1211,17 +1166,6 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Navigation("TipoObraSociales");
                 });
 
-            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.PacienteTelefono", b =>
-                {
-                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.Paciente", "Paciente")
-                        .WithMany("Telefonos")
-                        .HasForeignKey("PacienteId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Paciente");
-                });
-
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.ProfesionalTipoPrestacion", b =>
                 {
                     b.HasOne("CentroSenderos_2026_BD.Datos.Entity.Profesional", "Profesional")
@@ -1440,8 +1384,6 @@ namespace CentroSenderos_2026_BD.Migrations
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Paciente", b =>
                 {
-                    b.Navigation("Telefonos");
-
                     b.Navigation("TurnoPacientes");
                 });
 

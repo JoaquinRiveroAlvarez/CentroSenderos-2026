@@ -3,6 +3,7 @@ using System;
 using CentroSenderos_2026_BD;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CentroSenderos_2026_BD.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260903222140_AgregarFechaNacimientoYTelefonos")]
+    partial class AgregarFechaNacimientoYTelefonos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -234,7 +237,7 @@ namespace CentroSenderos_2026_BD.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("FechaNacimiento")
-                        .HasColumnType("date");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -252,9 +255,6 @@ namespace CentroSenderos_2026_BD.Migrations
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
-
-                    b.Property<bool>("TieneCud")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("TipoDiagnosticoId")
                         .HasColumnType("integer");
@@ -607,10 +607,6 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Cuit")
-                        .HasMaxLength(11)
-                        .HasColumnType("character varying(11)");
-
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasColumnType("text");
@@ -627,9 +623,6 @@ namespace CentroSenderos_2026_BD.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex(new[] { "Cuit" }, "TipoObraSocial_Cuit_UQ")
-                        .IsUnique();
 
                     b.HasIndex(new[] { "Tipo" }, "TipoObraSocial_Tipo_UQ")
                         .IsUnique();

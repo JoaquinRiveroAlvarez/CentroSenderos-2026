@@ -4,135 +4,292 @@ using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
 using Microsoft.EntityFrameworkCore;
 using Modelado2025_1Repositorio.Repositorios;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using CentroSenderos_2026_Shared.Validaciones;
+using System.Globalization;
 
 namespace CentroSenderos_2026_Repositorio.Repositorios
 {
-    public class TipoObraSocialRepositorio : Repositorio<TipoObraSocial>, ITipoObraSocialRepositorio
+    public class TipoObraSocialRepositorio
+        : Repositorio<TipoObraSocial>,
+          ITipoObraSocialRepositorio
     {
         private readonly ApplicationDbContext context;
 
-        public TipoObraSocialRepositorio(ApplicationDbContext context) : base(context)
+        public TipoObraSocialRepositorio(
+            ApplicationDbContext context) : base(context)
         {
             this.context = context;
         }
-        public async Task<TipoDTO?> SelectPorId(int id)
+
+        public async Task<TipoObraSocialDTO?> SelectPorId(int id)
         {
             return await context.TipoObrasSociales
-                .Where(p => p.Id == id)
-                .Select(p => new TipoDTO
+                .Where(o => o.Id == id)
+                .Select(o => new TipoObraSocialDTO
                 {
-                    Tipo = p.Tipo,
-                    Descripcion = p.Descripcion,
-                    EstadoRegistro = p.EstadoRegistro
+                    Id = o.Id,
+                    Tipo = o.Tipo,
+                    Descripcion = o.Descripcion,
+                    Cuit = o.Cuit ?? string.Empty,
+                    EstadoRegistro = o.EstadoRegistro
                 })
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<TipoListadoDTO?> SelectByTipoObraSocial(string tipo)
+        public async Task<TipoObraSocialDTO?>
+            SelectByTipoObraSocial(string tipo)
         {
-            TipoListadoDTO? entidad = await context.TipoObrasSociales
-                .Select(p => new TipoListadoDTO
+            var tipoLimpio = NormalizarTexto(tipo);
+
+            return await context.TipoObrasSociales
+                .Where(o => o.Tipo == tipoLimpio)
+                .Select(o => new TipoObraSocialDTO
                 {
-                    Id = p.Id,
-                    Tipo = p.Tipo,
-                    Descripcion = p.Descripcion
+                    Id = o.Id,
+                    Tipo = o.Tipo,
+                    Descripcion = o.Descripcion,
+                    Cuit = o.Cuit ?? string.Empty,
+                    EstadoRegistro = o.EstadoRegistro
                 })
-                .FirstOrDefaultAsync(x => x.Tipo == tipo);
-            return entidad;
+                .FirstOrDefaultAsync();
         }
-        public async Task<List<TipoListadoDTO>> SelectListaTipoObrasocial()
+
+        public async Task<List<TipoObraSocialDTO>>
+            SelectListaTipoObrasocial()
         {
-            var lista = await context.TipoObrasSociales
-                .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
-                .OrderBy(p => p.Tipo)
-                .Select(p => new TipoListadoDTO
+            return await context.TipoObrasSociales
+                .Where(o =>
+                    o.EstadoRegistro ==
+                    EnumEstadoRegistro.activo)
+                .OrderBy(o => o.Tipo)
+                .Select(o => new TipoObraSocialDTO
                 {
-                    Id = p.Id,
-                    Tipo = p.Tipo,
-                    Descripcion = p.Descripcion,
+                    Id = o.Id,
+                    Tipo = o.Tipo,
+                    Descripcion = o.Descripcion,
+                    Cuit = o.Cuit ?? string.Empty,
+                    EstadoRegistro = o.EstadoRegistro
                 })
                 .ToListAsync();
-            return lista;
         }
-        public async Task<int> InsertarTipoObraSocial(TipoDTO dto)
-        {
-            // Validar que el CUIT no tenga prefijo duplicado
-            var codlimpio = dto.Tipo.StartsWith("Tipo: ") ? dto.Tipo.Substring(6) : dto.Tipo;
 
-            var tipoObraSocial = new TipoObraSocial
+        public async Task<int> InsertarTipoObraSocial(
+            TipoObraSocialDTO dto)
+        {
+            var tipoLimpio =
+                NormalizarTexto(dto.Tipo);
+
+            var descripcionLimpia =
+                dto.Descripcion.Trim();
+
+            var cuitLimpio =
+                NormalizarCuit(dto.Cuit);
+
+            ValidarCuit(cuitLimpio);
+
+            var nombreExiste =
+                await context.TipoObrasSociales
+                    .AnyAsync(o =>
+                        o.Tipo == tipoLimpio);
+
+            if (nombreExiste)
             {
-                Tipo = dto.Tipo,
-                Descripcion = dto.Descripcion,
-                EstadoRegistro = EnumEstadoRegistro.activo
+                throw new ApplicationException(
+                    $"Ya existe una obra social con el nombre '{tipoLimpio}'."
+                );
+            }
+
+            var cuitExiste =
+                await context.TipoObrasSociales
+                    .AnyAsync(o =>
+                        o.Cuit == cuitLimpio);
+
+            if (cuitExiste)
+            {
+                throw new ApplicationException(
+                    $"Ya existe una obra social con el CUIT '{FormatearCuit(cuitLimpio)}'."
+                );
+            }
+
+            var obraSocial = new TipoObraSocial
+            {
+                Tipo = tipoLimpio,
+                Descripcion = descripcionLimpia,
+                Cuit = cuitLimpio,
+                EstadoRegistro =
+                    EnumEstadoRegistro.activo
             };
 
-            context.TipoObrasSociales.Add(tipoObraSocial);
+            context.TipoObrasSociales.Add(obraSocial);
+
             try
             {
                 await context.SaveChangesAsync();
             }
             catch (DbUpdateException ex)
             {
-                if (ex.InnerException?.Message.Contains("TipoObraSocial_Cod_UQ") == true)
+                if (ex.InnerException?.Message.Contains(
+                    "TipoObraSocial_Tipo_UQ"
+                ) == true)
                 {
-                    throw new ApplicationException($"Ya existe una obra social con el nombre '{codlimpio}'.");
+                    throw new ApplicationException(
+                        $"Ya existe una obra social con el nombre '{tipoLimpio}'."
+                    );
                 }
+
+                if (ex.InnerException?.Message.Contains(
+                    "TipoObraSocial_Cuit_UQ"
+                ) == true)
+                {
+                    throw new ApplicationException(
+                        $"Ya existe una obra social con el CUIT '{FormatearCuit(cuitLimpio)}'."
+                    );
+                }
+
                 throw;
             }
 
-            return tipoObraSocial.Id;
-        }
-        public async Task<bool> DeleteTipoObraSocial(int id)
-        {
-            var tipoObraSocial = await context.TipoObrasSociales
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (tipoObraSocial == null)
-                return false;
-
-            tipoObraSocial.EstadoRegistro = EnumEstadoRegistro.borrado;
-
-            await context.SaveChangesAsync();
-            return true;
+            return obraSocial.Id;
         }
 
-        public async Task<bool> ActualizarTipoObraSocial(int id, TipoDTO dto)
+        public async Task<bool> ActualizarTipoObraSocial(
+            int id,
+            TipoObraSocialDTO dto)
         {
-            var tipoObraSocial = await context.TipoObrasSociales
-                .FirstOrDefaultAsync(p => p.Id == id);
+            var obraSocial =
+                await context.TipoObrasSociales
+                    .FirstOrDefaultAsync(o =>
+                        o.Id == id);
 
-            if (tipoObraSocial == null)
+            if (obraSocial == null)
                 return false;
 
-            // Validar que el CUIT no tenga prefijo duplicado
-            var codlimpio = dto.Tipo.StartsWith("Cod: ") ? dto.Tipo.Substring(6) : dto.Tipo;
+            var tipoLimpio =
+                NormalizarTexto(dto.Tipo);
 
-            // Verificar si el CUIT, MP o RNP ya existe (en otro registro)
-            var cuitExiste = await context.TipoObrasSociales
-                .AnyAsync(p => p.Tipo == codlimpio && p.Id != id);
+            var descripcionLimpia =
+                dto.Descripcion.Trim();
+
+            var cuitLimpio =
+                NormalizarCuit(dto.Cuit);
+
+            ValidarCuit(cuitLimpio);
+
+            var nombreExiste =
+                await context.TipoObrasSociales
+                    .AnyAsync(o =>
+                        o.Tipo == tipoLimpio &&
+                        o.Id != id);
+
+            if (nombreExiste)
+            {
+                throw new ApplicationException(
+                    $"Ya existe una obra social con el nombre '{tipoLimpio}'."
+                );
+            }
+
+            var cuitExiste =
+                await context.TipoObrasSociales
+                    .AnyAsync(o =>
+                        o.Cuit == cuitLimpio &&
+                        o.Id != id);
+
             if (cuitExiste)
-                throw new ApplicationException($"Ya existe una obra social con el nombre '{codlimpio}'.");
+            {
+                throw new ApplicationException(
+                    $"Ya existe una obra social con el CUIT '{FormatearCuit(cuitLimpio)}'."
+                );
+            }
 
-            // Actualizar los datos
-            tipoObraSocial.Tipo = dto.Tipo;
-            tipoObraSocial.Descripcion = dto.Descripcion;
-            tipoObraSocial.EstadoRegistro = dto.EstadoRegistro;
+            obraSocial.Tipo = tipoLimpio;
+            obraSocial.Descripcion = descripcionLimpia;
+            obraSocial.Cuit = cuitLimpio;
+            obraSocial.EstadoRegistro =
+                dto.EstadoRegistro;
 
             try
             {
-                context.TipoObrasSociales.Update(tipoObraSocial);
+                context.TipoObrasSociales.Update(
+                    obraSocial
+                );
+
                 await context.SaveChangesAsync();
+
                 return true;
             }
             catch (DbUpdateException ex)
             {
-                if (ex.InnerException?.Message.Contains("TipoObrasSocial_Cod_UQ") == true)
-                    throw new ApplicationException($"Ya existe una obra social con el nombre '{codlimpio}'.");
+                if (ex.InnerException?.Message.Contains(
+                    "TipoObraSocial_Tipo_UQ"
+                ) == true)
+                {
+                    throw new ApplicationException(
+                        $"Ya existe una obra social con el nombre '{tipoLimpio}'."
+                    );
+                }
+
+                if (ex.InnerException?.Message.Contains(
+                    "TipoObraSocial_Cuit_UQ"
+                ) == true)
+                {
+                    throw new ApplicationException(
+                        $"Ya existe una obra social con el CUIT '{FormatearCuit(cuitLimpio)}'."
+                    );
+                }
+
                 throw;
             }
+        }
+
+        public async Task<bool> DeleteTipoObraSocial(int id)
+        {
+            var obraSocial =
+                await context.TipoObrasSociales
+                    .FirstOrDefaultAsync(o =>
+                        o.Id == id);
+
+            if (obraSocial == null)
+                return false;
+
+            obraSocial.EstadoRegistro =
+                EnumEstadoRegistro.borrado;
+
+            await context.SaveChangesAsync();
+
+            return true;
+        }
+
+        private static string NormalizarTexto(string texto)
+        {
+            var cultura = new CultureInfo("es-AR");
+
+            var textoLimpio = texto
+                .Trim()
+                .ToLower(cultura);
+
+            return cultura.TextInfo.ToTitleCase(
+                textoLimpio
+            );
+        }
+
+        private static string NormalizarCuit(string cuit)
+        {
+            return CuitValidador.Normalizar(cuit);
+        }
+
+        private static void ValidarCuit(string cuit)
+        {
+            if (!CuitValidador.EsValido(cuit))
+            {
+                throw new ApplicationException(
+                    "El CUIT ingresado no es válido."
+                );
+            }
+        }
+
+        private static string FormatearCuit(string cuit)
+        {
+            return CuitValidador.Formatear(cuit);
         }
     }
 }

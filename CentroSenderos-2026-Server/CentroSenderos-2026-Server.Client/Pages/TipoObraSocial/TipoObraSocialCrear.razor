@@ -11,27 +11,37 @@
     <div class="obra-social-card">
 
         <div class="card-header">
-            
+
             <div>
+
                 <button type="button"
                         class="back-button"
                         @onclick="Volver">
+
                     <i class="bi bi-arrow-left"></i>
                     <span>Volver</span>
+
                 </button>
+
                 <h1>Nueva Obra Social</h1>
-                <p>Complete los datos de la obra social.</p>
+
+                <p>
+                    Complete los datos de la obra social.
+                </p>
+
             </div>
 
             <button type="button"
                     class="close-button"
                     title="Cerrar"
+                    disabled="@guardando"
                     @onclick="Cancelar">
+
                 <i class="bi bi-x-lg"></i>
+
             </button>
 
         </div>
-
 
         <EditForm Model="@modelo"
                   OnValidSubmit="Grabar"
@@ -40,7 +50,6 @@
             <DataAnnotationsValidator />
 
             <ValidationSummary class="validation-summary" />
-
 
             <div class="field-group">
 
@@ -54,6 +63,24 @@
 
             </div>
 
+            <div class="field-group">
+
+                <label>CUIT</label>
+
+                <InputText class="senderos-input"
+                           @bind-Value="modelo.Cuit"
+                           @onblur="FormatearCuitModelo"
+                           inputmode="numeric"
+                           maxlength="13"
+                           placeholder="Ej.: 30-12345678-9" />
+
+                <small class="field-help">
+                    Ingresá los 11 números del CUIT, con o sin guiones.
+                </small>
+
+                <ValidationMessage For="@(() => modelo.Cuit)" />
+
+            </div>
 
             <div class="field-group">
 
@@ -67,21 +94,25 @@
 
             </div>
 
-
             @if (!string.IsNullOrWhiteSpace(Mensaje))
             {
                 <div class="form-message">
-                    @Mensaje
+
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@Mensaje</span>
+
                 </div>
             }
-
 
             <div class="form-actions">
 
                 <button type="button"
                         class="btn-cancelar"
+                        disabled="@guardando"
                         @onclick="Cancelar">
+
                     Cancelar
+
                 </button>
 
                 <button type="submit"
@@ -95,7 +126,7 @@
                     }
                     else
                     {
-                        <span>Guardar</span>
+                        <span>Guardar Obra Social</span>
                     }
 
                 </button>
@@ -108,52 +139,91 @@
 
 </div>
 
-
 @code {
 
-    private TipoDTO modelo = new()
-    {
-        Tipo = string.Empty,
-        Descripcion = string.Empty
-    };
+    private TipoObraSocialDTO modelo = CrearModeloVacio();
 
-    private string Mensaje = "";
-
-    private bool guardando = false;
-
+    private string Mensaje = string.Empty;
+    private bool guardando;
 
     private async Task Grabar()
     {
-        guardando = true;
-        Mensaje = "";
+        if (guardando)
+        {
+            return;
+        }
 
-        var resp =
-            await Http.Post<TipoDTO, int>(
-                "api/tipoobrasocial",
-                modelo
-            );
+        guardando = true;
+        Mensaje = string.Empty;
+
+        modelo.Cuit = NormalizarCuit(modelo.Cuit);
+
+        var resp = await Http.Post<TipoObraSocialDTO, int>(
+            "api/tipoobrasocial",
+            modelo
+        );
 
         guardando = false;
 
         if (!resp.Error)
         {
-            Nav.NavigateTo(
-                "/tipoobrasocial",
-                true
-            );
+            Nav.NavigateTo("/tipoobrasocial", true);
         }
         else
         {
+            modelo.Cuit = FormatearCuit(modelo.Cuit);
             Mensaje = resp.ObtenerError();
         }
     }
 
+    private void FormatearCuitModelo()
+    {
+        modelo.Cuit = FormatearCuit(modelo.Cuit);
+    }
+
+    private static string NormalizarCuit(string? cuit)
+    {
+        if (string.IsNullOrWhiteSpace(cuit))
+        {
+            return string.Empty;
+        }
+
+        return new string(
+            cuit.Where(char.IsDigit).ToArray()
+        );
+    }
+
+    private static string FormatearCuit(string? cuit)
+    {
+        var cuitNormalizado = NormalizarCuit(cuit);
+
+        if (cuitNormalizado.Length != 11)
+        {
+            return cuit?.Trim() ?? string.Empty;
+        }
+
+        return $"{cuitNormalizado[..2]}-" +
+               $"{cuitNormalizado.Substring(2, 8)}-" +
+               $"{cuitNormalizado[^1]}";
+    }
+
+    private static TipoObraSocialDTO CrearModeloVacio()
+    {
+        return new TipoObraSocialDTO
+        {
+            Tipo = string.Empty,
+            Cuit = string.Empty,
+            Descripcion = string.Empty
+        };
+    }
 
     private void Cancelar()
     {
-        Nav.NavigateTo("/tipoobrasocial");
+        if (!guardando)
+        {
+            Nav.NavigateTo("/tipoobrasocial");
+        }
     }
-
 
     private void Volver()
     {
