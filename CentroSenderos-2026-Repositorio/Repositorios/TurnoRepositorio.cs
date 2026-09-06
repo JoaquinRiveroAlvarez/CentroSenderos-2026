@@ -4,6 +4,9 @@ using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
 using Microsoft.EntityFrameworkCore;
 using Modelado2025_1Repositorio.Repositorios;
+using CentroSenderos_2026_Shared.Recurrencias;
+
+
 
 namespace CentroSenderos_2026_Repositorio.Repositorios
 {
@@ -189,67 +192,190 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
 
 
-            DateOnly fecha = DateOnly.FromDateTime(dto.Fecha);
-            DateTime fechaInicioUtc = DateTime.SpecifyKind(fecha.ToDateTime(dto.Hora), DateTimeKind.Utc);
+            var fechasRecurrencia =
+                CalculadorRecurrenciaTurno.CalcularFechas(
+                    dto.Fecha,
+                    dto.FrecuenciaRecurrencia,
+                    dto.FechaHastaRecurrencia,
+                    dto.IntervaloRecurrencia,
+                    dto.UnidadRecurrencia
+                );
 
-            var existe = await context.Turnos.AnyAsync(t =>
-                t.EstadoRegistro == EnumEstadoRegistro.activo &&
-                t.TipoConsultorioId == dto.TipoConsultorioId &&
-                t.FechaInicio == fechaInicioUtc
-            );
-            if (existe)
-                throw new ApplicationException("Ya existe un turno en ese consultorio, fecha y hora.");
+            var fechasInicioUtc = fechasRecurrencia
+                .Select(fecha =>
+                    DateTime.SpecifyKind(
+                        DateOnly
+                            .FromDateTime(fecha)
+                            .ToDateTime(dto.Hora),
+                        DateTimeKind.Utc
+                    )
+                )
+                .ToList();
 
-            DateTime fechaFinUtc;
-            int? tipoTurnoId = dto.TipoTurnoId == -1 ? null : dto.TipoTurnoId;
+            var fechasConConflicto = await context.Turnos
+                .Where(turno =>
+                    turno.EstadoRegistro == EnumEstadoRegistro.activo
+                    && turno.TipoConsultorioId == dto.TipoConsultorioId
+                    && fechasInicioUtc.Contains(turno.FechaInicio)
+                )
+                .Select(turno => turno.FechaInicio)
+                .OrderBy(fecha => fecha)
+                .ToListAsync();
 
-            if (tipoTurnoId == null)
+            if (fechasConConflicto.Count > 0)
             {
-                fechaFinUtc = fechaInicioUtc.AddMinutes(dto.DuracionPersonalizada);
+                var fechasTexto = string.Join(
+                    ", ",
+                    fechasConConflicto.Select(fecha =>
+                        fecha.ToString("dd/MM/yyyy HH:mm")
+                    )
+                );
+
+                throw new ApplicationException($"No se puede crear la serie porque ya existen turnos en estos horarios: {fechasTexto}.");
+            }
+
+            //var fechaInicioUtc = fechasInicioUtc.First();
+
+            int duracionMinutos;
+
+            int? tipoTurnoId =
+                dto.TipoTurnoId == -1
+                    ? null
+                    : dto.TipoTurnoId;
+
+            if (tipoTurnoId is null)
+            {
+                if (dto.DuracionPersonalizada <= 0)
+                {
+                    throw new ApplicationException(
+                        "Debe indicar una duración personalizada válida."
+                    );
+                }
+
+                duracionMinutos = dto.DuracionPersonalizada;
             }
             else
             {
-                var tipoTurno = await context.TipoTurnos.FirstOrDefaultAsync(t => t.Id == tipoTurnoId);
-                if (tipoTurno == null)
-                    throw new ApplicationException($"No existe el tipo de turno con id {dto.TipoTurnoId}");
+                var tipoTurno = await context.TipoTurnos
+                    .FirstOrDefaultAsync(tipo =>
+                        tipo.Id == tipoTurnoId
+                    );
 
-                fechaFinUtc = fechaInicioUtc.AddMinutes(tipoTurno.DuracionMinutos);
+                if (tipoTurno is null)
+                {
+                    throw new ApplicationException(
+                        $"No existe el tipo de turno con id {dto.TipoTurnoId}."
+                    );
+                }
+
+                duracionMinutos = tipoTurno.DuracionMinutos;
             }
 
-            var turno = new Turno
+            await using var transaccion =
+                await context.Database.BeginTransactionAsync();
+
+            try
             {
-                FechaInicio = fechaInicioUtc,
-                FechaFin = fechaFinUtc,
-                EstadoTurno = dto.EstadoTurno,
-                TipoTurnoId = tipoTurnoId,
-                TipoConsultorioId = dto.TipoConsultorioId,
-                EstadoRegistro = EnumEstadoRegistro.activo
-            };
+                SerieTurno? serieTurno = null;
 
-            context.Turnos.Add(turno);
-            await context.SaveChangesAsync();
+                var esRecurrente =
+                    dto.FrecuenciaRecurrencia !=
+                    EnumFrecuenciaRecurrenciaTurno.noRepite;
 
-            // Relación con Profesional
-            var turnoProfesionales = profesionalIds
-            .Select(profesionalId => new TurnoProfesional
-            {
-                TurnoId = turno.Id,
-                ProfesionalId = profesionalId
-            }).ToList();
-
-            //relacion con paciente
-            var turnoPacientes = pacienteIds
-                .Select(pacienteId => new TurnoPaciente
+                if (esRecurrente)
                 {
-                    TurnoId = turno.Id,
-                    PacienteId = pacienteId
-                }).ToList();
+                    serieTurno = new SerieTurno
+                    {
+                        Frecuencia = dto.FrecuenciaRecurrencia,
+                        Intervalo = dto.IntervaloRecurrencia,
 
-            context.AddRange(turnoProfesionales);
-            context.AddRange(turnoPacientes);
+                        UnidadPersonalizada =
+                            dto.FrecuenciaRecurrencia ==
+                                EnumFrecuenciaRecurrenciaTurno.personalizado
+                                ? dto.UnidadRecurrencia
+                                : null,
 
-            await context.SaveChangesAsync();
-            return turno.Id;
+                        FechaInicio = DateTime.SpecifyKind(
+                            dto.Fecha.Date,
+                            DateTimeKind.Utc
+                        ),
+
+                        FechaHasta = DateTime.SpecifyKind(
+                            dto.FechaHastaRecurrencia!.Value.Date,
+                            DateTimeKind.Utc
+                        ),
+
+                        EstadoRegistro = EnumEstadoRegistro.activo
+                    };
+
+                    context.SeriesTurnos.Add(serieTurno);
+
+                    await context.SaveChangesAsync();
+                }
+
+                var turnos = fechasInicioUtc
+                    .Select(fechaInicio => new Turno
+                    {
+                        FechaInicio = fechaInicio,
+
+                        FechaFin = fechaInicio.AddMinutes(
+                            duracionMinutos
+                        ),
+
+                        EstadoTurno = dto.EstadoTurno,
+                        TipoTurnoId = tipoTurnoId,
+                        TipoConsultorioId = dto.TipoConsultorioId,
+
+                        SerieTurnoId = serieTurno?.Id,
+
+                        EstadoRegistro =
+                            EnumEstadoRegistro.activo
+                    })
+                    .ToList();
+
+                context.Turnos.AddRange(turnos);
+
+                // Guardamos para que EF Core genere los Id de los turnos.
+                await context.SaveChangesAsync();
+
+                var relacionesProfesionales = turnos
+                    .SelectMany(turno =>
+                        profesionalIds.Select(profesionalId =>
+                            new TurnoProfesional
+                            {
+                                TurnoId = turno.Id,
+                                ProfesionalId = profesionalId
+                            }
+                        )
+                    )
+                    .ToList();
+
+                var relacionesPacientes = turnos
+                    .SelectMany(turno =>
+                        pacienteIds.Select(pacienteId =>
+                            new TurnoPaciente
+                            {
+                                TurnoId = turno.Id,
+                                PacienteId = pacienteId
+                            }
+                        )
+                    )
+                    .ToList();
+
+                context.AddRange(relacionesProfesionales);
+                context.AddRange(relacionesPacientes);
+
+                await context.SaveChangesAsync();
+                await transaccion.CommitAsync();
+
+                return turnos.First().Id;
+            }
+            catch
+            {
+                await transaccion.RollbackAsync();
+                throw;
+            }
+
         }
 
 
@@ -292,9 +418,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (dto.TipoConsultorioId <= 0)
                 throw new ApplicationException("Debe seleccionar un consultorio válido.");
             var profesionalIds = dto.ProfesionalIds
-    .Where(profesionalId => profesionalId > 0)
-    .Distinct()
-    .ToList();
+                .Where(profesionalId => profesionalId > 0)
+                .Distinct()
+                .ToList();
 
             var pacienteIds = dto.PacienteIds
                 .Where(pacienteId => pacienteId > 0)

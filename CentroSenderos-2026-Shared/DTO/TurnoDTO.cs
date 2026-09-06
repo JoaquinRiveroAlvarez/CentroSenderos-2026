@@ -23,6 +23,21 @@ public class TurnoDTO
     public int TipoConsultorioId { get; set; }
 
     public int DuracionPersonalizada { get; set; } = 0;
+    // Configuración de recurrencia.
+    public EnumFrecuenciaRecurrenciaTurno FrecuenciaRecurrencia { get; set; }
+        = EnumFrecuenciaRecurrenciaTurno.noRepite;
+
+    public DateTime? FechaHastaRecurrencia { get; set; }
+
+    public int IntervaloRecurrencia { get; set; } = 1;
+
+    public EnumUnidadRecurrenciaTurno? UnidadRecurrencia { get; set; }
+
+    // Se completa cuando el turno pertenece a una serie existente.
+    public int? SerieTurnoId { get; set; }
+
+
+
 
     // Propiedades anteriores.
     // Se mantienen temporalmente mientras adaptamos el repositorio y el frontend.

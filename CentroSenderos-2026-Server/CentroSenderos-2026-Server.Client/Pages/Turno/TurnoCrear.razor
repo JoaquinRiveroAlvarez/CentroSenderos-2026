@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Recurrencias
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
@@ -419,7 +420,7 @@
                                                                                                 paciente.Id
                                                                                             )">
 
-<span>
+                                                                        <span>
                                                             @paciente.Nombre — DNI @paciente.DNI
                                                         </span>
 
@@ -484,9 +485,277 @@
                                 </div>
                             }
 
-                        </div>
+                        
                     </div>
 
+                    <div class="campo campo-completo">
+
+                        <label for="frecuenciaRecurrencia">
+                            Repetición
+                        </label>
+
+                        <InputSelect id="frecuenciaRecurrencia"
+                                     class="form-select"
+                                     @bind-Value="modelo.FrecuenciaRecurrencia">
+
+                            <option value="@EnumFrecuenciaRecurrenciaTurno.noRepite">
+                                No repetir
+                            </option>
+
+                            <option value="@EnumFrecuenciaRecurrenciaTurno.semanal">
+                                Una vez por semana
+                            </option>
+
+                            <option value="@EnumFrecuenciaRecurrenciaTurno.cadaQuinceDias">
+                                Cada 15 días
+                            </option>
+
+                            <option value="@EnumFrecuenciaRecurrenciaTurno.mensual">
+                                Una vez por mes
+                            </option>
+
+                            <option value="@EnumFrecuenciaRecurrenciaTurno.personalizado">
+                                Personalizado
+                            </option>
+
+                        </InputSelect>
+
+                    </div>
+
+                        @if (EsRecurrenciaPersonalizada)
+                        {
+                            <div class="campo">
+
+                                <label for="intervaloRecurrencia">
+                                    Repetir cada
+                                </label>
+
+                                <InputNumber id="intervaloRecurrencia"
+                                             class="form-control"
+                                             min="1"
+                                             max="365"
+                                             @bind-Value="modelo.IntervaloRecurrencia" />
+
+                                @if (modelo.IntervaloRecurrencia <= 0)
+                                {
+                                    <span class="validation-message">
+                                        El intervalo debe ser mayor que cero.
+                                    </span>
+                                }
+
+                            </div>
+
+                            <div class="campo">
+
+                                <label for="unidadRecurrencia">
+                                    Unidad
+                                </label>
+
+                                <InputSelect id="unidadRecurrencia"
+                                             TValue="EnumUnidadRecurrenciaTurno?"
+                                             class="form-select"
+                                             @bind-Value="modelo.UnidadRecurrencia">
+
+                                    <option value="">
+                                        Seleccione una unidad
+                                    </option>
+
+                                    <option value="@EnumUnidadRecurrenciaTurno.dias">
+                                        Días
+                                    </option>
+
+                                    <option value="@EnumUnidadRecurrenciaTurno.semanas">
+                                        Semanas
+                                    </option>
+
+                                    <option value="@EnumUnidadRecurrenciaTurno.meses">
+                                        Meses
+                                    </option>
+
+                                </InputSelect>
+
+                            </div>
+                        }
+
+                        @if (EsRecurrente)
+                        {
+                            <div class="campo campo-completo">
+
+                                <label>
+                                    Repetir hasta
+                                </label>
+
+                                <div class="fecha-recurrencia-contenedor">
+
+                                    <button type="button"
+                                            class="fecha-selector"
+                                            aria-expanded="@calendarioRecurrenciaAbierto"
+                                            @onclick="AlternarCalendarioRecurrencia">
+
+                                        <span>
+                                            @(modelo.FechaHastaRecurrencia.HasValue
+                                                ? modelo.FechaHastaRecurrencia.Value
+                                                    .ToString("dd/MM/yyyy")
+                                                : "Seleccione una fecha")
+                                        </span>
+
+                                        <i class="bi bi-calendar3"></i>
+
+                                    </button>
+
+                                    @if (calendarioRecurrenciaAbierto)
+                                    {
+                                        <div class="calendario-crear calendario-recurrencia">
+
+                                            <div class="calendario-crear-header">
+
+                                                <button type="button"
+                                                        class="calendario-crear-nav"
+                                                        title="Mes anterior"
+                                                        @onclick="IrMesAnteriorRecurrencia">
+
+                                                    <i class="bi bi-chevron-left"></i>
+
+                                                </button>
+
+                                                <strong>
+                                                    @FormatearMesCalendario(
+                                                        mesCalendarioRecurrencia
+                                                    )
+                                                </strong>
+
+                                                <button type="button"
+                                                        class="calendario-crear-nav"
+                                                        title="Mes siguiente"
+                                                        @onclick="IrMesSiguienteRecurrencia">
+
+                                                    <i class="bi bi-chevron-right"></i>
+
+                                                </button>
+
+                                            </div>
+
+                                            <div class="calendario-crear-semana">
+                                                <span>Lu</span>
+                                                <span>Ma</span>
+                                                <span>Mi</span>
+                                                <span>Ju</span>
+                                                <span>Vi</span>
+                                                <span>Sá</span>
+                                                <span>Do</span>
+                                            </div>
+
+                                            <div class="calendario-crear-dias">
+
+                                                @foreach (
+                                                    var dia in ObtenerDiasCalendarioRecurrencia()
+                                                )
+                                                {
+                                                    <button type="button"
+                                                            class="@ObtenerClaseDiaRecurrencia(dia)"
+                                                            disabled="@(dia.Date < modelo.Fecha.Date)"
+                                                            @onclick="() =>
+                                                                                                SeleccionarFechaRecurrencia(dia)">
+
+                                                    @dia.Day
+
+                                                    </button>
+                                                }
+
+                                            </div>
+
+                                            <div class="calendario-crear-footer">
+
+                                                <button type="button"
+                                                        @onclick="SeleccionarMismaFechaRecurrencia">
+                                                    Misma fecha
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+                                    }
+
+                                </div>
+
+                                <span class="campo-ayuda">
+                                    Se crearán turnos hasta esta fecha inclusive.
+                                </span>
+
+                                @if (modelo.FechaHastaRecurrencia.HasValue
+                                    && modelo.FechaHastaRecurrencia.Value.Date
+                                        < modelo.Fecha.Date)
+                                {
+                                    <span class="validation-message">
+                                        La fecha final no puede ser anterior al primer turno.
+                                    </span>
+                                }
+
+                            </div>
+                        }
+
+                            @if (modelo.FechaHastaRecurrencia.HasValue
+                                && modelo.FechaHastaRecurrencia.Value.Date
+                                    < modelo.Fecha.Date)
+                            {
+                                <span class="validation-message">
+                                    La fecha final no puede ser anterior al primer turno.
+                                </span>
+                            }
+                            
+                        @if (EsRecurrente && RecurrenciaValida)
+{
+    var fechasVistaPrevia =
+        ObtenerFechasRecurrenciaVistaPrevia();
+
+    if (fechasVistaPrevia.Count > 0)
+    {
+        <div class="recurrencia-resumen campo-completo">
+
+            <div class="recurrencia-resumen-header">
+
+                <i class="bi bi-arrow-repeat"></i>
+
+                <div>
+                    <strong>
+                        @fechasVistaPrevia.Count
+                        @(fechasVistaPrevia.Count == 1
+                            ? "turno será creado"
+                            : "turnos serán creados")
+                    </strong>
+
+                    <span>
+                        Incluyendo el primer turno.
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="recurrencia-fechas">
+
+                @foreach (
+                    var fecha in fechasVistaPrevia.Take(8)
+                )
+                {
+                    <span class="recurrencia-fecha">
+                        @fecha.ToString("dd/MM/yyyy")
+                    </span>
+                }
+
+                @if (fechasVistaPrevia.Count > 8)
+                {
+                    <span class="recurrencia-fecha recurrencia-fecha-mas">
+                        +@(fechasVistaPrevia.Count - 8) más
+                    </span>
+                }
+
+            </div>
+
+        </div>
+    }
+}
+                    
+                </div>
                     <button type="button"
                             class="btn-consultar"
                             disabled="@consultandoHorarios"
@@ -713,15 +982,80 @@
     private bool guardando;
     private bool mostrarSelectorProfesionales;
     private bool mostrarSelectorPacientes;
+    
 
 
+
+    private bool EsRecurrente =>
+    modelo.FrecuenciaRecurrencia !=
+    EnumFrecuenciaRecurrenciaTurno.noRepite;
+
+    private bool RecurrenciaValida
+    {
+        get
+        {
+            if (!EsRecurrente)
+            {
+                return true;
+            }
+
+            var fechaValida =
+                modelo.FechaHastaRecurrencia.HasValue
+                && modelo.FechaHastaRecurrencia.Value.Date
+                    >= modelo.Fecha.Date;
+
+            if (!fechaValida)
+            {
+                return false;
+            }
+
+            if (!EsRecurrenciaPersonalizada)
+            {
+                return true;
+            }
+
+            return modelo.IntervaloRecurrencia > 0
+                && modelo.UnidadRecurrencia.HasValue;
+        }
+    }
+
+    private List<DateTime> ObtenerFechasRecurrenciaVistaPrevia()
+    {
+        if (!EsRecurrente || !RecurrenciaValida)
+        {
+            return new List<DateTime>();
+        }
+
+        try
+        {
+            return CalculadorRecurrenciaTurno.CalcularFechas(
+                modelo.Fecha,
+                modelo.FrecuenciaRecurrencia,
+                modelo.FechaHastaRecurrencia,
+                modelo.IntervaloRecurrencia,
+                modelo.UnidadRecurrencia
+            );
+        }
+        catch
+        {
+            return new List<DateTime>();
+        }
+    }
+
+
+
+
+    private bool EsRecurrenciaPersonalizada =>
+    modelo.FrecuenciaRecurrencia ==
+        EnumFrecuenciaRecurrenciaTurno.personalizado;
     private bool PuedeGuardar =>
     modelo.TipoTurnoId > 0
     && modelo.TipoConsultorioId > 0
     && modelo.ProfesionalIds.Count > 0
     && modelo.PacienteIds.Count > 0
     && modelo.Fecha != DateTime.MinValue
-    && !string.IsNullOrWhiteSpace(horaSeleccionada);
+    && !string.IsNullOrWhiteSpace(horaSeleccionada)
+    && RecurrenciaValida;
 
                 private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
                 string.IsNullOrWhiteSpace(busquedaProfesional)
@@ -890,6 +1224,7 @@
         DateTime.Today.Month,
         1
     );
+    private bool calendarioRecurrenciaAbierto;
 
     protected override async Task OnInitializedAsync()
     {
@@ -1090,25 +1425,33 @@
         return char.ToUpper(texto[0]) + texto[1..];
     }
 
-    private void AlternarCalendario()
-    {
-        calendarioAbierto = !calendarioAbierto;
-
-        if (calendarioAbierto)
+        private void AlternarCalendario()
         {
-            mesCalendario = new DateTime(
-                modelo.Fecha.Year,
-                modelo.Fecha.Month,
-                1
-            );
+            calendarioAbierto = !calendarioAbierto;
+
+            // Evita tener abiertos los dos calendarios.
+            calendarioRecurrenciaAbierto = false;
+
+            if (calendarioAbierto)
+            {
+                mesCalendario = new DateTime(
+                    modelo.Fecha.Year,
+                    modelo.Fecha.Month,
+                    1
+                );
+            }
         }
-    }
 
     private void IrMesAnteriorCalendario()
     {
         mesCalendario =
             mesCalendario.AddMonths(-1);
     }
+    private DateTime mesCalendarioRecurrencia = new(
+        DateTime.Today.Year,
+        DateTime.Today.Month,
+        1
+    );
 
     private void IrMesSiguienteCalendario()
     {
@@ -1213,6 +1556,134 @@
 
         return char.ToUpper(texto[0]) + texto[1..];
     }
+    
+    private void AlternarCalendarioRecurrencia()
+    {
+        calendarioRecurrenciaAbierto =
+            !calendarioRecurrenciaAbierto;
+
+        // Evita tener los dos calendarios abiertos.
+        calendarioAbierto = false;
+
+        if (calendarioRecurrenciaAbierto)
+        {
+            var fechaReferencia =
+                modelo.FechaHastaRecurrencia
+                ?? modelo.Fecha;
+
+            mesCalendarioRecurrencia = new DateTime(
+                fechaReferencia.Year,
+                fechaReferencia.Month,
+                1
+            );
+        }
+    }
+
+    private void IrMesAnteriorRecurrencia()
+    {
+        mesCalendarioRecurrencia =
+            mesCalendarioRecurrencia.AddMonths(-1);
+    }
+
+    private void IrMesSiguienteRecurrencia()
+    {
+        mesCalendarioRecurrencia =
+            mesCalendarioRecurrencia.AddMonths(1);
+    }
+
+    private List<DateTime> ObtenerDiasCalendarioRecurrencia()
+    {
+        var primerDiaMes = new DateTime(
+            mesCalendarioRecurrencia.Year,
+            mesCalendarioRecurrencia.Month,
+            1
+        );
+
+        var desplazamiento =
+            ((int)primerDiaMes.DayOfWeek + 6) % 7;
+
+        var primerDiaVisible =
+            primerDiaMes.AddDays(-desplazamiento);
+
+        return Enumerable
+            .Range(0, 42)
+            .Select(numero =>
+                primerDiaVisible.AddDays(numero)
+            )
+            .ToList();
+    }
+
+    private void SeleccionarFechaRecurrencia(DateTime fecha)
+    {
+        if (fecha.Date < modelo.Fecha.Date)
+        {
+            return;
+        }
+
+        modelo.FechaHastaRecurrencia = fecha.Date;
+
+        mesCalendarioRecurrencia = new DateTime(
+            fecha.Year,
+            fecha.Month,
+            1
+        );
+
+        calendarioRecurrenciaAbierto = false;
+        Mensaje = string.Empty;
+    }
+
+    private void SeleccionarMismaFechaRecurrencia()
+    {
+        modelo.FechaHastaRecurrencia =
+            modelo.Fecha.Date;
+
+        mesCalendarioRecurrencia = new DateTime(
+            modelo.Fecha.Year,
+            modelo.Fecha.Month,
+            1
+        );
+
+        calendarioRecurrenciaAbierto = false;
+        Mensaje = string.Empty;
+    }
+
+    private string ObtenerClaseDiaRecurrencia(DateTime dia)
+    {
+        var clases = new List<string>
+    {
+        "calendario-crear-dia"
+    };
+
+        if (dia.Month != mesCalendarioRecurrencia.Month)
+        {
+            clases.Add("otro-mes");
+        }
+
+        if (dia.Date == DateTime.Today)
+        {
+            clases.Add("hoy");
+        }
+
+        if (modelo.FechaHastaRecurrencia.HasValue
+            && dia.Date ==
+                modelo.FechaHastaRecurrencia.Value.Date)
+        {
+            clases.Add("seleccionado");
+        }
+
+        if (dia.Date < modelo.Fecha.Date)
+        {
+            clases.Add("fecha-no-disponible");
+        }
+
+        return string.Join(" ", clases);
+    }
+
+
+
+
+
+
 
     private async Task Grabar()
     {
