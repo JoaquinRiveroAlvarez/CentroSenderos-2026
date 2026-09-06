@@ -17,6 +17,18 @@ namespace CentroSenderos_2026_Shared.DTO
         public int TipoConsultorioId { get; set; }
         public string? NombreTipoConsultorio { get; set; }
 
+        // Información de la serie recurrente.
+        public int? SerieTurnoId { get; set; }
+
+        public EnumFrecuenciaRecurrenciaTurno FrecuenciaRecurrencia { get; set; }
+            = EnumFrecuenciaRecurrenciaTurno.noRepite;
+
+        public int IntervaloRecurrencia { get; set; } = 1;
+
+        public EnumUnidadRecurrenciaTurno? UnidadRecurrencia { get; set; }
+
+        public DateTime? FechaHastaRecurrencia { get; set; }
+
         // Propiedades anteriores.
         // Se mantienen temporalmente mientras adaptamos las páginas.
         public int ProfesionalId { get; set; }

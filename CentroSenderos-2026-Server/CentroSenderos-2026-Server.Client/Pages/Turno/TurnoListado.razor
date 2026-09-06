@@ -312,6 +312,19 @@
                                                             : turno.NombreTipoConsultorio)
                                                 </span>
 
+                                                @if (turno.SerieTurnoId.HasValue)
+                                                {
+                                                    <span class="turno-recurrencia"
+                                                          title="Este turno pertenece a una serie recurrente">
+
+                                                        <i class="bi bi-arrow-repeat"></i>
+
+                                                        @ObtenerTextoRecurrencia(turno)
+
+                                                    </span>
+                                                }
+
+
                                                 <h2>
                                                     @(string.IsNullOrWhiteSpace(
                                                         turno.NombreTipoTurno)
@@ -458,7 +471,7 @@
                                     }
                                 @foreach (var turno in TurnosGrilla)
                                 {
-                            <button type="button"
+                                    <button type="button"
                                     class="@ObtenerClaseTurnoGrilla(turno)"
                                     style="@ObtenerPosicionTurno(turno)"
                                     title="Ver detalle del turno"
@@ -470,6 +483,18 @@
                                                     ? "Turno"
                                                     : turno.NombreTipoTurno)
                                         </span>
+
+                                        @if (turno.SerieTurnoId.HasValue)
+                                        {
+                                            <span class="turno-recurrencia turno-recurrencia-grilla"
+                                                  title="Turno recurrente">
+
+                                                <i class="bi bi-arrow-repeat"></i>
+
+                                                @ObtenerTextoRecurrencia(turno)
+
+                                            </span>
+                                        }
 
                                         <span class="turno-grilla-horario">
                                             @turno.FechaInicio.ToString("HH:mm")
@@ -544,7 +569,17 @@
                                                 ? "Sin consultorio"
                                                 : turno.NombreTipoConsultorio)
                                     </span>
+                                    @if (turno.SerieTurnoId.HasValue)
+                                    {
+                                        <span class="turno-recurrencia"
+                                              title="Este turno pertenece a una serie recurrente">
 
+                                            <i class="bi bi-arrow-repeat"></i>
+
+                                            @ObtenerTextoRecurrencia(turno)
+
+                                        </span>
+                                    }
                                     <h2>
                                         @(string.IsNullOrWhiteSpace(
                                             turno.NombreTipoTurno)
@@ -638,6 +673,34 @@
                     @ObtenerTextoEstado(turnoSeleccionado)
                 </span>
             </div>
+
+            @if (turnoSeleccionado.SerieTurnoId.HasValue)
+            {
+                <div class="detalle-turno-recurrencia">
+
+                    <div class="detalle-turno-recurrencia-icono">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </div>
+
+                    <div>
+                        <span>Turno recurrente</span>
+
+                        <strong>
+                            @ObtenerTextoRecurrencia(turnoSeleccionado)
+                        </strong>
+
+                        @if (turnoSeleccionado.FechaHastaRecurrencia.HasValue)
+                        {
+                            <p>
+                                Serie programada hasta el
+                                @turnoSeleccionado.FechaHastaRecurrencia.Value
+                                .ToString("dd/MM/yyyy")
+                            </p>
+                        }
+                    </div>
+
+                </div>
+            }
 
             <div class="detalle-turno-horario">
 
@@ -1121,6 +1184,51 @@
             EnumEstadoTurno.ausente => "No asistió",
             _ => turno.EstadoTurno.ToString()
         };
+    }
+
+    private static string ObtenerTextoRecurrencia(
+    TurnoListadoDTO turno
+)
+    {
+        return turno.FrecuenciaRecurrencia switch
+        {
+            EnumFrecuenciaRecurrenciaTurno.semanal =>
+                "Semanal",
+
+            EnumFrecuenciaRecurrenciaTurno.cadaQuinceDias =>
+                "Cada 15 días",
+
+            EnumFrecuenciaRecurrenciaTurno.mensual =>
+                "Mensual",
+
+            EnumFrecuenciaRecurrenciaTurno.personalizado =>
+                ObtenerTextoRecurrenciaPersonalizada(turno),
+
+            _ => "Recurrente"
+        };
+    }
+
+    private static string ObtenerTextoRecurrenciaPersonalizada(
+        TurnoListadoDTO turno
+    )
+    {
+        var intervalo = turno.IntervaloRecurrencia;
+
+        var unidad = turno.UnidadRecurrencia switch
+        {
+            EnumUnidadRecurrenciaTurno.dias =>
+                intervalo == 1 ? "día" : "días",
+
+            EnumUnidadRecurrenciaTurno.semanas =>
+                intervalo == 1 ? "semana" : "semanas",
+
+            EnumUnidadRecurrenciaTurno.meses =>
+                intervalo == 1 ? "mes" : "meses",
+
+            _ => "períodos"
+        };
+
+        return $"Cada {intervalo} {unidad}";
     }
 
     private static string ObtenerClaseEstado(

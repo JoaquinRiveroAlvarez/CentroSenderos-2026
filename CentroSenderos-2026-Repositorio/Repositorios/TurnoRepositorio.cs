@@ -77,6 +77,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return await context.Turnos
                 .Include(t => t.TipoTurnos)
                 .Include(t => t.TipoConsultorios)
+                .Include(t => t.SerieTurno)
                 .Include(t => t.TurnoProfesionales)
                     .ThenInclude(tp => tp.Profesionales)
                 .Include(t => t.TurnoPacientes)
@@ -102,6 +103,25 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     NombreTipoConsultorio = t.TipoConsultorios != null
                         ? t.TipoConsultorios.Tipo
                         : string.Empty,
+
+                    SerieTurnoId = t.SerieTurnoId,
+
+                    FrecuenciaRecurrencia = t.SerieTurno != null
+                    ? t.SerieTurno.Frecuencia
+                    : EnumFrecuenciaRecurrenciaTurno.noRepite,
+
+                    IntervaloRecurrencia = t.SerieTurno != null
+                    ? t.SerieTurno.Intervalo
+                    : 1,
+
+                    UnidadRecurrencia = t.SerieTurno != null
+                    ? t.SerieTurno.UnidadPersonalizada
+                    : null,
+
+                    FechaHastaRecurrencia = t.SerieTurno != null
+                    ? t.SerieTurno.FechaHasta.ToLocalTime()
+                    : null,
+
 
                     // Propiedades anteriores.
                     // Se mantienen mientras migramos el frontend.
