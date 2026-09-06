@@ -35,9 +35,17 @@ namespace CentroSenderos_2026_Server.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Put(int id, [FromBody] TurnoDTO dto)
         {
-            var resultado = await repositorio.ActualizarTurno(id, dto);
-            if (!resultado) return NotFound($"No existe turno con id {id}.");
-            return Ok($"Turno {id} actualizado correctamente.");
+            try
+            {
+                var resultado = await repositorio.ActualizarTurno(id, dto);
+                if (!resultado) return NotFound($"No existe turno con id {id}.");
+                return Ok($"Turno {id} actualizado correctamente.");
+
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
 
         [HttpPost]

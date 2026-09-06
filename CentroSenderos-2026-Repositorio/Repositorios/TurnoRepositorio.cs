@@ -173,7 +173,6 @@ public async Task<List<TurnoListadoDTO>> SelectListaTurnos()
 
             return horarios;
         }
-
         public async Task<bool> ActualizarTurno(int id, TurnoDTO dto)
         {
             if (dto.Hora == TimeOnly.MinValue)
@@ -190,12 +189,15 @@ public async Task<List<TurnoListadoDTO>> SelectListaTurnos()
 
             if (turno == null) return false;
 
+            // Combinar fecha y hora en UTC
             DateOnly fecha = DateOnly.FromDateTime(dto.Fecha);
             DateTime fechaInicioUtc = DateTime.SpecifyKind(fecha.ToDateTime(dto.Hora), DateTimeKind.Utc);
 
-            if (fechaInicioUtc < DateTime.UtcNow)
-                throw new ApplicationException("No se pueden mover turnos a fechas pasadas.");
+            // 🔎 Validación: bloquear solo días anteriores
+            if (fechaInicioUtc.Date < DateTime.UtcNow.Date)
+                throw new ApplicationException("No se pueden mover turnos de días pasados.");
 
+            // Validación de duplicados
             var existe = await context.Turnos.AnyAsync(t =>
                 t.EstadoRegistro == EnumEstadoRegistro.activo &&
                 t.TipoConsultorioId == dto.TipoConsultorioId &&
@@ -205,6 +207,7 @@ public async Task<List<TurnoListadoDTO>> SelectListaTurnos()
             if (existe)
                 throw new ApplicationException("Ya existe un turno en ese consultorio, fecha y hora.");
 
+            // Calcular fecha fin
             DateTime fechaFinUtc;
             int? tipoTurnoId = dto.TipoTurnoId == -1 ? null : dto.TipoTurnoId;
 
@@ -221,32 +224,33 @@ public async Task<List<TurnoListadoDTO>> SelectListaTurnos()
                 fechaFinUtc = fechaInicioUtc.AddMinutes(tipoTurno.DuracionMinutos);
             }
 
+            // Actualizar datos del turno
             turno.FechaInicio = fechaInicioUtc;
             turno.FechaFin = fechaFinUtc;
             turno.EstadoTurno = dto.EstadoTurno;
             turno.TipoTurnoId = tipoTurnoId;
             turno.TipoConsultorioId = dto.TipoConsultorioId;
 
-            // Actualizar relaciones
-            turno.TurnoProfesionales.Clear();
-            turno.TurnoPacientes.Clear();
+            // 🔴 Actualizar relaciones de forma segura
+            context.RemoveRange(turno.TurnoPacientes);
+            context.RemoveRange(turno.TurnoProfesionales);
 
-            turno.TurnoProfesionales.Add(new TurnoProfesional
+            turno.TurnoPacientes = new List<TurnoPaciente>
             {
-                TurnoId = turno.Id,
-                ProfesionalId = dto.ProfesionalId
-            });
-
-            turno.TurnoPacientes.Add(new TurnoPaciente
+                new TurnoPaciente { TurnoId = turno.Id, PacienteId = dto.PacienteId }
+            };
+            
+                    turno.TurnoProfesionales = new List<TurnoProfesional>
             {
-                TurnoId = turno.Id,
-                PacienteId = dto.PacienteId
-            });
+                new TurnoProfesional { TurnoId = turno.Id, ProfesionalId = dto.ProfesionalId }
+            };
 
-            context.Turnos.Update(turno);
             await context.SaveChangesAsync();
             return true;
         }
+
+
+
 
 
         public async Task<bool> DeleteTurno(int id)

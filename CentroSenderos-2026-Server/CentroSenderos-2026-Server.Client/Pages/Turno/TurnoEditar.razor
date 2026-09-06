@@ -231,6 +231,31 @@
                         </div>
 
                     </div>
+
+                    <div class="campo campo-completo">
+                        <label for="profesional">Profesional</label>
+                        <InputSelect id="profesional" class="control-formulario" @bind-Value="modelo.ProfesionalId">
+                            <option value="0">Seleccionar profesional</option>
+                            @foreach (var prof in profesionales)
+                            {
+                                <option value="@prof.Id">@prof.Nombre</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => modelo.ProfesionalId)" />
+                    </div>
+
+                    <div class="campo campo-completo">
+                        <label for="paciente">Paciente</label>
+                        <InputSelect id="paciente" class="control-formulario" @bind-Value="modelo.PacienteId">
+                            <option value="0">Seleccionar paciente</option>
+                            @foreach (var pac in pacientes)
+                            {
+                                <option value="@pac.Id">@pac.Nombre</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => modelo.PacienteId)" />
+                    </div>
+
                 </section>
 
                 <aside class="editar-lateral">
@@ -433,6 +458,9 @@
     [SupplyParameterFromQuery(Name = "fechaOrigen")]
     public string? FechaOrigen { get; set; }
 
+    private List<ProfesionalListadoDTO> profesionales = new();
+    private List<PacienteResumenDTO> pacientes = new();
+
 
     private TurnoDTO modelo = new();
 
@@ -515,6 +543,18 @@
         }
 
         cargando = false;
+        var respuestaProfesionales = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
+        if (!respuestaProfesionales.Error && respuestaProfesionales.Respuesta is not null)
+        {
+            profesionales = respuestaProfesionales.Respuesta;
+        }
+
+        var respuestaPacientes = await Http.Get<List<PacienteResumenDTO>>("api/paciente/ListaPaciente");
+        if (!respuestaPacientes.Error && respuestaPacientes.Respuesta is not null)
+        {
+            pacientes = respuestaPacientes.Respuesta;
+        }
+
     }
 
     private bool PuedeGuardar

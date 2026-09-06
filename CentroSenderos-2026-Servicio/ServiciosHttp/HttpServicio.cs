@@ -45,19 +45,31 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
             {
                 return new HttpRespuesta<TResp>(default, true, response);
             }
-            //Joaquin
-            //var response = await http.postasync(url, contenido);
-            //var contenidoerror = await response.content.readasstringasync(); // 👈 línea nueva
-            //if (response.issuccessstatuscode)
-            //{
-            //    var respuesta = await desserializar<tresp>(response);
-            //    return new httprespuesta<tresp>(respuesta, false, response);
-            //}
-            //else
-            //{
-            //    return new httprespuesta<tresp>(default, true, response);
-            //}
         }
+        //public async Task<HttpRespuesta<TResp>> Put<T, TResp>(string url, T entidad)
+        //{
+        //    var jsonAEnviar = JsonSerializer.Serialize(entidad);
+        //    var contenido = new StringContent(jsonAEnviar,
+        //                                      System.Text.Encoding.UTF8,
+        //                                      "application/json");
+
+        //    var response = await http.PutAsync(url, contenido);
+
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        if (response.StatusCode == HttpStatusCode.NoContent)
+        //        {
+        //            return new HttpRespuesta<TResp>(default, false, response);
+        //        }
+
+        //        var respuesta = await DesSerializar<TResp>(response);
+        //        return new HttpRespuesta<TResp>(respuesta, false, response);
+        //    }
+        //    else
+        //    {
+        //        return new HttpRespuesta<TResp>(default, true, response);
+        //    }
+        //}
         public async Task<HttpRespuesta<TResp>> Put<T, TResp>(string url, T entidad)
         {
             var jsonAEnviar = JsonSerializer.Serialize(entidad);
@@ -79,7 +91,22 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
             }
             else
             {
-                return new HttpRespuesta<TResp>(default, true, response);
+                // 👇 leer el body del error
+                var contenidoError = await response.Content.ReadAsStringAsync();
+
+                // intentar deserializar si viene en JSON
+                TResp? errorObj = default;
+                try
+                {
+                    errorObj = JsonSerializer.Deserialize<TResp>(contenidoError,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                catch
+                {
+                    // si no es JSON, lo dejamos como default
+                }
+
+                return new HttpRespuesta<TResp>(errorObj, true, response);
             }
         }
 
