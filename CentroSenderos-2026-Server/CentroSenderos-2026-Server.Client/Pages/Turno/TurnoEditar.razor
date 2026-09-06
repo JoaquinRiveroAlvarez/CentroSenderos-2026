@@ -72,6 +72,62 @@
                             <p>Actualizá la fecha, la hora y el consultorio.</p>
                         </div>
                     </div>
+                    
+                    @if (modelo.SerieTurnoId.HasValue)
+                    {
+                        <fieldset class="alcance-edicion">
+
+                            <legend>
+                                ¿Qué turnos querés modificar?
+                            </legend>
+
+                            <label class="alcance-opcion">
+
+                                <input type="radio"
+                                       name="alcanceEdicion"
+                                       checked="@(!modelo.ModificarTodaLaSerie)"
+                                       @onchange="SeleccionarEdicionIndividual" />
+
+                                <span class="alcance-opcion-contenido">
+
+                                    <strong>
+                                        Solo este turno
+                                    </strong>
+
+                                    <small>
+                                        Los demás turnos de la serie no se modificarán.
+                                    </small>
+
+                                </span>
+
+                            </label>
+
+                            <label class="alcance-opcion">
+
+                                <input type="radio"
+                                       name="alcanceEdicion"
+                                       checked="@modelo.ModificarTodaLaSerie"
+                                       @onchange="SeleccionarEdicionSerie" />
+
+                                <span class="alcance-opcion-contenido">
+
+                                    <strong>
+                                        Todos los turnos de la serie
+                                    </strong>
+
+                                    <small>
+                                        Se actualizarán los datos compartidos,
+                                        pero cada turno conservará su fecha.
+                                    </small>
+
+                                </span>
+
+                            </label>
+
+                        </fieldset>
+                    }
+
+                    
 
                     <div class="campos-grid">
 
@@ -149,7 +205,15 @@
 
                             <button type="button"
                                     class="selector-fecha"
+                                    disabled="@modelo.ModificarTodaLaSerie"
                                     @onclick="AlternarCalendario">
+
+                                @if (modelo.ModificarTodaLaSerie)
+                                {
+                                    <span class="campo-ayuda">
+                                        Las fechas originales de la serie se conservarán.
+                                    </span>
+                                }
 
                                 <span>
                                     @TextoFechaSeleccionada
@@ -233,27 +297,273 @@
                     </div>
 
                     <div class="campo campo-completo">
-                        <label for="profesional">Profesional</label>
-                        <InputSelect id="profesional" class="control-formulario" @bind-Value="modelo.ProfesionalId">
-                            <option value="0">Seleccionar profesional</option>
-                            @foreach (var prof in profesionales)
+
+                        <label>
+                            Profesionales
+                        </label>
+
+                        <div class="selector-desplegable">
+
+                            <button type="button"
+                                    class="selector-desplegable-boton"
+                                    aria-expanded="@mostrarSelectorProfesionales"
+                                    @onclick="AlternarSelectorProfesionales">
+
+                                <span>
+                                    @TextoProfesionalesSeleccionados
+                                </span>
+
+                                <i class="bi @(mostrarSelectorProfesionales
+                                                   ? "bi-chevron-up"
+                                                   : "bi-chevron-down")">
+                                </i>
+
+                            </button>
+
+                            @if (mostrarSelectorProfesionales)
                             {
-                                <option value="@prof.Id">@prof.Nombre</option>
+                                <div class="selector-desplegable-menu">
+
+                                    <div class="buscador-selector">
+
+                                        <i class="bi bi-search"></i>
+
+                                        <input type="text"
+                                               class="buscador-selector-input"
+                                               placeholder="Buscar profesional..."
+                                               autocomplete="off"
+                                               @bind="busquedaProfesional"
+                                               @bind:event="oninput" />
+
+                                    </div>
+
+                                    <div class="selector-desplegable-opciones">
+
+                                        @if (ProfesionalesFiltrados.Count == 0)
+                                        {
+                                            <div class="selector-multiple-vacio">
+                                                No se encontraron profesionales.
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            @foreach (
+                                                var profesional in ProfesionalesFiltrados
+                                            )
+                                            {
+                                                var estaSeleccionado =
+                                                    modelo.ProfesionalIds.Contains(
+                                                        profesional.Id
+                                                    );
+
+                                                <button type="button"
+                                                        class="@(estaSeleccionado
+                                                                                            ? "selector-desplegable-opcion seleccionado"
+                                                                                            : "selector-desplegable-opcion")"
+                                                        @onclick="() =>
+                                                                                            AlternarProfesional(profesional.Id)">
+
+<span>@profesional.Nombre</span>
+
+                                @if (estaSeleccionado)
+                                                    {
+                                                        <i class="bi bi-check-lg"></i>
+                                                    }
+
+                                                </button>
+                                            }
+                                        }
+
+                                    </div>
+
+                                    <div class="selector-desplegable-footer">
+
+                                        <span>
+                                            @modelo.ProfesionalIds.Count
+                                            @(modelo.ProfesionalIds.Count == 1
+                                                ? "seleccionado"
+                                                : "seleccionados")
+                                        </span>
+
+                                        <button type="button"
+                                                @onclick="CerrarSelectorProfesionales">
+                                            Listo
+                                        </button>
+
+                                    </div>
+
+                                </div>
                             }
-                        </InputSelect>
-                        <ValidationMessage For="@(() => modelo.ProfesionalId)" />
+
+                        </div>
+
+                        @if (modelo.ProfesionalIds.Count > 0)
+                        {
+                            <div class="selector-multiple-seleccionados">
+
+                                @foreach (var profesionalId in modelo.ProfesionalIds)
+                                {
+                                    var profesional = profesionales.FirstOrDefault(
+                                        item => item.Id == profesionalId
+                                    );
+
+                                    if (profesional is not null)
+                                    {
+                                        <span class="selector-multiple-chip">
+
+                                            @profesional.Nombre
+
+                                            <button type="button"
+                                                    title="Quitar profesional"
+                                                    @onclick="() =>
+                                                                                    QuitarProfesional(profesional.Id)">
+
+                                            <i class="bi bi-x"></i>
+
+                                            </button>
+
+                                        </span>
+                                    }
+                                }
+
+                            </div>
+                        }
+
                     </div>
 
                     <div class="campo campo-completo">
-                        <label for="paciente">Paciente</label>
-                        <InputSelect id="paciente" class="control-formulario" @bind-Value="modelo.PacienteId">
-                            <option value="0">Seleccionar paciente</option>
-                            @foreach (var pac in pacientes)
+
+                        <label>
+                            Pacientes
+                        </label>
+
+                        <div class="selector-desplegable">
+
+                            <button type="button"
+                                    class="selector-desplegable-boton"
+                                    aria-expanded="@mostrarSelectorPacientes"
+                                    @onclick="AlternarSelectorPacientes">
+
+                                <span>
+                                    @TextoPacientesSeleccionados
+                                </span>
+
+                                <i class="bi @(mostrarSelectorPacientes
+                                                                  ? "bi-chevron-up"
+                                                                  : "bi-chevron-down")">
+                                </i>
+
+                            </button>
+
+                            @if (mostrarSelectorPacientes)
                             {
-                                <option value="@pac.Id">@pac.Nombre</option>
+                                <div class="selector-desplegable-menu">
+
+                                    <div class="buscador-selector">
+
+                                        <i class="bi bi-search"></i>
+
+                                        <input type="text"
+                                               class="buscador-selector-input"
+                                               placeholder="Buscar paciente..."
+                                               autocomplete="off"
+                                               @bind="busquedaPaciente"
+                                               @bind:event="oninput" />
+
+                                    </div>
+
+                                    <div class="selector-desplegable-opciones">
+
+                                        @if (PacientesFiltrados.Count == 0)
+                                        {
+                                            <div class="selector-multiple-vacio">
+                                                No se encontraron pacientes.
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var paciente in PacientesFiltrados)
+                                            {
+                                                var estaSeleccionado =
+                                                    modelo.PacienteIds.Contains(
+                                                        paciente.Id
+                                                    );
+
+                                                <button type="button"
+                                                        class="@(estaSeleccionado
+                                                                                            ? "selector-desplegable-opcion seleccionado"
+                                                                                            : "selector-desplegable-opcion")"
+                                                        @onclick="() =>
+                                                                                            AlternarPaciente(paciente.Id)">
+
+<span>
+                                                        @paciente.Nombre
+                                                    </span>
+
+                                                    @if (estaSeleccionado)
+                                                    {
+                                                        <i class="bi bi-check-lg"></i>
+                                                    }
+
+                                                </button>
+                                            }
+                                        }
+
+                                    </div>
+
+                                    <div class="selector-desplegable-footer">
+
+                                        <span>
+                                            @modelo.PacienteIds.Count
+                                            @(modelo.PacienteIds.Count == 1
+                                                ? "seleccionado"
+                                                : "seleccionados")
+                                        </span>
+
+                                        <button type="button"
+                                                @onclick="CerrarSelectorPacientes">
+                                            Listo
+                                        </button>
+
+                                    </div>
+
+                                </div>
                             }
-                        </InputSelect>
-                        <ValidationMessage For="@(() => modelo.PacienteId)" />
+
+                        </div>
+
+                        @if (modelo.PacienteIds.Count > 0)
+                        {
+                            <div class="selector-multiple-seleccionados">
+
+                                @foreach (var pacienteId in modelo.PacienteIds)
+                                {
+                                    var paciente = pacientes.FirstOrDefault(
+                                        item => item.Id == pacienteId
+                                    );
+
+                                    if (paciente is not null)
+                                    {
+                                        <span class="selector-multiple-chip">
+
+                                            @paciente.Nombre
+
+                                            <button type="button"
+                                                    title="Quitar paciente"
+                                                    @onclick="() =>
+                                                                                    QuitarPaciente(paciente.Id)">
+
+                                            <i class="bi bi-x"></i>
+
+                                            </button>
+
+                                        </span>
+                                    }
+                                }
+
+                            </div>
+                        }
+
                     </div>
 
                 </section>
@@ -473,7 +783,10 @@
     private bool operacionExitosa;
     private bool calendarioAbierto;
     private bool mostrarConfirmacionEliminar;
-
+    private string busquedaProfesional = string.Empty;
+    private bool mostrarSelectorProfesionales;
+    private string busquedaPaciente = string.Empty;
+    private bool mostrarSelectorPacientes;
     private string Mensaje = string.Empty;
     private string errorCarga = string.Empty;
 
@@ -542,7 +855,7 @@
             consultorios = respuestaConsultorios.Respuesta;
         }
 
-        cargando = false;
+        
         var respuestaProfesionales = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
         if (!respuestaProfesionales.Error && respuestaProfesionales.Respuesta is not null)
         {
@@ -555,6 +868,8 @@
             pacientes = respuestaPacientes.Respuesta;
         }
 
+
+        cargando = false;
     }
 
     private bool PuedeGuardar
@@ -565,13 +880,16 @@
                 modelo.Fecha != default &&
                 modelo.Hora != TimeOnly.MinValue &&
                 modelo.TipoTurnoId != 0 &&
-                modelo.TipoConsultorioId > 0;
+                modelo.TipoConsultorioId > 0 &&
+                modelo.ProfesionalIds.Count > 0 &&
+                modelo.PacienteIds.Count > 0;
 
             var duracionValida =
                 modelo.TipoTurnoId != -1 ||
                 modelo.DuracionPersonalizada > 0;
 
-            return datosPrincipalesValidos && duracionValida;
+            return datosPrincipalesValidos &&
+                   duracionValida;
         }
     }
 
@@ -679,6 +997,153 @@
         }
     }
 
+    private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
+    string.IsNullOrWhiteSpace(busquedaProfesional)
+        ? profesionales
+        : profesionales
+            .Where(profesional =>
+                profesional.Nombre.Contains(
+                    busquedaProfesional,
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            .ToList();
+    private string TextoProfesionalesSeleccionados =>
+    modelo.ProfesionalIds.Count switch
+    {
+        0 => "Seleccione profesionales",
+        1 => "1 profesional seleccionado",
+        _ => $"{modelo.ProfesionalIds.Count} profesionales seleccionados"
+    };
+
+    private string TextoPacientesSeleccionados =>
+    modelo.PacienteIds.Count switch
+    {
+        0 => "Seleccione pacientes",
+        1 => "1 paciente seleccionado",
+        _ => $"{modelo.PacienteIds.Count} pacientes seleccionados"
+    };
+
+    private List<PacienteResumenDTO> PacientesFiltrados =>
+    string.IsNullOrWhiteSpace(busquedaPaciente)
+        ? pacientes
+        : pacientes
+            .Where(paciente =>
+                paciente.Nombre.Contains(
+                    busquedaPaciente,
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            .ToList();
+
+    private void AlternarSelectorProfesionales()
+    {
+        mostrarSelectorProfesionales =
+            !mostrarSelectorProfesionales;
+
+        mostrarSelectorPacientes = false;
+        busquedaPaciente = string.Empty;
+    }
+
+
+    private void CerrarSelectorProfesionales()
+    {
+        mostrarSelectorProfesionales = false;
+        busquedaProfesional = string.Empty;
+    }
+
+    private void AlternarSelectorPacientes()
+    {
+        mostrarSelectorPacientes =
+            !mostrarSelectorPacientes;
+
+        mostrarSelectorProfesionales = false;
+        busquedaProfesional = string.Empty;
+    }
+
+    private void CerrarSelectorPacientes()
+    {
+        mostrarSelectorPacientes = false;
+        busquedaPaciente = string.Empty;
+    }
+
+    private void AlternarPaciente(int pacienteId)
+    {
+        if (modelo.PacienteIds.Contains(pacienteId))
+        {
+            modelo.PacienteIds.Remove(pacienteId);
+        }
+        else
+        {
+            modelo.PacienteIds.Add(pacienteId);
+        }
+
+        SincronizarPacienteAnterior();
+    }
+
+    private void QuitarPaciente(int pacienteId)
+    {
+        modelo.PacienteIds.Remove(pacienteId);
+        SincronizarPacienteAnterior();
+    }
+
+    private void SincronizarPacienteAnterior()
+    {
+        modelo.PacienteId =
+            modelo.PacienteIds.FirstOrDefault();
+
+        Mensaje = string.Empty;
+    }
+
+
+    private void AlternarProfesional(int profesionalId)
+    {
+        if (modelo.ProfesionalIds.Contains(profesionalId))
+        {
+            modelo.ProfesionalIds.Remove(profesionalId);
+        }
+        else
+        {
+            modelo.ProfesionalIds.Add(profesionalId);
+        }
+
+        SincronizarProfesionalAnterior();
+    }
+
+    private void QuitarProfesional(int profesionalId)
+    {
+        modelo.ProfesionalIds.Remove(profesionalId);
+        SincronizarProfesionalAnterior();
+    }
+
+    private void SincronizarProfesionalAnterior()
+    {
+        modelo.ProfesionalId =
+            modelo.ProfesionalIds.FirstOrDefault();
+
+        Mensaje = string.Empty;
+    }
+    
+
+
+        
+    private void SeleccionarEdicionIndividual(
+    ChangeEventArgs argumento
+)
+{
+    modelo.ModificarTodaLaSerie = false;
+    Mensaje = string.Empty;
+}
+
+private void SeleccionarEdicionSerie(
+    ChangeEventArgs argumento
+)
+{
+    modelo.ModificarTodaLaSerie = true;
+    calendarioAbierto = false;
+    Mensaje = string.Empty;
+}
+    
     private int ObtenerDuracionSeleccionada()
     {
         if (modelo.TipoTurnoId == -1)

@@ -36,6 +36,7 @@ public class TurnoDTO
     // Se completa cuando el turno pertenece a una serie existente.
     public int? SerieTurnoId { get; set; }
 
+    public bool ModificarTodaLaSerie { get; set; }
 
 
 
