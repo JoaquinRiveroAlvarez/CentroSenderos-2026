@@ -22,7 +22,7 @@ public class TurnoDTO
     [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un consultorio válido")]
     public int TipoConsultorioId { get; set; }
 
-    public int DuracionPersonalizada { get; set; } = 0;
+    
     // Configuración de recurrencia.
     public EnumFrecuenciaRecurrenciaTurno FrecuenciaRecurrencia { get; set; }
         = EnumFrecuenciaRecurrenciaTurno.noRepite;

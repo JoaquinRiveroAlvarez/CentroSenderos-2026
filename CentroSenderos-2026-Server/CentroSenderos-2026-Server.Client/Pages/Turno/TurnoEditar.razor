@@ -147,7 +147,7 @@
                                         </option>
                                     }
 
-                                    <option value="-1">Otro</option>
+                                   
                                 </InputSelect>
 
                                 <i class="bi bi-chevron-down"></i>
@@ -156,26 +156,7 @@
                             <ValidationMessage For="@(() => modelo.TipoTurnoId)" />
                         </div>
 
-                        @if (modelo.TipoTurnoId == -1)
-                        {
-                            <div class="campo campo-completo">
-                                <label for="duracionPersonalizada">
-                                    Duración personalizada
-                                </label>
-
-                                <div class="input-con-sufijo">
-                                    <InputNumber id="duracionPersonalizada"
-                                                 class="control-formulario"
-                                                 min="1"
-                                                 max="480"
-                                                 @bind-Value="modelo.DuracionPersonalizada" />
-
-                                    <span>minutos</span>
-                                </div>
-
-                                <ValidationMessage For="@(() => modelo.DuracionPersonalizada)" />
-                            </div>
-                        }
+                       
 
                         <div class="campo campo-completo">
                             <label for="consultorio">Consultorio</label>
@@ -876,20 +857,13 @@
     {
         get
         {
-            var datosPrincipalesValidos =
+            return
                 modelo.Fecha != default &&
                 modelo.Hora != TimeOnly.MinValue &&
-                modelo.TipoTurnoId != 0 &&
+                modelo.TipoTurnoId > 0 &&
                 modelo.TipoConsultorioId > 0 &&
                 modelo.ProfesionalIds.Count > 0 &&
                 modelo.PacienteIds.Count > 0;
-
-            var duracionValida =
-                modelo.TipoTurnoId != -1 ||
-                modelo.DuracionPersonalizada > 0;
-
-            return datosPrincipalesValidos &&
-                   duracionValida;
         }
     }
 
@@ -935,13 +909,6 @@
     {
         get
         {
-            if (modelo.TipoTurnoId == -1)
-            {
-                return modelo.DuracionPersonalizada > 0
-                    ? $"Otro ({modelo.DuracionPersonalizada} min)"
-                    : "Otro";
-            }
-
             var tipo = tiposTurno.FirstOrDefault(
                 item => item.Id == modelo.TipoTurnoId
             );
@@ -1144,13 +1111,9 @@ private void SeleccionarEdicionSerie(
     Mensaje = string.Empty;
 }
     
+
     private int ObtenerDuracionSeleccionada()
     {
-        if (modelo.TipoTurnoId == -1)
-        {
-            return modelo.DuracionPersonalizada;
-        }
-
         var tipo = tiposTurno.FirstOrDefault(
             item => item.Id == modelo.TipoTurnoId
         );

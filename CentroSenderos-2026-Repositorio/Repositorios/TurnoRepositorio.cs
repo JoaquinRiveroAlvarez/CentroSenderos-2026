@@ -44,14 +44,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
                     FechaFin = t.FechaFin.ToLocalTime(),
                     EstadoTurno = t.EstadoTurno,
-                    TipoTurnoId = t.TipoTurnoId ?? -1,
+                    TipoTurnoId = t.TipoTurnoId,
                     TipoConsultorioId = t.TipoConsultorioId,
 
-                    DuracionPersonalizada =
-                        t.TipoTurnoId == null
-                            ? (int)(t.FechaFin - t.FechaInicio)
-                                .TotalMinutes
-                            : 0,
 
                     SerieTurnoId = t.SerieTurnoId,
 
@@ -133,12 +128,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         t.FechaFin.ToLocalTime(),
                     EstadoTurno = t.EstadoTurno,
 
-                    TipoTurnoId =
-                        t.TipoTurnoId ?? -1,
+                    TipoTurnoId = t.TipoTurnoId,
 
-                    NombreTipoTurno = t.TipoTurnos != null
-                     ? t.TipoTurnos.Tipo
-                        : $"Otro ({(int)(t.FechaFin - t.FechaInicio).TotalMinutes} min)",
+                    NombreTipoTurno = t.TipoTurnos != null? t.TipoTurnos.Tipo : "Sin tipo",
 
                     TipoConsultorioId =
                         t.TipoConsultorioId,
@@ -250,10 +242,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            if (dto.TipoTurnoId == 0)
+            if (dto.TipoTurnoId <= 0)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar un tipo de turno válido o 'Otro'."
+                    "Debe seleccionar un tipo de turno válido."
                 );
             }
 
@@ -361,44 +353,22 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            int duracionMinutos;
+            var tipoTurno = await context.TipoTurnos
+                .FirstOrDefaultAsync(tipo =>
+                    tipo.Id == dto.TipoTurnoId
+                );
 
-            int? tipoTurnoId =
-                dto.TipoTurnoId == -1
-                    ? null
-                    : dto.TipoTurnoId;
-
-            if (tipoTurnoId is null)
+            if (tipoTurno is null)
             {
-                if (dto.DuracionPersonalizada <= 0)
-                {
-                    throw new ApplicationException(
-                        "Debe indicar una duración personalizada válida."
-                    );
-                }
-
-                duracionMinutos =
-                    dto.DuracionPersonalizada;
+                throw new ApplicationException(
+                    "No existe el tipo de turno " +
+                    $"con id {dto.TipoTurnoId}."
+                );
             }
-            else
-            {
-                var tipoTurno =
-                    await context.TipoTurnos
-                        .FirstOrDefaultAsync(tipo =>
-                            tipo.Id == tipoTurnoId
-                        );
 
-                if (tipoTurno is null)
-                {
-                    throw new ApplicationException(
-                        "No existe el tipo de turno " +
-                        $"con id {dto.TipoTurnoId}."
-                    );
-                }
-
-                duracionMinutos =
-                    tipoTurno.DuracionMinutos;
-            }
+            var tipoTurnoId = tipoTurno.Id;
+            var duracionMinutos =
+                tipoTurno.DuracionMinutos;
 
             await using var transaccion =
                 await context.Database
@@ -624,10 +594,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            if (dto.TipoTurnoId == 0)
+            if (dto.TipoTurnoId <= 0)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar un tipo de turno válido o 'Otro'."
+                    "Debe seleccionar un tipo de turno válido."
                 );
             }
 
@@ -699,44 +669,22 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 return false;
             }
 
-            int duracionMinutos;
+            var tipoTurno = await context.TipoTurnos
+                .FirstOrDefaultAsync(tipo =>
+                    tipo.Id == dto.TipoTurnoId
+                );
 
-            int? tipoTurnoId =
-                dto.TipoTurnoId == -1
-                    ? null
-                    : dto.TipoTurnoId;
-
-            if (tipoTurnoId is null)
+            if (tipoTurno is null)
             {
-                if (dto.DuracionPersonalizada <= 0)
-                {
-                    throw new ApplicationException(
-                        "Debe indicar una duración personalizada válida."
-                    );
-                }
-
-                duracionMinutos =
-                    dto.DuracionPersonalizada;
+                throw new ApplicationException(
+                    "No existe el tipo de turno " +
+                    $"con id {dto.TipoTurnoId}."
+                );
             }
-            else
-            {
-                var tipoTurno =
-                    await context.TipoTurnos
-                        .FirstOrDefaultAsync(tipo =>
-                            tipo.Id == tipoTurnoId
-                        );
 
-                if (tipoTurno is null)
-                {
-                    throw new ApplicationException(
-                        "No existe el tipo de turno " +
-                        $"con id {dto.TipoTurnoId}."
-                    );
-                }
-
-                duracionMinutos =
-                    tipoTurno.DuracionMinutos;
-            }
+            var tipoTurnoId = tipoTurno.Id;
+            var duracionMinutos =
+                tipoTurno.DuracionMinutos;
 
             // Si eligió toda la serie, usamos el método nuevo.
             // La fecha enviada por el formulario no se aplica.
@@ -870,7 +818,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
     TurnoDTO dto,
     List<int> profesionalIds,
     List<int> pacienteIds,
-    int? tipoTurnoId,
+    int tipoTurnoId,
     int duracionMinutos
 )
         {
