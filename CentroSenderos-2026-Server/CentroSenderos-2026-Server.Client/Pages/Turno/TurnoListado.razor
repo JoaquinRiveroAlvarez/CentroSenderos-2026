@@ -30,7 +30,20 @@
 
             <div>
                 <strong>Turno actualizado</strong>
-                <span>Los cambios fueron guardados correctamente.</span>
+                <span>Turno actualizado correctamente.</span>
+            </div>
+
+        </div>
+    }
+    else if (mostrarMensajeResultado && Estado == "serie-actualizada")
+    {
+        <div class="success-message">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            <div>
+                <strong>Serie actualizada</strong>
+                <span>Turnos futuros de la serie actualizados correctamente.</span>
             </div>
 
         </div>
@@ -983,8 +996,7 @@
                 InicioSemana.AddDays(numero))
             .ToList();
 
-    private List<TurnoListadoDTO> ObtenerTurnosDelDia(
-        DateTime dia)
+    private List<TurnoListadoDTO> ObtenerTurnosDelDia(DateTime dia)
     {
         return listaTurnos
             .Where(turno =>
@@ -1140,9 +1152,7 @@
             || tiposSeleccionados.Contains(id);
     }
 
-    private void CambiarFiltroConsultorio(
-        int id,
-        bool seleccionado)
+    private void CambiarFiltroConsultorio(int id,bool seleccionado)
     {
         if (seleccionado)
         {
@@ -1154,9 +1164,7 @@
         }
     }
 
-    private void CambiarFiltroTipo(
-        int id,
-        bool seleccionado)
+    private void CambiarFiltroTipo(int id,bool seleccionado)
     {
         if (seleccionado)
         {
@@ -1279,16 +1287,14 @@
         return char.ToUpper(texto[0]) + texto[1..];
     }
 
-    private static int ObtenerDuracion(
-        TurnoListadoDTO turno)
+    private static int ObtenerDuracion(TurnoListadoDTO turno)
     {
         return (int)(
             turno.FechaFin - turno.FechaInicio
         ).TotalMinutes;
     }
 
-    private static string ObtenerTextoEstado(
-        TurnoListadoDTO turno)
+    private static string ObtenerTextoEstado(TurnoListadoDTO turno)
     {
         return turno.EstadoTurno switch
         {
@@ -1301,9 +1307,7 @@
         };
     }
 
-    private static string ObtenerTextoRecurrencia(
-    TurnoListadoDTO turno
-)
+    private static string ObtenerTextoRecurrencia(TurnoListadoDTO turno)
     {
         return turno.FrecuenciaRecurrencia switch
         {
@@ -1323,9 +1327,7 @@
         };
     }
 
-    private static string ObtenerTextoRecurrenciaPersonalizada(
-        TurnoListadoDTO turno
-    )
+    private static string ObtenerTextoRecurrenciaPersonalizada(TurnoListadoDTO turno)
     {
         var intervalo = turno.IntervaloRecurrencia;
 
@@ -1346,8 +1348,7 @@
         return $"Cada {intervalo} {unidad}";
     }
 
-    private static string ObtenerClaseEstado(
-        TurnoListadoDTO turno)
+    private static string ObtenerClaseEstado(TurnoListadoDTO turno)
     {
         return turno.EstadoTurno switch
         {
@@ -1578,8 +1579,7 @@
 
     
 
-    private string ObtenerPosicionTurno(
-    TurnoListadoDTO turno)
+    private string ObtenerPosicionTurno(TurnoListadoDTO turno)
     {
         var indiceConsultorio =
             ConsultoriosVisibles.FindIndex(
@@ -1622,8 +1622,7 @@
     }
 
 
-    private string ObtenerClaseTurnoGrilla(
-    TurnoListadoDTO turno)
+    private string ObtenerClaseTurnoGrilla(TurnoListadoDTO turno)
     {
         var claseEstado = turno.EstadoTurno switch
         {
@@ -1658,6 +1657,7 @@
         var esResultadoValido =
             Estado == "creado" ||
             Estado == "actualizado" ||
+            Estado == "serie-actualizada" ||
             Estado == "eliminado";
 
         if (!esResultadoValido)
@@ -1672,10 +1672,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private static string ObtenerResumenPersonas(
-    List<string> nombres,
-    string textoVacio
-)
+    private static string ObtenerResumenPersonas(List<string> nombres,string textoVacio)
     {
         if (nombres.Count == 0)
         {

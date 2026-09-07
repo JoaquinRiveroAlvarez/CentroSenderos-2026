@@ -33,32 +33,49 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put(int id, [FromBody] TurnoDTO dto)
+        public async Task<IActionResult> Put(int id,[FromBody] TurnoDTO dto)
         {
             try
             {
-                var resultado = await repositorio.ActualizarTurno(id, dto);
+                var resultado =
+                    await repositorio.ActualizarTurno(
+                        id,
+                        dto
+                    );
+
                 if (!resultado)
                 {
                     return NotFound(
                         new RespuestaDTO
                         {
                             mensaje =
-                                $"No se encontró el turno con id {id} " +
-                                "al intentar actualizarlo."
+                                $"No se encontró el turno con id {id}."
                         }
                     );
                 }
-                return Ok($"Turno {id} actualizado correctamente.");
 
+                var mensaje = dto.ModificarTodaLaSerie
+                    ? "Los turnos futuros de la serie fueron actualizados correctamente."
+                    : "El turno fue actualizado correctamente.";
+
+                return Ok(
+                    new RespuestaDTO
+                    {
+                        mensaje = mensaje
+                    }
+                );
             }
             catch (ApplicationException ex)
             {
-                return BadRequest(new { mensaje = ex.Message });
+                return BadRequest(
+                    new RespuestaDTO
+                    {
+                        mensaje = ex.Message
+                    }
+                );
             }
         }
 
-        [HttpPost]
         public async Task<IActionResult> Post([FromBody] TurnoDTO dto)
         {
                 try

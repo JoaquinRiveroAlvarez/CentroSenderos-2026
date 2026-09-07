@@ -1271,9 +1271,14 @@
 
         await Task.Delay(500);
 
+        var estadoResultado = modelo.ModificarTodaLaSerie
+                ? "serie-actualizada"
+                : "actualizado";
+
         Nav.NavigateTo(
-            "/turnos?estado=actualizado",
+            $"/turnos?estado={estadoResultado}",
             forceLoad: true
+  
         );
     }
 
