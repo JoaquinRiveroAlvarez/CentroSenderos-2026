@@ -336,62 +336,205 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 fechasInicioUtc
                     .Max()
                     .AddMinutes(duracionMinutos);
+            var turnosDelConsultorio =
+    await context.Turnos
+        .Where(turno =>
+            turno.EstadoRegistro ==
+                EnumEstadoRegistro.activo &&
+            turno.EstadoTurno !=
+                EnumEstadoTurno.cancelado &&
+            turno.TipoConsultorioId ==
+                dto.TipoConsultorioId &&
+            turno.FechaInicio < ultimaFechaFin &&
+            turno.FechaFin > primeraFechaInicio
+        )
+        .Select(turno => new
+        {
+            turno.FechaInicio,
+            turno.FechaFin,
 
-            var turnosQueBloquean =
-                await ConsultarTurnosQueBloquean(
-                        dto.TipoConsultorioId,
-                        profesionalIds,
-                        pacienteIds
-                    )
-                    .Where(turno =>
-                        turno.FechaInicio < ultimaFechaFin &&
-                        turno.FechaFin > primeraFechaInicio
-                    )
-                    .Select(turno => new
-                    {
-                        turno.FechaInicio,
-                        turno.FechaFin
-                    })
-                    .ToListAsync();
+            NombreConsultorio =
+                turno.TipoConsultorios != null
+                    ? turno.TipoConsultorios.Tipo
+                    : "Consultorio"
+        })
+        .ToListAsync();
 
-            // Revisamos individualmente cada fecha de la serie.
-            var fechasConConflicto = fechasInicioUtc
-                .Where(nuevaFechaInicio =>
-                {
-                    var nuevaFechaFin =
-                        nuevaFechaInicio.AddMinutes(
-                            duracionMinutos
-                        );
-
-                    return turnosQueBloquean.Any(
-                        turnoExistente =>
+            var conflictosConsultorio =
+                turnosDelConsultorio
+                    .Where(turnoExistente =>
+                        fechasInicioUtc.Any(nuevaFechaInicio =>
                             turnoExistente.FechaInicio <
-                                nuevaFechaFin &&
+                                nuevaFechaInicio.AddMinutes(
+                                    duracionMinutos
+                                ) &&
                             turnoExistente.FechaFin >
                                 nuevaFechaInicio
-                    );
-                })
-                .OrderBy(fecha => fecha)
-                .ToList();
+                        )
+                    )
+                    .ToList();
 
-            if (fechasConConflicto.Count > 0)
+            if (conflictosConsultorio.Count > 0)
             {
-                var fechasTexto = string.Join(
+                var nombreConsultorio =
+                    conflictosConsultorio[0].NombreConsultorio;
+
+                var horariosTexto = string.Join(
                     ", ",
-                    fechasConConflicto.Select(fecha =>
-                        fecha
-                            .ToLocalTime()
-                            .ToString("dd/MM/yyyy HH:mm")
+                    conflictosConsultorio.Select(conflicto =>
+                        $"{conflicto.FechaInicio:dd/MM/yyyy} " +
+                        $"de {conflicto.FechaInicio:HH:mm} " +
+                        $"a {conflicto.FechaFin:HH:mm}"
                     )
                 );
 
                 throw new ApplicationException(
-                    "No se puede crear el turno porque " +
-                    "el consultorio, algún profesional o algún " +
-                    "paciente ya está ocupado en estos horarios: " +
-                    $"{fechasTexto}."
+                    $"El consultorio \"{nombreConsultorio}\" " +
+                    $"ya está ocupado en estos horarios: " +
+                    $"{horariosTexto}."
                 );
             }
+
+            var turnosDeProfesionales =
+    await context.Turnos
+        .Where(turno =>
+            turno.EstadoRegistro ==
+                EnumEstadoRegistro.activo &&
+            turno.EstadoTurno !=
+                EnumEstadoTurno.cancelado &&
+            turno.FechaInicio < ultimaFechaFin &&
+            turno.FechaFin > primeraFechaInicio
+        )
+        .SelectMany(
+            turno => turno.TurnoProfesionales
+                .Where(relacion =>
+                    profesionalIds.Contains(
+                        relacion.ProfesionalId
+                    )
+                ),
+            (turno, relacion) => new
+            {
+                turno.FechaInicio,
+                turno.FechaFin,
+
+                NombreProfesional =
+                    relacion.Profesionales != null
+                        ? relacion.Profesionales.Nombre
+                        : "Profesional"
+            }
+        )
+        .ToListAsync();
+
+            var conflictosProfesionales =
+                turnosDeProfesionales
+                    .Where(turnoExistente =>
+                        fechasInicioUtc.Any(nuevaFechaInicio =>
+                            turnoExistente.FechaInicio <
+                                nuevaFechaInicio.AddMinutes(
+                                    duracionMinutos
+                                ) &&
+                            turnoExistente.FechaFin >
+                                nuevaFechaInicio
+                        )
+                    )
+                    .ToList();
+
+            if (conflictosProfesionales.Count > 0)
+            {
+                var conflictosTexto = string.Join(
+                    ", ",
+                    conflictosProfesionales.Select(conflicto =>
+                        $"\"{conflicto.NombreProfesional}\" " +
+                        $"el {conflicto.FechaInicio:dd/MM/yyyy} " +
+                        $"de {conflicto.FechaInicio:HH:mm} " +
+                        $"a {conflicto.FechaFin:HH:mm}"
+                    )
+                );
+
+                var inicioMensaje =
+                    conflictosProfesionales.Count == 1
+                        ? "El profesional"
+                        : "Los profesionales";
+
+                throw new ApplicationException(
+                    $"{inicioMensaje} {conflictosTexto} " +
+                    "ya tiene un turno en ese horario."
+                );
+            }
+
+            var turnosDePacientes =
+    await context.Turnos
+        .Where(turno =>
+            turno.EstadoRegistro ==
+                EnumEstadoRegistro.activo &&
+            turno.EstadoTurno !=
+                EnumEstadoTurno.cancelado &&
+            turno.FechaInicio < ultimaFechaFin &&
+            turno.FechaFin > primeraFechaInicio
+        )
+        .SelectMany(
+            turno => turno.TurnoPacientes
+                .Where(relacion =>
+                    pacienteIds.Contains(
+                        relacion.PacienteId
+                    )
+                ),
+            (turno, relacion) => new
+            {
+                turno.FechaInicio,
+                turno.FechaFin,
+
+                NombrePaciente =
+                    relacion.Pacientes != null
+                        ? relacion.Pacientes.Nombre
+                        : "Paciente"
+            }
+        )
+        .ToListAsync();
+
+            var conflictosPacientes =
+                turnosDePacientes
+                    .Where(turnoExistente =>
+                        fechasInicioUtc.Any(nuevaFechaInicio =>
+                            turnoExistente.FechaInicio <
+                                nuevaFechaInicio.AddMinutes(
+                                    duracionMinutos
+                                ) &&
+                            turnoExistente.FechaFin >
+                                nuevaFechaInicio
+                        )
+                    )
+                    .ToList();
+
+            if (conflictosPacientes.Count > 0)
+            {
+                var conflictosTexto = string.Join(
+                    ", ",
+                    conflictosPacientes.Select(conflicto =>
+                        $"\"{conflicto.NombrePaciente}\" " +
+                        $"el {conflicto.FechaInicio:dd/MM/yyyy} " +
+                        $"de {conflicto.FechaInicio:HH:mm} " +
+                        $"a {conflicto.FechaFin:HH:mm}"
+                    )
+                );
+
+                var inicioMensaje =
+                    conflictosPacientes.Count == 1
+                        ? "El paciente"
+                        : "Los pacientes";
+
+                var verbo =
+                    conflictosPacientes.Count == 1
+                        ? "ya tiene"
+                        : "ya tienen";
+
+                throw new ApplicationException(
+                    $"{inicioMensaje} {conflictosTexto} " +
+                    $"{verbo} un turno en ese horario."
+                );
+            }
+
+            
 
             await using var transaccion =
                 await context.Database
