@@ -1154,8 +1154,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     DateTimeKind.Utc
                 );
 
-
-            var turnosSerie = await context.Turnos
+            var turnosSerie =
+                await context.Turnos
                     .Include(turno =>
                         turno.TurnoProfesionales
                     )
@@ -1180,30 +1180,28 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            var turnoIds = turnosSerie
-                .Select(turno =>
-                    turno.Id
-                )
-                .ToList();
+            var turnoIds =
+                turnosSerie
+                    .Select(turno =>
+                        turno.Id
+                    )
+                    .ToList();
 
             // Conservamos la fecha original de cada turno
             // y aplicamos la nueva hora.
-            var nuevasFechasInicio = turnosSerie
-                .Select(turno =>
-                    DateTime.SpecifyKind(
-                        DateOnly
-                            .FromDateTime(turno.FechaInicio)
-                            .ToDateTime(dto.Hora),
-                        DateTimeKind.Utc
+            var nuevasFechasInicio =
+                turnosSerie
+                    .Select(turno =>
+                        DateTime.SpecifyKind(
+                            DateOnly
+                                .FromDateTime(turno.FechaInicio)
+                                .ToDateTime(dto.Hora),
+                            DateTimeKind.Utc
+                        )
                     )
-                )
-                .ToList();
+                    .ToList();
 
-            var fechasConConflicto =
-                new List<DateTime>();
-
-            // Si toda la serie queda cancelada,
-            // sus turnos ya no reservan recursos.
+            // Una serie cancelada deja de reservar recursos.
             if (dto.EstadoTurno !=
                 EnumEstadoTurno.cancelado)
             {
@@ -1215,14 +1213,17 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .Max()
                         .AddMinutes(duracionMinutos);
 
-                var turnosQueBloquean =
-                    await ConsultarTurnosQueBloquean(
-                            dto.TipoConsultorioId,
-                            profesionalIds,
-                            pacienteIds
-                        )
+                // Conflictos de consultorio.
+                var turnosDelConsultorio =
+                    await context.Turnos
                         .Where(turno =>
                             !turnoIds.Contains(turno.Id) &&
+                            turno.EstadoRegistro ==
+                                EnumEstadoRegistro.activo &&
+                            turno.EstadoTurno !=
+                                EnumEstadoTurno.cancelado &&
+                            turno.TipoConsultorioId ==
+                                dto.TipoConsultorioId &&
                             turno.FechaInicio <
                                 ultimaFechaFin &&
                             turno.FechaFin >
@@ -1231,50 +1232,225 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .Select(turno => new
                         {
                             turno.FechaInicio,
-                            turno.FechaFin
+                            turno.FechaFin,
+
+                            NombreConsultorio =
+                                turno.TipoConsultorios != null
+                                    ? turno.TipoConsultorios.Tipo
+                                    : "Consultorio"
                         })
                         .ToListAsync();
 
-                fechasConConflicto =
-                    nuevasFechasInicio
-                        .Where(nuevaFechaInicio =>
-                        {
-                            var nuevaFechaFin =
-                                nuevaFechaInicio.AddMinutes(
-                                    duracionMinutos
-                                );
-
-                            return turnosQueBloquean.Any(
-                                turnoExistente =>
+                var conflictosConsultorio =
+                    turnosDelConsultorio
+                        .Where(turnoExistente =>
+                            nuevasFechasInicio.Any(
+                                nuevaFechaInicio =>
                                     turnoExistente.FechaInicio <
-                                        nuevaFechaFin &&
+                                        nuevaFechaInicio.AddMinutes(
+                                            duracionMinutos
+                                        ) &&
                                     turnoExistente.FechaFin >
                                         nuevaFechaInicio
-                            );
-                        })
-                        .OrderBy(fecha =>
-                            fecha
+                            )
+                        )
+                        .OrderBy(conflicto =>
+                            conflicto.FechaInicio
                         )
                         .ToList();
-            }
 
-            if (fechasConConflicto.Count > 0)
-            {
-                var fechasTexto = string.Join(
-                    ", ",
-                    fechasConConflicto.Select(fecha =>
-                        fecha
-                            .ToLocalTime()
-                            .ToString("dd/MM/yyyy HH:mm")
-                    )
-                );
+                if (conflictosConsultorio.Count > 0)
+                {
+                    var nombreConsultorio =
+                        conflictosConsultorio[0]
+                            .NombreConsultorio;
 
-                throw new ApplicationException(
-                    "No se puede actualizar toda la serie " +
-                    "porque el consultorio, algún profesional " +
-                    "o algún paciente está ocupado en estos horarios: " +
-                    $"{fechasTexto}."
-                );
+                    var horariosTexto =
+                        string.Join(
+                            ", ",
+                            conflictosConsultorio.Select(
+                                conflicto =>
+                                    $"{conflicto.FechaInicio:dd/MM/yyyy} " +
+                                    $"de {conflicto.FechaInicio:HH:mm} " +
+                                    $"a {conflicto.FechaFin:HH:mm}"
+                            )
+                        );
+
+                    throw new ApplicationException(
+                        $"El consultorio \"{nombreConsultorio}\" " +
+                        "impide actualizar los turnos futuros de la serie " +
+                        "porque ya está ocupado en estos horarios: " +
+                        $"{horariosTexto}."
+                    );
+                }
+
+                // Conflictos de profesionales.
+                var turnosDeProfesionales =
+                    await context.Turnos
+                        .Where(turno =>
+                            !turnoIds.Contains(turno.Id) &&
+                            turno.EstadoRegistro ==
+                                EnumEstadoRegistro.activo &&
+                            turno.EstadoTurno !=
+                                EnumEstadoTurno.cancelado &&
+                            turno.FechaInicio <
+                                ultimaFechaFin &&
+                            turno.FechaFin >
+                                primeraFechaInicio
+                        )
+                        .SelectMany(
+                            turno =>
+                                turno.TurnoProfesionales
+                                    .Where(relacion =>
+                                        profesionalIds.Contains(
+                                            relacion.ProfesionalId
+                                        )
+                                    ),
+                            (turno, relacion) => new
+                            {
+                                turno.FechaInicio,
+                                turno.FechaFin,
+
+                                NombreProfesional =
+                                    relacion.Profesionales != null
+                                        ? relacion.Profesionales.Nombre
+                                        : "Profesional"
+                            }
+                        )
+                        .ToListAsync();
+
+                var conflictosProfesionales =
+                    turnosDeProfesionales
+                        .Where(turnoExistente =>
+                            nuevasFechasInicio.Any(
+                                nuevaFechaInicio =>
+                                    turnoExistente.FechaInicio <
+                                        nuevaFechaInicio.AddMinutes(
+                                            duracionMinutos
+                                        ) &&
+                                    turnoExistente.FechaFin >
+                                        nuevaFechaInicio
+                            )
+                        )
+                        .OrderBy(conflicto =>
+                            conflicto.FechaInicio
+                        )
+                        .ToList();
+
+                if (conflictosProfesionales.Count > 0)
+                {
+                    var conflictosTexto =
+                        string.Join(
+                            ", ",
+                            conflictosProfesionales.Select(
+                                conflicto =>
+                                    $"\"{conflicto.NombreProfesional}\" " +
+                                    $"el {conflicto.FechaInicio:dd/MM/yyyy} " +
+                                    $"de {conflicto.FechaInicio:HH:mm} " +
+                                    $"a {conflicto.FechaFin:HH:mm}"
+                            )
+                        );
+
+                    var inicioMensaje =
+                        conflictosProfesionales.Count == 1
+                            ? "El profesional"
+                            : "Los profesionales";
+
+                    var verbo =
+                        conflictosProfesionales.Count == 1
+                            ? "ya tiene"
+                            : "ya tienen";
+
+                    throw new ApplicationException(
+                        $"{inicioMensaje} {conflictosTexto} " +
+                        $"{verbo} un turno y no permite actualizar " +
+                        "los turnos futuros de la serie."
+                    );
+                }
+
+                // Conflictos de pacientes.
+                var turnosDePacientes =
+                    await context.Turnos
+                        .Where(turno =>
+                            !turnoIds.Contains(turno.Id) &&
+                            turno.EstadoRegistro ==
+                                EnumEstadoRegistro.activo &&
+                            turno.EstadoTurno !=
+                                EnumEstadoTurno.cancelado &&
+                            turno.FechaInicio <
+                                ultimaFechaFin &&
+                            turno.FechaFin >
+                                primeraFechaInicio
+                        )
+                        .SelectMany(
+                            turno =>
+                                turno.TurnoPacientes
+                                    .Where(relacion =>
+                                        pacienteIds.Contains(
+                                            relacion.PacienteId
+                                        )
+                                    ),
+                            (turno, relacion) => new
+                            {
+                                turno.FechaInicio,
+                                turno.FechaFin,
+
+                                NombrePaciente =
+                                    relacion.Pacientes != null
+                                        ? relacion.Pacientes.Nombre
+                                        : "Paciente"
+                            }
+                        )
+                        .ToListAsync();
+
+                var conflictosPacientes =
+                    turnosDePacientes
+                        .Where(turnoExistente =>
+                            nuevasFechasInicio.Any(
+                                nuevaFechaInicio =>
+                                    turnoExistente.FechaInicio <
+                                        nuevaFechaInicio.AddMinutes(
+                                            duracionMinutos
+                                        ) &&
+                                    turnoExistente.FechaFin >
+                                        nuevaFechaInicio
+                            )
+                        )
+                        .OrderBy(conflicto =>
+                            conflicto.FechaInicio
+                        )
+                        .ToList();
+
+                if (conflictosPacientes.Count > 0)
+                {
+                    var conflictosTexto =
+                        string.Join(
+                            ", ",
+                            conflictosPacientes.Select(
+                                conflicto =>
+                                    $"\"{conflicto.NombrePaciente}\" " +
+                                    $"el {conflicto.FechaInicio:dd/MM/yyyy} " +
+                                    $"de {conflicto.FechaInicio:HH:mm} " +
+                                    $"a {conflicto.FechaFin:HH:mm}"
+                            )
+                        );
+
+                    var inicioMensaje =
+                        conflictosPacientes.Count == 1
+                            ? "El paciente"
+                            : "Los pacientes";
+
+                    var verbo =
+                        conflictosPacientes.Count == 1
+                            ? "ya tiene"
+                            : "ya tienen";
+
+                    throw new ApplicationException(
+                        $"{inicioMensaje} {conflictosTexto} " +
+                        $"{verbo} un turno y no permite actualizar " +
+                        "los turnos futuros de la serie."
+                    );
+                }
             }
 
             await using var transaccion =
@@ -1324,8 +1500,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     );
                 }
 
-                // Aplicamos los cambios y eliminamos
-                // las relaciones anteriores.
+                // Guardamos la eliminación de las relaciones anteriores.
                 await context.SaveChangesAsync();
 
                 var nuevasRelacionesProfesionales =
@@ -1381,5 +1556,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 throw;
             }
         }
+    
+    
     }
 }
