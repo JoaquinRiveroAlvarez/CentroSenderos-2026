@@ -112,12 +112,12 @@
                                 <span class="alcance-opcion-contenido">
 
                                     <strong>
-                                        Todos los turnos de la serie
+                                        Todos los turnos futuros de la serie
                                     </strong>
 
                                     <small>
-                                        Se actualizarán los datos compartidos,
-                                        pero cada turno conservará su fecha.
+                                        Se actualizarán las ocurrencias de hoy en adelante.
+                                        Los turnos anteriores conservarán sus datos.
                                     </small>
 
                                 </span>
@@ -192,7 +192,8 @@
                                 @if (modelo.ModificarTodaLaSerie)
                                 {
                                     <span class="campo-ayuda">
-                                        Las fechas originales de la serie se conservarán.
+                                        Las fechas originales se conservarán y los cambios
+                                        se aplicarán solamente a los turnos futuros.
                                     </span>
                                 }
 
@@ -777,8 +778,7 @@
         1
     );
 
-    private readonly EnumEstadoTurno[] EstadosDisponibles =
-    {
+    private readonly EnumEstadoTurno[] EstadosDisponibles = {
         EnumEstadoTurno.disponible,
         EnumEstadoTurno.reservado,
         EnumEstadoTurno.atendido,
@@ -1094,17 +1094,13 @@
 
 
         
-    private void SeleccionarEdicionIndividual(
-    ChangeEventArgs argumento
-)
+    private void SeleccionarEdicionIndividual(ChangeEventArgs argumento)
 {
     modelo.ModificarTodaLaSerie = false;
     Mensaje = string.Empty;
 }
 
-private void SeleccionarEdicionSerie(
-    ChangeEventArgs argumento
-)
+    private void SeleccionarEdicionSerie(ChangeEventArgs argumento)
 {
     modelo.ModificarTodaLaSerie = true;
     calendarioAbierto = false;
@@ -1227,9 +1223,7 @@ private void SeleccionarEdicionSerie(
         return clase;
     }
 
-    private static string ObtenerNombreEstado(
-        EnumEstadoTurno estado
-    )
+    private static string ObtenerNombreEstado(EnumEstadoTurno estado)
     {
         return estado switch
         {
@@ -1261,7 +1255,10 @@ private void SeleccionarEdicionSerie(
 
         if (respuesta.Error)
         {
-            Mensaje = respuesta.ObtenerError();
+            Mensaje =
+                respuesta.Respuesta?.mensaje ??
+                respuesta.ObtenerError();
+
             guardando = false;
             return;
         }

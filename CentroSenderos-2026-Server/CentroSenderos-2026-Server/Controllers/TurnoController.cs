@@ -38,7 +38,17 @@ namespace CentroSenderos_2026_Server.Controllers
             try
             {
                 var resultado = await repositorio.ActualizarTurno(id, dto);
-                if (!resultado) return NotFound($"No existe turno con id {id}.");
+                if (!resultado)
+                {
+                    return NotFound(
+                        new RespuestaDTO
+                        {
+                            mensaje =
+                                $"No se encontró el turno con id {id} " +
+                                "al intentar actualizarlo."
+                        }
+                    );
+                }
                 return Ok($"Turno {id} actualizado correctamente.");
 
             }
@@ -63,23 +73,37 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpGet("Disponibles")]
-        public async Task<ActionResult<List<string>>> GetDisponibles(DateOnly fecha, int tipoTurnoId, int consultorioId)
+        public async Task<ActionResult<List<string>>> GetDisponibles(DateOnly fecha,int tipoTurnoId,int consultorioId,[FromQuery] List<int>? profesionalIds = null,[FromQuery] List<int>? pacienteIds = null)
         {
             try
             {
-                var horarios = await repositorio.HorariosDisponibles(fecha, tipoTurnoId, consultorioId);
+                var horarios = await repositorio
+                    .HorariosDisponibles(
+                        fecha,
+                        tipoTurnoId,
+                        consultorioId,
+                        profesionalIds,
+                        pacienteIds
+                    );
 
-                // Convertimos a string "HH:mm" para que Blazor los pueda bindear fácilmente
-                var lista = horarios.Select(h => h.ToString("HH:mm")).ToList();
+                var lista = horarios
+                    .Select(hora =>
+                        hora.ToString("HH:mm")
+                    )
+                    .ToList();
 
                 return Ok(lista);
             }
-            catch (Exception ex)
+            catch (ApplicationException ex)
             {
-                return BadRequest(new { mensaje = ex.Message });
+                return BadRequest(
+                    new
+                    {
+                        mensaje = ex.Message
+                    }
+                );
             }
         }
-
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)

@@ -14,9 +14,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
     {
         private readonly ApplicationDbContext context;
 
-        public TurnoRepositorio(
-            ApplicationDbContext context
-        ) : base(context)
+        public TurnoRepositorio(ApplicationDbContext context) : base(context)
         {
             this.context = context;
         }
@@ -104,8 +102,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<TurnoListadoDTO>>
-            SelectListaTurnos()
+        public async Task<List<TurnoListadoDTO>>SelectListaTurnos()
         {
             return await context.Turnos
                 .Include(t => t.TipoTurnos)
@@ -231,9 +228,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .ToListAsync();
         }
 
-        public async Task<int> InsertarTurno(
-            TurnoDTO dto
-        )
+        public async Task<int> InsertarTurno(TurnoDTO dto)
         {
             if (dto.Hora == TimeOnly.MinValue)
             {
@@ -318,45 +313,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 )
                 .ToList();
 
-            var fechasConConflicto =
-                await context.Turnos
-                    .Where(turno =>
-                        turno.EstadoRegistro ==
-                            EnumEstadoRegistro.activo &&
-                        turno.TipoConsultorioId ==
-                            dto.TipoConsultorioId &&
-                        fechasInicioUtc.Contains(
-                            turno.FechaInicio
-                        )
-                    )
-                    .Select(turno =>
-                        turno.FechaInicio
-                    )
-                    .OrderBy(fecha => fecha)
-                    .ToListAsync();
-
-            if (fechasConConflicto.Count > 0)
-            {
-                var fechasTexto = string.Join(
-                    ", ",
-                    fechasConConflicto.Select(fecha =>
-                        fecha.ToString(
-                            "dd/MM/yyyy HH:mm"
-                        )
-                    )
-                );
-
-                throw new ApplicationException(
-                    "No se puede crear la serie porque " +
-                    "ya existen turnos en estos horarios: " +
-                    $"{fechasTexto}."
-                );
-            }
-
-            var tipoTurno = await context.TipoTurnos
-                .FirstOrDefaultAsync(tipo =>
-                    tipo.Id == dto.TipoTurnoId
-                );
+            var tipoTurno = await context.TipoTurnos.FirstOrDefaultAsync(tipo =>tipo.Id == dto.TipoTurnoId);
 
             if (tipoTurno is null)
             {
@@ -369,6 +326,72 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var tipoTurnoId = tipoTurno.Id;
             var duracionMinutos =
                 tipoTurno.DuracionMinutos;
+
+            // Consultamos solamente el período comprendido
+            // entre la primera y la última ocurrencia.
+            var primeraFechaInicio =
+                fechasInicioUtc.Min();
+
+            var ultimaFechaFin =
+                fechasInicioUtc
+                    .Max()
+                    .AddMinutes(duracionMinutos);
+
+            var turnosQueBloquean =
+                await ConsultarTurnosQueBloquean(
+                        dto.TipoConsultorioId,
+                        profesionalIds,
+                        pacienteIds
+                    )
+                    .Where(turno =>
+                        turno.FechaInicio < ultimaFechaFin &&
+                        turno.FechaFin > primeraFechaInicio
+                    )
+                    .Select(turno => new
+                    {
+                        turno.FechaInicio,
+                        turno.FechaFin
+                    })
+                    .ToListAsync();
+
+            // Revisamos individualmente cada fecha de la serie.
+            var fechasConConflicto = fechasInicioUtc
+                .Where(nuevaFechaInicio =>
+                {
+                    var nuevaFechaFin =
+                        nuevaFechaInicio.AddMinutes(
+                            duracionMinutos
+                        );
+
+                    return turnosQueBloquean.Any(
+                        turnoExistente =>
+                            turnoExistente.FechaInicio <
+                                nuevaFechaFin &&
+                            turnoExistente.FechaFin >
+                                nuevaFechaInicio
+                    );
+                })
+                .OrderBy(fecha => fecha)
+                .ToList();
+
+            if (fechasConConflicto.Count > 0)
+            {
+                var fechasTexto = string.Join(
+                    ", ",
+                    fechasConConflicto.Select(fecha =>
+                        fecha
+                            .ToLocalTime()
+                            .ToString("dd/MM/yyyy HH:mm")
+                    )
+                );
+
+                throw new ApplicationException(
+                    "No se puede crear el turno porque " +
+                    "el consultorio, algún profesional o algún " +
+                    "paciente ya está ocupado en estos horarios: " +
+                    $"{fechasTexto}."
+                );
+            }
 
             await using var transaccion =
                 await context.Database
@@ -514,18 +537,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
         }
 
-        public async Task<List<TimeOnly>>
-            HorariosDisponibles(
-                DateOnly fecha,
-                int tipoTurnoId,
-                int consultorioId
-            )
+        public async Task<List<TimeOnly>> HorariosDisponibles(DateOnly fecha,int tipoTurnoId,int consultorioId,List<int>? profesionalIds = null,List<int>? pacienteIds = null)
+
         {
-            var tipoTurno =
-                await context.TipoTurnos
-                    .FirstOrDefaultAsync(tipo =>
-                        tipo.Id == tipoTurnoId
-                    );
+            profesionalIds ??= new List<int>();
+            pacienteIds ??= new List<int>();
+
+            var tipoTurno = await context.TipoTurnos
+                .FirstOrDefaultAsync(tipo =>
+                    tipo.Id == tipoTurnoId
+                );
 
             if (tipoTurno is null)
             {
@@ -534,58 +555,90 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            var duracion =
+            var duracionMinutos =
                 tipoTurno.DuracionMinutos;
 
-            var inicioDia =
+            var horaInicioDia =
                 new TimeOnly(8, 0);
 
-            var finDia =
+            var horaFinDia =
                 new TimeOnly(20, 0);
 
-            var horarios =
+            var fechaInicioDiaUtc =
+                DateTime.SpecifyKind(
+                    fecha.ToDateTime(horaInicioDia),
+                    DateTimeKind.Utc
+                );
+
+            var fechaFinDiaUtc =
+                DateTime.SpecifyKind(
+                    fecha.ToDateTime(horaFinDia),
+                    DateTimeKind.Utc
+                );
+
+            var turnosQueBloquean =
+                await ConsultarTurnosQueBloquean(
+                        consultorioId,
+                        profesionalIds,
+                        pacienteIds
+                    )
+                    .Where(turno =>
+                        turno.FechaInicio < fechaFinDiaUtc &&
+                        turno.FechaFin > fechaInicioDiaUtc
+                    )
+                    .Select(turno => new
+                    {
+                        turno.FechaInicio,
+                        turno.FechaFin
+                    })
+                    .ToListAsync();
+
+            var horariosDisponibles =
                 new List<TimeOnly>();
 
-            var horaActual = inicioDia;
+            var horaActual = horaInicioDia;
 
             while (
-                horaActual.AddMinutes(duracion) <=
-                finDia
+                horaActual.AddMinutes(duracionMinutos) <=
+                horaFinDia
             )
             {
-                var fechaHoraUtc =
+                var fechaInicioTurnoUtc =
                     DateTime.SpecifyKind(
                         fecha.ToDateTime(horaActual),
                         DateTimeKind.Utc
                     );
 
-                var ocupado =
-                    await context.Turnos.AnyAsync(
-                        turno =>
-                            turno.EstadoRegistro ==
-                                EnumEstadoRegistro.activo &&
-                            turno.TipoConsultorioId ==
-                                consultorioId &&
-                            turno.FechaInicio ==
-                                fechaHoraUtc
+                var fechaFinTurnoUtc =
+                    fechaInicioTurnoUtc.AddMinutes(
+                        duracionMinutos
                     );
+
+                var ocupado = turnosQueBloquean.Any(
+                    turnoExistente =>
+                        turnoExistente.FechaInicio <
+                            fechaFinTurnoUtc &&
+                        turnoExistente.FechaFin >
+                            fechaInicioTurnoUtc
+                );
 
                 if (!ocupado)
                 {
-                    horarios.Add(horaActual);
+                    horariosDisponibles.Add(
+                        horaActual
+                    );
                 }
 
                 horaActual =
-                    horaActual.AddMinutes(duracion);
+                    horaActual.AddMinutes(
+                        duracionMinutos
+                    );
             }
 
-            return horarios;
+            return horariosDisponibles;
         }
 
-        public async Task<bool> ActualizarTurno(
-            int id,
-            TurnoDTO dto
-        )
+        public async Task<bool> ActualizarTurno(int id,TurnoDTO dto)
         {
             if (dto.Hora == TimeOnly.MinValue)
             {
@@ -608,19 +661,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            var profesionalIds = dto.ProfesionalIds
-                .Where(profesionalId =>
-                    profesionalId > 0
-                )
-                .Distinct()
-                .ToList();
+            var profesionalIds = dto.ProfesionalIds.Where(profesionalId => profesionalId > 0).Distinct().ToList();
 
-            var pacienteIds = dto.PacienteIds
-                .Where(pacienteId =>
-                    pacienteId > 0
-                )
-                .Distinct()
-                .ToList();
+            var pacienteIds = dto.PacienteIds.Where(pacienteId =>pacienteId > 0).Distinct().ToList();
 
             // Compatibilidad temporal con el frontend anterior.
             if (profesionalIds.Count == 0 &&
@@ -653,26 +696,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            var turno = await context.Turnos
-                .Include(t =>
-                    t.TurnoProfesionales
-                )
-                .Include(t =>
-                    t.TurnoPacientes
-                )
-                .FirstOrDefaultAsync(t =>
-                    t.Id == id
-                );
+            var turno = await context.Turnos.Include(t => t.TurnoProfesionales).Include(t => t.TurnoPacientes).FirstOrDefaultAsync(t =>t.Id == id);
 
             if (turno is null)
             {
                 return false;
             }
 
-            var tipoTurno = await context.TipoTurnos
-                .FirstOrDefaultAsync(tipo =>
-                    tipo.Id == dto.TipoTurnoId
-                );
+            var tipoTurno = await context.TipoTurnos.FirstOrDefaultAsync(tipo =>tipo.Id == dto.TipoTurnoId);
 
             if (tipoTurno is null)
             {
@@ -701,77 +732,60 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
 
             // Desde acá continúa la modificación de un solo turno.
-            var fecha =
-                DateOnly.FromDateTime(dto.Fecha);
+            var fecha =DateOnly.FromDateTime(dto.Fecha);
 
-            var fechaInicioUtc =
-                DateTime.SpecifyKind(
-                    fecha.ToDateTime(dto.Hora),
-                    DateTimeKind.Utc
-                );
+            var fechaInicioUtc =DateTime.SpecifyKind(fecha.ToDateTime(dto.Hora),DateTimeKind.Utc);
 
             if (fechaInicioUtc.Date < DateTime.UtcNow.Date)
             {
-                throw new ApplicationException(
-                    "No se pueden mover turnos a días pasados."
-                );
+                throw new ApplicationException("No se pueden mover turnos a días pasados.");
             }
 
-            var existe = await context.Turnos
-                .AnyAsync(otroTurno =>
-                    otroTurno.EstadoRegistro ==
-                        EnumEstadoRegistro.activo &&
-                    otroTurno.TipoConsultorioId ==
-                        dto.TipoConsultorioId &&
-                    otroTurno.FechaInicio ==
-                        fechaInicioUtc &&
-                    otroTurno.Id != id
-                );
+            var fechaFinUtc =fechaInicioUtc.AddMinutes(duracionMinutos);
 
-            if (existe)
+            var existeConflicto =dto.EstadoTurno != EnumEstadoTurno.cancelado &&
+
+                await ConsultarTurnosQueBloquean(
+                        dto.TipoConsultorioId,
+                        profesionalIds,
+                        pacienteIds
+                    )
+                    .AnyAsync(otroTurno =>
+                        otroTurno.Id != id &&
+                        otroTurno.FechaInicio <
+                            fechaFinUtc &&
+                        otroTurno.FechaFin >
+                            fechaInicioUtc
+                    );
+
+            if (existeConflicto)
             {
                 throw new ApplicationException(
-                    "Ya existe un turno en ese consultorio, " +
-                    "fecha y hora."
+                    "No se puede actualizar el turno porque " +
+                    "el consultorio, algún profesional o algún " +
+                    "paciente ya está ocupado en ese horario."
                 );
             }
-
-            var fechaFinUtc =
-                fechaInicioUtc.AddMinutes(
-                    duracionMinutos
-                );
 
             turno.FechaInicio = fechaInicioUtc;
             turno.FechaFin = fechaFinUtc;
             turno.EstadoTurno = dto.EstadoTurno;
             turno.TipoTurnoId = tipoTurnoId;
-            turno.TipoConsultorioId =
-                dto.TipoConsultorioId;
+            turno.TipoConsultorioId = dto.TipoConsultorioId;
 
-            context.RemoveRange(
-                turno.TurnoProfesionales
-            );
+            context.RemoveRange(turno.TurnoProfesionales);
 
-            context.RemoveRange(
-                turno.TurnoPacientes
-            );
+            context.RemoveRange(turno.TurnoPacientes);
 
-            var nuevosTurnoProfesionales =
-                profesionalIds
-                    .Select(profesionalId =>
-                        new TurnoProfesional
+            var nuevosTurnoProfesionales =profesionalIds.Select(profesionalId =>new TurnoProfesional
                         {
                             TurnoId = turno.Id,
                             ProfesionalId =
                                 profesionalId
                         }
-                    )
-                    .ToList();
+                    ).ToList();
 
-            var nuevosTurnoPacientes =
-                pacienteIds
-                    .Select(pacienteId =>
-                        new TurnoPaciente
+            var nuevosTurnoPacientes =pacienteIds.Select(pacienteId => new TurnoPaciente
                         {
                             TurnoId = turno.Id,
                             PacienteId = pacienteId
@@ -792,6 +806,37 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
+        private IQueryable<Turno> ConsultarTurnosQueBloquean(int consultorioId,List<int> profesionalIds,List<int> pacienteIds)
+            {
+                    return context.Turnos
+                        .Where(turno =>
+                            turno.EstadoRegistro ==
+                                EnumEstadoRegistro.activo &&
+
+                            turno.EstadoTurno !=
+                                EnumEstadoTurno.cancelado &&
+
+                            (
+                                turno.TipoConsultorioId ==
+                                    consultorioId ||
+
+                                turno.TurnoProfesionales.Any(
+                                    relacion =>
+                                        profesionalIds.Contains(
+                                            relacion.ProfesionalId
+                                        )
+                                ) ||
+
+                                turno.TurnoPacientes.Any(
+                                    relacion =>
+                                        pacienteIds.Contains(
+                                            relacion.PacienteId
+                                        )
+                                )
+                            )
+                        );
+                }
+       
         public async Task<bool> DeleteTurno(int id)
         {
             var turno =
@@ -813,14 +858,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
-        private async Task<bool> ActualizarTodaLaSerie(
-    Turno turnoSeleccionado,
-    TurnoDTO dto,
-    List<int> profesionalIds,
-    List<int> pacienteIds,
-    int tipoTurnoId,
-    int duracionMinutos
-)
+        private async Task<bool> ActualizarTodaLaSerie(Turno turnoSeleccionado,TurnoDTO dto,List<int> profesionalIds,List<int> pacienteIds,int tipoTurnoId,int duracionMinutos)
         {
             if (!turnoSeleccionado.SerieTurnoId.HasValue)
             {
@@ -832,28 +870,46 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var serieTurnoId =
                 turnoSeleccionado.SerieTurnoId.Value;
 
+            var inicioHoyUtc =
+                DateTime.SpecifyKind(
+                    DateTime.UtcNow.Date,
+                    DateTimeKind.Utc
+                );
+
+
             var turnosSerie = await context.Turnos
-                .Include(turno => turno.TurnoProfesionales)
-                .Include(turno => turno.TurnoPacientes)
-                .Where(turno =>
-                    turno.SerieTurnoId == serieTurnoId &&
-                    turno.EstadoRegistro ==
-                        EnumEstadoRegistro.activo
-                )
-                .OrderBy(turno => turno.FechaInicio)
-                .ToListAsync();
+                    .Include(turno =>
+                        turno.TurnoProfesionales
+                    )
+                    .Include(turno =>
+                        turno.TurnoPacientes
+                    )
+                    .Where(turno =>
+                        turno.SerieTurnoId == serieTurnoId &&
+                        turno.EstadoRegistro ==
+                            EnumEstadoRegistro.activo &&
+                        turno.FechaInicio >= inicioHoyUtc
+                    )
+                    .OrderBy(turno =>
+                        turno.FechaInicio
+                    )
+                    .ToListAsync();
 
             if (turnosSerie.Count == 0)
             {
                 throw new ApplicationException(
-                    "No se encontraron turnos activos en la serie."
+                    "No se encontraron turnos futuros en la serie."
                 );
             }
 
             var turnoIds = turnosSerie
-                .Select(turno => turno.Id)
+                .Select(turno =>
+                    turno.Id
+                )
                 .ToList();
 
+            // Conservamos la fecha original de cada turno
+            // y aplicamos la nueva hora.
             var nuevasFechasInicio = turnosSerie
                 .Select(turno =>
                     DateTime.SpecifyKind(
@@ -865,26 +921,70 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 )
                 .ToList();
 
-            var conflictos = await context.Turnos
-                .Where(turno =>
-                    turno.EstadoRegistro ==
-                        EnumEstadoRegistro.activo &&
-                    turno.TipoConsultorioId ==
-                        dto.TipoConsultorioId &&
-                    !turnoIds.Contains(turno.Id) &&
-                    nuevasFechasInicio.Contains(
-                        turno.FechaInicio
-                    )
-                )
-                .Select(turno => turno.FechaInicio)
-                .OrderBy(fecha => fecha)
-                .ToListAsync();
+            var fechasConConflicto =
+                new List<DateTime>();
 
-            if (conflictos.Count > 0)
+            // Si toda la serie queda cancelada,
+            // sus turnos ya no reservan recursos.
+            if (dto.EstadoTurno !=
+                EnumEstadoTurno.cancelado)
             {
-                var conflictosTexto = string.Join(
+                var primeraFechaInicio =
+                    nuevasFechasInicio.Min();
+
+                var ultimaFechaFin =
+                    nuevasFechasInicio
+                        .Max()
+                        .AddMinutes(duracionMinutos);
+
+                var turnosQueBloquean =
+                    await ConsultarTurnosQueBloquean(
+                            dto.TipoConsultorioId,
+                            profesionalIds,
+                            pacienteIds
+                        )
+                        .Where(turno =>
+                            !turnoIds.Contains(turno.Id) &&
+                            turno.FechaInicio <
+                                ultimaFechaFin &&
+                            turno.FechaFin >
+                                primeraFechaInicio
+                        )
+                        .Select(turno => new
+                        {
+                            turno.FechaInicio,
+                            turno.FechaFin
+                        })
+                        .ToListAsync();
+
+                fechasConConflicto =
+                    nuevasFechasInicio
+                        .Where(nuevaFechaInicio =>
+                        {
+                            var nuevaFechaFin =
+                                nuevaFechaInicio.AddMinutes(
+                                    duracionMinutos
+                                );
+
+                            return turnosQueBloquean.Any(
+                                turnoExistente =>
+                                    turnoExistente.FechaInicio <
+                                        nuevaFechaFin &&
+                                    turnoExistente.FechaFin >
+                                        nuevaFechaInicio
+                            );
+                        })
+                        .OrderBy(fecha =>
+                            fecha
+                        )
+                        .ToList();
+            }
+
+            if (fechasConConflicto.Count > 0)
+            {
+                var fechasTexto = string.Join(
                     ", ",
-                    conflictos.Select(fecha =>
+                    fechasConConflicto.Select(fecha =>
                         fecha
                             .ToLocalTime()
                             .ToString("dd/MM/yyyy HH:mm")
@@ -893,8 +993,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
                 throw new ApplicationException(
                     "No se puede actualizar toda la serie " +
-                    "porque existen conflictos en estos horarios: " +
-                    $"{conflictosTexto}."
+                    "porque el consultorio, algún profesional " +
+                    "o algún paciente está ocupado en estos horarios: " +
+                    $"{fechasTexto}."
                 );
             }
 
@@ -913,7 +1014,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
                     var nuevaFechaInicio =
                         DateTime.SpecifyKind(
-                            fechaTurno.ToDateTime(dto.Hora),
+                            fechaTurno.ToDateTime(
+                                dto.Hora
+                            ),
                             DateTimeKind.Utc
                         );
 
@@ -943,6 +1046,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     );
                 }
 
+                // Aplicamos los cambios y eliminamos
+                // las relaciones anteriores.
                 await context.SaveChangesAsync();
 
                 var nuevasRelacionesProfesionales =
@@ -952,7 +1057,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                                 profesionalId =>
                                     new TurnoProfesional
                                     {
-                                        TurnoId = turno.Id,
+                                        TurnoId =
+                                            turno.Id,
 
                                         ProfesionalId =
                                             profesionalId
@@ -968,7 +1074,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                                 pacienteId =>
                                     new TurnoPaciente
                                     {
-                                        TurnoId = turno.Id,
+                                        TurnoId =
+                                            turno.Id,
 
                                         PacienteId =
                                             pacienteId

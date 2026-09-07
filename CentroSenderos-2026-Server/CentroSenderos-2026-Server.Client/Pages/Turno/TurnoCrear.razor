@@ -82,7 +82,8 @@
 
                             <InputSelect id="tipoTurno"
                                          class="form-select"
-                                         @bind-Value="modelo.TipoTurnoId">
+                                         @bind-Value="modelo.TipoTurnoId"
+                                         @bind-Value:after="InvalidarHorariosConsultados">
 
                                 <option value="0">
                                     Seleccione un tipo de turno
@@ -113,7 +114,8 @@
 
                             <InputSelect id="consultorio"
                                          class="form-select"
-                                         @bind-Value="modelo.TipoConsultorioId">
+                                         @bind-Value="modelo.TipoConsultorioId"
+                                         @bind-Value:after="InvalidarHorariosConsultados">
 
                                 <option value="0">
                                     Seleccione un consultorio
@@ -1057,7 +1059,7 @@
     && !string.IsNullOrWhiteSpace(horaSeleccionada)
     && RecurrenciaValida;
 
-                private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
+    private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
                 string.IsNullOrWhiteSpace(busquedaProfesional)
                     ? profesionales
                     : profesionales
@@ -1068,10 +1070,7 @@
                             )
                         )
                         .ToList();
-                private void CambiarSeleccionProfesional(
-                int profesionalId,
-                bool seleccionado
-            )
+    private void CambiarSeleccionProfesional(int profesionalId,bool seleccionado)
                 {
                     if (seleccionado)
                     {
@@ -1089,20 +1088,19 @@
                     modelo.ProfesionalId =
                         modelo.ProfesionalIds.FirstOrDefault();
 
-                    Mensaje = string.Empty;
+        InvalidarHorariosConsultados();
                 }
-                private void QuitarProfesional(int profesionalId)
+    private void QuitarProfesional(int profesionalId)
                 {
                     modelo.ProfesionalIds.Remove(profesionalId);
 
                     modelo.ProfesionalId =
                         modelo.ProfesionalIds.FirstOrDefault();
 
-                    Mensaje = string.Empty;
+        InvalidarHorariosConsultados();
                 }
 
-                    private string TextoProfesionalesSeleccionados =>
-                modelo.ProfesionalIds.Count switch
+    private string TextoProfesionalesSeleccionados => modelo.ProfesionalIds.Count switch
                 {
                 0 => "Seleccione profesionales",
                 1 => "1 profesional seleccionado",
@@ -1110,19 +1108,19 @@
                 };
 
 
-                private void AlternarSelectorProfesionales()
+     private void AlternarSelectorProfesionales()
                 {
                     mostrarSelectorProfesionales =
                         !mostrarSelectorProfesionales;
                 }
 
-                private void CerrarSelectorProfesionales()
+    private void CerrarSelectorProfesionales()
                 {
                     mostrarSelectorProfesionales = false;
                     busquedaProfesional = string.Empty;
                 }
 
-                private void AlternarProfesional(int profesionalId)
+    private void AlternarProfesional(int profesionalId)
                 {
                     var estaSeleccionado =
                         modelo.ProfesionalIds.Contains(profesionalId);
@@ -1149,8 +1147,7 @@
                 )
                 .ToList();
     
-    private string TextoPacientesSeleccionados =>
-        modelo.PacienteIds.Count switch
+    private string TextoPacientesSeleccionados => modelo.PacienteIds.Count switch
         {
             0 => "Seleccione pacientes",
             1 => "1 paciente seleccionado",
@@ -1181,10 +1178,7 @@
         );
     }
 
-    private void CambiarSeleccionPaciente(
-        int pacienteId,
-        bool seleccionado
-    )
+    private void CambiarSeleccionPaciente(int pacienteId,bool seleccionado)
     {
         if (seleccionado)
         {
@@ -1202,7 +1196,7 @@
         modelo.PacienteId =
             modelo.PacienteIds.FirstOrDefault();
 
-        Mensaje = string.Empty;
+        InvalidarHorariosConsultados();
     }
 
     private void QuitarPaciente(int pacienteId)
@@ -1212,7 +1206,7 @@
         modelo.PacienteId =
             modelo.PacienteIds.FirstOrDefault();
 
-        Mensaje = string.Empty;
+        InvalidarHorariosConsultados();
     }
 
 
@@ -1321,6 +1315,20 @@
             return;
         }
 
+        if (modelo.ProfesionalIds.Count == 0)
+        {
+            Mensaje =
+                "Seleccioná al menos un profesional.";
+            return;
+        }
+
+        if (modelo.PacienteIds.Count == 0)
+        {
+            Mensaje =
+                "Seleccioná al menos un paciente.";
+            return;
+        }
+
         if (modelo.Fecha == DateTime.MinValue)
         {
             Mensaje = "Seleccioná una fecha.";
@@ -1329,13 +1337,26 @@
 
         consultandoHorarios = true;
 
+        var parametrosProfesionales = string.Concat(modelo.ProfesionalIds.Select(profesionalId =>$"&profesionalIds={profesionalId}")
+        );
+
+        var parametrosPacientes = string.Concat(
+            modelo.PacienteIds.Select(
+                pacienteId =>
+                    $"&pacienteIds={pacienteId}"
+            )
+        );
+
+        var url =
+            $"api/turno/Disponibles" +
+            $"?fecha={modelo.Fecha:yyyy-MM-dd}" +
+            $"&tipoTurnoId={modelo.TipoTurnoId}" +
+            $"&consultorioId={modelo.TipoConsultorioId}" +
+            parametrosProfesionales +
+            parametrosPacientes;
+
         var resp =
-            await Http.Get<List<string>>(
-                $"api/turno/Disponibles" +
-                $"?fecha={modelo.Fecha:yyyy-MM-dd}" +
-                $"&tipoTurnoId={modelo.TipoTurnoId}" +
-                $"&consultorioId={modelo.TipoConsultorioId}"
-            );
+            await Http.Get<List<string>>(url);
 
         horariosConsultados = true;
         consultandoHorarios = false;
@@ -1447,6 +1468,7 @@
         mesCalendario =
             mesCalendario.AddMonths(-1);
     }
+
     private DateTime mesCalendarioRecurrencia = new(
         DateTime.Today.Year,
         DateTime.Today.Month,
@@ -1480,8 +1502,7 @@
             .ToList();
     }
 
-    private void SeleccionarFechaCalendario(
-        DateTime fecha)
+    private void SeleccionarFechaCalendario(DateTime fecha)
     {
         modelo.Fecha = fecha.Date;
 
@@ -1520,8 +1541,7 @@
         Mensaje = string.Empty;
     }
 
-    private string ObtenerClaseDiaCalendario(
-        DateTime dia)
+    private string ObtenerClaseDiaCalendario(DateTime dia)
     {
         var clases = new List<string>
     {
@@ -1546,8 +1566,7 @@
         return string.Join(" ", clases);
     }
 
-    private static string FormatearMesCalendario(
-        DateTime fecha)
+    private static string FormatearMesCalendario(DateTime fecha)
     {
         var texto = fecha.ToString(
             "MMMM yyyy",
@@ -1679,7 +1698,14 @@
         return string.Join(" ", clases);
     }
 
-
+    private void InvalidarHorariosConsultados()
+    {
+        horasDisponibles.Clear();
+        horaSeleccionada = string.Empty;
+        modelo.Hora = TimeOnly.MinValue;
+        horariosConsultados = false;
+        Mensaje = string.Empty;
+    }
 
 
 
