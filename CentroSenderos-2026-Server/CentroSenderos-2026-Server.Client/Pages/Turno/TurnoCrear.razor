@@ -815,16 +815,35 @@
                     }
                     else if (horasDisponibles.Count == 0)
                     {
-                        <div class="horarios-vacio">
+                        @if (!horariosConsultados)
+                        {
+                            <div class="horarios-vacio">
 
-                            <i class="bi bi-calendar-x"></i>
+                                <i class="bi bi-calendar-x"></i>
 
-                            <p>
-                                No hay horarios disponibles
-                                para esta selección.
-                            </p>
+                                <p>
+                                    No encontramos horarios disponibles para el
+                                    <strong>@modelo.Fecha.ToString("dd/MM/yyyy")</strong>
+                                    con la selección actual.
+                                    Probá con otra fecha, consultorio, tipo de turno
+                                    o cambiá algún profesional o paciente.
+                                </p>
 
-                        </div>
+                            </div>
+                        }
+                        else if (horasDisponibles.Count == 0)
+                        {
+                            <div class="horarios-vacio">
+
+                                <i class="bi bi-calendar-x"></i>
+
+                                <p>
+                                    No hay horarios disponibles
+                                    para esta selección.
+                                </p>
+
+                            </div>
+                        }
                     }
                     else
                     {
@@ -965,6 +984,12 @@
         Fecha = DateTime.Today,
         Hora = TimeOnly.MinValue
     };
+    [SupplyParameterFromQuery(Name = "vistaOrigen")]
+    public string? VistaOrigen { get; set; }
+
+    [SupplyParameterFromQuery(Name = "fechaOrigen")]
+    public string? FechaOrigen { get; set; }
+
 
     private List<TipoTurnoListadoDTO> tiposTurno = new();
     private List<TipoConsultorioListadoDTO> consultorios = new();
@@ -1742,14 +1767,41 @@
             return;
         }
 
+        var vistaDestino =
+    string.IsNullOrWhiteSpace(VistaOrigen)
+        ? "diaria"
+        : VistaOrigen;
+
+        var fechaDestino =
+            string.IsNullOrWhiteSpace(FechaOrigen)
+                ? modelo.Fecha.ToString("yyyy-MM-dd")
+                : FechaOrigen;
+
         Nav.NavigateTo(
-        "/turnos?estado=creado",
-        forceLoad: true
+            "/turnos" +
+            "?estado=creado" +
+            $"&vista={vistaDestino}" +
+            $"&fecha={fechaDestino}",
+            forceLoad: true
         );
     }
 
     private void Cancelar()
     {
-        Nav.NavigateTo("/turnos");
+        var vistaDestino =
+            string.IsNullOrWhiteSpace(VistaOrigen)
+                ? "diaria"
+                : VistaOrigen;
+
+        var fechaDestino =
+            string.IsNullOrWhiteSpace(FechaOrigen)
+                ? DateTime.Today.ToString("yyyy-MM-dd")
+                : FechaOrigen;
+
+        Nav.NavigateTo(
+            "/turnos" +
+            $"?vista={vistaDestino}" +
+            $"&fecha={fechaDestino}"
+        );
     }
 }

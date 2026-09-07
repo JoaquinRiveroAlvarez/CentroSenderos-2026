@@ -1499,7 +1499,17 @@
 
     private void IrACrear()
     {
-        Nav.NavigateTo("/turnos/crear");
+        var vistaOrigen =
+            ObtenerVistaActual();
+
+        var fechaOrigen =
+            fechaSeleccionada.ToString("yyyy-MM-dd");
+
+        Nav.NavigateTo(
+            "/turnos/crear" +
+            $"?vistaOrigen={vistaOrigen}" +
+            $"&fechaOrigen={fechaOrigen}"
+        );
     }
 
     private class OpcionFiltro

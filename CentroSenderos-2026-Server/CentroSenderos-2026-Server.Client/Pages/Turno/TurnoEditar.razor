@@ -55,7 +55,7 @@
     else
     {
         <EditForm Model="@modelo"
-                  OnValidSubmit="Grabar"
+                  OnValidSubmit="SolicitarGuardado"
                   class="turno-editar-form">
 
             <DataAnnotationsValidator />
@@ -685,6 +685,64 @@
     }
 </div>
 
+
+@if (mostrarConfirmacionSerie)
+{
+    <div class="modal-fondo"
+         @onclick="CancelarEdicionSerie">
+
+        <div class="modal-eliminar"
+             @onclick:stopPropagation="true">
+
+            <div class="modal-icono">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+
+            <h2>¿Modificar los turnos futuros?</h2>
+
+            <p>
+                Se actualizarán todos los turnos futuros de la serie.
+                Los turnos anteriores no se modificarán.
+            </p>
+
+            <div class="modal-acciones">
+
+                <button type="button"
+                        class="btn-cancelar"
+                        disabled="@guardando"
+                        @onclick="CancelarEdicionSerie">
+                    No, volver
+                </button>
+
+                <button type="button"
+                        class="btn-guardar"
+                        disabled="@guardando"
+                        @onclick="ConfirmarEdicionSerie">
+
+                    @if (guardando)
+                    {
+                        <span class="spinner-border spinner-border-sm"
+                              role="status">
+                        </span>
+
+                        <span>Guardando...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-check-lg"></i>
+                        <span>Sí, modificar</span>
+                    }
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+
 @if (mostrarConfirmacionEliminar)
 {
     <div class="modal-fondo" @onclick="CancelarEliminacion">
@@ -765,6 +823,7 @@
     private bool operacionExitosa;
     private bool calendarioAbierto;
     private bool mostrarConfirmacionEliminar;
+    private bool mostrarConfirmacionSerie;
     private string busquedaProfesional = string.Empty;
     private bool mostrarSelectorProfesionales;
     private string busquedaPaciente = string.Empty;
@@ -1236,52 +1295,6 @@
         };
     }
 
-    private async Task Grabar()
-    {
-        if (!PuedeGuardar || guardando)
-        {
-            return;
-        }
-
-        guardando = true;
-        operacionExitosa = false;
-        Mensaje = string.Empty;
-
-        var respuesta =
-            await Http.Put<TurnoDTO, RespuestaDTO>(
-                $"api/turno/{id}",
-                modelo
-            );
-
-        if (respuesta.Error)
-        {
-            Mensaje =
-                respuesta.Respuesta?.mensaje ??
-                respuesta.ObtenerError();
-
-            guardando = false;
-            return;
-        }
-
-        operacionExitosa = true;
-        Mensaje = respuesta.Respuesta?.mensaje
-            ?? "Turno actualizado correctamente.";
-
-        guardando = false;
-
-        await Task.Delay(500);
-
-        var estadoResultado = modelo.ModificarTodaLaSerie
-                ? "serie-actualizada"
-                : "actualizado";
-
-        Nav.NavigateTo(
-            $"/turnos?estado={estadoResultado}",
-            forceLoad: true
-  
-        );
-    }
-
     private void SolicitarEliminacion()
     {
         mostrarConfirmacionEliminar = true;
@@ -1320,11 +1333,121 @@
         operacionExitosa = true;
         Mensaje = "Turno eliminado correctamente.";
 
+        var vistaDestino =
+    string.IsNullOrWhiteSpace(VistaOrigen)
+        ? "diaria"
+        : VistaOrigen;
+
+        var fechaDestino =
+            string.IsNullOrWhiteSpace(FechaOrigen)
+                ? modelo.Fecha.ToString("yyyy-MM-dd")
+                : FechaOrigen;
+
         Nav.NavigateTo(
-            "/turnos?estado=eliminado",
+            "/turnos" +
+            "?estado=eliminado" +
+            $"&vista={vistaDestino}" +
+            $"&fecha={fechaDestino}",
             forceLoad: true
         );
     }
+
+    private async Task SolicitarGuardado()
+    {
+        if (!PuedeGuardar || guardando)
+        {
+            return;
+        }
+
+        if (modelo.ModificarTodaLaSerie)
+        {
+            mostrarConfirmacionSerie = true;
+            return;
+        }
+
+        await Grabar();
+    }
+
+    private void CancelarEdicionSerie()
+    {
+        if (!guardando)
+        {
+            mostrarConfirmacionSerie = false;
+        }
+    }
+
+    private async Task ConfirmarEdicionSerie()
+    {
+        if (guardando)
+        {
+            return;
+        }
+
+        mostrarConfirmacionSerie = false;
+
+        await Grabar();
+    }
+
+
+    private async Task Grabar()
+    {
+        if (!PuedeGuardar || guardando)
+        {
+            return;
+        }
+
+        guardando = true;
+        operacionExitosa = false;
+        Mensaje = string.Empty;
+
+        var respuesta =
+            await Http.Put<TurnoDTO, RespuestaDTO>(
+                $"api/turno/{id}",
+                modelo
+            );
+
+        if (respuesta.Error)
+        {
+            Mensaje =
+                respuesta.Respuesta?.mensaje ??
+                respuesta.ObtenerError();
+
+            guardando = false;
+            return;
+        }
+
+        operacionExitosa = true;
+        Mensaje = respuesta.Respuesta?.mensaje
+            ?? "Turno actualizado correctamente.";
+
+        guardando = false;
+
+        await Task.Delay(500);
+
+        var estadoResultado = modelo.ModificarTodaLaSerie
+    ? "serie-actualizada"
+    : "actualizado";
+
+        var vistaDestino =
+            string.IsNullOrWhiteSpace(VistaOrigen)
+                ? "diaria"
+                : VistaOrigen;
+
+        var fechaDestino =
+            string.IsNullOrWhiteSpace(FechaOrigen)
+                ? modelo.Fecha.ToString("yyyy-MM-dd")
+                : FechaOrigen;
+
+        Nav.NavigateTo(
+            $"/turnos" +
+            $"?estado={estadoResultado}" +
+            $"&vista={vistaDestino}" +
+            $"&fecha={fechaDestino}",
+            forceLoad: true
+        );
+    }
+
+
 
     private void Volver()
     {
