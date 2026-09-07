@@ -807,6 +807,10 @@
     public string? VistaOrigen { get; set; }
     [SupplyParameterFromQuery(Name = "fechaOrigen")]
     public string? FechaOrigen { get; set; }
+    [SupplyParameterFromQuery(Name = "consultorios")]
+    public string? ConsultoriosDesdeUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "tipos")]
+    public string? TiposDesdeUrl { get; set; }
 
     private List<ProfesionalListadoDTO> profesionales = new();
     private List<PacienteResumenDTO> pacientes = new();
@@ -1344,14 +1348,20 @@
                 : FechaOrigen;
 
         Nav.NavigateTo(
-            "/turnos" +
-            "?estado=eliminado" +
-            $"&vista={vistaDestino}" +
-            $"&fecha={fechaDestino}",
-            forceLoad: true
-        );
+    "/turnos" +
+    "?estado=eliminado" +
+    $"&vista={vistaDestino}" +
+    $"&fecha={fechaDestino}" +
+    ObtenerFiltrosParaRegreso(),
+    forceLoad: true
+);
     }
-
+    private string ObtenerFiltrosParaRegreso()
+    {
+        return
+            $"&consultorios={ConsultoriosDesdeUrl ?? string.Empty}" +
+            $"&tipos={TiposDesdeUrl ?? string.Empty}";
+    }
     private async Task SolicitarGuardado()
     {
         if (!PuedeGuardar || guardando)
@@ -1439,52 +1449,52 @@
                 : FechaOrigen;
 
         Nav.NavigateTo(
-            $"/turnos" +
-            $"?estado={estadoResultado}" +
-            $"&vista={vistaDestino}" +
-            $"&fecha={fechaDestino}",
-            forceLoad: true
-        );
+    "/turnos" +
+    $"?estado={estadoResultado}" +
+    $"&vista={vistaDestino}" +
+    $"&fecha={fechaDestino}" +
+    ObtenerFiltrosParaRegreso(),
+    forceLoad: true
+);
     }
 
 
 
     private void Volver()
     {
-        var vista = string.IsNullOrWhiteSpace(VistaOrigen)
-            ? "diaria"
-            : VistaOrigen;
+        var vista =
+            string.IsNullOrWhiteSpace(VistaOrigen)
+                ? "diaria"
+                : VistaOrigen;
 
-        var fecha = string.IsNullOrWhiteSpace(FechaOrigen)
-            ? DateTime.Today.ToString("yyyy-MM-dd")
-            : FechaOrigen;
+        var fecha =
+            string.IsNullOrWhiteSpace(FechaOrigen)
+                ? modelo.Fecha.ToString("yyyy-MM-dd")
+                : FechaOrigen;
+
+        var filtros =
+            ObtenerFiltrosParaRegreso();
 
         if (VolverADetalle)
         {
             Nav.NavigateTo(
-                $"/turnos" +
+                "/turnos" +
                 $"?detalle={id}" +
                 $"&vista={vista}" +
-                $"&fecha={fecha}"
+                $"&fecha={fecha}" +
+                filtros
             );
 
             return;
         }
 
-        if (VolverAVista)
-        {
-            Nav.NavigateTo(
-                $"/turnos" +
-                $"?vista={vista}" +
-                $"&fecha={fecha}"
-            );
-
-            return;
-        }
-
-        Nav.NavigateTo("/turnos");
+        Nav.NavigateTo(
+            "/turnos" +
+            $"?vista={vista}" +
+            $"&fecha={fecha}" +
+            filtros
+        );
     }
-
     private sealed class DiaCalendario
     {
         public DateTime Fecha { get; set; }
