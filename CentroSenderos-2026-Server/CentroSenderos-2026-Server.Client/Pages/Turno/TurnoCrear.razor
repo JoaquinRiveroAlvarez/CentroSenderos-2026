@@ -986,10 +986,12 @@
     };
     [SupplyParameterFromQuery(Name = "vistaOrigen")]
     public string? VistaOrigen { get; set; }
-
     [SupplyParameterFromQuery(Name = "fechaOrigen")]
     public string? FechaOrigen { get; set; }
-
+    [SupplyParameterFromQuery(Name = "consultorios")]
+    public string? ConsultoriosDesdeUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "tipos")]
+    public string? TiposDesdeUrl { get; set; }
 
     private List<TipoTurnoListadoDTO> tiposTurno = new();
     private List<TipoConsultorioListadoDTO> consultorios = new();
@@ -1731,7 +1733,12 @@
         horariosConsultados = false;
         Mensaje = string.Empty;
     }
-
+    private string ObtenerFiltrosParaRegreso()
+    {
+        return
+            $"&consultorios={ConsultoriosDesdeUrl ?? string.Empty}" +
+            $"&tipos={TiposDesdeUrl ?? string.Empty}";
+    }
 
 
 
@@ -1778,12 +1785,13 @@
                 : FechaOrigen;
 
         Nav.NavigateTo(
-            "/turnos" +
-            "?estado=creado" +
-            $"&vista={vistaDestino}" +
-            $"&fecha={fechaDestino}",
-            forceLoad: true
-        );
+    "/turnos" +
+    "?estado=creado" +
+    $"&vista={vistaDestino}" +
+    $"&fecha={fechaDestino}" +
+    ObtenerFiltrosParaRegreso(),
+    forceLoad: true
+);
     }
 
     private void Cancelar()
@@ -1799,9 +1807,10 @@
                 : FechaOrigen;
 
         Nav.NavigateTo(
-            "/turnos" +
-            $"?vista={vistaDestino}" +
-            $"&fecha={fechaDestino}"
+    "/turnos" +
+    $"?vista={vistaDestino}" +
+    $"&fecha={fechaDestino}" +
+    ObtenerFiltrosParaRegreso()
         );
     }
 }
