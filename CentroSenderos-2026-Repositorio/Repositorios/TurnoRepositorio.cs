@@ -743,8 +743,48 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             var fechaFinUtc =fechaInicioUtc.AddMinutes(duracionMinutos);
 
-            var existeConflicto =dto.EstadoTurno != EnumEstadoTurno.cancelado &&
+            var conflictoConsultorio =
+    dto.EstadoTurno != EnumEstadoTurno.cancelado
+        ? await context.Turnos
+            .Where(otroTurno =>
+                otroTurno.Id != id &&
+                otroTurno.EstadoRegistro ==
+                    EnumEstadoRegistro.activo &&
+                otroTurno.EstadoTurno !=
+                    EnumEstadoTurno.cancelado &&
+                otroTurno.TipoConsultorioId ==
+                    dto.TipoConsultorioId &&
+                otroTurno.FechaInicio < fechaFinUtc &&
+                otroTurno.FechaFin > fechaInicioUtc
+            )
+            .Select(otroTurno => new
+            {
+                otroTurno.FechaInicio,
+                otroTurno.FechaFin,
 
+                NombreConsultorio =
+                    otroTurno.TipoConsultorios != null
+                        ? otroTurno.TipoConsultorios.Tipo
+                        : "Consultorio"
+            })
+            .FirstOrDefaultAsync()
+        : null;
+
+            if (conflictoConsultorio is not null)
+            {
+                var inicioConflicto = conflictoConsultorio.FechaInicio;
+
+                var finConflicto = conflictoConsultorio.FechaFin;
+
+                throw new ApplicationException(
+                    $"El consultorio \"{conflictoConsultorio.NombreConsultorio}\" " +
+                    $"ya está ocupado el {inicioConflicto:dd/MM/yyyy} " +
+                    $"de {inicioConflicto:HH:mm} a {finConflicto:HH:mm}."
+                );
+            }
+
+            var existeOtroConflicto =
+                dto.EstadoTurno != EnumEstadoTurno.cancelado &&
                 await ConsultarTurnosQueBloquean(
                         dto.TipoConsultorioId,
                         profesionalIds,
@@ -752,18 +792,15 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     )
                     .AnyAsync(otroTurno =>
                         otroTurno.Id != id &&
-                        otroTurno.FechaInicio <
-                            fechaFinUtc &&
-                        otroTurno.FechaFin >
-                            fechaInicioUtc
+                        otroTurno.FechaInicio < fechaFinUtc &&
+                        otroTurno.FechaFin > fechaInicioUtc
                     );
 
-            if (existeConflicto)
+            if (existeOtroConflicto)
             {
                 throw new ApplicationException(
-                    "No se puede actualizar el turno porque " +
-                    "el consultorio, algún profesional o algún " +
-                    "paciente ya está ocupado en ese horario."
+                    "No se puede actualizar el turno porque algún " +
+                    "profesional o paciente ya está ocupado en ese horario."
                 );
             }
 
