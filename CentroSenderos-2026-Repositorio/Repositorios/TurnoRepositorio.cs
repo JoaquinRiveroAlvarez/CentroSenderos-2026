@@ -783,26 +783,124 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            var existeOtroConflicto =
-                dto.EstadoTurno != EnumEstadoTurno.cancelado &&
-                await ConsultarTurnosQueBloquean(
-                        dto.TipoConsultorioId,
-                        profesionalIds,
-                        pacienteIds
-                    )
-                    .AnyAsync(otroTurno =>
-                        otroTurno.Id != id &&
-                        otroTurno.FechaInicio < fechaFinUtc &&
-                        otroTurno.FechaFin > fechaInicioUtc
-                    );
-
-            if (existeOtroConflicto)
+            var conflictoProfesional =
+    dto.EstadoTurno != EnumEstadoTurno.cancelado
+        ? await context.Turnos
+            .Where(otroTurno =>
+                otroTurno.Id != id &&
+                otroTurno.EstadoRegistro ==
+                    EnumEstadoRegistro.activo &&
+                otroTurno.EstadoTurno !=
+                    EnumEstadoTurno.cancelado &&
+                otroTurno.FechaInicio < fechaFinUtc &&
+                otroTurno.FechaFin > fechaInicioUtc &&
+                otroTurno.TurnoProfesionales.Any(
+                    relacion =>
+                        profesionalIds.Contains(
+                            relacion.ProfesionalId
+                        )
+                )
+            )
+            .Select(otroTurno => new
             {
+                otroTurno.FechaInicio,
+                otroTurno.FechaFin,
+
+                NombreProfesional =
+                    otroTurno.TurnoProfesionales
+                        .Where(relacion =>
+                            profesionalIds.Contains(
+                                relacion.ProfesionalId
+                            )
+                        )
+                        .Select(relacion =>
+                            relacion.Profesionales != null
+                                ? relacion.Profesionales.Nombre
+                                : null
+                        )
+                        .FirstOrDefault()
+            })
+            .FirstOrDefaultAsync()
+        : null;
+
+            if (conflictoProfesional is not null)
+            {
+                var inicioConflicto =
+                    conflictoProfesional.FechaInicio;
+
+                var finConflicto =
+                    conflictoProfesional.FechaFin;
+
+                var nombreProfesional =
+                    conflictoProfesional.NombreProfesional
+                    ?? "Profesional seleccionado";
+
                 throw new ApplicationException(
-                    "No se puede actualizar el turno porque algún " +
-                    "profesional o paciente ya está ocupado en ese horario."
+                    $"El profesional \"{nombreProfesional}\" " +
+                    $"ya tiene un turno el {inicioConflicto:dd/MM/yyyy} " +
+                    $"de {inicioConflicto:HH:mm} a {finConflicto:HH:mm}."
                 );
             }
+
+            var conflictoPaciente =
+    dto.EstadoTurno != EnumEstadoTurno.cancelado
+        ? await context.Turnos
+            .Where(otroTurno =>
+                otroTurno.Id != id &&
+                otroTurno.EstadoRegistro ==
+                    EnumEstadoRegistro.activo &&
+                otroTurno.EstadoTurno !=
+                    EnumEstadoTurno.cancelado &&
+                otroTurno.FechaInicio < fechaFinUtc &&
+                otroTurno.FechaFin > fechaInicioUtc &&
+                otroTurno.TurnoPacientes.Any(
+                    relacion =>
+                        pacienteIds.Contains(
+                            relacion.PacienteId
+                        )
+                )
+            )
+            .Select(otroTurno => new
+            {
+                otroTurno.FechaInicio,
+                otroTurno.FechaFin,
+
+                NombrePaciente =
+                    otroTurno.TurnoPacientes
+                        .Where(relacion =>
+                            pacienteIds.Contains(
+                                relacion.PacienteId
+                            )
+                        )
+                        .Select(relacion =>
+                            relacion.Pacientes != null
+                                ? relacion.Pacientes.Nombre
+                                : null
+                        )
+                        .FirstOrDefault()
+            })
+            .FirstOrDefaultAsync()
+        : null;
+
+            if (conflictoPaciente is not null)
+            {
+                var inicioConflicto =
+                    conflictoPaciente.FechaInicio;
+
+                var finConflicto =
+                    conflictoPaciente.FechaFin;
+
+                var nombrePaciente =
+                    conflictoPaciente.NombrePaciente
+                    ?? "Paciente seleccionado";
+
+                throw new ApplicationException(
+                    $"El paciente \"{nombrePaciente}\" " +
+                    $"ya tiene un turno el {inicioConflicto:dd/MM/yyyy} " +
+                    $"de {inicioConflicto:HH:mm} a {finConflicto:HH:mm}."
+                );
+            }
+
 
             turno.FechaInicio = fechaInicioUtc;
             turno.FechaFin = fechaFinUtc;
