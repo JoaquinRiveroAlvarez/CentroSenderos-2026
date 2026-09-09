@@ -855,8 +855,8 @@
                             <span>Pacientes</span>
 
                             <strong>
-                                @turnoSeleccionado.NombresPacientes.Count
-                                @(turnoSeleccionado.NombresPacientes.Count == 1
+                                @turnoSeleccionado.PacientesDetalle.Count
+                                @(turnoSeleccionado.PacientesDetalle.Count == 1
                                     ? "paciente"
                                     : "pacientes")
                             </strong>
@@ -866,17 +866,36 @@
 
                     <div class="detalle-personas-lista">
 
-                        @if (turnoSeleccionado.NombresPacientes.Count > 0)
+                        @if (turnoSeleccionado.PacientesDetalle.Count > 0)
                         {
                             @foreach (
                                 var paciente in
-                                turnoSeleccionado.NombresPacientes
+                                turnoSeleccionado.PacientesDetalle
                             )
                             {
-                                <span class="detalle-persona-item">
+                                <div class="detalle-persona-item">
+
                                     <i class="bi bi-person"></i>
-                                    @paciente
-                                </span>
+
+                                    <div class="detalle-persona-informacion">
+
+                                        <strong>
+                                            @paciente.NombrePaciente
+                                        </strong>
+
+                                        <span>
+                                            <i class="bi bi-shield-check"></i>
+
+                                            @(string.IsNullOrWhiteSpace(
+                                                paciente.NombreObraSocial
+                                            )
+                                                ? "Sin información histórica"
+                                                : paciente.NombreObraSocial)
+                                        </span>
+
+                                    </div>
+
+                                </div>
                             }
                         }
                         else
@@ -887,7 +906,6 @@
                         }
 
                     </div>
-
                 </section>
 
             </div>

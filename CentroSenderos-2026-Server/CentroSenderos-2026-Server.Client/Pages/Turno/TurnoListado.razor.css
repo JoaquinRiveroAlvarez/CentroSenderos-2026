@@ -1927,6 +1927,38 @@
         }
 }
 
+.detalle-persona-informacion {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+    .detalle-persona-informacion strong {
+        color: #3f4940;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 650;
+        line-height: 1.3;
+    }
+
+    .detalle-persona-informacion span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #7b847a;
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 500;
+        line-height: 1.3;
+    }
+
+        .detalle-persona-informacion span i {
+            color: #647b5b;
+            font-size: 10px;
+        }
+
+
 /*abajo*/
 
 /* Pantallas medianas */
