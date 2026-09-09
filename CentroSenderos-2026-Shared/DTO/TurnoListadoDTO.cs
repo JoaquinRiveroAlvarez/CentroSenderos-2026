@@ -1,6 +1,7 @@
 ﻿using CentroSenderos_2026_Shared.Enum;
 using System;
 using System.Collections.Generic;
+using CentroSenderos_2026_Shared.DTO;
 
 namespace CentroSenderos_2026_Shared.DTO
 {
@@ -43,6 +44,8 @@ namespace CentroSenderos_2026_Shared.DTO
 
         public List<int> PacienteIds { get; set; } = new();
         public List<string> NombresPacientes { get; set; } = new();
+
+        public List<TurnoPacienteDetalleDTO> PacientesDetalle { get; set; } = new();
     }
 }
 

@@ -1,6 +1,7 @@
 ﻿using CentroSenderos_2026_Shared.Enum;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
+using CentroSenderos_2026_Shared.DTO;
 public class TurnoDTO
 {
     public int Id { get; set; }
@@ -51,5 +52,7 @@ public class TurnoDTO
     // Nuevas propiedades para permitir múltiples profesionales y pacientes.
     public List<int> ProfesionalIds { get; set; } = new();
     public List<int> PacienteIds { get; set; } = new();
+
+    public List<TurnoPacienteDetalleDTO> PacientesDetalle {get; set;} = new();
 }
 

@@ -77,10 +77,17 @@ namespace CentroSenderos_2026_BD
                 .HasOne(p => p.TipoDiagnosticos)
                 .WithMany(d => d.Pacientes)
                 .HasForeignKey(p => p.TipoDiagnosticoId);
+
             modelBuilder.Entity<PacienteTelefono>()
                 .HasOne(t => t.Paciente)
                 .WithMany(p => p.Telefonos)
                 .HasForeignKey(t => t.PacienteId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TurnoPaciente>()
+                .HasOne(tp => tp.TipoObraSocial)
+                .WithMany()
+                .HasForeignKey(tp => tp.TipoObraSocialId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Turno>()

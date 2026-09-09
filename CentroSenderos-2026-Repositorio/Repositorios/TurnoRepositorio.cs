@@ -97,6 +97,30 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
                     PacienteIds = t.TurnoPacientes
                         .Select(tp => tp.PacienteId)
+                        .ToList(),
+
+                        PacientesDetalle = t.TurnoPacientes
+                        .OrderBy(relacion =>
+                            relacion.Pacientes!.Nombre
+                        )
+                        .Select(relacion =>
+                            new TurnoPacienteDetalleDTO
+                            {
+                                PacienteId =
+                                    relacion.PacienteId,
+
+                                NombrePaciente =
+                                    relacion.Pacientes != null
+                                        ? relacion.Pacientes.Nombre
+                                        : "Paciente",
+
+                                TipoObraSocialId =
+                                    relacion.TipoObraSocialId,
+
+                                NombreObraSocial =
+                                    relacion.NombreObraSocial
+                            }
+                        )
                         .ToList()
                 })
                 .FirstOrDefaultAsync();
@@ -216,14 +240,39 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                             .ToList(),
 
                     NombresPacientes =
-                        t.TurnoPacientes
-                            .OrderBy(tp =>
-                                tp.Pacientes!.Nombre
-                            )
-                            .Select(tp =>
-                                tp.Pacientes!.Nombre
-                            )
-                            .ToList()
+                            t.TurnoPacientes
+                                .OrderBy(tp =>
+                                    tp.Pacientes!.Nombre
+                                )
+                                .Select(tp =>
+                                    tp.Pacientes!.Nombre
+                                )
+                                .ToList(),
+
+                                            PacientesDetalle =
+                            t.TurnoPacientes
+                                .OrderBy(relacion =>
+                                    relacion.Pacientes!.Nombre
+                                )
+                                .Select(relacion =>
+                                    new TurnoPacienteDetalleDTO
+                                    {
+                                        PacienteId =
+                                            relacion.PacienteId,
+
+                                        NombrePaciente =
+                                            relacion.Pacientes != null
+                                                ? relacion.Pacientes.Nombre
+                                                : "Paciente",
+
+                                        TipoObraSocialId =
+                                            relacion.TipoObraSocialId,
+
+                                        NombreObraSocial =
+                                            relacion.NombreObraSocial
+                                    }
+                                )
+                                .ToList()
                 })
                 .ToListAsync();
         }
@@ -534,7 +583,31 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            
+            var datosPacientes = await context.Pacientes
+                .Where(paciente =>
+                    pacienteIds.Contains(paciente.Id)
+                )
+                .Select(paciente => new
+                {
+                    paciente.Id,
+                    paciente.TipoObraSocialId,
+
+                    NombreObraSocial =
+                        paciente.TipoObraSociales != null
+                            ? paciente.TipoObraSociales.Tipo
+                            : null
+                })
+                .ToDictionaryAsync(
+                    paciente => paciente.Id
+                );
+
+            if (datosPacientes.Count != pacienteIds.Count)
+            {
+                throw new ApplicationException(
+                    "Uno o más pacientes seleccionados no existen."
+                );
+            }
+
 
             await using var transaccion =
                 await context.Database
@@ -644,21 +717,35 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .ToList();
 
                 var relacionesPacientes =
-                    turnos
-                        .SelectMany(turno =>
-                            pacienteIds.Select(
-                                pacienteId =>
-                                    new TurnoPaciente
-                                    {
-                                        TurnoId =
-                                            turno.Id,
+    turnos
+        .SelectMany(turno =>
+            pacienteIds.Select(
+                pacienteId =>
+                {
+                    var datosPaciente =
+                        datosPacientes[pacienteId];
 
-                                        PacienteId =
-                                            pacienteId
-                                    }
-                            )
-                        )
-                        .ToList();
+                    return new TurnoPaciente
+                    {
+                        TurnoId =
+                            turno.Id,
+
+                        PacienteId =
+                            pacienteId,
+
+                        TipoObraSocialId =
+                            datosPaciente.TipoObraSocialId,
+
+                        NombreObraSocial =
+                            datosPaciente.NombreObraSocial,
+
+                        EstadoRegistro =
+                            EnumEstadoRegistro.activo
+                    };
+                }
+            )
+        )
+        .ToList();
 
                 context.AddRange(
                     relacionesProfesionales
@@ -1051,6 +1138,43 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             turno.TipoTurnoId = tipoTurnoId;
             turno.TipoConsultorioId = dto.TipoConsultorioId;
 
+            var obrasSocialesGuardadas =
+    turno.TurnoPacientes
+        .ToDictionary(
+            relacion => relacion.PacienteId,
+            relacion => new
+            {
+                relacion.TipoObraSocialId,
+                relacion.NombreObraSocial
+            }
+        );
+
+            var datosPacientesActuales =
+                await context.Pacientes
+                    .Where(paciente =>
+                        pacienteIds.Contains(paciente.Id)
+                    )
+                    .Select(paciente => new
+                    {
+                        paciente.Id,
+                        paciente.TipoObraSocialId,
+
+                        NombreObraSocial =
+                            paciente.TipoObraSociales != null
+                                ? paciente.TipoObraSociales.Tipo
+                                : null
+                    })
+                    .ToDictionaryAsync(
+                        paciente => paciente.Id
+                    );
+
+            if (datosPacientesActuales.Count != pacienteIds.Count)
+            {
+                throw new ApplicationException(
+                    "Uno o más pacientes seleccionados no existen."
+                );
+            }
+
             context.RemoveRange(turno.TurnoProfesionales);
 
             context.RemoveRange(turno.TurnoPacientes);
@@ -1063,13 +1187,48 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         }
                     ).ToList();
 
-            var nuevosTurnoPacientes =pacienteIds.Select(pacienteId => new TurnoPaciente
-                        {
-                            TurnoId = turno.Id,
-                            PacienteId = pacienteId
-                        }
+            var nuevosTurnoPacientes =
+    pacienteIds
+        .Select(pacienteId =>
+        {
+            var datosActuales =
+                datosPacientesActuales[pacienteId];
+
+            var teniaObraSocialGuardada =
+                obrasSocialesGuardadas.TryGetValue(
+                    pacienteId,
+                    out var datosGuardados
+                ) &&
+                (
+                    datosGuardados.TipoObraSocialId.HasValue ||
+                    !string.IsNullOrWhiteSpace(
+                        datosGuardados.NombreObraSocial
                     )
-                    .ToList();
+                );
+
+            return new TurnoPaciente
+            {
+                TurnoId =
+                    turno.Id,
+
+                PacienteId =
+                    pacienteId,
+
+                TipoObraSocialId =
+                    teniaObraSocialGuardada
+                        ? datosGuardados!.TipoObraSocialId
+                        : datosActuales.TipoObraSocialId,
+
+                NombreObraSocial =
+                    teniaObraSocialGuardada
+                        ? datosGuardados!.NombreObraSocial
+                        : datosActuales.NombreObraSocial,
+
+                EstadoRegistro =
+                    EnumEstadoRegistro.activo
+            };
+        })
+        .ToList();
 
             context.AddRange(
                 nuevosTurnoProfesionales
@@ -1453,6 +1612,59 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 }
             }
 
+            var obrasSocialesGuardadas =
+    turnosSerie
+        .SelectMany(turno =>
+            turno.TurnoPacientes.Select(
+                relacion => new
+                {
+                    TurnoId =
+                        turno.Id,
+
+                    relacion.PacienteId,
+                    relacion.TipoObraSocialId,
+                    relacion.NombreObraSocial
+                }
+            )
+        )
+        .ToDictionary(
+            item => (
+                item.TurnoId,
+                item.PacienteId
+            ),
+            item => new
+            {
+                item.TipoObraSocialId,
+                item.NombreObraSocial
+            }
+        );
+
+            var datosPacientesActuales =
+                await context.Pacientes
+                    .Where(paciente =>
+                        pacienteIds.Contains(paciente.Id)
+                    )
+                    .Select(paciente => new
+                    {
+                        paciente.Id,
+                        paciente.TipoObraSocialId,
+
+                        NombreObraSocial =
+                            paciente.TipoObraSociales != null
+                                ? paciente.TipoObraSociales.Tipo
+                                : null
+                    })
+                    .ToDictionaryAsync(
+                        paciente => paciente.Id
+                    );
+
+            if (datosPacientesActuales.Count != pacienteIds.Count)
+            {
+                throw new ApplicationException(
+                    "Uno o más pacientes seleccionados no existen."
+                );
+            }
+
             await using var transaccion =
                 await context.Database
                     .BeginTransactionAsync();
@@ -1521,21 +1733,64 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .ToList();
 
                 var nuevasRelacionesPacientes =
-                    turnosSerie
-                        .SelectMany(turno =>
-                            pacienteIds.Select(
-                                pacienteId =>
-                                    new TurnoPaciente
-                                    {
-                                        TurnoId =
-                                            turno.Id,
+    turnosSerie
+        .SelectMany(turno =>
+            pacienteIds.Select(
+                pacienteId =>
+                {
+                    var datosActuales =
+                        datosPacientesActuales[
+                            pacienteId
+                        ];
 
-                                        PacienteId =
-                                            pacienteId
-                                    }
+                    var teniaObraSocialGuardada =
+                        obrasSocialesGuardadas
+                            .TryGetValue(
+                                (
+                                    turno.Id,
+                                    pacienteId
+                                ),
+                                out var datosGuardados
+                            ) &&
+                        (
+                            datosGuardados
+                                .TipoObraSocialId
+                                .HasValue ||
+                            !string.IsNullOrWhiteSpace(
+                                datosGuardados
+                                    .NombreObraSocial
                             )
-                        )
-                        .ToList();
+                        );
+
+                    return new TurnoPaciente
+                    {
+                        TurnoId =
+                            turno.Id,
+
+                        PacienteId =
+                            pacienteId,
+
+                        TipoObraSocialId =
+                            teniaObraSocialGuardada
+                                ? datosGuardados!
+                                    .TipoObraSocialId
+                                : datosActuales
+                                    .TipoObraSocialId,
+
+                        NombreObraSocial =
+                            teniaObraSocialGuardada
+                                ? datosGuardados!
+                                    .NombreObraSocial
+                                : datosActuales
+                                    .NombreObraSocial,
+
+                        EstadoRegistro =
+                            EnumEstadoRegistro.activo
+                    };
+                }
+            )
+        )
+        .ToList();
 
                 context.AddRange(
                     nuevasRelacionesProfesionales
