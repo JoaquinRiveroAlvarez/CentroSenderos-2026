@@ -1,3 +1,5 @@
+/* #region Estructura general de la página */
+
 .turno-crear-page {
     width: 100%;
     max-width: 1180px;
@@ -130,7 +132,9 @@
     line-height: 1.45;
 }
 
-/* Campos */
+/* #endregion */
+
+/* #region Campos del formulario */
 
 .campos-grid {
     display: grid;
@@ -154,7 +158,7 @@
     font-weight: 650;
 }
 
-.campo .form-control,
+.campo ::deep .form-control,
 .campo ::deep .form-select {
     width: 100%;
     min-height: 43px;
@@ -195,32 +199,16 @@
     font-size: 11px;
     line-height: 1.4;
 }
-.campo ::deep .form-control {
-    width: 100%;
-    min-height: 43px;
-    padding: 9px 12px;
-    border: 1px solid #d7d8d3;
-    border-radius: 8px;
-    background-color: #ffffff;
-    color: #383c36;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 400;
-    line-height: 1.5;
-    box-shadow: none;
+
+.campo ::deep .form-control:focus {
+    border-color: #647b5b;
+    box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.13);
+    outline: none;
 }
 
-    .campo ::deep .form-control:focus {
-        border-color: #647b5b;
-        box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.13);
-        outline: none;
-    }
+/* #endregion */
 
-/* Buscadores de los selectores */
-
-/* Selector múltiple con búsqueda */
-
-/* Selector múltiple desplegable */
+/* #region Selectores múltiples de profesionales y pacientes */
 
 .selector-desplegable {
     position: relative;
@@ -248,33 +236,34 @@
     box-shadow: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
+
 .campo .form-select option {
     font-family: inherit;
     font-size: 13px;
     font-weight: 400;
 }
 
-    .selector-desplegable-boton:hover {
-        border-color: #b8c3b4;
-        background-color: #fdfdfc;
-    }
+.selector-desplegable-boton:hover {
+    border-color: #b8c3b4;
+    background-color: #fdfdfc;
+}
 
-    .selector-desplegable-boton[aria-expanded="true"] {
-        border-color: #647b5b;
-        box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.13);
-    }
+.selector-desplegable-boton[aria-expanded="true"] {
+    border-color: #647b5b;
+    box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.13);
+}
 
-    .selector-desplegable-boton > span {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
+.selector-desplegable-boton > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
-    .selector-desplegable-boton > i {
-        flex: 0 0 auto;
-        color: #647b5b;
-        font-size: 12px;
-    }
+.selector-desplegable-boton > i {
+    flex: 0 0 auto;
+    color: #647b5b;
+    font-size: 12px;
+}
 
 /* Menú desplegable */
 
@@ -406,41 +395,6 @@
     text-align: center;
 }
 
-/* Pie del desplegable */
-
-.selector-desplegable-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 9px 10px;
-    background-color: #fafaf8;
-}
-
-    .selector-desplegable-footer > span {
-        color: #7b8178;
-        font-size: 11px;
-    }
-
-    .selector-desplegable-footer > button {
-        min-height: 30px;
-        padding: 5px 12px;
-        border: 1px solid #647b5b;
-        border-radius: 6px;
-        background-color: #eef3ec;
-        color: #486143;
-        font-size: 11px;
-        font-weight: 650;
-        cursor: pointer;
-        transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
-    }
-
-        .selector-desplegable-footer > button:hover {
-            border-color: #526b4c;
-            background-color: #dfe8dc;
-            color: #3e5939;
-        }
-
 /* Elementos seleccionados */
 
 .selector-multiple-seleccionados {
@@ -490,7 +444,7 @@
             font-size: 14px;
         }
 
-/* Ajustes para celulares */
+/* Ajuste del menú múltiple en celulares */
 
 @media (max-width: 560px) {
     .selector-desplegable-menu {
@@ -507,40 +461,9 @@
 
 
 
-/* Consultar horarios */
+/* #endregion */
 
-.btn-consultar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    min-height: 43px;
-    margin-top: 20px;
-    padding: 9px 15px;
-    border: 1px solid #647b5b;
-    border-radius: 8px;
-    background-color: #eef3ec;
-    color: #4b6545;
-    font-size: 13px;
-    font-weight: 650;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-    .btn-consultar:hover:not(:disabled) {
-        border-color: #526b4c;
-        background-color: #dfe8dc;
-        color: #3e5939;
-        transform: translateY(-1px);
-    }
-
-    .btn-consultar:disabled {
-        cursor: wait;
-        opacity: 0.7;
-    }
-
-/* Horarios */
+/* #region Horarios disponibles */
 
 .horarios-card {
     display: flex;
@@ -576,16 +499,24 @@
         line-height: 1.5;
     }
 
+.horarios-cargando {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 178px;
+    color: #647b5b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
 .horarios-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(64px, 1fr));
     align-content: start;
     gap: 9px;
-    max-height: 220px;
     padding: 2px;
-    overflow-y: auto;
-    scrollbar-color: #a0a49d #eeeeea;
-    scrollbar-width: thin;
 }
 
 .horario-opcion {
@@ -615,7 +546,9 @@
         box-shadow: 0 3px 8px rgba(85, 111, 79, 0.2);
     }
 
-/* Resumen */
+/* #endregion */
+
+/* #region Resumen del turno */
 
 .resumen-turno {
     margin-top: 18px;
@@ -684,7 +617,9 @@
     white-space: nowrap;
 }
 
-/* Validaciones */
+/* #endregion */
+
+/* #region Validaciones y mensajes */
 
 ::deep .validation-message {
     display: block;
@@ -728,7 +663,9 @@
     font-size: 12px;
 }
 
-/* Acciones */
+/* #endregion */
+
+/* #region Acciones del formulario */
 
 .form-actions {
     display: flex;
@@ -792,7 +729,9 @@
         transform: translateY(0);
     }
 
-/* Selector personalizado de fecha */
+/* #endregion */
+
+/* #region Calendario y recurrencia */
 
 .campo-fecha {
     position: relative;
@@ -899,6 +838,10 @@
     grid-template-columns: repeat(7, 1fr);
 }
 
+.calendario-crear-dias {
+    gap: 3px;
+}
+
 .calendario-crear-semana {
     margin-bottom: 4px;
 }
@@ -919,8 +862,6 @@
     background-color: transparent;
     color: #c7cac4;
     cursor: not-allowed;
-
-
     opacity: 0.55;
     transform: none;
 }
@@ -944,15 +885,6 @@
     right: auto;
     left: 0;
 }
-
-.campo-ayuda {
-    display: block;
-    margin-top: 6px;
-    color: #858981;
-    font-size: 11px;
-    line-height: 1.4;
-}
-
 
 /* Vista previa de recurrencia */
 
@@ -1020,10 +952,6 @@
     color: #40583b;
 }
 /* Días del mes */
-
-.calendario-crear-dias {
-    gap: 3px;
-}
 
 .calendario-crear-dia {
     position: relative;
@@ -1108,31 +1036,25 @@
             color: #3f5a39;
         }
 
-/*abajo*/
+/* #endregion */
 
-/* Responsive */
+/* #region Cierre de selectores al hacer clic afuera */
 
-@media (max-width: 800px) {
-    .calendario-crear {
-        right: auto;
-        left: 0;
-    }
+.selector-cierre-fondo {
+    position: fixed;
+    z-index: 30;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: default;
 }
 
-@media (max-width: 560px) {
-    .calendario-crear {
-        right: 0;
-        left: 0;
-        width: 100%;
-        min-width: 270px;
-        padding: 11px;
-    }
+/* #endregion */
 
-    .calendario-crear-dia {
-        border-radius: 6px;
-        font-size: 10px;
-    }
-}
+/* #region Diseño adaptable */
 
 /* Pantallas medianas */
 
@@ -1172,6 +1094,11 @@
         grid-template-columns: 1fr;
     }
 
+    .calendario-crear {
+        right: auto;
+        left: 0;
+    }
+
     .horarios-card {
         min-height: auto;
     }
@@ -1206,6 +1133,19 @@
         border-radius: 10px;
     }
 
+    .calendario-crear {
+        right: 0;
+        left: 0;
+        width: 100%;
+        min-width: 270px;
+        padding: 11px;
+    }
+
+    .calendario-crear-dia {
+        border-radius: 6px;
+        font-size: 10px;
+    }
+
     .campos-grid {
         grid-template-columns: 1fr;
     }
@@ -1236,3 +1176,5 @@
         width: 100%;
     }
 }
+
+/* #endregion */
