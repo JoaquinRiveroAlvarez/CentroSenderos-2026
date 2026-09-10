@@ -90,17 +90,24 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpGet("Disponibles")]
-        public async Task<ActionResult<List<string>>> GetDisponibles(DateOnly fecha,int tipoTurnoId,int consultorioId,[FromQuery] List<int>? profesionalIds = null,[FromQuery] List<int>? pacienteIds = null)
+        public async Task<ActionResult<List<string>>> GetDisponibles(
+            DateOnly fecha,
+            int tipoTurnoId,
+            int consultorioId,
+            [FromQuery] List<int>? profesionalIds = null,
+            [FromQuery] List<int>? pacienteIds = null,
+            int? turnoIdExcluir = null)
         {
             try
             {
-                var horarios = await repositorio
-                    .HorariosDisponibles(
+                var horarios =
+                    await repositorio.HorariosDisponibles(
                         fecha,
                         tipoTurnoId,
                         consultorioId,
                         profesionalIds,
-                        pacienteIds
+                        pacienteIds,
+                        turnoIdExcluir
                     );
 
                 var lista = horarios
@@ -121,7 +128,7 @@ namespace CentroSenderos_2026_Server.Controllers
                 );
             }
         }
-
+        
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

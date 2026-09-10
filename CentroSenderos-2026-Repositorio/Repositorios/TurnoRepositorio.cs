@@ -767,8 +767,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
         }
 
-        public async Task<List<TimeOnly>> HorariosDisponibles(DateOnly fecha,int tipoTurnoId,int consultorioId,List<int>? profesionalIds = null,List<int>? pacienteIds = null)
-
+        public async Task<List<TimeOnly>> HorariosDisponibles(DateOnly fecha,int tipoTurnoId,int consultorioId,List<int>? profesionalIds = null,List<int>? pacienteIds = null,int? turnoIdExcluir = null)
         {
             profesionalIds ??= new List<int>();
             pacienteIds ??= new List<int>();
@@ -807,10 +806,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
 
             var turnosQueBloquean =
-                await ConsultarTurnosQueBloquean(
+                    await ConsultarTurnosQueBloquean(
                         consultorioId,
                         profesionalIds,
                         pacienteIds
+                    )
+                    .Where(turno =>
+                        !turnoIdExcluir.HasValue ||
+                        turno.Id != turnoIdExcluir.Value
                     )
                     .Where(turno =>
                         turno.FechaInicio < fechaFinDiaUtc &&

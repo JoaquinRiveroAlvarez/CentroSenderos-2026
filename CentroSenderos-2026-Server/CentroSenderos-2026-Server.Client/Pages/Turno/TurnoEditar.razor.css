@@ -1373,3 +1373,150 @@ select.control-formulario {
         grid-template-columns: 1fr;
     }
 }
+
+/* Horarios disponibles: tarjeta ubicada en la columna derecha */
+
+.horarios-card {
+    min-width: 0;
+    padding: 26px;
+}
+
+
+/* Mensaje mostrado antes de consultar o cuando no existen horarios */
+
+.horarios-vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 145px;
+    padding: 22px;
+    border: 1px dashed #d8d9d4;
+    border-radius: 9px;
+    background-color: #fafaf8;
+    text-align: center;
+}
+
+    .horarios-vacio i {
+        margin-bottom: 10px;
+        color: #91a28c;
+        font-size: 28px;
+    }
+
+    .horarios-vacio p {
+        max-width: 260px;
+        margin: 0;
+        color: #858981;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+/* Grilla de horarios con el mismo formato utilizado al crear */
+
+/* Todos los horarios permanecen visibles, sin scroll interno */
+
+.horarios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
+    align-content: start;
+    gap: 9px;
+    width: 100%;
+    padding: 2px;
+}
+.horario-opcion {
+    min-height: 39px;
+    padding: 7px 8px;
+    border: 1px solid #d7d8d3;
+    border-radius: 7px;
+    background-color: #ffffff;
+    color: #4c5049;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 550;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+    .horario-opcion:hover {
+        border-color: #9dac98;
+        background-color: #f0f4ee;
+        color: #455f40;
+        transform: translateY(-1px);
+    }
+
+    .horario-opcion.seleccionado {
+        border-color: #556f4f;
+        background-color: #556f4f;
+        color: #ffffff;
+        box-shadow: 0 3px 8px rgba(85, 111, 79, 0.2);
+    }
+
+/* Retroalimentación durante la actualización automática */
+
+.horarios-cargando {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 90px;
+    color: #647b5b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Resumen inferior: ocupa el ancho de ambas columnas */
+
+.resumen-card-inferior {
+    grid-column: 1 / -1;
+    padding: 26px;
+}
+
+    .resumen-card-inferior .resumen-datos {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .resumen-card-inferior .resumen-fila {
+        min-width: 0;
+    }
+
+/* Distribución de horarios y resumen en pantallas medianas */
+
+@media (max-width: 1100px) {
+    .horarios-grid {
+        grid-template-columns: repeat(3, minmax(55px, 1fr));
+    }
+
+    .resumen-card-inferior .resumen-datos {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* En tablet, las tarjetas laterales mantienen dos columnas */
+
+@media (max-width: 850px) {
+    .resumen-card-inferior {
+        grid-column: auto;
+    }
+
+        .resumen-card-inferior .resumen-datos {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+}
+
+/* En celular, horarios y resumen pasan a una sola columna */
+
+@media (max-width: 650px) {
+    .horarios-card {
+        padding: 22px;
+    }
+
+    .horarios-grid {
+        grid-template-columns: repeat(3, minmax(55px, 1fr));
+    }
+
+    .resumen-card-inferior .resumen-datos {
+        grid-template-columns: 1fr;
+    }
+}

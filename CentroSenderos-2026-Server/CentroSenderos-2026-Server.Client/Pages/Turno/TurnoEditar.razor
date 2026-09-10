@@ -72,7 +72,7 @@
                             <p>Actualizá la fecha, la hora y el consultorio.</p>
                         </div>
                     </div>
-                    
+
                     @if (modelo.SerieTurnoId.HasValue)
                     {
                         <fieldset class="alcance-edicion">
@@ -137,7 +137,8 @@
                             <div class="select-contenedor">
                                 <InputSelect id="tipoTurno"
                                              class="control-formulario"
-                                             @bind-Value="modelo.TipoTurnoId">
+                                             @bind-Value="modelo.TipoTurnoId"
+                                             @bind-Value:after="ActualizarHorariosPorCambio">
                                     <option value="0">Seleccionar tipo de turno</option>
 
                                     @foreach (var tipo in tiposTurno)
@@ -164,7 +165,8 @@
                             <div class="select-contenedor">
                                 <InputSelect id="consultorio"
                                              class="control-formulario"
-                                             @bind-Value="modelo.TipoConsultorioId">
+                                             @bind-Value="modelo.TipoConsultorioId"
+                                             @bind-Value:after="ActualizarHorariosPorCambio">
                                     <option value="0">Seleccionar consultorio</option>
 
                                     @foreach (var consultorio in consultorios)
@@ -263,19 +265,6 @@
                             }
                         </div>
 
-                        <div class="campo">
-                            <label for="horaTurno">Hora de inicio</label>
-
-                            <div class="input-con-icono">
-                                <input id="horaTurno"
-                                       type="time"
-                                       class="control-formulario"
-                                       @bind="modelo.Hora" />
-
-                                <i class="bi bi-clock"></i>
-                            </div>
-                        </div>
-
                     </div>
 
                     <div class="campo campo-completo">
@@ -296,8 +285,8 @@
                                 </span>
 
                                 <i class="bi @(mostrarSelectorProfesionales
-                                                   ? "bi-chevron-up"
-                                                   : "bi-chevron-down")">
+                                 ? "bi-chevron-up"
+                                 : "bi-chevron-down")">
                                 </i>
 
                             </button>
@@ -340,12 +329,12 @@
 
                                                 <button type="button"
                                                         class="@(estaSeleccionado
-                                                                                            ? "selector-desplegable-opcion seleccionado"
-                                                                                            : "selector-desplegable-opcion")"
+                                                                                                                                                ? "selector-desplegable-opcion seleccionado"
+                                                                                                                                                : "selector-desplegable-opcion")"
                                                         @onclick="() =>
-                                                                                            AlternarProfesional(profesional.Id)">
+                                                                                                                                                AlternarProfesional(profesional.Id)">
 
-<span>@profesional.Nombre</span>
+                                                    <span>@profesional.Nombre</span>
 
                                 @if (estaSeleccionado)
                                                     {
@@ -398,7 +387,7 @@
                                             <button type="button"
                                                     title="Quitar profesional"
                                                     @onclick="() =>
-                                                                                    QuitarProfesional(profesional.Id)">
+                                                                                                                                    QuitarProfesional(profesional.Id)">
 
                                             <i class="bi bi-x"></i>
 
@@ -431,8 +420,8 @@
                                 </span>
 
                                 <i class="bi @(mostrarSelectorPacientes
-                                                                  ? "bi-chevron-up"
-                                                                  : "bi-chevron-down")">
+                                ? "bi-chevron-up"
+                                : "bi-chevron-down")">
                                 </i>
 
                             </button>
@@ -473,12 +462,12 @@
 
                                                 <button type="button"
                                                         class="@(estaSeleccionado
-                                                                                            ? "selector-desplegable-opcion seleccionado"
-                                                                                            : "selector-desplegable-opcion")"
+                                        ? "selector-desplegable-opcion seleccionado"
+                                        : "selector-desplegable-opcion")"
                                                         @onclick="() =>
-                                                                                            AlternarPaciente(paciente.Id)">
+                                                  AlternarPaciente(paciente.Id)">
 
-<span>
+                                                    <span>
                                                         @paciente.Nombre
                                                     </span>
 
@@ -533,7 +522,7 @@
                                             <button type="button"
                                                     title="Quitar paciente"
                                                     @onclick="() =>
-                                                                                    QuitarPaciente(paciente.Id)">
+                                                                                                                                    QuitarPaciente(paciente.Id)">
 
                                             <i class="bi bi-x"></i>
 
@@ -552,10 +541,80 @@
 
                 <aside class="editar-lateral">
 
-                    <section class="editar-card estado-card">
+                    <section class="editar-card horarios-card">
 
                         <div class="seccion-encabezado">
                             <span class="seccion-numero">02</span>
+
+                            <div>
+                                <h2>Horarios disponibles</h2>
+                                <p>Elegí el horario de inicio para el turno.</p>
+                            </div>
+                        </div>
+
+                        
+
+                        @if (consultandoHorarios)
+                        {
+                            <div class="horarios-cargando">
+
+                                <span class="spinner-border spinner-border-sm"
+                                      role="status">
+                                </span>
+
+                                <span>Actualizando horarios...</span>
+
+                            </div>
+                        }
+                        else if (!horariosConsultados)
+                        {
+                            <div class="horarios-vacio">
+
+                                <i class="bi bi-clock"></i>
+
+                                <p>
+                                    Completá los datos del turno para consultar
+                                    la disponibilidad.
+                                </p>
+
+                            </div>
+                        }
+                        else if (horasDisponibles.Count == 0)
+                        {
+                            <div class="horarios-vacio">
+
+                                <i class="bi bi-calendar-x"></i>
+
+                                <p>
+                                    No hay horarios disponibles para esta selección.
+                                </p>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="horarios-grid">
+
+                                @foreach (var hora in horasDisponibles)
+                                {
+                                    <button type="button"
+                                            class="@ObtenerClaseHorario(hora)"
+                                            @onclick="() => SeleccionarHora(hora)">
+
+                                        @hora
+
+                                    </button>
+                                }
+
+                            </div>
+                        }
+
+                    </section>
+
+                    <section class="editar-card estado-card">
+
+                        <div class="seccion-encabezado">
+                            <span class="seccion-numero">03</span>
 
                             <div>
                                 <h2>Estado del turno</h2>
@@ -584,50 +643,50 @@
                         </div>
                     </section>
 
-                    <section class="editar-card resumen-card">
-
-                        <div class="seccion-encabezado resumen-encabezado">
-                            <span class="seccion-numero">03</span>
-
-                            <div>
-                                <h2>Resumen</h2>
-                                <p>Revisá los cambios antes de guardar.</p>
-                            </div>
-                        </div>
-
-                        <div class="resumen-datos">
-
-                            <div class="resumen-fila">
-                                <span>Fecha</span>
-                                <strong>@TextoFechaResumen</strong>
-                            </div>
-
-                            <div class="resumen-fila">
-                                <span>Horario</span>
-                                <strong>@TextoHorarioResumen</strong>
-                            </div>
-
-                            <div class="resumen-fila">
-                                <span>Tipo</span>
-                                <strong>@NombreTipoTurno</strong>
-                            </div>
-
-                            <div class="resumen-fila">
-                                <span>Consultorio</span>
-                                <strong>@NombreConsultorio</strong>
-                            </div>
-
-                            <div class="resumen-fila">
-                                <span>Estado</span>
-                                <strong class="resumen-estado">
-                                    @ObtenerNombreEstado(modelo.EstadoTurno)
-                                </strong>
-                            </div>
-
-                        </div>
-                    </section>
-
                 </aside>
+
+                <section class="editar-card resumen-card resumen-card-inferior">
+
+                    <div class="seccion-encabezado resumen-encabezado">
+                        <span class="seccion-numero">04</span>
+
+                        <div>
+                            <h2>Resumen</h2>
+                            <p>Revisá los cambios antes de guardar.</p>
+                        </div>
+                    </div>
+
+                    <div class="resumen-datos">
+
+                        <div class="resumen-fila">
+                            <span>Fecha</span>
+                            <strong>@TextoFechaResumen</strong>
+                        </div>
+
+                        <div class="resumen-fila">
+                            <span>Horario</span>
+                            <strong>@TextoHorarioResumen</strong>
+                        </div>
+
+                        <div class="resumen-fila">
+                            <span>Tipo</span>
+                            <strong>@NombreTipoTurno</strong>
+                        </div>
+
+                        <div class="resumen-fila">
+                            <span>Consultorio</span>
+                            <strong>@NombreConsultorio</strong>
+                        </div>
+
+                        <div class="resumen-fila">
+                            <span>Estado</span>
+                            <strong class="resumen-estado">
+                                @ObtenerNombreEstado(modelo.EstadoTurno)
+                            </strong>
+                        </div>
+
+                    </div>
+                </section>
             </div>
 
             <ValidationSummary class="mensaje-validacion" />
@@ -820,10 +879,15 @@
 
     private List<TipoTurnoListadoDTO> tiposTurno = new();
     private List<TipoConsultorioListadoDTO> consultorios = new();
+    private List<string> horasDisponibles = new();
+
+    private string horaSeleccionada = string.Empty;
 
     private bool cargando = true;
     private bool guardando;
     private bool eliminando;
+    private bool consultandoHorarios;
+    private bool horariosConsultados;
     private bool operacionExitosa;
     private bool calendarioAbierto;
     private bool mostrarConfirmacionEliminar;
@@ -834,6 +898,7 @@
     private bool mostrarSelectorPacientes;
     private string Mensaje = string.Empty;
     private string errorCarga = string.Empty;
+    private int versionConsultaHorarios;
 
     private DateTime mesCalendario = new(
         DateTime.Today.Year,
@@ -867,6 +932,11 @@
         }
 
         modelo = respuestaTurno.Respuesta;
+
+        if (modelo.Hora != TimeOnly.MinValue)
+        {
+            horaSeleccionada = modelo.Hora.ToString("HH:mm");
+        }
 
         if (modelo.Fecha != default)
         {
@@ -912,6 +982,7 @@
             pacientes = respuestaPacientes.Respuesta;
         }
 
+        await CargarHorasDisponibles();
 
         cargando = false;
     }
@@ -921,6 +992,11 @@
         get
         {
             return
+                !consultandoHorarios &&
+                horariosConsultados &&
+                !string.IsNullOrWhiteSpace(
+                    horaSeleccionada
+                ) &&
                 modelo.Fecha != default &&
                 modelo.Hora != TimeOnly.MinValue &&
                 modelo.TipoTurnoId > 0 &&
@@ -1038,6 +1114,7 @@
                 )
             )
             .ToList();
+
     private string TextoProfesionalesSeleccionados =>
     modelo.ProfesionalIds.Count switch
     {
@@ -1097,7 +1174,7 @@
         busquedaPaciente = string.Empty;
     }
 
-    private void AlternarPaciente(int pacienteId)
+    private async Task AlternarPaciente(int pacienteId)
     {
         if (modelo.PacienteIds.Contains(pacienteId))
         {
@@ -1109,12 +1186,17 @@
         }
 
         SincronizarPacienteAnterior();
+
+        await ActualizarHorariosPorCambio();
     }
 
-    private void QuitarPaciente(int pacienteId)
+    private async Task QuitarPaciente(int pacienteId)
     {
         modelo.PacienteIds.Remove(pacienteId);
+
         SincronizarPacienteAnterior();
+
+        await ActualizarHorariosPorCambio();
     }
 
     private void SincronizarPacienteAnterior()
@@ -1125,8 +1207,7 @@
         Mensaje = string.Empty;
     }
 
-
-    private void AlternarProfesional(int profesionalId)
+    private async Task AlternarProfesional(int profesionalId)
     {
         if (modelo.ProfesionalIds.Contains(profesionalId))
         {
@@ -1138,12 +1219,16 @@
         }
 
         SincronizarProfesionalAnterior();
-    }
 
-    private void QuitarProfesional(int profesionalId)
+        await ActualizarHorariosPorCambio();
+    }
+    private async Task QuitarProfesional(int profesionalId)
     {
         modelo.ProfesionalIds.Remove(profesionalId);
+
         SincronizarProfesionalAnterior();
+
+        await ActualizarHorariosPorCambio();
     }
 
     private void SincronizarProfesionalAnterior()
@@ -1153,24 +1238,141 @@
 
         Mensaje = string.Empty;
     }
-    
 
-
-        
     private void SeleccionarEdicionIndividual(ChangeEventArgs argumento)
-{
-    modelo.ModificarTodaLaSerie = false;
-    Mensaje = string.Empty;
-}
+    {
+        modelo.ModificarTodaLaSerie = false;
+        Mensaje = string.Empty;
+    }
 
     private void SeleccionarEdicionSerie(ChangeEventArgs argumento)
-{
-    modelo.ModificarTodaLaSerie = true;
-    calendarioAbierto = false;
-    Mensaje = string.Empty;
-}
-    
+    {
+        modelo.ModificarTodaLaSerie = true;
+        calendarioAbierto = false;
+        Mensaje = string.Empty;
+    }
 
+    private async Task ActualizarHorariosPorCambio()
+    {
+        Mensaje = string.Empty;
+        horasDisponibles.Clear();
+        horariosConsultados = false;
+
+        // Invalida cualquier consulta anterior pendiente.
+        versionConsultaHorarios++;
+
+        var seleccionCompleta =
+            modelo.Fecha != default &&
+            modelo.TipoTurnoId > 0 &&
+            modelo.TipoConsultorioId > 0 &&
+            modelo.ProfesionalIds.Count > 0 &&
+            modelo.PacienteIds.Count > 0;
+
+        if (!seleccionCompleta)
+        {
+            consultandoHorarios = false;
+            return;
+        }
+
+        await CargarHorasDisponibles();
+    }
+
+    private async Task CargarHorasDisponibles()
+    {
+        var versionActual =
+            ++versionConsultaHorarios;
+
+        Mensaje = string.Empty;
+        horasDisponibles.Clear();
+        horariosConsultados = false;
+
+        if (
+            modelo.TipoTurnoId <= 0 ||
+            modelo.TipoConsultorioId <= 0 ||
+            modelo.ProfesionalIds.Count == 0 ||
+            modelo.PacienteIds.Count == 0 ||
+            modelo.Fecha == DateTime.MinValue
+        )
+        {
+            consultandoHorarios = false;
+            return;
+        }
+
+        consultandoHorarios = true;
+
+        var parametrosProfesionales =
+            string.Concat(
+                modelo.ProfesionalIds.Select(
+                    profesionalId =>
+                        $"&profesionalIds={profesionalId}"
+                )
+            );
+
+        var parametrosPacientes =
+            string.Concat(
+                modelo.PacienteIds.Select(
+                    pacienteId =>
+                        $"&pacienteIds={pacienteId}"
+                )
+            );
+
+        var url =
+            $"api/turno/Disponibles" +
+            $"?fecha={modelo.Fecha:yyyy-MM-dd}" +
+            $"&tipoTurnoId={modelo.TipoTurnoId}" +
+            $"&consultorioId={modelo.TipoConsultorioId}" +
+            $"&turnoIdExcluir={id}" +
+            parametrosProfesionales +
+            parametrosPacientes;
+
+        var respuesta =
+            await Http.Get<List<string>>(url);
+
+        // Ignora respuestas pertenecientes a una selección anterior.
+        if (versionActual != versionConsultaHorarios)
+        {
+            return;
+        }
+
+        consultandoHorarios = false;
+
+        if (respuesta.Error)
+        {
+            horariosConsultados = false;
+            Mensaje = respuesta.ObtenerError();
+            return;
+        }
+
+        horariosConsultados = true;
+
+        horasDisponibles =
+            respuesta.Respuesta ?? new List<string>();
+
+        if (
+            !string.IsNullOrWhiteSpace(horaSeleccionada) &&
+            !horasDisponibles.Contains(horaSeleccionada)
+        )
+        {
+            horaSeleccionada = string.Empty;
+            modelo.Hora = TimeOnly.MinValue;
+        }
+    }
+
+    private void SeleccionarHora(string hora)
+    {
+        horaSeleccionada = hora;
+        modelo.Hora = TimeOnly.ParseExact(hora, "HH:mm");
+        Mensaje = string.Empty;
+    }
+
+    private string ObtenerClaseHorario(string hora)
+    {
+        return hora == horaSeleccionada
+            ? "horario-opcion seleccionado"
+            : "horario-opcion";
+    }
+
+    
     private int ObtenerDuracionSeleccionada()
     {
         var tipo = tiposTurno.FirstOrDefault(
@@ -1200,12 +1402,12 @@
         mesCalendario = mesCalendario.AddMonths(1);
     }
 
-    private void SeleccionarHoy()
+    private async Task SeleccionarHoy()
     {
-        SeleccionarFecha(DateTime.Today);
+        await SeleccionarFecha(DateTime.Today);
     }
 
-    private void SeleccionarFecha(DateTime fecha)
+    private async Task SeleccionarFecha(DateTime fecha)
     {
         if (EsDiaPasado(new DiaCalendario { Fecha = fecha }))
         {
@@ -1221,6 +1423,8 @@
         );
 
         calendarioAbierto = false;
+
+        await ActualizarHorariosPorCambio();
     }
 
     private bool EsDiaPasado(DiaCalendario dia)
@@ -1457,9 +1661,6 @@
     forceLoad: true
 );
     }
-
-
-
     private void Volver()
     {
         var vista =
@@ -1495,6 +1696,7 @@
             filtros
         );
     }
+
     private sealed class DiaCalendario
     {
         public DateTime Fecha { get; set; }
