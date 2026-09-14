@@ -18,6 +18,10 @@ namespace CentroSenderos_2026_Shared.DTO
         public int TipoConsultorioId { get; set; }
         public string? NombreTipoConsultorio { get; set; }
 
+        public int TipoPrestacionId { get; set; }
+        public string? NombreTipoPrestacion { get; set; }
+
+
         // Información de la serie recurrente.
         public int? SerieTurnoId { get; set; }
 

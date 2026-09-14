@@ -11,6 +11,7 @@ namespace CentroSenderos_2026_BD
         public DbSet<PacienteTelefono> PacienteTelefonos { get; set; }
         public DbSet<Profesional> Profesionales { get; set; }
         public DbSet<ProfesionalTipoPrestacion> ProfesionalTipoPrestaciones { get; set; }
+        public DbSet<TurnoTipoPrestacion> TurnoTipoPrestaciones { get; set; }
         public DbSet<TipoConsultorio> TipoConsultorios { get; set; }
         public DbSet<TipoDiagnostico> TipoDiagnosticos { get; set; }
         public DbSet<Socio> Socios { get; set; }

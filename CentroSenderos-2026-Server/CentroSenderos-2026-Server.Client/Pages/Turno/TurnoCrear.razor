@@ -147,6 +147,33 @@
 
                         </div>
 
+                        <div class="campo">
+
+                            <label for="prestacion">
+                                Prestación
+                            </label>
+
+                            <InputSelect id="prestacion"
+                                         class="form-select"
+                                         @bind-Value="modelo.TipoPrestacionId">
+
+                                <option value="0">
+                                    Seleccione una prestación
+                                </option>
+
+                                @foreach (var prestacion in prestaciones)
+                                {
+                                    <option value="@prestacion.Id">
+                                        @prestacion.Tipo
+                                    </option>
+                                }
+
+                            </InputSelect>
+
+                            <ValidationMessage For="@(() => modelo.TipoPrestacionId)" />
+
+                        </div>
+
                         <div class="campo campo-fecha">
 
                             <label>
@@ -870,6 +897,13 @@
                         </div>
 
                         <div class="resumen-item">
+                            <span>Prestación</span>
+                            <strong>
+                                @prestaciones.FirstOrDefault(p => p.Id == modelo.TipoPrestacionId)?.Tipo
+                            </strong>
+                        </div>
+
+                        <div class="resumen-item">
                             <span class="resumen-label">
                                 Tipo de turno
                             </span>
@@ -948,6 +982,7 @@
 
     private List<TipoTurnoListadoDTO> tiposTurno = new();
     private List<TipoConsultorioListadoDTO> consultorios = new();
+    private List<TipoPrestacionListadoDTO> prestaciones = new();
     private List<ProfesionalListadoDTO> profesionales = new();
     private List<PacienteResumenDTO> pacientes = new();
     private List<string> horasDisponibles = new();
@@ -1039,6 +1074,7 @@
         horariosConsultados &&
         modelo.TipoTurnoId > 0 &&
         modelo.TipoConsultorioId > 0 &&
+        modelo.TipoPrestacionId > 0 &&
         modelo.ProfesionalIds.Count > 0 &&
         modelo.PacienteIds.Count > 0 &&
         modelo.Fecha != DateTime.MinValue &&
@@ -1219,7 +1255,23 @@
         {
             Mensaje = respConsultorios.ObtenerError();
         }
+        var respPrestaciones =
+    await Http.Get<List<TipoPrestacionListadoDTO>>(
+        "api/tipoprestacion/ListaTipoPrestacion"
+    );
 
+        if (!respPrestaciones.Error
+            && respPrestaciones.Respuesta is not null)
+        {
+            prestaciones = respPrestaciones.Respuesta
+                .OrderBy(prestacion => prestacion.Tipo)
+                .ToList();
+        }
+        else if (respPrestaciones.Error
+            && string.IsNullOrWhiteSpace(Mensaje))
+        {
+            Mensaje = respPrestaciones.ObtenerError();
+        }
         var respProfesionales =
     await Http.Get<List<ProfesionalListadoDTO>>(
         "api/profesional/ListaProfesional"
