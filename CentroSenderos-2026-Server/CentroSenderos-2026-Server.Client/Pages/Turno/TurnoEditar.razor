@@ -183,33 +183,6 @@
                             <ValidationMessage For="@(() => modelo.TipoConsultorioId)" />
                         </div>
 
-                        <div class="campo">
-
-                            <label for="prestacion">
-                                Prestación
-                            </label>
-
-                            <InputSelect id="prestacion"
-                                         class="form-select"
-                                         @bind-Value="modelo.TipoPrestacionId">
-
-                                <option value="0">
-                                    Seleccione una prestación
-                                </option>
-
-                                @foreach (var prestacion in prestaciones)
-                                {
-                                    <option value="@prestacion.Id">
-                                        @prestacion.Tipo
-                                    </option>
-                                }
-
-                            </InputSelect>
-
-                            <ValidationMessage For="@(() => modelo.TipoPrestacionId)" />
-
-                        </div>
-
                         <div class="campo fecha-campo">
                             <label>Fecha</label>
 
@@ -356,10 +329,10 @@
 
                                                 <button type="button"
                                                         class="@(estaSeleccionado
-                                               ? "selector-desplegable-opcion seleccionado"
-                                               : "selector-desplegable-opcion")"
+                                                                                                                                                ? "selector-desplegable-opcion seleccionado"
+                                                                                                                                                : "selector-desplegable-opcion")"
                                                         @onclick="() =>
-                                              AlternarProfesional(profesional.Id)">
+                                                                                                                                                AlternarProfesional(profesional.Id)">
 
                                                     <span>@profesional.Nombre</span>
 
@@ -706,13 +679,10 @@
                         </div>
 
                         <div class="resumen-fila">
-                            <span>Prestación</span>
-                            <strong>@prestaciones.FirstOrDefault(p => p.Id == modelo.TipoPrestacionId)?.Tipo</strong>
-                        </div>
-
-                        <div class="resumen-fila">
                             <span>Estado</span>
-                            <strong class="resumen-estado">@ObtenerNombreEstado(modelo.EstadoTurno)</strong>
+                            <strong class="resumen-estado">
+                                @ObtenerNombreEstado(modelo.EstadoTurno)
+                            </strong>
                         </div>
 
                     </div>
@@ -903,10 +873,12 @@
 
     private List<ProfesionalListadoDTO> profesionales = new();
     private List<PacienteResumenDTO> pacientes = new();
+
+
     private TurnoDTO modelo = new();
+
     private List<TipoTurnoListadoDTO> tiposTurno = new();
     private List<TipoConsultorioListadoDTO> consultorios = new();
-    private List<TipoPrestacionListadoDTO> prestaciones = new();
     private List<string> horasDisponibles = new();
 
     private string horaSeleccionada = string.Empty;
@@ -996,23 +968,7 @@
         {
             consultorios = respuestaConsultorios.Respuesta;
         }
-        var respPrestaciones =
-            await Http.Get<List<TipoPrestacionListadoDTO>>(
-                "api/tipoprestacion/ListaTipoPrestacion"
-            );
 
-        if (!respPrestaciones.Error
-            && respPrestaciones.Respuesta is not null)
-        {
-            prestaciones = respPrestaciones.Respuesta
-                .OrderBy(prestacion => prestacion.Tipo)
-                .ToList();
-        }
-        else if (respPrestaciones.Error
-            && string.IsNullOrWhiteSpace(Mensaje))
-        {
-            Mensaje = respPrestaciones.ObtenerError();
-        }
         
         var respuestaProfesionales = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
         if (!respuestaProfesionales.Error && respuestaProfesionales.Respuesta is not null)
@@ -1045,7 +1001,6 @@
                 modelo.Hora != TimeOnly.MinValue &&
                 modelo.TipoTurnoId > 0 &&
                 modelo.TipoConsultorioId > 0 &&
-                modelo.TipoPrestacionId > 0 &&
                 modelo.ProfesionalIds.Count > 0 &&
                 modelo.PacienteIds.Count > 0;
         }
@@ -1267,7 +1222,6 @@
 
         await ActualizarHorariosPorCambio();
     }
-
     private async Task QuitarProfesional(int profesionalId)
     {
         modelo.ProfesionalIds.Remove(profesionalId);

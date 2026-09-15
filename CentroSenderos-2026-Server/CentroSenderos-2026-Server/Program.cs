@@ -2,6 +2,7 @@ using CentroSenderos_2026_BD;
 using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Server.Components;
 using CentroSenderos_2026_Server.Components.Account;
+using CentroSenderos_2026_Servicio;
 using CentroSenderos_2026_Servicio.ServiciosHttp;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -51,6 +52,11 @@ builder.Services.AddScoped<ISocioRepositorio, SocioRepositorio>();
 builder.Services.AddScoped<ITipoPlanillaRepositorio, TipoPlanillaRepositorio>();
 builder.Services.AddScoped<ITurnoRepositorio, TurnoRepositorio>();
 builder.Services.AddScoped<ITipoConsultorioRepositorio, TipoConsultorioRepositorio>();
+
+builder.Services.AddSingleton<SupabaseStorageService>();
+builder.Services.AddScoped<IDocumentoRepositorio, DocumentoRepositorio>();
+
+
 
 // Razor Components + Auth
 builder.Services.AddRazorComponents()

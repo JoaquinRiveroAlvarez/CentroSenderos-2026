@@ -11,7 +11,6 @@ namespace CentroSenderos_2026_BD
         public DbSet<PacienteTelefono> PacienteTelefonos { get; set; }
         public DbSet<Profesional> Profesionales { get; set; }
         public DbSet<ProfesionalTipoPrestacion> ProfesionalTipoPrestaciones { get; set; }
-        public DbSet<TurnoTipoPrestacion> TurnoTipoPrestaciones { get; set; }
         public DbSet<TipoConsultorio> TipoConsultorios { get; set; }
         public DbSet<TipoDiagnostico> TipoDiagnosticos { get; set; }
         public DbSet<Socio> Socios { get; set; }
@@ -28,6 +27,7 @@ namespace CentroSenderos_2026_BD
         public DbSet<DetalleLiquidacion> DetalleLiquidaciones { get; set; }
         public DbSet<Liquidacion> Liquidaciones { get; set; }
         public DbSet<Gasto> Gastos { get; set; }
+        public DbSet<Documento> Documentos { get; set; }
 
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {

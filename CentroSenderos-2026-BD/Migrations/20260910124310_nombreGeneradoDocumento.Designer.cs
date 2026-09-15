@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CentroSenderos_2026_BD.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260914184442_prestacionenturno")]
-    partial class prestacionenturno
+    [Migration("20260910124310_nombreGeneradoDocumento")]
+    partial class nombreGeneradoDocumento
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -88,18 +88,34 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Property<int>("EstadoRegistro")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime>("FechaSubida")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NombreGenerado")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Observacion")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("PacienteId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("TipoDocumentoId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("UrlArchivo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("PacienteId");
 
                     b.HasIndex("TipoDocumentoId");
 
-                    b.ToTable("Documento");
+                    b.ToTable("Documentos");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Gasto", b =>
@@ -225,9 +241,6 @@ namespace CentroSenderos_2026_BD.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
 
-                    b.Property<int?>("DocumentoId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Domicilio")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -266,8 +279,6 @@ namespace CentroSenderos_2026_BD.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DocumentoId");
 
                     b.HasIndex("TipoDiagnosticoId");
 
@@ -921,7 +932,7 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     b.HasIndex("TurnoId");
 
-                    b.ToTable("TurnoTipoPrestaciones");
+                    b.ToTable("TurnoTipoPrestacion");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.MiUsuario", b =>
@@ -1179,11 +1190,19 @@ namespace CentroSenderos_2026_BD.Migrations
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Documento", b =>
                 {
+                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.Paciente", "Paciente")
+                        .WithMany()
+                        .HasForeignKey("PacienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("CentroSenderos_2026_BD.Datos.Entity.TipoDocumento", "TipoDocumentos")
                         .WithMany()
                         .HasForeignKey("TipoDocumentoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Paciente");
 
                     b.Navigation("TipoDocumentos");
                 });
@@ -1239,10 +1258,6 @@ namespace CentroSenderos_2026_BD.Migrations
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Paciente", b =>
                 {
-                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.Documento", "Documentos")
-                        .WithMany()
-                        .HasForeignKey("DocumentoId");
-
                     b.HasOne("CentroSenderos_2026_BD.Datos.Entity.TipoDiagnostico", "TipoDiagnosticos")
                         .WithMany("Pacientes")
                         .HasForeignKey("TipoDiagnosticoId")
@@ -1254,8 +1269,6 @@ namespace CentroSenderos_2026_BD.Migrations
                         .HasForeignKey("TipoObraSocialId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Documentos");
 
                     b.Navigation("TipoDiagnosticos");
 

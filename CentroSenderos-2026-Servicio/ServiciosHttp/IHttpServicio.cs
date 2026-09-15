@@ -6,5 +6,7 @@
         Task<HttpRespuesta<T>> Get<T>(string url);
         Task<HttpRespuesta<TResp>> Post<T, TResp>(string url, T entidad);
         Task<HttpRespuesta<TResp>> Put<T, TResp>(string url, T entidad);
+        Task<HttpRespuesta<TResp>> PostMultipart<TResp>(string url, MultipartFormDataContent contenido);
+
     }
 }

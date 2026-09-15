@@ -41,5 +41,7 @@ namespace CentroSenderos_2026_Shared.DTO
         public string? Domicilio { get; set; }
 
         public EnumEstadoRegistro EstadoRegistro { get; set; }
+
+        public List<DocumentoDTO> Documentos { get; set; } = new();
     }
 }

@@ -188,6 +188,32 @@
             </section>
 
             <section class="form-section">
+                <div class="section-title">
+                    <span class="section-number">04</span>
+                    <span>Documentos</span>
+                </div>
+
+                @if (modelo.Documentos.Any())
+                {
+                    <ul class="document-list">
+                        @foreach (var doc in modelo.Documentos)
+                        {
+                            <li>
+                                <span>@doc.NombreGenerado</span>
+                                <a href="@doc.UrlArchivo" target="_blank">Descargar</a>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div>No hay documentos cargados.</div>
+                }
+
+            </section>
+
+
+            <section class="form-section">
 
                 <div class="section-title">
 
