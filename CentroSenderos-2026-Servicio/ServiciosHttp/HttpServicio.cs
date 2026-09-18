@@ -46,30 +46,6 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
                 return new HttpRespuesta<TResp>(default, true, response);
             }
         }
-        //public async Task<HttpRespuesta<TResp>> Put<T, TResp>(string url, T entidad)
-        //{
-        //    var jsonAEnviar = JsonSerializer.Serialize(entidad);
-        //    var contenido = new StringContent(jsonAEnviar,
-        //                                      System.Text.Encoding.UTF8,
-        //                                      "application/json");
-
-        //    var response = await http.PutAsync(url, contenido);
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        if (response.StatusCode == HttpStatusCode.NoContent)
-        //        {
-        //            return new HttpRespuesta<TResp>(default, false, response);
-        //        }
-
-        //        var respuesta = await DesSerializar<TResp>(response);
-        //        return new HttpRespuesta<TResp>(respuesta, false, response);
-        //    }
-        //    else
-        //    {
-        //        return new HttpRespuesta<TResp>(default, true, response);
-        //    }
-        //}
         public async Task<HttpRespuesta<TResp>> Put<T, TResp>(string url, T entidad)
         {
             var jsonAEnviar = JsonSerializer.Serialize(entidad);
@@ -117,6 +93,22 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
                                              !respuesta.IsSuccessStatusCode,
                                              respuesta);
         }
+
+        public async Task<HttpRespuesta<TResp>> PostMultipart<TResp>(string url, MultipartFormDataContent contenido)
+        {
+            var response = await http.PostAsync(url, contenido);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var respuesta = await DesSerializar<TResp>(response);
+                return new HttpRespuesta<TResp>(respuesta, false, response);
+            }
+            else
+            {
+                return new HttpRespuesta<TResp>(default, true, response);
+            }
+        }
+
 
         private async Task<T?> DesSerializar<T>(HttpResponseMessage response)
         {

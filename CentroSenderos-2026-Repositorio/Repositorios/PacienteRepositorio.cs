@@ -10,17 +10,35 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
     public class PacienteRepositorio : Repositorio<Paciente>, IPacienteRepositorio
     {
         private readonly ApplicationDbContext context;
+        private readonly IDocumentoRepositorio documentoRepo;
 
-        public PacienteRepositorio(
-            ApplicationDbContext context) : base(context)
+        public PacienteRepositorio(ApplicationDbContext context) : base(context)
         {
             this.context = context;
+            this.documentoRepo = new DocumentoRepositorio(context);
         }
 
-        public async Task<PacienteDTO?> SelectPorId(int pacienteId)
+        public async Task<List<DocumentoDTO>> SelectPorPaciente(int pacienteId)
+        {
+            return await context.Documentos
+                .Where(d => d.PacienteId == pacienteId)
+                .Select(d => new DocumentoDTO
+                {
+                    Id = d.Id,
+                    PacienteId = d.PacienteId,
+                    TipoDocumentoId = d.TipoDocumentoId,
+                    TipoDocumentoNombre = d.TipoDocumentos != null ? d.TipoDocumentos.Tipo : string.Empty,
+                    UrlArchivo = d.UrlArchivo,
+                    FechaSubida = d.FechaSubida,
+                    NombreGenerado = d.NombreGenerado
+                })
+                .ToListAsync();
+        }
+
+        public async Task<PacienteDTO?> SelectPorId(int id)
         {
             return await context.Pacientes
-                .Where(p => p.Id == pacienteId)
+                .Where(p => p.Id == id && p.EstadoRegistro == EnumEstadoRegistro.activo)
                 .Select(p => new PacienteDTO
                 {
                     Id = p.Id,
@@ -30,13 +48,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     TieneCud = p.TieneCud,
                     NumeroAfiliado = p.NumeroAfiliado,
                     Telefono = p.Telefono ?? string.Empty,
-                    Domicilio = p.Domicilio ?? string.Empty,
+                    Domicilio = p.Domicilio,
+                    TipoObraSocialId = p.TipoObraSocialId,
+                    TipoObraSocialNombre = p.TipoObraSociales!.Tipo,
+                    TipoDiagnosticoId = p.TipoDiagnosticoId,
+                    TipoDiagnosticoNombre = p.TipoDiagnosticos!.Tipo,
                     EstadoRegistro = p.EstadoRegistro,
-
                     Telefonos = p.Telefonos
-                        .Where(t =>
-                            t.EstadoRegistro ==
-                            EnumEstadoRegistro.activo)
+                        .Where(t => t.EstadoRegistro == EnumEstadoRegistro.activo)
                         .Select(t => new PacienteTelefonoDTO
                         {
                             Id = t.Id,
@@ -44,17 +63,26 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                             Etiqueta = t.Etiqueta
                         })
                         .ToList(),
-
-                    TipoObraSocialId = p.TipoObraSocialId,
-                    TipoObraSocialNombre =
-                        p.TipoObraSociales!.Tipo,
-
-                    TipoDiagnosticoId = p.TipoDiagnosticoId,
-                    TipoDiagnosticoNombre =
-                        p.TipoDiagnosticos!.Tipo
+                    // 👇 Agregamos la lista de documentos
+                    Documentos = context.Documentos
+                .Where(d => d.PacienteId == p.Id)
+                .Select(d => new DocumentoDTO
+                {
+                    Id = d.Id,
+                    PacienteId = d.PacienteId,
+                    TipoDocumentoId = d.TipoDocumentoId,
+                    TipoDocumentoNombre = d.TipoDocumentos != null ? d.TipoDocumentos.Tipo : string.Empty,
+                    UrlArchivo = d.UrlArchivo,
+                    FechaSubida = d.FechaSubida,
+                    NombreGenerado = d.NombreGenerado
+                })
+                .ToList()
                 })
                 .FirstOrDefaultAsync();
         }
+
+
+
 
         public async Task<List<PacienteResumenDTO>> SelectListaPaciente()
         {

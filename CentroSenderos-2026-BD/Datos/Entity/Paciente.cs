@@ -39,9 +39,6 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         public int TipoDiagnosticoId { get; set; }
         public TipoDiagnostico? TipoDiagnosticos { get; set; }
 
-        public int? DocumentoId { get; set; }
-        public Documento? Documentos { get; set; }
-
         [Column(TypeName = "date")]
         public DateTime? FechaNacimiento { get; set; }
         public bool TieneCud { get; set; } = false;

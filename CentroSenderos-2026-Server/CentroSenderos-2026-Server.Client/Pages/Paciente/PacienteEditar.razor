@@ -193,6 +193,62 @@
             </section>
 
             <section class="form-section">
+                <div class="section-title">
+                    <span class="section-number">04</span>
+                    <span>Documentos</span>
+                </div>
+
+                <!-- Selector de tipo de documento -->
+                <InputSelect @bind-Value="nuevoDocumento.TipoDocumentoId">
+                    <option value="">-- Seleccione tipo de documento --</option>
+                    @foreach (var tipo in tiposDocumentos)
+                    {
+                        <option value="@tipo.Id">@tipo.Tipo</option>
+                    }
+                </InputSelect>
+
+                <ul class="document-list">
+                    @foreach (var doc in modelo.Documentos)
+                    {
+                        <li>
+                            <!-- Mostrar nombre generado -->
+                            <span>@doc.NombreGenerado</span>
+
+                            <!-- Mostrar tipo de documento si existe -->
+                            <span class="doc-type">
+                                @(string.IsNullOrEmpty(doc.TipoDocumentoNombre) ? "Sin tipo" : doc.TipoDocumentoNombre)
+                            </span>
+
+                            <!-- Botón Ver -->
+                            <a href="@doc.UrlArchivo" target="_blank">Ver</a>
+
+                            <!-- Botón Descargar -->
+                            <a href="@doc.UrlArchivo" download="@doc.NombreGenerado">Descargar</a>
+
+                            <!-- Botón Eliminar -->
+                            <button @onclick="() => EliminarDocumento(doc.Id)">Eliminar</button>
+
+                            <!-- Vista previa embebida -->
+                            @if (doc.UrlArchivo.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <iframe src="@doc.UrlArchivo" width="600" height="400"></iframe>
+                            }
+                            else if (doc.UrlArchivo.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                     doc.UrlArchivo.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <img src="@doc.UrlArchivo" alt="@doc.NombreGenerado" style="max-width:300px;" />
+                            }
+                        </li>
+                    }
+                </ul>
+
+
+                <!-- Subida de archivo -->
+                <InputFile OnChange="SubirDocumento" />
+            </section>
+
+
+            <section class="form-section">
 
                 <div class="section-title section-title-actions">
 
@@ -391,6 +447,7 @@
 }
 
 @code {
+
     [Parameter]
     public int Id { get; set; }
 
@@ -405,6 +462,9 @@
     private string MensajeTelefonos = string.Empty;
     private string MensajeEliminar = string.Empty;
 
+    private List<TipoDocumentoDTO> tiposDocumentos = new();
+    private DocumentoDTO nuevoDocumento = new();
+
     private List<TipoDTO> tiposObraSocial = new();
     private List<TipoDTO> tiposDiagnostico = new();
 
@@ -412,6 +472,17 @@
     {
         cargando = true;
         Mensaje = string.Empty;
+
+        var respuesta = await Http.Get<List<TipoDocumentoDTO>>("api/documento/tipos");
+
+        if (!respuesta.Error && respuesta.Respuesta != null)
+        {
+            tiposDocumentos = respuesta.Respuesta;
+        }
+        else if (respuesta.Error)
+        {
+            Mensaje = respuesta.ObtenerError();
+        }
 
         var respObra = await Http.Get<List<TipoDTO>>(
             "api/tipoobrasocial/ListaTipoObraSocial"
@@ -480,6 +551,48 @@
 
         cargando = false;
     }
+    private async Task EliminarDocumento(int id)
+    {
+        var resp = await Http.Delete($"api/documento/{id}");
+        if (!resp.Error)
+        {
+            modelo?.Documentos.RemoveAll(d => d.Id == id);
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+    private async Task SubirDocumento(InputFileChangeEventArgs e)
+    {
+        if (nuevoDocumento.TipoDocumentoId == 0)
+        {
+            Mensaje = "Debe seleccionar un tipo de documento antes de subir.";
+            return;
+        }
+
+        var file = e.File;
+        using var stream = file.OpenReadStream();
+
+        var content = new MultipartFormDataContent();
+        content.Add(new StreamContent(stream), "archivo", file.Name);
+        content.Add(new StringContent(modelo!.Id.ToString()), "PacienteId");
+        content.Add(new StringContent(nuevoDocumento.TipoDocumentoId.ToString()), "TipoDocumentoId");
+
+        var resp = await Http.PostMultipart<DocumentoDTO>("api/documento/insertar", content);
+        if (!resp.Error && resp.Respuesta != null)
+        {
+            modelo.Documentos.Add(resp.Respuesta);
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+
+
 
     private void AgregarTelefono()
     {
