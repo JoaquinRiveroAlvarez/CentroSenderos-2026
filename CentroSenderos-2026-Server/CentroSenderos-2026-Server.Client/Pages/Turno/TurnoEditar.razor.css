@@ -1,3 +1,5 @@
+/* #region Estructura general de la página */
+
 .turno-editar-page {
     width: 100%;
     max-width: 1532px;
@@ -176,6 +178,10 @@
     line-height: 1.45;
 }
 
+/* #endregion */
+
+/* #region Campos del formulario */
+
 .campos-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -295,6 +301,10 @@ select.control-formulario {
 .fecha-campo {
     z-index: 10;
 }
+
+/* #endregion */
+
+/* #region Calendario */
 
 .calendario-personalizado {
     position: absolute;
@@ -438,6 +448,10 @@ select.control-formulario {
             color: #344c31;
         }
 
+/* #endregion */
+
+/* #region Estado y resumen lateral */
+
 .estados-lista {
     display: grid;
     gap: 9px;
@@ -550,6 +564,10 @@ select.control-formulario {
     color: #556f4f !important;
 }
 
+/* #endregion */
+
+/* #region Validaciones y mensajes */
+
 .mensaje-validacion {
     margin: 20px 0 0;
     padding: 14px 17px 14px 40px;
@@ -602,6 +620,10 @@ select.control-formulario {
     background: #fff7f7;
     color: #963f3f;
 }
+
+/* #endregion */
+
+/* #region Acciones y modales */
 
 .acciones-formulario {
     display: flex;
@@ -763,7 +785,10 @@ select.control-formulario {
         padding-right: 14px;
         padding-left: 14px;
     }
-/* Inputs generados por componentes de Blazor */
+
+/* #endregion */
+
+/* #region Inputs generados por componentes de Blazor */
 
 .select-contenedor ::deep select.control-formulario {
     display: block;
@@ -805,6 +830,10 @@ select.control-formulario {
     font-family: inherit;
     font-size: 15px;
 }
+
+/* #endregion */
+
+/* #region Columna lateral compacta */
 
 /* Columna derecha ensamblada */
 
@@ -951,9 +980,9 @@ select.control-formulario {
         font-size: 15px;
     }
 
+/* #endregion */
 
-
-/* Selector desplegable múltiple */
+/* #region Selectores múltiples de profesionales y pacientes */
 
 .datos-card {
     overflow: visible;
@@ -1187,6 +1216,186 @@ select.control-formulario {
         line-height: 1;
     }
 
+/* Tarjetas de profesional y prestación */
+
+.profesionales-prestaciones-lista {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.profesional-prestacion-card {
+    display: grid;
+    grid-template-columns: minmax(220px, 0.85fr) minmax(260px, 1.15fr);
+    align-items: center;
+    gap: 18px;
+    padding: 14px 16px;
+    border: 1px solid #dfe5dc;
+    border-radius: 10px;
+    background-color: #fafbf9;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+    .profesional-prestacion-card:hover {
+        border-color: #bdc9b8;
+        box-shadow: 0 4px 12px rgba(64, 88, 59, 0.07);
+    }
+
+.profesional-prestacion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    padding-right: 18px;
+    border-right: 1px solid #e5e9e2;
+}
+
+.profesional-prestacion-identidad {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+}
+
+.profesional-prestacion-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background-color: #e5ece2;
+    color: #556f4f;
+}
+
+    .profesional-prestacion-icono i {
+        font-size: 17px;
+    }
+
+.profesional-prestacion-identidad > div {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.profesional-prestacion-identidad strong {
+    overflow: hidden;
+    color: #383c36;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profesional-prestacion-identidad span:not( .profesional-prestacion-icono ) {
+    overflow: hidden;
+    margin-top: 2px;
+    color: #7b8178;
+    font-size: 11px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profesional-prestacion-quitar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background-color: transparent;
+    color: #8a8f87;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+    .profesional-prestacion-quitar:hover {
+        background-color: #f8e8e8;
+        color: #b54747;
+    }
+
+    .profesional-prestacion-quitar i {
+        font-size: 13px;
+    }
+
+.profesional-prestacion-cuerpo {
+    min-width: 0;
+}
+
+    .profesional-prestacion-cuerpo > label {
+        margin-bottom: 6px;
+        color: #4a4e47;
+        font-size: 12px;
+        font-weight: 650;
+    }
+
+    .profesional-prestacion-cuerpo .control-formulario {
+        min-height: 43px;
+        padding: 9px 40px 9px 12px;
+        background-color: #ffffff;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+.prestacion-automatica,
+.profesional-sin-prestaciones {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 43px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.prestacion-automatica {
+    border: 1px solid #ccd9c7;
+    background-color: #edf3eb;
+    color: #40583b;
+}
+
+    .prestacion-automatica i {
+        color: #647b5b;
+        font-size: 14px;
+    }
+
+.profesional-sin-prestaciones {
+    border: 1px solid #ead8bd;
+    background-color: #fff8ed;
+    color: #8a6531;
+}
+
+    .profesional-sin-prestaciones i {
+        flex: 0 0 auto;
+        font-size: 14px;
+    }
+
+@media (max-width: 720px) {
+    .profesional-prestacion-card {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .profesional-prestacion-header {
+        padding-right: 0;
+        padding-bottom: 12px;
+        border-right: 0;
+        border-bottom: 1px solid #e5e9e2;
+    }
+}
+
+/* #endregion */
+
+/* #region Alcance de edición y recurrencia */
+
 /* Alcance de edición de un turno recurrente */
 
 .alcance-edicion {
@@ -1315,7 +1524,9 @@ select.control-formulario {
     }
 }
 
+/* #endregion */
 
+/* #region Diseño adaptable general */
 
 /* Adaptación para pantallas medianas */
 
@@ -1374,6 +1585,10 @@ select.control-formulario {
     }
 }
 
+/* #endregion */
+
+/* #region Horarios disponibles y resumen inferior */
+
 /* Horarios disponibles: tarjeta ubicada en la columna derecha */
 
 .horarios-card {
@@ -1423,6 +1638,7 @@ select.control-formulario {
     width: 100%;
     padding: 2px;
 }
+
 .horario-opcion {
     min-height: 39px;
     padding: 7px 8px;
@@ -1520,3 +1736,5 @@ select.control-formulario {
         grid-template-columns: 1fr;
     }
 }
+
+/* #endregion */

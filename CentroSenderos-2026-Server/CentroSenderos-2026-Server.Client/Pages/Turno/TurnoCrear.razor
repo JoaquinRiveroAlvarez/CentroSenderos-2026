@@ -254,8 +254,8 @@
                                     </span>
 
                                     <i class="bi @(mostrarSelectorProfesionales
-                                                       ? "bi-chevron-up"
-                                                       : "bi-chevron-down")">
+                                                                                              ? "bi-chevron-up"
+                                                                                              : "bi-chevron-down")">
                                     </i>
 
                                 </button>
@@ -287,7 +287,10 @@
                                             }
                                             else
                                             {
-                                                @foreach (var profesional in ProfesionalesFiltrados)
+                                                @foreach (
+                                                    var profesional
+                                                    in ProfesionalesFiltrados
+                                                )
                                                 {
                                                     var estaSeleccionado =
                                                         modelo.ProfesionalIds.Contains(
@@ -296,15 +299,17 @@
 
                                                     <button type="button"
                                                             class="@(estaSeleccionado
-                                                                                                ? "selector-desplegable-opcion seleccionado"
-                                                                                                : "selector-desplegable-opcion")"
+                                                                                                                        ? "selector-desplegable-opcion seleccionado"
+                                                                                                                        : "selector-desplegable-opcion")"
                                                             @onclick="() => AlternarProfesional(
-                                                                                                profesional.Id
-                                                                                            )">
+                                                                                                                        profesional.Id
+                                                                                                                    )">
 
-                                                            <span>@profesional.Nombre</span>
+<span>
+                                                            @profesional.Nombre
+                                                        </span>
 
-                                @if (estaSeleccionado)
+                                                        @if (estaSeleccionado)
                                                         {
                                                             <i class="bi bi-check-lg"></i>
                                                         }
@@ -320,110 +325,167 @@
 
                             </div>
 
-                            @if (modelo.ProfesionalIds.Count > 0)
-                            {
-                                <div class="selector-multiple-seleccionados">
+                        </div>
 
-                                    @foreach (var profesionalId in modelo.ProfesionalIds)
+                        @if (modelo.ProfesionalIds.Count > 0)
+                        {
+                            <div class="campo campo-completo">
+
+                                <div class="profesionales-prestaciones-lista">
+
+                                    @foreach (
+                                        var profesionalId
+                                        in modelo.ProfesionalIds
+                                    )
                                     {
-                                        var profesional = profesionales.FirstOrDefault(
-                                            item => item.Id == profesionalId
-                                        );
+                                        var profesional =
+                                            profesionales.FirstOrDefault(
+                                                item =>
+                                                    item.Id == profesionalId
+                                            );
 
                                         if (profesional is not null)
                                         {
-                                            <span class="selector-multiple-chip">
+                                            <div class="profesional-prestacion-card">
 
-                                                @profesional.Nombre
+                                                <div class="profesional-prestacion-header">
 
-                                                <button type="button"
-                                                        title="Quitar profesional"
-                                                        @onclick="() => QuitarProfesional(
-                                                                                        profesional.Id
-                                                                                    )">
-                                                        <i class="bi bi-x"></i>
-                                                        </button>
+                                                    <div class="profesional-prestacion-identidad">
 
-                                            </span>
+                                                        <span class="profesional-prestacion-icono">
+                                                            <i class="bi bi-person"></i>
+                                                        </span>
+
+                                                        <div>
+                                                            <strong>
+                                                                @profesional.Nombre
+                                                            </strong>
+
+                                                            @if (
+                                                                !string.IsNullOrWhiteSpace(
+                                                                    profesional.Area
+                                                                )
+                                                            )
+                                                            {
+                                                                <span>
+                                                                    @profesional.Area
+                                                                </span>
+                                                            }
+                                                        </div>
+
+                                                    </div>
+
+                                                    <button type="button"
+                                                            class="profesional-prestacion-quitar"
+                                                            title="Quitar profesional"
+                                                            @onclick="() => QuitarProfesional(
+                                                                                                                        profesional.Id
+                                                                                                                    )">
+
+<i class="bi bi-x-lg"></i>
+
+</button>
+
+                                                </div>
+
+                                                <div class="profesional-prestacion-cuerpo">
+
+                                                    <label>
+                                                        Prestación
+                                                    </label>
+
+                                                    @if (
+                                                        profesional
+                                                            .TipoPrestacionIds
+                                                            .Count == 0
+                                                    )
+                                                    {
+                                                        <div class="profesional-sin-prestaciones">
+
+                                                            <i class="bi bi-exclamation-circle"></i>
+
+                                                            <span>
+                                                                Este profesional no tiene
+                                                                prestaciones disponibles.
+                                                            </span>
+
+                                                        </div>
+                                                    }
+                                                    else if (
+                                                        profesional
+                                                            .TipoPrestacionIds
+                                                            .Count == 1
+                                                    )
+                                                    {
+                                                        <div class="prestacion-automatica">
+
+                                                            <i class="bi bi-check-circle"></i>
+
+                                                            <span>
+                                                                @(profesional
+                                                                    .TipoPrestacionNombres
+                                                                    .FirstOrDefault()
+                                                                    ?? "Prestación")
+                                                            </span>
+
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <select class="form-select"
+                                                                value="@ObtenerPrestacionSeleccionada(
+                                                                                                                                profesional.Id
+                                                                                                                            )"
+                                                                @onchange="evento =>
+                                                                                                                                SeleccionarPrestacion(
+                                                                                                                                    profesional.Id,
+                                                                                                                                    evento
+                                                                                                                                )">
+
+<option value="0">
+                                                                Seleccioná una prestación
+                                                            </option>
+
+                                                            @for (
+                                                                var indice = 0;
+                                                                indice <
+                                                                    profesional
+                                                                        .TipoPrestacionIds
+                                                                        .Count;
+                                                                indice++
+                                                            )
+                                                            {
+                                                                var prestacionId =
+                                                                    profesional
+                                                                        .TipoPrestacionIds[indice];
+
+                                                                var nombrePrestacion =
+                                                                    indice <
+                                                                        profesional
+                                                                            .TipoPrestacionNombres
+                                                                            .Count
+                                                                        ? profesional
+                                                                            .TipoPrestacionNombres[indice]
+                                                                        : "Prestación";
+
+                                                                <option value="@prestacionId">
+                                                                    @nombrePrestacion
+                                                                </option>
+                                                            }
+
+                                                        </select>
+                                                    }
+
+                                                </div>
+
+                                            </div>
                                         }
                                     }
 
                                 </div>
-                            }
 
-                        </div>
-
-                        <div class="campo campo-completo">
-
-                            <label>
-                                Prestación por profesional
-                            </label>
-
-                            @if (modelo.ProfesionalIds.Count == 0)
-                            {
-                                <div class="selector-multiple-vacio">
-                                    Seleccioná al menos un profesional.
-                                </div>
-                            }
-                            else
-                            {
-                                @foreach (var profesionalId in modelo.ProfesionalIds)
-                                {
-                                    var profesional = profesionales.FirstOrDefault(
-                                        item => item.Id == profesionalId
-                                    );
-
-                                    if (profesional is not null)
-                                    {
-                                        <div class="campo">
-
-                                            <label>
-                                                @profesional.Nombre
-                                            </label>
-
-                                            <select class="form-select"
-                                                    value="@ObtenerPrestacionSeleccionada(
-                                                                                profesional.Id
-                                                                            )"
-                                                    @onchange="evento =>
-                                                                                SeleccionarPrestacion(
-                                                                                    profesional.Id,
-                                                                                    evento
-                                                                                )">
-
-<option value="0">
-                                                    Seleccione una prestación
-                                                </option>
-
-                                                @for (
-                                                    var indice = 0;
-                                                    indice < profesional.TipoPrestacionIds.Count;
-                                                    indice++
-                                                )
-                                                {
-                                                    var prestacionId =
-                                                        profesional.TipoPrestacionIds[indice];
-
-                                                    var nombrePrestacion =
-                                                        indice < profesional
-                                                            .TipoPrestacionNombres.Count
-                                                            ? profesional
-                                                                .TipoPrestacionNombres[indice]
-                                                            : "Prestación";
-
-                                                    <option value="@prestacionId">
-                                                        @nombrePrestacion
-                                                    </option>
-                                                }
-
-                                            </select>
-
-                                        </div>
-                                    }
-                                }
-                            }
-
-                        </div>
+                            </div>
+                        }
 
                         <div class="campo">
 
@@ -1003,6 +1065,7 @@
 </div>
 
 @code {
+
     private TurnoDTO modelo = new()
     {
         EstadoTurno = EnumEstadoTurno.reservado,
@@ -1139,11 +1202,11 @@
         modelo.ProfesionalIds.Contains(
         seleccion.ProfesionalId
         )
-) &&
-modelo.PacienteIds.Count > 0 &&
-        modelo.Fecha != DateTime.MinValue &&
-        !string.IsNullOrWhiteSpace(horaSeleccionada) &&
-        RecurrenciaValida;
+        ) &&
+        modelo.PacienteIds.Count > 0 &&
+                modelo.Fecha != DateTime.MinValue &&
+                !string.IsNullOrWhiteSpace(horaSeleccionada) &&
+                RecurrenciaValida;
 
     private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
                 string.IsNullOrWhiteSpace(busquedaProfesional)
@@ -1159,9 +1222,7 @@ modelo.PacienteIds.Count > 0 &&
 
     private async Task AlternarProfesional(int profesionalId)
     {
-        if (modelo.ProfesionalIds.Contains(
-                profesionalId
-            ))
+        if (modelo.ProfesionalIds.Contains(profesionalId))
         {
             modelo.ProfesionalIds.Remove(
                 profesionalId
@@ -1176,15 +1237,52 @@ modelo.PacienteIds.Count > 0 &&
             modelo.ProfesionalIds.Add(
                 profesionalId
             );
+
+            SeleccionarPrestacionAutomatica(
+                profesionalId
+            );
         }
 
         // Compatibilidad con la propiedad anterior.
-        modelo.ProfesionalId =
-            modelo.ProfesionalIds.FirstOrDefault();
+        modelo.ProfesionalId = modelo.ProfesionalIds.FirstOrDefault();
 
         await CargarHorasDisponibles();
     }
 
+    private void SeleccionarPrestacionAutomatica(int profesionalId)
+    {
+        var profesional =
+            profesionales.FirstOrDefault(
+                item => item.Id == profesionalId
+            );
+
+        if (
+            profesional is null ||
+            profesional.TipoPrestacionIds.Count != 1
+        )
+        {
+            return;
+        }
+
+        modelo.ProfesionalPrestaciones.Add(
+            new TurnoProfesionalPrestacionDTO
+            {
+                ProfesionalId = profesionalId,
+                TipoPrestacionId =
+                    profesional.TipoPrestacionIds[0]
+            }
+        );
+
+        // Compatibilidad temporal.
+        modelo.TipoPrestacionIds =
+            modelo.ProfesionalPrestaciones
+                .Select(seleccion =>
+                    seleccion.TipoPrestacionId
+                )
+                .Distinct()
+                .ToList();
+    }    
+    
     private async Task QuitarProfesional(int profesionalId)
     {
         modelo.ProfesionalIds.Remove(
