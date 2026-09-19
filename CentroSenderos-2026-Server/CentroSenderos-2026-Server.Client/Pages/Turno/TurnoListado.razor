@@ -86,7 +86,7 @@
                                                         ? "btn-presentacion activo"
                                                         : "btn-presentacion")"
                     title="Agenda ampliada"
-                    disabled="@vistaSemanal"
+                    
                     @onclick="MostrarVistaAmpliada">
 
                 <i class="bi bi-grid-fill"></i>
@@ -98,7 +98,7 @@
                                                         ? "btn-presentacion activo"
                                                         : "btn-presentacion")"
                     title="Agenda en lista"
-                    disabled="@vistaSemanal"
+                    
                     @onclick="MostrarVistaLista">
 
                 <i class="bi bi-list-ul"></i>
@@ -1813,11 +1813,13 @@
     private void MostrarVistaLista()
     {
         vistaAmpliada = false;
+        MostrarVistaDiaria();
     }
 
     private void MostrarVistaAmpliada()
     {
         vistaAmpliada = true;
+        MostrarVistaDiaria();
     }
 
     private string ObtenerPosicionTurno(TurnoListadoDTO turno)
