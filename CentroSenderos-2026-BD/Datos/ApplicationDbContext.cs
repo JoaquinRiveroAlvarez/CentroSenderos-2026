@@ -22,6 +22,7 @@ namespace CentroSenderos_2026_BD
         public DbSet<TipoPrestacion> TipoPrestaciones { get; set; }
         public DbSet<TipoTurno> TipoTurnos { get; set; }
         public DbSet<Turno> Turnos { get; set; }
+        public DbSet<TurnoTipoPrestacion> TurnoTipoPrestaciones { get; set; }
         public DbSet<SerieTurno> SeriesTurnos { get; set; }
         public DbSet<TipoObraSocial> TipoObraSociales { get; set; }
         public DbSet<DetalleLiquidacion> DetalleLiquidaciones { get; set; }
@@ -57,6 +58,49 @@ namespace CentroSenderos_2026_BD
                 .HasOne(x => x.TipoPrestacion)
                 .WithMany(tp => tp.ProfesionalTipoPrestaciones)
                 .HasForeignKey(x => x.TipoPrestacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TurnoTipoPrestacion>()
+    .HasIndex(relacion => new
+    {
+        relacion.TurnoId,
+        relacion.ProfesionalId
+    })
+    .IsUnique();
+
+
+            modelBuilder.Entity<TurnoTipoPrestacion>()
+                .HasOne(relacion => relacion.Turnos)
+                .WithMany(turno =>
+                    turno.TurnoTipoPrestaciones
+                )
+                .HasForeignKey(relacion =>
+                    relacion.TurnoId
+                )
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            modelBuilder.Entity<TurnoTipoPrestacion>()
+                .HasOne(relacion =>
+                    relacion.Profesionales
+                )
+                .WithMany()
+                .HasForeignKey(relacion =>
+                    relacion.ProfesionalId
+                )
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            modelBuilder.Entity<TurnoTipoPrestacion>()
+                .HasOne(relacion =>
+                    relacion.TipoPrestaciones
+                )
+                .WithMany(prestacion =>
+                    prestacion.TurnoTipoPrestaciones
+                )
+                .HasForeignKey(relacion =>
+                    relacion.TipoPrestacionId
+                )
                 .OnDelete(DeleteBehavior.Restrict);
 
             var cascadeFKs = modelBuilder.Model

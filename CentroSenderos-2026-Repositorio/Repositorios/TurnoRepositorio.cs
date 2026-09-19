@@ -27,6 +27,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     .ThenInclude(tp => tp.Profesionales)
                 .Include(t => t.TurnoPacientes)
                     .ThenInclude(tp => tp.Pacientes)
+                .Include(t => t.TurnoTipoPrestaciones)
                 .Where(t => t.Id == id)
                 .Select(t => new TurnoDTO
                 {
@@ -41,10 +42,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     ),
 
                     FechaFin = t.FechaFin.ToLocalTime(),
-                    EstadoTurno = t.EstadoTurno,
-                    TipoTurnoId = t.TipoTurnoId,
-                    TipoConsultorioId = t.TipoConsultorioId,
 
+                    EstadoTurno = t.EstadoTurno,
+
+                    TipoTurnoId = t.TipoTurnoId,
+
+                    TipoConsultorioId = t.TipoConsultorioId,
 
                     SerieTurnoId = t.SerieTurnoId,
 
@@ -99,7 +102,44 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .Select(tp => tp.PacienteId)
                         .ToList(),
 
-                        PacientesDetalle = t.TurnoPacientes
+                    TipoPrestacionIds = t.TurnoTipoPrestaciones
+                        .Where(relacion =>
+                            relacion.EstadoRegistro ==
+                            EnumEstadoRegistro.activo
+                        )
+                        .Select(relacion =>
+                            relacion.TipoPrestacionId
+                        )
+                        .ToList(),
+
+                    ProfesionalPrestaciones = t.TurnoTipoPrestaciones
+                            .Where(relacion =>
+                                relacion.EstadoRegistro ==
+                                EnumEstadoRegistro.activo
+                            )
+                            .Select(relacion =>
+                                new TurnoProfesionalPrestacionDTO
+                                {
+                                    ProfesionalId =
+                                        relacion.ProfesionalId,
+
+                                    NombreProfesional =
+                                        relacion.Profesionales != null
+                                            ? relacion.Profesionales.Nombre
+                                            : "Sin profesional",
+
+                                    TipoPrestacionId =
+                                        relacion.TipoPrestacionId,
+
+                                    NombreTipoPrestacion =
+                                        relacion.TipoPrestaciones != null
+                                            ? relacion.TipoPrestaciones.Tipo
+                                            : "Sin prestación"
+                                }
+                            )
+                         .ToList(),
+
+                    PacientesDetalle = t.TurnoPacientes
                         .OrderBy(relacion =>
                             relacion.Pacientes!.Nombre
                         )
@@ -126,7 +166,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<TurnoListadoDTO>>SelectListaTurnos()
+        public async Task<List<TurnoListadoDTO>> SelectListaTurnos()
         {
             return await context.Turnos
                 .Include(t => t.TipoTurnos)
@@ -136,6 +176,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     .ThenInclude(tp => tp.Profesionales)
                 .Include(t => t.TurnoPacientes)
                     .ThenInclude(tp => tp.Pacientes)
+                .Include(t => t.TurnoTipoPrestaciones)
+                    .ThenInclude(tp => tp.TipoPrestaciones)
                 .Where(t =>
                     t.EstadoRegistro ==
                     EnumEstadoRegistro.activo
@@ -143,15 +185,21 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .Select(t => new TurnoListadoDTO
                 {
                     Id = t.Id,
+
                     FechaInicio =
                         t.FechaInicio.ToLocalTime(),
+
                     FechaFin =
                         t.FechaFin.ToLocalTime(),
+
                     EstadoTurno = t.EstadoTurno,
 
                     TipoTurnoId = t.TipoTurnoId,
 
-                    NombreTipoTurno = t.TipoTurnos != null? t.TipoTurnos.Tipo : "Sin tipo",
+                    NombreTipoTurno =
+                        t.TipoTurnos != null
+                            ? t.TipoTurnos.Tipo
+                            : "Sin tipo",
 
                     TipoConsultorioId =
                         t.TipoConsultorioId,
@@ -166,8 +214,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     FrecuenciaRecurrencia =
                         t.SerieTurno != null
                             ? t.SerieTurno.Frecuencia
-                            : EnumFrecuenciaRecurrenciaTurno
-                                .noRepite,
+                            : EnumFrecuenciaRecurrenciaTurno.noRepite,
 
                     IntervaloRecurrencia =
                         t.SerieTurno != null
@@ -176,20 +223,19 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
                     UnidadRecurrencia =
                         t.SerieTurno != null
-                            ? t.SerieTurno
-                                .UnidadPersonalizada
+                            ? t.SerieTurno.UnidadPersonalizada
                             : null,
 
                     FechaHastaRecurrencia =
                         t.SerieTurno != null
-                            ? t.SerieTurno.FechaHasta
-                                .ToLocalTime()
+                            ? t.SerieTurno.FechaHasta.ToLocalTime()
                             : null,
 
                     // Compatibilidad con el frontend anterior.
-                    ProfesionalId = t.TurnoProfesionales
-                        .Select(tp => tp.ProfesionalId)
-                        .FirstOrDefault(),
+                    ProfesionalId =
+                        t.TurnoProfesionales
+                            .Select(tp => tp.ProfesionalId)
+                            .FirstOrDefault(),
 
                     NombreProfesional =
                         t.TurnoProfesionales
@@ -198,9 +244,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                             )
                             .FirstOrDefault(),
 
-                    PacienteId = t.TurnoPacientes
-                        .Select(tp => tp.PacienteId)
-                        .FirstOrDefault(),
+                    PacienteId =
+                        t.TurnoPacientes
+                            .Select(tp => tp.PacienteId)
+                            .FirstOrDefault(),
 
                     NombrePaciente =
                         t.TurnoPacientes
@@ -240,39 +287,100 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                             .ToList(),
 
                     NombresPacientes =
-                            t.TurnoPacientes
-                                .OrderBy(tp =>
-                                    tp.Pacientes!.Nombre
-                                )
-                                .Select(tp =>
-                                    tp.Pacientes!.Nombre
-                                )
-                                .ToList(),
+                        t.TurnoPacientes
+                            .OrderBy(tp =>
+                                tp.Pacientes!.Nombre
+                            )
+                            .Select(tp =>
+                                tp.Pacientes!.Nombre
+                            )
+                            .ToList(),
 
-                                            PacientesDetalle =
-                            t.TurnoPacientes
-                                .OrderBy(relacion =>
-                                    relacion.Pacientes!.Nombre
-                                )
-                                .Select(relacion =>
-                                    new TurnoPacienteDetalleDTO
-                                    {
-                                        PacienteId =
-                                            relacion.PacienteId,
+                    TipoPrestacionIds =
+                        t.TurnoTipoPrestaciones
+                            .Where(relacion =>
+                                relacion.EstadoRegistro ==
+                                EnumEstadoRegistro.activo
+                            )
+                            .OrderBy(relacion =>
+                                relacion.TipoPrestaciones!.Tipo
+                            )
+                            .Select(relacion =>
+                                relacion.TipoPrestacionId
+                            )
+                            .ToList(),
 
-                                        NombrePaciente =
-                                            relacion.Pacientes != null
-                                                ? relacion.Pacientes.Nombre
-                                                : "Paciente",
+                    NombresTipoPrestaciones =
+                        t.TurnoTipoPrestaciones
+                            .Where(relacion =>
+                                relacion.EstadoRegistro ==
+                                EnumEstadoRegistro.activo
+                            )
+                            .OrderBy(relacion =>
+                                relacion.TipoPrestaciones!.Tipo
+                            )
+                            .Select(relacion =>
+                                relacion.TipoPrestaciones!.Tipo
+                            )
+                            .ToList(),
 
-                                        TipoObraSocialId =
-                                            relacion.TipoObraSocialId,
+                    // La prestación y el profesional se proyectan juntos.
+                    // No deben reconstruirse cruzando dos listas separadas.
+                    ProfesionalPrestaciones =
+                        t.TurnoTipoPrestaciones
+                            .Where(relacion =>
+                                relacion.EstadoRegistro ==
+                                EnumEstadoRegistro.activo
+                            )
+                            .OrderBy(relacion =>
+                                relacion.Profesionales!.Nombre
+                            )
+                            .Select(relacion =>
+                                new TurnoProfesionalPrestacionDTO
+                                {
+                                    ProfesionalId =
+                                        relacion.ProfesionalId,
 
-                                        NombreObraSocial =
-                                            relacion.NombreObraSocial
-                                    }
-                                )
-                                .ToList()
+                                    NombreProfesional =
+                                        relacion.Profesionales != null
+                                            ? relacion.Profesionales.Nombre
+                                            : "Sin profesional",
+
+                                    TipoPrestacionId =
+                                        relacion.TipoPrestacionId,
+
+                                    NombreTipoPrestacion =
+                                        relacion.TipoPrestaciones != null
+                                            ? relacion.TipoPrestaciones.Tipo
+                                            : "Sin prestación"
+                                }
+                            )
+                            .ToList(),
+
+                    PacientesDetalle =
+                        t.TurnoPacientes
+                            .OrderBy(relacion =>
+                                relacion.Pacientes!.Nombre
+                            )
+                            .Select(relacion =>
+                                new TurnoPacienteDetalleDTO
+                                {
+                                    PacienteId =
+                                        relacion.PacienteId,
+
+                                    NombrePaciente =
+                                        relacion.Pacientes != null
+                                            ? relacion.Pacientes.Nombre
+                                            : "Paciente",
+
+                                    TipoObraSocialId =
+                                        relacion.TipoObraSocialId,
+
+                                    NombreObraSocial =
+                                        relacion.NombreObraSocial
+                                }
+                            )
+                            .ToList()
                 })
                 .ToListAsync();
         }
@@ -310,6 +418,28 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .Distinct()
                 .ToList();
 
+            var profesionalPrestaciones =
+                dto.ProfesionalPrestaciones
+                .Where(seleccion =>
+                    seleccion.ProfesionalId > 0 &&
+                    seleccion.TipoPrestacionId > 0
+                )
+                .GroupBy(seleccion =>
+                    seleccion.ProfesionalId
+                )
+                .Select(grupo =>
+                    grupo.First()
+                )
+                .ToList();
+
+            var tipoPrestacionIds =
+                profesionalPrestaciones
+                    .Select(seleccion =>
+                        seleccion.TipoPrestacionId
+                    )
+                    .Distinct()
+                    .ToList();
+
             // Compatibilidad temporal con el frontend anterior.
             if (profesionalIds.Count == 0 &&
                 dto.ProfesionalId > 0)
@@ -341,6 +471,81 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
+            if (profesionalPrestaciones.Count != profesionalIds.Count)
+            {
+                throw new ApplicationException(
+                    "Debe seleccionar una prestación para cada profesional."
+                );
+            }
+
+            var profesionalesConPrestacion =
+                profesionalPrestaciones
+                    .Select(seleccion =>
+                        seleccion.ProfesionalId
+                    )
+                    .OrderBy(id => id)
+                    .ToList();
+
+            var profesionalesSeleccionados =
+                profesionalIds
+                    .OrderBy(id => id)
+                    .ToList();
+
+            if (!profesionalesConPrestacion.SequenceEqual(
+                    profesionalesSeleccionados
+                ))
+            {
+                throw new ApplicationException(
+                    "Las prestaciones seleccionadas no coinciden con los profesionales del turno."
+                );
+            }
+
+            var relacionesProfesionalPrestacion =
+    await context.ProfesionalTipoPrestaciones
+        .Where(relacion =>
+            profesionalIds.Contains(
+                relacion.ProfesionalId
+            ) &&
+            tipoPrestacionIds.Contains(
+                relacion.TipoPrestacionId
+            ) &&
+            relacion.EstadoRegistro ==
+                EnumEstadoRegistro.activo &&
+            relacion.Profesional.EstadoRegistro ==
+                EnumEstadoRegistro.activo &&
+            relacion.TipoPrestacion.EstadoRegistro ==
+                EnumEstadoRegistro.activo
+        )
+        .Select(relacion => new
+        {
+            relacion.ProfesionalId,
+            relacion.TipoPrestacionId
+        })
+        .ToListAsync();
+
+            var relacionesValidas =
+                relacionesProfesionalPrestacion
+                    .Select(relacion => (
+                        relacion.ProfesionalId,
+                        relacion.TipoPrestacionId
+                    ))
+                    .ToHashSet();
+
+            var existeSeleccionInvalida =
+                profesionalPrestaciones.Any(seleccion =>
+                    !relacionesValidas.Contains((
+                        seleccion.ProfesionalId,
+                        seleccion.TipoPrestacionId
+                    ))
+                );
+
+            if (existeSeleccionInvalida)
+            {
+                throw new ApplicationException(
+                    "La prestación seleccionada no pertenece al profesional indicado."
+                );
+            }
+
             var fechasRecurrencia =
                 CalculadorRecurrenciaTurno
                     .CalcularFechas(
@@ -362,7 +567,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 )
                 .ToList();
 
-            var tipoTurno = await context.TipoTurnos.FirstOrDefaultAsync(tipo =>tipo.Id == dto.TipoTurnoId);
+            var tipoTurno = await context.TipoTurnos.FirstOrDefaultAsync(tipo => tipo.Id == dto.TipoTurnoId);
 
             if (tipoTurno is null)
             {
@@ -609,6 +814,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
 
 
+
+
+
+            if (existeSeleccionInvalida)
+            {
+                throw new ApplicationException(
+                    "La prestación seleccionada no pertenece al profesional indicado."
+                );
+            }
+
             await using var transaccion =
                 await context.Database
                     .BeginTransactionAsync();
@@ -747,12 +962,39 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         )
         .ToList();
 
+                var relacionesPrestaciones =
+                    turnos
+                        .SelectMany(turno =>
+                            profesionalPrestaciones.Select(
+                                seleccion =>
+                                    new TurnoTipoPrestacion
+                                    {
+                                        TurnoId =
+                                            turno.Id,
+
+                                        ProfesionalId =
+                                            seleccion.ProfesionalId,
+
+                                        TipoPrestacionId =
+                                            seleccion.TipoPrestacionId,
+
+                                        EstadoRegistro =
+                                            EnumEstadoRegistro.activo
+                                    }
+                            )
+                        )
+                        .ToList();
+
                 context.AddRange(
                     relacionesProfesionales
                 );
 
                 context.AddRange(
                     relacionesPacientes
+                );
+
+                context.AddRange(
+                    relacionesPrestaciones
                 );
 
                 await context.SaveChangesAsync();
@@ -767,7 +1009,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
         }
 
-        public async Task<List<TimeOnly>> HorariosDisponibles(DateOnly fecha,int tipoTurnoId,int consultorioId,List<int>? profesionalIds = null,List<int>? pacienteIds = null,int? turnoIdExcluir = null)
+        public async Task<List<TimeOnly>> HorariosDisponibles(DateOnly fecha, int tipoTurnoId, int consultorioId, List<int>? profesionalIds = null, List<int>? pacienteIds = null, int? turnoIdExcluir = null)
         {
             profesionalIds ??= new List<int>();
             pacienteIds ??= new List<int>();
@@ -871,7 +1113,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return horariosDisponibles;
         }
 
-        public async Task<bool> ActualizarTurno(int id,TurnoDTO dto)
+        public async Task<bool> ActualizarTurno(int id, TurnoDTO dto)
         {
             if (dto.Hora == TimeOnly.MinValue)
             {
@@ -896,7 +1138,29 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             var profesionalIds = dto.ProfesionalIds.Where(profesionalId => profesionalId > 0).Distinct().ToList();
 
-            var pacienteIds = dto.PacienteIds.Where(pacienteId =>pacienteId > 0).Distinct().ToList();
+            var pacienteIds = dto.PacienteIds.Where(pacienteId => pacienteId > 0).Distinct().ToList();
+
+            var profesionalPrestaciones =
+    dto.ProfesionalPrestaciones
+        .Where(seleccion =>
+            seleccion.ProfesionalId > 0 &&
+            seleccion.TipoPrestacionId > 0
+        )
+        .GroupBy(seleccion =>
+            seleccion.ProfesionalId
+        )
+        .Select(grupo =>
+            grupo.First()
+        )
+        .ToList();
+
+            var tipoPrestacionIds =
+                profesionalPrestaciones
+                    .Select(seleccion =>
+                        seleccion.TipoPrestacionId
+                    )
+                    .Distinct()
+                    .ToList();
 
             // Compatibilidad temporal con el frontend anterior.
             if (profesionalIds.Count == 0 &&
@@ -929,14 +1193,91 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            var turno = await context.Turnos.Include(t => t.TurnoProfesionales).Include(t => t.TurnoPacientes).FirstOrDefaultAsync(t =>t.Id == id);
+            if (profesionalPrestaciones.Count !=
+    profesionalIds.Count)
+            {
+                throw new ApplicationException(
+                    "Debe seleccionar una prestación para cada profesional."
+                );
+            }
+
+            var profesionalesConPrestacion =
+                profesionalPrestaciones
+                    .Select(seleccion =>
+                        seleccion.ProfesionalId
+                    )
+                    .OrderBy(profesionalId =>
+                        profesionalId
+                    )
+                    .ToList();
+
+            var profesionalesSeleccionados =
+                profesionalIds
+                    .OrderBy(profesionalId =>
+                        profesionalId
+                    )
+                    .ToList();
+
+            if (!profesionalesConPrestacion.SequenceEqual(
+                    profesionalesSeleccionados
+                ))
+            {
+                throw new ApplicationException(
+                    "Las prestaciones seleccionadas no coinciden con los profesionales del turno."
+                );
+            }
+
+            var relacionesProfesionalPrestacionActualizacion =
+                await context.ProfesionalTipoPrestaciones
+                    .Where(relacion =>
+                        profesionalIds.Contains(relacion.ProfesionalId) &&
+                        tipoPrestacionIds.Contains(relacion.TipoPrestacionId) &&
+                        relacion.EstadoRegistro == EnumEstadoRegistro.activo &&
+                        relacion.Profesional.EstadoRegistro == EnumEstadoRegistro.activo &&
+                        relacion.TipoPrestacion.EstadoRegistro == EnumEstadoRegistro.activo
+                    )
+                    .Select(relacion => new
+                    {
+                        relacion.ProfesionalId,
+                        relacion.TipoPrestacionId
+                    })
+                    .ToListAsync();
+
+            var relacionesValidasActualizacion =
+                relacionesProfesionalPrestacionActualizacion
+                    .Select(relacion => (
+                        relacion.ProfesionalId,
+                        relacion.TipoPrestacionId
+                    ))
+                    .ToHashSet();
+
+            var existeSeleccionInvalidaActualizacion =
+                profesionalPrestaciones.Any(seleccion =>
+                    !relacionesValidasActualizacion.Contains((
+                        seleccion.ProfesionalId,
+                        seleccion.TipoPrestacionId
+                    ))
+                );
+
+            if (existeSeleccionInvalidaActualizacion)
+            {
+                throw new ApplicationException(
+                    "La prestación seleccionada no pertenece al profesional indicado."
+                );
+            }
+
+            var turno = await context.Turnos
+                .Include(t => t.TurnoProfesionales)
+                .Include(t => t.TurnoPacientes)
+                .Include(t => t.TurnoTipoPrestaciones)
+                .FirstOrDefaultAsync(t => t.Id == id);
 
             if (turno is null)
             {
                 return false;
             }
 
-            var tipoTurno = await context.TipoTurnos.FirstOrDefaultAsync(tipo =>tipo.Id == dto.TipoTurnoId);
+            var tipoTurno = await context.TipoTurnos.FirstOrDefaultAsync(tipo => tipo.Id == dto.TipoTurnoId);
 
             if (tipoTurno is null)
             {
@@ -959,22 +1300,23 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     dto,
                     profesionalIds,
                     pacienteIds,
+                    profesionalPrestaciones,
                     tipoTurnoId,
                     duracionMinutos
                 );
             }
 
             // Desde acá continúa la modificación de un solo turno.
-            var fecha =DateOnly.FromDateTime(dto.Fecha);
+            var fecha = DateOnly.FromDateTime(dto.Fecha);
 
-            var fechaInicioUtc =DateTime.SpecifyKind(fecha.ToDateTime(dto.Hora),DateTimeKind.Utc);
+            var fechaInicioUtc = DateTime.SpecifyKind(fecha.ToDateTime(dto.Hora), DateTimeKind.Utc);
 
             if (fechaInicioUtc.Date < DateTime.UtcNow.Date)
             {
                 throw new ApplicationException("No se pueden mover turnos a días pasados.");
             }
 
-            var fechaFinUtc =fechaInicioUtc.AddMinutes(duracionMinutos);
+            var fechaFinUtc = fechaInicioUtc.AddMinutes(duracionMinutos);
 
             var conflictoConsultorio =
     dto.EstadoTurno != EnumEstadoTurno.cancelado
@@ -1182,12 +1524,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             context.RemoveRange(turno.TurnoPacientes);
 
-            var nuevosTurnoProfesionales =profesionalIds.Select(profesionalId =>new TurnoProfesional
-                        {
-                            TurnoId = turno.Id,
-                            ProfesionalId =
+            context.RemoveRange(
+                turno.TurnoTipoPrestaciones
+            );
+
+            var nuevosTurnoProfesionales = profesionalIds.Select(profesionalId => new TurnoProfesional
+            {
+                TurnoId = turno.Id,
+                ProfesionalId =
                                 profesionalId
-                        }
+            }
                     ).ToList();
 
             var nuevosTurnoPacientes =
@@ -1233,6 +1579,19 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         })
         .ToList();
 
+            var nuevasTurnoTipoPrestaciones =
+                profesionalPrestaciones
+                    .Select(seleccion =>
+                        new TurnoTipoPrestacion
+                        {
+                            TurnoId = turno.Id,
+                            ProfesionalId = seleccion.ProfesionalId,
+                            TipoPrestacionId = seleccion.TipoPrestacionId,
+                            EstadoRegistro = EnumEstadoRegistro.activo
+                        }
+                    )
+                    .ToList();
+
             context.AddRange(
                 nuevosTurnoProfesionales
             );
@@ -1241,42 +1600,46 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 nuevosTurnoPacientes
             );
 
+            context.AddRange(
+                nuevasTurnoTipoPrestaciones
+            );
+
             await context.SaveChangesAsync();
 
             return true;
         }
 
-        private IQueryable<Turno> ConsultarTurnosQueBloquean(int consultorioId,List<int> profesionalIds,List<int> pacienteIds)
-            {
-                    return context.Turnos
-                        .Where(turno =>
-                            turno.EstadoRegistro ==
-                                EnumEstadoRegistro.activo &&
+        private IQueryable<Turno> ConsultarTurnosQueBloquean(int consultorioId, List<int> profesionalIds, List<int> pacienteIds)
+        {
+            return context.Turnos
+                .Where(turno =>
+                    turno.EstadoRegistro ==
+                        EnumEstadoRegistro.activo &&
 
-                            turno.EstadoTurno !=
-                                EnumEstadoTurno.cancelado &&
+                    turno.EstadoTurno !=
+                        EnumEstadoTurno.cancelado &&
 
-                            (
-                                turno.TipoConsultorioId ==
-                                    consultorioId ||
+                    (
+                        turno.TipoConsultorioId ==
+                            consultorioId ||
 
-                                turno.TurnoProfesionales.Any(
-                                    relacion =>
-                                        profesionalIds.Contains(
-                                            relacion.ProfesionalId
-                                        )
-                                ) ||
-
-                                turno.TurnoPacientes.Any(
-                                    relacion =>
-                                        pacienteIds.Contains(
-                                            relacion.PacienteId
-                                        )
+                        turno.TurnoProfesionales.Any(
+                            relacion =>
+                                profesionalIds.Contains(
+                                    relacion.ProfesionalId
                                 )
-                            )
-                        );
-                }
-       
+                        ) ||
+
+                        turno.TurnoPacientes.Any(
+                            relacion =>
+                                pacienteIds.Contains(
+                                    relacion.PacienteId
+                                )
+                        )
+                    )
+                );
+        }
+
         public async Task<bool> DeleteTurno(int id)
         {
             var turno =
@@ -1298,7 +1661,15 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
-        private async Task<bool> ActualizarTodaLaSerie(Turno turnoSeleccionado,TurnoDTO dto,List<int> profesionalIds,List<int> pacienteIds,int tipoTurnoId,int duracionMinutos)
+        private async Task<bool> ActualizarTodaLaSerie(
+            Turno turnoSeleccionado,
+            TurnoDTO dto,
+            List<int> profesionalIds,
+            List<int> pacienteIds,
+            List<TurnoProfesionalPrestacionDTO> profesionalPrestaciones,
+            int tipoTurnoId,
+            int duracionMinutos
+        )
         {
             if (!turnoSeleccionado.SerieTurnoId.HasValue)
             {
@@ -1323,6 +1694,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     )
                     .Include(turno =>
                         turno.TurnoPacientes
+                    )
+                    .Include(turno =>
+                        turno.TurnoTipoPrestaciones
                     )
                     .Where(turno =>
                         turno.SerieTurnoId == serieTurnoId &&
@@ -1713,6 +2087,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     context.RemoveRange(
                         turno.TurnoPacientes
                     );
+
+                    context.RemoveRange(
+                        turno.TurnoTipoPrestaciones
+                    );
                 }
 
                 // Guardamos la eliminación de las relaciones anteriores.
@@ -1795,12 +2173,32 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         )
         .ToList();
 
+                var nuevasRelacionesPrestaciones =
+                    turnosSerie
+                        .SelectMany(turno =>
+                            profesionalPrestaciones.Select(
+                                seleccion =>
+                                    new TurnoTipoPrestacion
+                                    {
+                                        TurnoId = turno.Id,
+                                        ProfesionalId = seleccion.ProfesionalId,
+                                        TipoPrestacionId = seleccion.TipoPrestacionId,
+                                        EstadoRegistro = EnumEstadoRegistro.activo
+                                    }
+                            )
+                        )
+                        .ToList();
+
                 context.AddRange(
                     nuevasRelacionesProfesionales
                 );
 
                 context.AddRange(
                     nuevasRelacionesPacientes
+                );
+
+                context.AddRange(
+                    nuevasRelacionesPrestaciones
                 );
 
                 await context.SaveChangesAsync();
@@ -1814,7 +2212,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 throw;
             }
         }
-    
-    
+
+
     }
 }

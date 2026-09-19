@@ -83,8 +83,8 @@
 
             <button type="button"
                     class="@(vistaAmpliada && !vistaSemanal
-                                        ? "btn-presentacion activo"
-                                        : "btn-presentacion")"
+                                                        ? "btn-presentacion activo"
+                                                        : "btn-presentacion")"
                     title="Agenda ampliada"
                     disabled="@vistaSemanal"
                     @onclick="MostrarVistaAmpliada">
@@ -95,8 +95,8 @@
 
             <button type="button"
                     class="@(!vistaAmpliada && !vistaSemanal
-                                        ? "btn-presentacion activo"
-                                        : "btn-presentacion")"
+                                                        ? "btn-presentacion activo"
+                                                        : "btn-presentacion")"
                     title="Agenda en lista"
                     disabled="@vistaSemanal"
                     @onclick="MostrarVistaLista">
@@ -111,8 +111,8 @@
 
             <button type="button"
                     class="@(vistaSemanal
-                                        ? "periodo-inactivo"
-                                        : "periodo-activo")"
+                                                        ? "periodo-inactivo"
+                                                        : "periodo-activo")"
                     @onclick="MostrarVistaDiaria">
 
                 Diaria
@@ -121,8 +121,8 @@
 
             <button type="button"
                     class="@(vistaSemanal
-                                        ? "periodo-activo"
-                                        : "periodo-inactivo")"
+                                                        ? "periodo-activo"
+                                                        : "periodo-inactivo")"
                     @onclick="MostrarVistaSemanal">
 
                 Semanal
@@ -213,8 +213,8 @@
                         <span>Consultorios</span>
 
                         <i class="bi @(mostrarConsultorios
-                                                       ? "bi-chevron-up"
-                                                       : "bi-chevron-down")">
+                                                                                  ? "bi-chevron-up"
+                                                                                  : "bi-chevron-down")">
                         </i>
 
                     </button>
@@ -230,8 +230,8 @@
                                     <input type="checkbox"
                                            checked="@consultoriosSeleccionados.Contains(consultorio.Id)"
                                            @onchange="e => CambiarFiltroConsultorio(
-                                                                                   consultorio.Id,
-                                                                                   Convert.ToBoolean(e.Value))" />
+                                                                                                                       consultorio.Id,
+                                                                                                                       Convert.ToBoolean(e.Value))" />
 
 <span>@consultorio.Nombre</span>
 
@@ -252,8 +252,8 @@
                         <span>Servicios</span>
 
                         <i class="bi @(mostrarServicios
-                                                       ? "bi-chevron-up"
-                                                       : "bi-chevron-down")">
+                                                                                  ? "bi-chevron-up"
+                                                                                  : "bi-chevron-down")">
                         </i>
 
                     </button>
@@ -269,8 +269,8 @@
                                     <input type="checkbox"
                                            checked="@tiposSeleccionados.Contains(tipo.Id)"
                                            @onchange="e => CambiarFiltroTipo(
-                                                                                   tipo.Id,
-                                                                                   Convert.ToBoolean(e.Value))" />
+                                                                                                                       tipo.Id,
+                                                                                                                       Convert.ToBoolean(e.Value))" />
 
 <span>@tipo.Nombre</span>
 
@@ -383,24 +383,26 @@
                                         <article class="turno-card turno-card-clickeable"
                                                  @onclick="() => AbrirDetalle(turno)">
 
+                                            <div class="turno-icono">
+                                                <i class="bi bi-calendar-check"></i>
+                                            </div>
+
                                             <div class="turno-informacion">
 
-                                                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                                @* Primera línea: consultorio, prestación y profesional. *@
+                                                <div class="turno-encabezado-datos">
 
                                                     <span class="turno-consultorio">
-                                                        @(turno.TipoConsultorioId > 0
-                                                            ? $"C{turno.TipoConsultorioId}"
-                                                            : "C?")
+                                                        @ObtenerCodigoConsultorio(
+                                                            turno.NombreTipoConsultorio
+                                                        )
                                                     </span>
 
-                                                    <span>
-                                                        @(string.IsNullOrWhiteSpace(
-                                                            turno.NombreTipoPrestacion)
-                                                                ? "Sin prestación"
-                                                                : turno.NombreTipoPrestacion)
+                                                    <span class="turno-prestacion">
+                                                        @ObtenerTextoPrestaciones(turno)
                                                     </span>
 
-                                                    <span>
+                                                    <span class="turno-profesional">
                                                         @ObtenerResumenPersonas(
                                                             turno.NombresProfesionales,
                                                             "Sin profesional")
@@ -408,27 +410,30 @@
 
                                                 </div>
 
-                                                @if (turno.SerieTurnoId.HasValue)
-                                                {
-                                                    <span class="turno-recurrencia"
-                                                          title="Este turno pertenece a una serie recurrente">
+                                                @* Horario y recurrencia en una misma línea. *@
+                                                <div class="turno-horario-fila">
 
-                                                        <i class="bi bi-arrow-repeat"></i>
+                                                    <h2>
+                                                        @turno.FechaInicio.ToString("HH:mm")
+                                                        -
+                                                        @turno.FechaFin.ToString("HH:mm")
+                                                    </h2>
 
-                                                        @ObtenerTextoRecurrencia(turno)
+                                                    @if (turno.SerieTurnoId.HasValue)
+                                                    {
+                                                        <span class="turno-recurrencia"
+                                                              title="Este turno pertenece a una serie recurrente">
 
-                                                    </span>
-                                                }
+                                                            <i class="bi bi-arrow-repeat"></i>
+                                                            @ObtenerTextoRecurrencia(turno)
 
-                                                <div style="font-size: 22px; font-weight: 700; line-height: 1.2; margin: 8px 0;">
-
-                                                    @turno.FechaInicio.ToString("HH:mm")
-                                                    -
-                                                    @turno.FechaFin.ToString("HH:mm")
+                                                        </span>
+                                                    }
 
                                                 </div>
 
-                                                <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                                                @* Tipo de turno y paciente con el detalle original. *@
+                                                <div class="turno-detalles">
 
                                                     <span>
                                                         @(string.IsNullOrWhiteSpace(
@@ -486,8 +491,8 @@
                         {
                             <button type="button"
                                     class="@(dia.Date == fechaSeleccionada.Date
-                                                                        ? "dia-ampliado activo"
-                                                                        : "dia-ampliado")"
+                                                                                                        ? "dia-ampliado activo"
+                                                                                                        : "dia-ampliado")"
                                     @onclick="() => SeleccionarFecha(dia)">
 
                                 <span class="dia-ampliado-nombre">
@@ -544,8 +549,8 @@
                                     </div>
 
                                     <div class="grilla-columna-fondo @(indice % 2 == 0
-                                                                                ? "columna-par"
-                                                                                : "columna-impar")"
+                                                                                                                        ? "columna-par"
+                                                                                                                        : "columna-impar")"
                                  style="grid-column: @columna; grid-row: 2 / 38;">
                             </div>
                         }
@@ -585,49 +590,51 @@
                                     title="Ver detalle del turno"
                                     @onclick="() => AbrirDetalle(turno)">
 
-                                <span class="turno-grilla-tipo">
-                                    @(string.IsNullOrWhiteSpace(
-                                        turno.NombreTipoTurno)
-                                            ? "Turno"
-                                            : turno.NombreTipoTurno)
+                                @* Cabecera compacta: horario y recurrencia. *@
+                                <span class="turno-grilla-cabecera">
+
+                                    <strong>
+                                        @turno.FechaInicio.ToString("HH:mm")
+                                        -
+                                        @turno.FechaFin.ToString("HH:mm")
+                                    </strong>
+
+                                    @if (turno.SerieTurnoId.HasValue)
+                                    {
+                                        <span class="turno-grilla-recurrencia"
+                                              title="@ObtenerTextoRecurrencia(turno)">
+
+                                            <i class="bi bi-arrow-repeat"></i>
+
+                                        </span>
+                                    }
+
                                 </span>
 
-                                @if (turno.SerieTurnoId.HasValue)
-                                {
-                                    <span class="turno-recurrencia turno-recurrencia-grilla"
-                                          title="Turno recurrente">
+                                @* Segunda línea: tipo de turno y prestación. *@
+                                <span class="turno-grilla-prestacion">
+                                    @(string.IsNullOrWhiteSpace(turno.NombreTipoTurno)
+                                        ? "Turno"
+                                        : turno.NombreTipoTurno)
 
-                                        <i class="bi bi-arrow-repeat"></i>
+                                    <span>—</span>
 
-                                        @ObtenerTextoRecurrencia(turno)
-
-                                    </span>
-                                }
-
-                                <span class="turno-grilla-horario">
-                                    @turno.FechaInicio.ToString("HH:mm")
-                                    -
-                                    @turno.FechaFin.ToString("HH:mm")
+                                    @ObtenerTextoPrestaciones(turno)
                                 </span>
 
-                                <span class="turno-grilla-persona">
-                                    <i class="bi bi-person-workspace"></i>
-
-                                    @ObtenerResumenPersonas(
-                                        turno.NombresProfesionales,
-                                        "Sin profesional")
-                                </span>
-
-                                <span class="turno-grilla-persona">
-                                    <i class="bi bi-person"></i>
+                                @* Tercera línea: pacientes y profesionales del turno. *@
+                                <span class="turno-grilla-participantes">
 
                                     @ObtenerResumenPersonas(
                                         turno.NombresPacientes,
                                         "Sin paciente")
-                                </span>
 
-                                <span class="turno-grilla-estado">
-                                    @ObtenerTextoEstado(turno)
+                                    <span>—</span>
+
+                                    @ObtenerResumenPersonas(
+                                        turno.NombresProfesionales,
+                                        "Sin profesional")
+
                                 </span>
 
                             </button>
@@ -688,24 +695,26 @@
                     <article class="turno-card turno-card-clickeable"
                              @onclick="() => AbrirDetalle(turno)">
 
+                        <div class="turno-icono">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+
                         <div class="turno-informacion">
 
-                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            @* Primera línea: consultorio, prestación y profesional. *@
+                            <div class="turno-encabezado-datos">
 
                                 <span class="turno-consultorio">
-                                    @(turno.TipoConsultorioId > 0
-                                        ? $"C{turno.TipoConsultorioId}"
-                                        : "C?")
+                                    @ObtenerCodigoConsultorio(
+                                        turno.NombreTipoConsultorio
+                                    )
                                 </span>
 
-                                <span>
-                                    @(string.IsNullOrWhiteSpace(
-                                        turno.NombreTipoPrestacion)
-                                            ? "Sin prestación"
-                                            : turno.NombreTipoPrestacion)
+                                <span class="turno-prestacion">
+                                    @ObtenerTextoPrestaciones(turno)
                                 </span>
 
-                                <span>
+                                <span class="turno-profesional">
                                     @ObtenerResumenPersonas(
                                         turno.NombresProfesionales,
                                         "Sin profesional")
@@ -713,27 +722,30 @@
 
                             </div>
 
-                            @if (turno.SerieTurnoId.HasValue)
-                            {
-                                <span class="turno-recurrencia"
-                                      title="Este turno pertenece a una serie recurrente">
+                            @* Horario y recurrencia en una misma línea. *@
+                            <div class="turno-horario-fila">
 
-                                    <i class="bi bi-arrow-repeat"></i>
+                                <h2>
+                                    @turno.FechaInicio.ToString("HH:mm")
+                                    -
+                                    @turno.FechaFin.ToString("HH:mm")
+                                </h2>
 
-                                    @ObtenerTextoRecurrencia(turno)
+                                @if (turno.SerieTurnoId.HasValue)
+                                {
+                                    <span class="turno-recurrencia"
+                                          title="Este turno pertenece a una serie recurrente">
 
-                                </span>
-                            }
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        @ObtenerTextoRecurrencia(turno)
 
-                            <div style="font-size: 22px; font-weight: 700; line-height: 1.2; margin: 8px 0;">
-
-                                @turno.FechaInicio.ToString("HH:mm")
-                                -
-                                @turno.FechaFin.ToString("HH:mm")
+                                    </span>
+                                }
 
                             </div>
 
-                            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                            @* Tipo de turno y paciente con el detalle original. *@
+                            <div class="turno-detalles">
 
                                 <span>
                                     @(string.IsNullOrWhiteSpace(
@@ -792,290 +804,227 @@
         <section class="detalle-turno-modal"
                  role="dialog"
                  aria-modal="true"
-                 aria-labelledby="detalle-turno-titulo"
+                 aria-label="Detalle del turno"
                  @onclick:stopPropagation="true">
 
-            <header class="detalle-turno-header">
+            @* Encabezado secundario: identifica el modal y conserva el estado visible. *@
+            <header class="detalle-nuevo-encabezado">
 
-                <div>
+                <div class="detalle-nuevo-identidad">
 
-                    <span class="detalle-turno-consultorio">
-                        @(string.IsNullOrWhiteSpace(
-                            turnoSeleccionado.NombreTipoConsultorio)
-                                ? "Sin consultorio"
-                                : turnoSeleccionado.NombreTipoConsultorio)
+                    <span class="detalle-codigo-consultorio">
+                        @ObtenerCodigoConsultorio(
+                            turnoSeleccionado.NombreTipoConsultorio
+                        )
                     </span>
 
-                    <h2 id="detalle-turno-titulo">
-
-                        @(string.IsNullOrWhiteSpace(
-                            turnoSeleccionado.NombreTipoTurno)
-                                ? "Detalle del turno"
-                                : turnoSeleccionado.NombreTipoTurno)
-
-                    </h2>
+                    <div>
+                        <span>Detalle del turno</span>
+                        <strong>
+                            @FormatearFechaDetalle(
+                                turnoSeleccionado.FechaInicio
+                            )
+                        </strong>
+                    </div>
 
                 </div>
 
-                <button type="button"
-                        class="detalle-turno-cerrar"
-                        title="Cerrar"
-                        @onclick="CerrarDetalle">
+                <div class="detalle-nuevo-encabezado-acciones">
 
-                    <i class="bi bi-x-lg"></i>
+                    <span class="@ObtenerClaseEstado(
+                                                                    turnoSeleccionado
+                                                                )">
+                        @ObtenerTextoEstado(
+                            turnoSeleccionado
+                        )
+                    </span>
 
-                </button>
+                    <button type="button"
+                            class="detalle-turno-cerrar"
+                            title="Cerrar"
+                            @onclick="CerrarDetalle">
+
+                        <i class="bi bi-x-lg"></i>
+
+                    </button>
+
+                </div>
 
             </header>
 
-            <div class="detalle-turno-estado">
+            <div class="detalle-nuevo-contenido">
 
-                <span class="@ObtenerClaseEstado(turnoSeleccionado)">
-                    @ObtenerTextoEstado(turnoSeleccionado)
-                </span>
+                @* Datos principales: primero las personas y la atención brindada. *@
+                <section class="detalle-nuevo-principal">
 
-            </div>
+                    <article class="detalle-nuevo-panel">
 
-            @if (turnoSeleccionado.SerieTurnoId.HasValue)
-            {
-                <div class="detalle-turno-recurrencia">
-
-                    <div class="detalle-turno-recurrencia-icono">
-
-                        <i class="bi bi-arrow-repeat"></i>
-
-                    </div>
-
-                    <div>
-
-                        <span>Turno recurrente</span>
-
-                        <strong>
-                            @ObtenerTextoRecurrencia(turnoSeleccionado)
-                        </strong>
-
-                        @if (turnoSeleccionado.FechaHastaRecurrencia.HasValue)
-                        {
-                            <p>
-                                Serie programada hasta el
-                                @turnoSeleccionado.FechaHastaRecurrencia.Value.ToString("dd/MM/yyyy")
-                            </p>
-                        }
-
-                    </div>
-
-                </div>
-            }
-
-            <div class="detalle-turno-horario">
-
-                <div class="detalle-turno-fecha-icono">
-
-                    <i class="bi bi-calendar3"></i>
-
-                </div>
-
-                <div>
-
-                    <span>Fecha y horario</span>
-
-                    <strong>
-                        @FormatearFechaDetalle(
-                            turnoSeleccionado.FechaInicio)
-                    </strong>
-
-                    <p>
-
-                        @turnoSeleccionado.FechaInicio.ToString("HH:mm")
-                        -
-                        @turnoSeleccionado.FechaFin.ToString("HH:mm")
-
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div class="detalle-turno-datos">
-
-                <div class="detalle-turno-dato">
-
-                    <span>Tipo de turno</span>
-
-                    <strong>
-                        @(string.IsNullOrWhiteSpace(
-                            turnoSeleccionado.NombreTipoTurno)
-                                ? "Sin especificar"
-                                : turnoSeleccionado.NombreTipoTurno)
-                    </strong>
-
-                </div>
-
-                <div class="detalle-turno-dato">
-
-                    <span>Duración</span>
-
-                    <strong>
-                        @ObtenerDuracion(turnoSeleccionado) minutos
-                    </strong>
-
-                </div>
-
-                <div class="detalle-turno-dato">
-
-                    <span>Consultorio</span>
-
-                    <strong>
-                        @(string.IsNullOrWhiteSpace(
-                            turnoSeleccionado.NombreTipoConsultorio)
-                                ? "Sin consultorio"
-                                : turnoSeleccionado.NombreTipoConsultorio)
-                    </strong>
-
-                </div>
-
-                <div class="detalle-turno-dato">
-
-                    <span>Número de turno</span>
-
-                    <strong>
-                        #@turnoSeleccionado.Id
-                    </strong>
-
-                </div>
-
-            </div>
-
-            <div class="detalle-turno-personas">
-
-                <section class="detalle-personas-grupo">
-
-                    <div class="detalle-personas-encabezado">
-
-                        <span class="detalle-personas-icono">
-                            <i class="bi bi-person-workspace"></i>
-                        </span>
-
-                        <div>
-
-                            <span>Profesionales</span>
-
-                            <strong>
-
-                                @turnoSeleccionado.NombresProfesionales.Count
-
-                                @(turnoSeleccionado.NombresProfesionales.Count == 1
-                                    ? "profesional"
-                                    : "profesionales")
-
-                            </strong>
-
-                        </div>
-
-                    </div>
-
-                    <div class="detalle-personas-lista">
-
-                        @if (turnoSeleccionado.NombresProfesionales.Count > 0)
-                        {
-                            @foreach (
-                                var profesional in
-                                turnoSeleccionado.NombresProfesionales)
-                            {
-                                <span class="detalle-persona-item">
-
-                                    <i class="bi bi-person"></i>
-
-                                    @profesional
-
-                                </span>
-                            }
-                        }
-                        else
-                        {
-                            <span class="detalle-persona-vacio">
-                                Sin profesionales asignados
-                            </span>
-                        }
-
-                    </div>
-
-                </section>
-
-                <section class="detalle-personas-grupo">
-
-                    <div class="detalle-personas-encabezado">
-
-                        <span class="detalle-personas-icono">
+                        <div class="detalle-nuevo-panel-titulo">
                             <i class="bi bi-people"></i>
-                        </span>
-
-                        <div>
-
                             <span>Pacientes</span>
-
-                            <strong>
-
-                                @turnoSeleccionado.PacientesDetalle.Count
-
-                                @(turnoSeleccionado.PacientesDetalle.Count == 1
-                                    ? "paciente"
-                                    : "pacientes")
-
-                            </strong>
-
                         </div>
-
-                    </div>
-
-                    <div class="detalle-personas-lista">
 
                         @if (turnoSeleccionado.PacientesDetalle.Count > 0)
                         {
                             @foreach (
                                 var paciente in
-                                turnoSeleccionado.PacientesDetalle)
+                                turnoSeleccionado.PacientesDetalle
+                            )
                             {
-                                <div class="detalle-persona-item">
+                                <div class="detalle-nuevo-paciente">
 
-                                    <i class="bi bi-person"></i>
+                                    <strong>
+                                        @paciente.NombrePaciente
+                                    </strong>
 
-                                    <div class="detalle-persona-informacion">
-
-                                        <strong>
-                                            @paciente.NombrePaciente
-                                        </strong>
-
-                                        <span>
-
-                                            <i class="bi bi-shield-check"></i>
-
-                                            @(string.IsNullOrWhiteSpace(
-                                                paciente.NombreObraSocial)
-                                                ? "Sin información histórica"
-                                                : paciente.NombreObraSocial)
-
-                                        </span>
-
-                                    </div>
+                                    <span>
+                                        @(string.IsNullOrWhiteSpace(
+                                            paciente.NombreObraSocial
+                                        )
+                                            ? "Sin obra social histórica"
+                                            : paciente.NombreObraSocial)
+                                    </span>
 
                                 </div>
                             }
                         }
                         else
                         {
-                            <span class="detalle-persona-vacio">
-                                Sin pacientes asignados
-                            </span>
+                            <div class="detalle-nuevo-paciente">
+                                <strong>
+                                    @ObtenerTextoPacientes(
+                                        turnoSeleccionado
+                                    )
+                                </strong>
+                                <span>Sin obra social histórica</span>
+                            </div>
                         }
 
+                    </article>
+
+                    <article class="detalle-nuevo-panel">
+
+                        <div class="detalle-nuevo-panel-titulo">
+                            <i class="bi bi-briefcase"></i>
+                            <span>Atención</span>
+                        </div>
+
+                        @if (
+                            turnoSeleccionado
+                                .ProfesionalPrestaciones.Count > 0
+                        )
+                        {
+                            @foreach (
+                                var atencion in turnoSeleccionado
+                                    .ProfesionalPrestaciones
+                            )
+                            {
+                                <div class="detalle-nuevo-atencion-relacion">
+                                    <strong>
+                                        @(string.IsNullOrWhiteSpace(
+                                            atencion.NombreProfesional
+                                        )
+                                            ? "Sin profesional"
+                                            : atencion.NombreProfesional)
+                                    </strong>
+
+                                    <span>—</span>
+
+                                    <strong>
+                                        @(string.IsNullOrWhiteSpace(
+                                            atencion.NombreTipoPrestacion
+                                        )
+                                            ? "Sin prestación"
+                                            : atencion.NombreTipoPrestacion)
+                                    </strong>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            @* Compatibilidad con una versión anterior de la API. *@
+                            <div class="detalle-nuevo-atencion-relacion">
+                                <strong>
+                                    @ObtenerTextoProfesionales(
+                                        turnoSeleccionado
+                                    )
+                                </strong>
+
+                                <span>—</span>
+
+                                <strong>
+                                    @ObtenerTextoPrestaciones(
+                                        turnoSeleccionado
+                                    )
+                                </strong>
+                            </div>
+                        }
+
+                    </article>
+
+                </section>
+
+                @* Contexto del turno: visible, pero con menor protagonismo. *@
+                <section class="detalle-nuevo-contexto">
+
+                    <div class="detalle-nuevo-contexto-item">
+                        <span>Horario</span>
+                        <strong>
+                            @turnoSeleccionado.FechaInicio.ToString("HH:mm")
+                            <small>—</small>
+                            @turnoSeleccionado.FechaFin.ToString("HH:mm")
+                        </strong>
+                    </div>
+
+                    <div class="detalle-nuevo-contexto-item">
+                        <span>Tipo de turno</span>
+                        <strong>
+                            @(string.IsNullOrWhiteSpace(
+                                turnoSeleccionado.NombreTipoTurno
+                            )
+                                ? "Sin especificar"
+                                : turnoSeleccionado.NombreTipoTurno)
+                        </strong>
                     </div>
 
                 </section>
 
+                @* La recurrencia queda resumida en una sola línea informativa. *@
+                @if (turnoSeleccionado.SerieTurnoId.HasValue)
+                {
+                    <div class="detalle-nuevo-recurrencia">
+
+                        <i class="bi bi-arrow-repeat"></i>
+
+                        <span>
+                            <strong>
+                                @ObtenerTextoRecurrencia(
+                                    turnoSeleccionado
+                                )
+                            </strong>
+
+                            @if (
+                                turnoSeleccionado
+                                    .FechaHastaRecurrencia
+                                    .HasValue
+                            )
+                            {
+                                <text>
+                                    · hasta el
+                                    @(turnoSeleccionado
+                                        .FechaHastaRecurrencia
+                                        .Value
+                                        .ToString("dd/MM/yyyy"))
+                                </text>
+                            }
+                        </span>
+
+                    </div>
+                }
+
             </div>
 
-            <footer class="detalle-turno-acciones">
+            <footer class="detalle-turno-acciones detalle-nuevo-acciones">
 
                 <button type="button"
                         class="detalle-btn-cerrar"
@@ -1101,6 +1050,7 @@
 
     </div>
 }
+
 
 @code {
 
@@ -1351,7 +1301,7 @@
             || tiposSeleccionados.Contains(id);
     }
 
-    private void CambiarFiltroConsultorio(int id,bool seleccionado)
+    private void CambiarFiltroConsultorio(int id, bool seleccionado)
     {
         if (seleccionado)
         {
@@ -1363,7 +1313,7 @@
         }
     }
 
-    private void CambiarFiltroTipo(int id,bool seleccionado)
+    private void CambiarFiltroTipo(int id, bool seleccionado)
     {
         if (seleccionado)
         {
@@ -1968,7 +1918,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private static string ObtenerResumenPersonas(List<string> nombres,string textoVacio)
+    private static string ObtenerResumenPersonas(List<string> nombres, string textoVacio)
     {
         if (nombres.Count == 0)
         {
@@ -1981,5 +1931,74 @@
         }
 
         return $"{nombres[0]} +{nombres.Count - 1}";
+    }
+
+    // Convierte "Consultorio 1" en "C1", y así sucesivamente.
+    private static string ObtenerCodigoConsultorio(string? nombreConsultorio)
+    {
+        if (string.IsNullOrWhiteSpace(
+                nombreConsultorio
+            ))
+        {
+            return "SC";
+        }
+
+        var numero = new string(
+            nombreConsultorio
+                .Where(char.IsDigit)
+                .ToArray()
+        );
+
+        return string.IsNullOrWhiteSpace(numero)
+            ? nombreConsultorio
+            : $"C{numero}";
+    }
+
+    private static string ObtenerTextoPrestaciones(TurnoListadoDTO turno)
+    {
+        if (turno.NombresTipoPrestaciones.Count > 0)
+        {
+            return string.Join(
+                ", ",
+                turno.NombresTipoPrestaciones
+            );
+        }
+
+        return string.IsNullOrWhiteSpace(
+            turno.NombreTipoPrestacion
+        )
+            ? "Sin prestación"
+            : turno.NombreTipoPrestacion;
+    }
+
+    private static string ObtenerTextoProfesionales(TurnoListadoDTO turno)
+    {
+        return turno.NombresProfesionales.Count == 0
+            ? "Sin profesionales"
+            : string.Join(
+                ", ",
+                turno.NombresProfesionales
+            );
+    }
+
+    private static string ObtenerTextoPacientes(TurnoListadoDTO turno)
+    {
+        if (turno.PacientesDetalle.Count > 0)
+        {
+            return string.Join(
+                ", ",
+                turno.PacientesDetalle.Select(
+                    paciente =>
+                        paciente.NombrePaciente
+                )
+            );
+        }
+
+        return turno.NombresPacientes.Count == 0
+            ? "Sin pacientes"
+            : string.Join(
+                ", ",
+                turno.NombresPacientes
+            );
     }
 }

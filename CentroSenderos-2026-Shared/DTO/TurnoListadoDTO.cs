@@ -1,7 +1,6 @@
 ﻿using CentroSenderos_2026_Shared.Enum;
 using System;
 using System.Collections.Generic;
-using CentroSenderos_2026_Shared.DTO;
 
 namespace CentroSenderos_2026_Shared.DTO
 {
@@ -18,7 +17,20 @@ namespace CentroSenderos_2026_Shared.DTO
         public int TipoConsultorioId { get; set; }
         public string? NombreTipoConsultorio { get; set; }
 
-        // Información de la serie recurrente.
+        // Se conservan para compatibilidad con las vistas anteriores.
+        public List<int> TipoPrestacionIds { get; set; } = new();
+        public List<string> NombresTipoPrestaciones { get; set; } = new();
+
+        public string? NombreTipoPrestacion =>
+            NombresTipoPrestaciones.Count == 0
+                ? null
+                : string.Join(", ", NombresTipoPrestaciones);
+
+        // Mantiene unidas la prestación y la persona que la realiza.
+        public List<TurnoProfesionalPrestacionDTO>
+            ProfesionalPrestaciones
+        { get; set; } = new();
+
         public int? SerieTurnoId { get; set; }
 
         public EnumFrecuenciaRecurrenciaTurno FrecuenciaRecurrencia { get; set; }
@@ -30,15 +42,13 @@ namespace CentroSenderos_2026_Shared.DTO
 
         public DateTime? FechaHastaRecurrencia { get; set; }
 
-        // Propiedades anteriores.
-        // Se mantienen temporalmente mientras adaptamos las páginas.
+        // Compatibilidad temporal con las propiedades individuales.
         public int ProfesionalId { get; set; }
         public string? NombreProfesional { get; set; }
 
         public int PacienteId { get; set; }
         public string? NombrePaciente { get; set; }
 
-        // Nuevas propiedades para representar todas las relaciones del turno.
         public List<int> ProfesionalIds { get; set; } = new();
         public List<string> NombresProfesionales { get; set; } = new();
 
@@ -48,5 +58,3 @@ namespace CentroSenderos_2026_Shared.DTO
         public List<TurnoPacienteDetalleDTO> PacientesDetalle { get; set; } = new();
     }
 }
-
-

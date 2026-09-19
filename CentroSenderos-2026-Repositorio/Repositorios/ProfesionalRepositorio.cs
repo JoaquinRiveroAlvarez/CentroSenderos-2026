@@ -107,48 +107,83 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<ProfesionalListadoDTO>>
-            SelectListaProfesional()
+        public async Task<List<ProfesionalListadoDTO>>SelectListaProfesional()
         {
             return await context.Profesionales
-                .Where(p =>
-                    p.EstadoRegistro ==
-                    EnumEstadoRegistro.activo)
-                .OrderBy(p => p.Area)
-                .ThenBy(p => p.Nombre)
-                .Select(p => new ProfesionalListadoDTO
-                {
-                    Id = p.Id,
-                    Nombre = p.Nombre,
-                    Area = p.Area,
-                    Cuit = p.Cuit,
-                    MP = p.MP,
-                    RNP = p.RNP,
-                    Telefono = p.Telefono,
-                    Email = p.Email,
-                    RolAsignado = p.RolAsignado,
+                .Where(profesional =>
+                    profesional.EstadoRegistro ==
+                    EnumEstadoRegistro.activo
+                )
+                .OrderBy(profesional =>
+                    profesional.Area
+                )
+                .ThenBy(profesional =>
+                    profesional.Nombre
+                )
+                .Select(profesional =>
+                    new ProfesionalListadoDTO
+                    {
+                        Id = profesional.Id,
+                        Nombre = profesional.Nombre,
+                        Area = profesional.Area,
+                        Cuit = profesional.Cuit,
+                        MP = profesional.MP,
+                        RNP = profesional.RNP,
+                        Telefono = profesional.Telefono,
+                        Email = profesional.Email,
+                        RolAsignado = profesional.RolAsignado,
 
-                    TipoPrestacionIds =
-                        p.ProfesionalTipoPrestaciones
-                            .Select(x =>
-                                x.TipoPrestacionId)
-                            .ToList(),
+                        // Los IDs y nombres utilizan exactamente
+                        // el mismo orden para conservar la relación.
+                        TipoPrestacionIds =
+                            profesional.ProfesionalTipoPrestaciones
+                                .Where(relacion =>
+                                    relacion.EstadoRegistro ==
+                                        EnumEstadoRegistro.activo &&
+                                    relacion.TipoPrestacion.EstadoRegistro ==
+                                        EnumEstadoRegistro.activo
+                                )
+                                .OrderBy(relacion =>
+                                    relacion.TipoPrestacion.Tipo
+                                )
+                                .ThenBy(relacion =>
+                                    relacion.TipoPrestacionId
+                                )
+                                .Select(relacion =>
+                                    relacion.TipoPrestacionId
+                                )
+                                .ToList(),
 
-                    TipoPrestacionNombres =
-                        p.ProfesionalTipoPrestaciones
-                            .Select(x =>
-                                x.TipoPrestacion.Tipo)
-                            .OrderBy(nombre => nombre)
-                            .ToList(),
+                        TipoPrestacionNombres =
+                            profesional.ProfesionalTipoPrestaciones
+                                .Where(relacion =>
+                                    relacion.EstadoRegistro ==
+                                        EnumEstadoRegistro.activo &&
+                                    relacion.TipoPrestacion.EstadoRegistro ==
+                                        EnumEstadoRegistro.activo
+                                )
+                                .OrderBy(relacion =>
+                                    relacion.TipoPrestacion.Tipo
+                                )
+                                .ThenBy(relacion =>
+                                    relacion.TipoPrestacionId
+                                )
+                                .Select(relacion =>
+                                    relacion.TipoPrestacion.Tipo
+                                )
+                                .ToList(),
 
-                    EsSocio = context.Socios.Any(s =>
-                        s.ProfesionalId == p.Id &&
-                        s.EstadoRegistro ==
-                        EnumEstadoRegistro.activo)
-                })
+                        EsSocio =
+                            context.Socios.Any(socio =>
+                                socio.ProfesionalId ==
+                                    profesional.Id &&
+                                socio.EstadoRegistro ==
+                                    EnumEstadoRegistro.activo
+                            )
+                    }
+                )
                 .ToListAsync();
         }
-
         public async Task<int> InsertarProfesional(
             ProfesionalDTO dto)
         {

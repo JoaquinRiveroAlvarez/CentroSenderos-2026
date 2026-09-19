@@ -285,8 +285,8 @@
                                 </span>
 
                                 <i class="bi @(mostrarSelectorProfesionales
-                                 ? "bi-chevron-up"
-                                 : "bi-chevron-down")">
+                                                                    ? "bi-chevron-up"
+                                                                    : "bi-chevron-down")">
                                 </i>
 
                             </button>
@@ -329,12 +329,12 @@
 
                                                 <button type="button"
                                                         class="@(estaSeleccionado
-                                                                                                                                                ? "selector-desplegable-opcion seleccionado"
-                                                                                                                                                : "selector-desplegable-opcion")"
+                                                                                                                                                                                                    ? "selector-desplegable-opcion seleccionado"
+                                                                                                                                                                                                    : "selector-desplegable-opcion")"
                                                         @onclick="() =>
-                                                                                                                                                AlternarProfesional(profesional.Id)">
+                                                                                                                                                                                                    AlternarProfesional(profesional.Id)">
 
-                                                    <span>@profesional.Nombre</span>
+<span>@profesional.Nombre</span>
 
                                 @if (estaSeleccionado)
                                                     {
@@ -387,17 +387,89 @@
                                             <button type="button"
                                                     title="Quitar profesional"
                                                     @onclick="() =>
-                                                                                                                                    QuitarProfesional(profesional.Id)">
+                                                                                                                                                                                    QuitarProfesional(profesional.Id)">
 
-                                            <i class="bi bi-x"></i>
+<i class="bi bi-x"></i>
 
-                                            </button>
+</button>
 
                                         </span>
                                     }
                                 }
 
                             </div>
+                        }
+
+                    </div>
+
+                    <div class="campo campo-completo">
+
+                        <label>
+                            Prestación por profesional
+                        </label>
+
+                        @if (modelo.ProfesionalIds.Count == 0)
+                        {
+                            <div class="selector-multiple-vacio">
+                                Seleccioná al menos un profesional.
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var profesionalId in modelo.ProfesionalIds)
+                            {
+                                var profesional = profesionales.FirstOrDefault(
+                                    item => item.Id == profesionalId
+                                );
+
+                                if (profesional is not null)
+                                {
+                                    <div class="campo">
+
+                                        <label>
+                                            @profesional.Nombre
+                                        </label>
+
+                                        <select class="control-formulario"
+                                                value="@ObtenerPrestacionSeleccionada(
+                                                                                                                        profesional.Id
+                                                                                                                    )"
+                                                @onchange="evento =>
+                                                                                                                        SeleccionarPrestacion(
+                                                                                                                            profesional.Id,
+                                                                                                                            evento
+                                                                                                                        )">
+
+<option value="0">
+                                                Seleccionar prestación
+                                            </option>
+
+                                            @for (
+                                                var indice = 0;
+                                                indice < profesional.TipoPrestacionIds.Count;
+                                                indice++
+                                            )
+                                            {
+                                                var prestacionId =
+                                                    profesional.TipoPrestacionIds[indice];
+
+                                                var nombrePrestacion =
+                                                    indice <
+                                                    profesional.TipoPrestacionNombres.Count
+                                                        ? profesional
+                                                            .TipoPrestacionNombres[indice]
+                                                        : "Prestación";
+
+                                                <option value="@prestacionId">
+                                                    @nombrePrestacion
+                                                </option>
+                                            }
+
+                                        </select>
+
+                                    </div>
+                                }
+                            }
                         }
 
                     </div>
@@ -420,8 +492,8 @@
                                 </span>
 
                                 <i class="bi @(mostrarSelectorPacientes
-                                ? "bi-chevron-up"
-                                : "bi-chevron-down")">
+                                                                   ? "bi-chevron-up"
+                                                                   : "bi-chevron-down")">
                                 </i>
 
                             </button>
@@ -462,12 +534,12 @@
 
                                                 <button type="button"
                                                         class="@(estaSeleccionado
-                                        ? "selector-desplegable-opcion seleccionado"
-                                        : "selector-desplegable-opcion")"
+                                                                                            ? "selector-desplegable-opcion seleccionado"
+                                                                                            : "selector-desplegable-opcion")"
                                                         @onclick="() =>
-                                                  AlternarPaciente(paciente.Id)">
+                                                                                                      AlternarPaciente(paciente.Id)">
 
-                                                    <span>
+<span>
                                                         @paciente.Nombre
                                                     </span>
 
@@ -522,11 +594,11 @@
                                             <button type="button"
                                                     title="Quitar paciente"
                                                     @onclick="() =>
-                                                                                                                                    QuitarPaciente(paciente.Id)">
+                                                                                                                                                                                    QuitarPaciente(paciente.Id)">
 
-                                            <i class="bi bi-x"></i>
+<i class="bi bi-x"></i>
 
-                                            </button>
+</button>
 
                                         </span>
                                     }
@@ -1002,6 +1074,12 @@
                 modelo.TipoTurnoId > 0 &&
                 modelo.TipoConsultorioId > 0 &&
                 modelo.ProfesionalIds.Count > 0 &&
+                modelo.ProfesionalIds.All(profesionalId =>
+                    modelo.ProfesionalPrestaciones.Any(seleccion =>
+                        seleccion.ProfesionalId == profesionalId &&
+                        seleccion.TipoPrestacionId > 0
+                    )
+                ) &&
                 modelo.PacienteIds.Count > 0;
         }
     }
@@ -1115,16 +1193,14 @@
             )
             .ToList();
 
-    private string TextoProfesionalesSeleccionados =>
-    modelo.ProfesionalIds.Count switch
+    private string TextoProfesionalesSeleccionados => modelo.ProfesionalIds.Count switch
     {
         0 => "Seleccione profesionales",
         1 => "1 profesional seleccionado",
         _ => $"{modelo.ProfesionalIds.Count} profesionales seleccionados"
     };
 
-    private string TextoPacientesSeleccionados =>
-    modelo.PacienteIds.Count switch
+    private string TextoPacientesSeleccionados => modelo.PacienteIds.Count switch
     {
         0 => "Seleccione pacientes",
         1 => "1 paciente seleccionado",
@@ -1209,26 +1285,60 @@
 
     private async Task AlternarProfesional(int profesionalId)
     {
-        if (modelo.ProfesionalIds.Contains(profesionalId))
+        if (modelo.ProfesionalIds.Contains(
+                profesionalId
+            ))
         {
-            modelo.ProfesionalIds.Remove(profesionalId);
+            modelo.ProfesionalIds.Remove(
+                profesionalId
+            );
+
+            QuitarPrestacionDelProfesional(
+                profesionalId
+            );
         }
         else
         {
-            modelo.ProfesionalIds.Add(profesionalId);
+            modelo.ProfesionalIds.Add(
+                profesionalId
+            );
         }
 
         SincronizarProfesionalAnterior();
 
         await ActualizarHorariosPorCambio();
     }
+
     private async Task QuitarProfesional(int profesionalId)
     {
-        modelo.ProfesionalIds.Remove(profesionalId);
+        modelo.ProfesionalIds.Remove(
+            profesionalId
+        );
+
+        QuitarPrestacionDelProfesional(
+            profesionalId
+        );
 
         SincronizarProfesionalAnterior();
 
         await ActualizarHorariosPorCambio();
+    }
+
+    private void QuitarPrestacionDelProfesional(int profesionalId)
+    {
+        modelo.ProfesionalPrestaciones.RemoveAll(
+            seleccion =>
+                seleccion.ProfesionalId ==
+                profesionalId
+        );
+
+        modelo.TipoPrestacionIds =
+            modelo.ProfesionalPrestaciones
+                .Select(seleccion =>
+                    seleccion.TipoPrestacionId
+                )
+                .Distinct()
+                .ToList();
     }
 
     private void SincronizarProfesionalAnterior()
@@ -1266,7 +1376,14 @@
             modelo.TipoTurnoId > 0 &&
             modelo.TipoConsultorioId > 0 &&
             modelo.ProfesionalIds.Count > 0 &&
-            modelo.PacienteIds.Count > 0;
+            modelo.ProfesionalPrestaciones.Count ==
+            modelo.ProfesionalIds.Count &&
+            modelo.ProfesionalPrestaciones.All(
+            seleccion =>
+            seleccion.TipoPrestacionId > 0 &&
+            modelo.ProfesionalIds.Contains(seleccion.ProfesionalId)
+            ) &&
+        modelo.PacienteIds.Count > 0;
 
         if (!seleccionCompleta)
         {
@@ -1603,9 +1720,154 @@
     }
 
 
+    private int ObtenerPrestacionSeleccionada(int profesionalId)
+    {
+        return modelo.ProfesionalPrestaciones
+            .FirstOrDefault(seleccion =>
+                seleccion.ProfesionalId ==
+                profesionalId
+            )
+            ?.TipoPrestacionId ?? 0;
+    }
+
+    private void SeleccionarPrestacion(int profesionalId, ChangeEventArgs evento)
+    {
+        if (!int.TryParse(
+                evento.Value?.ToString(),
+                out var tipoPrestacionId
+            ))
+        {
+            tipoPrestacionId = 0;
+        }
+
+        var seleccionActual =
+            modelo.ProfesionalPrestaciones
+                .FirstOrDefault(seleccion =>
+                    seleccion.ProfesionalId ==
+                    profesionalId
+                );
+
+        if (tipoPrestacionId == 0)
+        {
+            if (seleccionActual is not null)
+            {
+                modelo.ProfesionalPrestaciones.Remove(
+                    seleccionActual
+                );
+            }
+        }
+        else if (seleccionActual is null)
+        {
+            modelo.ProfesionalPrestaciones.Add(
+                new TurnoProfesionalPrestacionDTO
+                {
+                    ProfesionalId = profesionalId,
+                    TipoPrestacionId =
+                        tipoPrestacionId
+                }
+            );
+        }
+        else
+        {
+            seleccionActual.TipoPrestacionId =
+                tipoPrestacionId;
+        }
+
+        modelo.TipoPrestacionIds =
+            modelo.ProfesionalPrestaciones
+                .Select(seleccion =>
+                    seleccion.TipoPrestacionId
+                )
+                .Distinct()
+                .ToList();
+
+        Mensaje = string.Empty;
+    }
+
+    // Reconstruye una única pareja profesional-prestación antes de enviar el DTO.
+    // Evita que queden relaciones de profesionales eliminados o selecciones duplicadas.
+    private bool PrepararPrestacionesParaGuardar()
+    {
+        var profesionalIdsSeleccionados =
+            modelo.ProfesionalIds
+                .Where(profesionalId =>
+                    profesionalId > 0
+                )
+                .Distinct()
+                .ToHashSet();
+
+        var relacionesNormalizadas =
+            modelo.ProfesionalPrestaciones
+                .Where(seleccion =>
+                    profesionalIdsSeleccionados.Contains(
+                        seleccion.ProfesionalId
+                    ) &&
+                    seleccion.TipoPrestacionId > 0
+                )
+                .GroupBy(seleccion =>
+                    seleccion.ProfesionalId
+                )
+                .Select(grupo =>
+                    grupo.First()
+                )
+                .ToList();
+
+        foreach (var profesionalId in
+                 profesionalIdsSeleccionados)
+        {
+            var profesional =
+                profesionales.FirstOrDefault(item =>
+                    item.Id == profesionalId
+                );
+
+            var seleccion =
+                relacionesNormalizadas.FirstOrDefault(item =>
+                    item.ProfesionalId == profesionalId
+                );
+
+            if (profesional is null ||
+                seleccion is null)
+            {
+                Mensaje =
+                    "Debe seleccionar una prestación para cada profesional.";
+
+                return false;
+            }
+
+            if (!profesional.TipoPrestacionIds.Contains(
+                    seleccion.TipoPrestacionId
+                ))
+            {
+                Mensaje =
+                    $"La prestación seleccionada no está asignada a " +
+                    $"{profesional.Nombre}.";
+
+                return false;
+            }
+        }
+
+        modelo.ProfesionalPrestaciones =
+            relacionesNormalizadas;
+
+        modelo.TipoPrestacionIds =
+            relacionesNormalizadas
+                .Select(seleccion =>
+                    seleccion.TipoPrestacionId
+                )
+                .Distinct()
+                .ToList();
+
+        return true;
+    }
+
     private async Task Grabar()
     {
         if (!PuedeGuardar || guardando)
+        {
+            return;
+        }
+
+        if (!PrepararPrestacionesParaGuardar())
         {
             return;
         }

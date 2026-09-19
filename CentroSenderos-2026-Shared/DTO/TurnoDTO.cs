@@ -51,8 +51,14 @@ public class TurnoDTO
 
     // Nuevas propiedades para permitir múltiples profesionales y pacientes.
     public List<int> ProfesionalIds { get; set; } = new();
+
     public List<int> PacienteIds { get; set; } = new();
 
-    public List<TurnoPacienteDetalleDTO> PacientesDetalle {get; set;} = new();
+    public List<TurnoPacienteDetalleDTO> PacientesDetalle { get; set; } = new();
+
+    // Prestaciones asociadas al turno.
+    public List<int> TipoPrestacionIds { get; set; } = new();
+
+    public List<TurnoProfesionalPrestacionDTO>ProfesionalPrestaciones{ get; set; } = new();
 }
 
