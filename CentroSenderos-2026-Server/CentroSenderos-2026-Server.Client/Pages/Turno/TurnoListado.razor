@@ -83,10 +83,9 @@
 
             <button type="button"
                     class="@(vistaAmpliada && !vistaSemanal
-                                                        ? "btn-presentacion activo"
-                                                        : "btn-presentacion")"
+                                                                        ? "btn-presentacion activo"
+                                                                        : "btn-presentacion")"
                     title="Agenda ampliada"
-                    
                     @onclick="MostrarVistaAmpliada">
 
                 <i class="bi bi-grid-fill"></i>
@@ -95,10 +94,9 @@
 
             <button type="button"
                     class="@(!vistaAmpliada && !vistaSemanal
-                                                        ? "btn-presentacion activo"
-                                                        : "btn-presentacion")"
+                                                                        ? "btn-presentacion activo"
+                                                                        : "btn-presentacion")"
                     title="Agenda en lista"
-                    
                     @onclick="MostrarVistaLista">
 
                 <i class="bi bi-list-ul"></i>
@@ -111,8 +109,8 @@
 
             <button type="button"
                     class="@(vistaSemanal
-                                                        ? "periodo-inactivo"
-                                                        : "periodo-activo")"
+                                                                        ? "periodo-inactivo"
+                                                                        : "periodo-activo")"
                     @onclick="MostrarVistaDiaria">
 
                 Diaria
@@ -121,8 +119,8 @@
 
             <button type="button"
                     class="@(vistaSemanal
-                                                        ? "periodo-activo"
-                                                        : "periodo-inactivo")"
+                                                                        ? "periodo-activo"
+                                                                        : "periodo-inactivo")"
                     @onclick="MostrarVistaSemanal">
 
                 Semanal
@@ -213,8 +211,8 @@
                         <span>Consultorios</span>
 
                         <i class="bi @(mostrarConsultorios
-                                                                                  ? "bi-chevron-up"
-                                                                                  : "bi-chevron-down")">
+                                                                                                             ? "bi-chevron-up"
+                                                                                                             : "bi-chevron-down")">
                         </i>
 
                     </button>
@@ -230,8 +228,8 @@
                                     <input type="checkbox"
                                            checked="@consultoriosSeleccionados.Contains(consultorio.Id)"
                                            @onchange="e => CambiarFiltroConsultorio(
-                                                                                                                       consultorio.Id,
-                                                                                                                       Convert.ToBoolean(e.Value))" />
+                                                                                                                                                           consultorio.Id,
+                                                                                                                                                           Convert.ToBoolean(e.Value))" />
 
 <span>@consultorio.Nombre</span>
 
@@ -252,8 +250,8 @@
                         <span>Tipo de Turno</span>
 
                         <i class="bi @(mostrarServicios
-                                                                                  ? "bi-chevron-up"
-                                                                                  : "bi-chevron-down")">
+                                                                                                             ? "bi-chevron-up"
+                                                                                                             : "bi-chevron-down")">
                         </i>
 
                     </button>
@@ -269,8 +267,8 @@
                                     <input type="checkbox"
                                            checked="@tiposSeleccionados.Contains(tipo.Id)"
                                            @onchange="e => CambiarFiltroTipo(
-                                                                                                                       tipo.Id,
-                                                                                                                       Convert.ToBoolean(e.Value))" />
+                                                                                                                                                           tipo.Id,
+                                                                                                                                                           Convert.ToBoolean(e.Value))" />
 
 <span>@tipo.Nombre</span>
 
@@ -291,8 +289,8 @@
                         <span>Profesionales</span>
 
                         <i class="bi @(mostrarProfesionales
-                                                      ? "bi-chevron-up"
-                                                      : "bi-chevron-down")">
+                                                                                 ? "bi-chevron-up"
+                                                                                 : "bi-chevron-down")">
                         </i>
 
                     </button>
@@ -310,17 +308,17 @@
 
                                     <input type="checkbox"
                                            checked="@profesionalesSeleccionados.Contains(
-                                                                   profesional.Id
-                                                               )"
+                                                                                                       profesional.Id
+                                                                                                   )"
                                            @onchange="evento =>
-                                                                   CambiarFiltroProfesional(
-                                                                       profesional.Id,
-                                                                       Convert.ToBoolean(evento.Value)
-                                                                   )" />
+                                                                                                       CambiarFiltroProfesional(
+                                                                                                           profesional.Id,
+                                                                                                           Convert.ToBoolean(evento.Value)
+                                                                                                       )" />
 
-                                <span>@profesional.Nombre</span>
+<span>@profesional.Nombre</span>
 
-                                </label>
+</label>
                             }
 
                         </div>
@@ -337,8 +335,8 @@
                         <span>Pacientes</span>
 
                         <i class="bi @(mostrarPacientes
-                                                      ? "bi-chevron-up"
-                                                      : "bi-chevron-down")">
+                                                                                 ? "bi-chevron-up"
+                                                                                 : "bi-chevron-down")">
                         </i>
 
                     </button>
@@ -356,17 +354,17 @@
 
                                     <input type="checkbox"
                                            checked="@pacientesSeleccionados.Contains(
-                                                                   paciente.Id
-                                                               )"
+                                                                                                       paciente.Id
+                                                                                                   )"
                                            @onchange="evento =>
-                                                                   CambiarFiltroPaciente(
-                                                                       paciente.Id,
-                                                                       Convert.ToBoolean(evento.Value)
-                                                                   )" />
+                                                                                                       CambiarFiltroPaciente(
+                                                                                                           paciente.Id,
+                                                                                                           Convert.ToBoolean(evento.Value)
+                                                                                                       )" />
 
-                                            <span>@paciente.Nombre</span>
+<span>@paciente.Nombre</span>
 
-                                </label>
+</label>
                             }
 
                         </div>
@@ -375,6 +373,15 @@
                 </div>
 
             </div>
+
+            <button type="button"
+                    class="btn-restaurar-filtros"
+                    @onclick="RestaurarTodosLosFiltros">
+
+                <i class="bi bi-arrow-counterclockwise"></i>
+                <span>Restaurar filtros</span>
+
+            </button>
 
         </aside>
 
@@ -563,8 +570,8 @@
                         {
                             <button type="button"
                                     class="@(dia.Date == fechaSeleccionada.Date
-                                                                                                        ? "dia-ampliado activo"
-                                                                                                        : "dia-ampliado")"
+                                                                                                                                        ? "dia-ampliado activo"
+                                                                                                                                        : "dia-ampliado")"
                                     @onclick="() => SeleccionarFecha(dia)">
 
                                 <span class="dia-ampliado-nombre">
@@ -621,8 +628,8 @@
                                     </div>
 
                                     <div class="grilla-columna-fondo @(indice % 2 == 0
-                                                                                                                        ? "columna-par"
-                                                                                                                        : "columna-impar")"
+                                                                                                                                                                ? "columna-par"
+                                                                                                                                                                : "columna-impar")"
                                  style="grid-column: @columna; grid-row: 2 / 38;">
                             </div>
                         }
@@ -904,8 +911,8 @@
                 <div class="detalle-nuevo-encabezado-acciones">
 
                     <span class="@ObtenerClaseEstado(
-                                                                    turnoSeleccionado
-                                                                )">
+                                                                                            turnoSeleccionado
+                                                                                        )">
                         @ObtenerTextoEstado(
                             turnoSeleccionado
                         )
@@ -1506,7 +1513,7 @@
         }
     }
 
-    private void CambiarFiltroProfesional(int id,bool seleccionado)
+    private void CambiarFiltroProfesional(int id, bool seleccionado)
     {
         if (seleccionado)
         {
@@ -1518,7 +1525,7 @@
         }
     }
 
-    private void CambiarFiltroPaciente(int id,bool seleccionado)
+    private void CambiarFiltroPaciente(int id, bool seleccionado)
     {
         if (seleccionado)
         {
@@ -1528,6 +1535,29 @@
         {
             pacientesSeleccionados.Remove(id);
         }
+    }
+
+    private void RestaurarTodosLosFiltros()
+    {
+        consultoriosSeleccionados =
+            ConsultoriosDisponibles
+                .Select(consultorio => consultorio.Id)
+                .ToHashSet();
+
+        tiposSeleccionados =
+            TiposTurnoDisponibles
+                .Select(tipo => tipo.Id)
+                .ToHashSet();
+
+        profesionalesSeleccionados =
+            ProfesionalesDisponibles
+                .Select(profesional => profesional.Id)
+                .ToHashSet();
+
+        pacientesSeleccionados =
+            PacientesDisponibles
+                .Select(paciente => paciente.Id)
+                .ToHashSet();
     }
 
     private void IrAHoy()

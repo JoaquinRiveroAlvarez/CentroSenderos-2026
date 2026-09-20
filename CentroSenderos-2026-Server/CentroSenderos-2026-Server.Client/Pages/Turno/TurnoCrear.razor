@@ -45,11 +45,9 @@
     }
     else
     {
-                <EditForm Model="@modelo"
-                  OnValidSubmit="Grabar"
+        <EditForm Model="@modelo"
+                  OnSubmit="Grabar"
                   class="turno-form">
-
-            <DataAnnotationsValidator />
 
             @* Cierra los selectores cuando se hace clic fuera. *@
             @if (
@@ -112,8 +110,6 @@
 
                             </InputSelect>
 
-                            <ValidationMessage For="@(() => modelo.TipoTurnoId)" />
-
                         </div>
 
                    
@@ -142,8 +138,6 @@
                                 }
 
                             </InputSelect>
-
-                            <ValidationMessage For="@(() => modelo.TipoConsultorioId)" />
 
                         </div>
 
@@ -233,8 +227,6 @@
                                 </div>
                             }
 
-                            <ValidationMessage For="@(() => modelo.Fecha)" />
-
                         </div>
                         <div class="campo">
 
@@ -254,8 +246,8 @@
                                     </span>
 
                                     <i class="bi @(mostrarSelectorProfesionales
-                                                                                              ? "bi-chevron-up"
-                                                                                              : "bi-chevron-down")">
+                                                                                                                                     ? "bi-chevron-up"
+                                                                                                                                     : "bi-chevron-down")">
                                     </i>
 
                                 </button>
@@ -299,11 +291,11 @@
 
                                                     <button type="button"
                                                             class="@(estaSeleccionado
-                                                                                                                        ? "selector-desplegable-opcion seleccionado"
-                                                                                                                        : "selector-desplegable-opcion")"
+                                                                                                                                                                                ? "selector-desplegable-opcion seleccionado"
+                                                                                                                                                                                : "selector-desplegable-opcion")"
                                                             @onclick="() => AlternarProfesional(
-                                                                                                                        profesional.Id
-                                                                                                                    )">
+                                                                                                                                                                                profesional.Id
+                                                                                                                                                                            )">
 
 <span>
                                                             @profesional.Nombre
@@ -379,8 +371,8 @@
                                                             class="profesional-prestacion-quitar"
                                                             title="Quitar profesional"
                                                             @onclick="() => QuitarProfesional(
-                                                                                                                        profesional.Id
-                                                                                                                    )">
+                                                                                                                                                                                profesional.Id
+                                                                                                                                                                            )">
 
 <i class="bi bi-x-lg"></i>
 
@@ -434,13 +426,13 @@
                                                     {
                                                         <select class="form-select"
                                                                 value="@ObtenerPrestacionSeleccionada(
-                                                                                                                                profesional.Id
-                                                                                                                            )"
+                                                                                                                                                                                            profesional.Id
+                                                                                                                                                                                        )"
                                                                 @onchange="evento =>
-                                                                                                                                SeleccionarPrestacion(
-                                                                                                                                    profesional.Id,
-                                                                                                                                    evento
-                                                                                                                                )">
+                                                                                                                                                                                            SeleccionarPrestacion(
+                                                                                                                                                                                                profesional.Id,
+                                                                                                                                                                                                evento
+                                                                                                                                                                                            )">
 
 <option value="0">
                                                                 Seleccioná una prestación
@@ -505,8 +497,8 @@
                                     </span>
 
                                     <i class="bi @(mostrarSelectorPacientes
-                                                       ? "bi-chevron-up"
-                                                       : "bi-chevron-down")">
+                                                                                              ? "bi-chevron-up"
+                                                                                              : "bi-chevron-down")">
                                     </i>
 
                                 </button>
@@ -547,13 +539,13 @@
 
                                                     <button type="button"
                                                             class="@(estaSeleccionado
-                                                                                                ? "selector-desplegable-opcion seleccionado"
-                                                                                                : "selector-desplegable-opcion")"
+                                                                                                                                                        ? "selector-desplegable-opcion seleccionado"
+                                                                                                                                                        : "selector-desplegable-opcion")"
                                                             @onclick="() => AlternarPaciente(
-                                                                                                paciente.Id
-                                                                                            )">
+                                                                                                                                                        paciente.Id
+                                                                                                                                                    )">
 
-                                                                        <span>
+<span>
                                                             @paciente.Nombre — DNI @paciente.DNI
                                                         </span>
 
@@ -593,7 +585,7 @@
                                                 <button type="button"
                                                         title="Quitar paciente"
                                                         @onclick="() => QuitarPaciente(paciente.Id)">
-                                                        <i class="bi bi-x"></i>
+                                                    <i class="bi bi-x"></i>
                                                 </button>
 
                                             </span>
@@ -604,41 +596,41 @@
                             }
 
                         
-                    </div>
+                        </div>
 
-                    <div class="campo campo-completo">
+                        <div class="campo campo-completo">
 
-                        <label for="frecuenciaRecurrencia">
-                            Repetición
-                        </label>
+                            <label for="frecuenciaRecurrencia">
+                                Repetición
+                            </label>
 
-                        <InputSelect id="frecuenciaRecurrencia"
-                                     class="form-select"
-                                     @bind-Value="modelo.FrecuenciaRecurrencia">
+                            <InputSelect id="frecuenciaRecurrencia"
+                                         class="form-select"
+                                         @bind-Value="modelo.FrecuenciaRecurrencia">
 
-                            <option value="@EnumFrecuenciaRecurrenciaTurno.noRepite">
-                                No repetir
-                            </option>
+                                <option value="@EnumFrecuenciaRecurrenciaTurno.noRepite">
+                                    No repetir
+                                </option>
 
-                            <option value="@EnumFrecuenciaRecurrenciaTurno.semanal">
-                                Una vez por semana
-                            </option>
+                                <option value="@EnumFrecuenciaRecurrenciaTurno.semanal">
+                                    Una vez por semana
+                                </option>
 
-                            <option value="@EnumFrecuenciaRecurrenciaTurno.cadaQuinceDias">
-                                Cada 15 días
-                            </option>
+                                <option value="@EnumFrecuenciaRecurrenciaTurno.cadaQuinceDias">
+                                    Cada 15 días
+                                </option>
 
-                            <option value="@EnumFrecuenciaRecurrenciaTurno.mensual">
-                                Una vez por mes
-                            </option>
+                                <option value="@EnumFrecuenciaRecurrenciaTurno.mensual">
+                                    Una vez por mes
+                                </option>
 
-                            <option value="@EnumFrecuenciaRecurrenciaTurno.personalizado">
-                                Personalizado
-                            </option>
+                                <option value="@EnumFrecuenciaRecurrenciaTurno.personalizado">
+                                    Personalizado
+                                </option>
 
-                        </InputSelect>
+                            </InputSelect>
 
-                    </div>
+                        </div>
 
                         @if (EsRecurrenciaPersonalizada)
                         {
@@ -653,13 +645,6 @@
                                              min="1"
                                              max="365"
                                              @bind-Value="modelo.IntervaloRecurrencia" />
-
-                                @if (modelo.IntervaloRecurrencia <= 0)
-                                {
-                                    <span class="validation-message">
-                                        El intervalo debe ser mayor que cero.
-                                    </span>
-                                }
 
                             </div>
 
@@ -773,11 +758,11 @@
                                                             class="@ObtenerClaseDiaRecurrencia(dia)"
                                                             disabled="@(dia.Date < modelo.Fecha.Date)"
                                                             @onclick="() =>
-                                                                                                SeleccionarFechaRecurrencia(dia)">
+                                                                                                                                                        SeleccionarFechaRecurrencia(dia)">
 
-                                                    @dia.Day
+@dia.Day
 
-                                                    </button>
+</button>
                                                 }
 
                                             </div>
@@ -800,80 +785,62 @@
                                     Se crearán turnos hasta esta fecha inclusive.
                                 </span>
 
-                                @if (modelo.FechaHastaRecurrencia.HasValue
-                                    && modelo.FechaHastaRecurrencia.Value.Date
-                                        < modelo.Fecha.Date)
-                                {
-                                    <span class="validation-message">
-                                        La fecha final no puede ser anterior al primer turno.
-                                    </span>
-                                }
-
                             </div>
                         }
 
-                            @if (modelo.FechaHastaRecurrencia.HasValue
-                                && modelo.FechaHastaRecurrencia.Value.Date
-                                    < modelo.Fecha.Date)
-                            {
-                                <span class="validation-message">
-                                    La fecha final no puede ser anterior al primer turno.
-                                </span>
-                            }
-                            
                         @if (EsRecurrente && RecurrenciaValida)
-{
-    var fechasVistaPrevia =
-        ObtenerFechasRecurrenciaVistaPrevia();
+                        {
+                            var fechasVistaPrevia =
+                                ObtenerFechasRecurrenciaVistaPrevia();
 
-    if (fechasVistaPrevia.Count > 0)
-    {
-        <div class="recurrencia-resumen campo-completo">
+                            if (fechasVistaPrevia.Count > 0)
+                            {
+                                <div class="recurrencia-resumen campo-completo">
 
-            <div class="recurrencia-resumen-header">
+                                    <div class="recurrencia-resumen-header">
 
-                <i class="bi bi-arrow-repeat"></i>
+                                        <i class="bi bi-arrow-repeat"></i>
 
-                <div>
-                    <strong>
-                        @fechasVistaPrevia.Count
-                        @(fechasVistaPrevia.Count == 1
-                            ? "turno será creado"
-                            : "turnos serán creados")
-                    </strong>
+                                        <div>
+                                            <strong>
+                                                @fechasVistaPrevia.Count
+                                                @(fechasVistaPrevia.Count == 1
+                                                    ? "turno será creado"
+                                                    : "turnos serán creados")
+                                            </strong>
 
-                    <span>
-                        Incluyendo el primer turno.
-                    </span>
-                </div>
+                                            <span>
+                                                Incluyendo el primer turno.
+                                            </span>
+                                        </div>
 
-            </div>
+                                    </div>
 
-            <div class="recurrencia-fechas">
+                                    <div class="recurrencia-fechas">
 
-                @foreach (
-                    var fecha in fechasVistaPrevia.Take(8)
-                )
-                {
-                    <span class="recurrencia-fecha">
-                        @fecha.ToString("dd/MM/yyyy")
-                    </span>
-                }
+                                        @foreach (
+                                            var fecha in fechasVistaPrevia.Take(8)
+                                        )
+                                        {
+                                            <span class="recurrencia-fecha">
+                                                @fecha.ToString("dd/MM/yyyy")
+                                            </span>
+                                        }
 
-                @if (fechasVistaPrevia.Count > 8)
-                {
-                    <span class="recurrencia-fecha recurrencia-fecha-mas">
-                        +@(fechasVistaPrevia.Count - 8) más
-                    </span>
-                }
+                                        @if (fechasVistaPrevia.Count > 8)
+                                        {
+                                            <span class="recurrencia-fecha recurrencia-fecha-mas">
+                                                +@(fechasVistaPrevia.Count - 8) más
+                                            </span>
+                                        }
 
-            </div>
+                                    </div>
 
-        </div>
-    }
-}
-                    
-                </div>
+                                </div>
+                            }
+                        }
+
+                    </div>
 
                 </section>
 
@@ -936,8 +903,8 @@
                     else
                     {
                         <div class="@(MostrarNavegacionHorarios
-                                             ? "horarios-navegacion"
-                                             : "horarios-navegacion sin-flechas")">
+                                                                         ? "horarios-navegacion"
+                                                                         : "horarios-navegacion sin-flechas")">
 
                             @if (MostrarNavegacionHorarios)
                             {
@@ -1050,8 +1017,6 @@
                 </section>
             }
 
-            <ValidationSummary class="validation-summary" />
-
             @if (!string.IsNullOrWhiteSpace(Mensaje))
             {
                 <div class="mensaje-form">
@@ -1071,7 +1036,7 @@
 
                 <button type="submit"
                         class="btn-guardar"
-                        disabled="@(!PuedeGuardar || guardando)">
+                        disabled="@guardando">
 
                     @if (guardando)
                     {
@@ -1202,13 +1167,13 @@
     private bool guardando;
     private bool mostrarSelectorProfesionales;
     private bool mostrarSelectorPacientes;
+
     
 
 
-
     private bool EsRecurrente =>
-    modelo.FrecuenciaRecurrencia !=
-    EnumFrecuenciaRecurrenciaTurno.noRepite;
+        modelo.FrecuenciaRecurrencia !=
+        EnumFrecuenciaRecurrenciaTurno.noRepite;
 
     private bool RecurrenciaValida
     {
@@ -1268,26 +1233,124 @@
         EnumFrecuenciaRecurrenciaTurno.personalizado;
 
 
-    private bool PuedeGuardar =>
-        !guardando &&
-        !consultandoHorarios &&
-        horariosConsultados &&
-        modelo.TipoTurnoId > 0 &&
-        modelo.TipoConsultorioId > 0 &&
-        modelo.ProfesionalIds.Count > 0 &&
-        modelo.ProfesionalPrestaciones.Count ==
-        modelo.ProfesionalIds.Count &&
-        modelo.ProfesionalPrestaciones.All(
-        seleccion =>
-        seleccion.TipoPrestacionId > 0 &&
-        modelo.ProfesionalIds.Contains(
-        seleccion.ProfesionalId
-        )
-        ) &&
-        modelo.PacienteIds.Count > 0 &&
-                modelo.Fecha != DateTime.MinValue &&
-                !string.IsNullOrWhiteSpace(horaSeleccionada) &&
-                RecurrenciaValida;
+    private bool ValidarAntesDeGuardar()
+    {
+        Mensaje = string.Empty;
+
+        if (modelo.TipoTurnoId <= 0)
+        {
+            Mensaje = "Seleccioná un tipo de turno.";
+            return false;
+        }
+
+        if (modelo.TipoConsultorioId <= 0)
+        {
+            Mensaje = "Seleccioná un consultorio.";
+            return false;
+        }
+
+        if (modelo.Fecha == DateTime.MinValue)
+        {
+            Mensaje = "Seleccioná la fecha del turno.";
+            return false;
+        }
+
+        if (modelo.ProfesionalIds.Count == 0)
+        {
+            Mensaje = "Seleccioná al menos un profesional.";
+            return false;
+        }
+
+        var prestacionesCompletas =
+            modelo.ProfesionalPrestaciones.Count ==
+                modelo.ProfesionalIds.Count &&
+            modelo.ProfesionalPrestaciones.All(
+                seleccion =>
+                    seleccion.TipoPrestacionId > 0 &&
+                    modelo.ProfesionalIds.Contains(
+                        seleccion.ProfesionalId
+                    )
+            );
+
+        if (!prestacionesCompletas)
+        {
+            Mensaje =
+                "Seleccioná una prestación para cada profesional.";
+            return false;
+        }
+
+        if (modelo.PacienteIds.Count == 0)
+        {
+            Mensaje = "Seleccioná al menos un paciente.";
+            return false;
+        }
+
+        if (consultandoHorarios)
+        {
+            Mensaje =
+                "Esperá mientras actualizamos los horarios disponibles.";
+            return false;
+        }
+
+        if (!horariosConsultados)
+        {
+            Mensaje =
+                "Completá los datos del turno para consultar " +
+                "los horarios disponibles.";
+            return false;
+        }
+
+        if (horasDisponibles.Count == 0)
+        {
+            Mensaje =
+                "No hay horarios disponibles para la selección actual. " +
+                "Probá cambiando la fecha o alguno de los participantes.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(horaSeleccionada))
+        {
+            Mensaje = "Seleccioná un horario disponible.";
+            return false;
+        }
+
+        if (EsRecurrente &&
+            !modelo.FechaHastaRecurrencia.HasValue)
+        {
+            Mensaje =
+                "Seleccioná hasta qué fecha querés repetir el turno.";
+            return false;
+        }
+
+        if (EsRecurrente &&
+            modelo.FechaHastaRecurrencia!.Value.Date <
+                modelo.Fecha.Date)
+        {
+            Mensaje =
+                "La fecha final de la repetición no puede ser " +
+                "anterior a la fecha del primer turno.";
+            return false;
+        }
+
+        if (EsRecurrenciaPersonalizada &&
+            modelo.IntervaloRecurrencia <= 0)
+        {
+            Mensaje =
+                "Ingresá cada cuánto querés repetir el turno.";
+            return false;
+        }
+
+        if (EsRecurrenciaPersonalizada &&
+            !modelo.UnidadRecurrencia.HasValue)
+        {
+            Mensaje =
+                "Seleccioná si la repetición será por días, " +
+                "semanas o meses.";
+            return false;
+        }
+
+        return true;
+    }
 
     private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
                 string.IsNullOrWhiteSpace(busquedaProfesional)
@@ -1362,8 +1425,8 @@
                 )
                 .Distinct()
                 .ToList();
-    }    
-    
+    }
+
     private async Task QuitarProfesional(int profesionalId)
     {
         modelo.ProfesionalIds.Remove(
@@ -1399,11 +1462,11 @@
     }
 
     private string TextoProfesionalesSeleccionados => modelo.ProfesionalIds.Count switch
-                {
-                0 => "Seleccione profesionales",
-                1 => "1 profesional seleccionado",
-                _ => $"{modelo.ProfesionalIds.Count} profesionales seleccionados"
-                };
+    {
+        0 => "Seleccione profesionales",
+        1 => "1 profesional seleccionado",
+        _ => $"{modelo.ProfesionalIds.Count} profesionales seleccionados"
+    };
 
     private void AlternarSelectorProfesionales()
     {
@@ -1412,7 +1475,7 @@
 
         mostrarSelectorPacientes = false;
         busquedaPaciente = string.Empty;
-    }             
+    }
 
     private void CerrarSelectores()
     {
@@ -1438,13 +1501,13 @@
                     )
                 )
                 .ToList();
-    
+
     private string TextoPacientesSeleccionados => modelo.PacienteIds.Count switch
-        {
-            0 => "Seleccione pacientes",
-            1 => "1 paciente seleccionado",
-            _ => $"{modelo.PacienteIds.Count} pacientes seleccionados"
-        };
+    {
+        0 => "Seleccione pacientes",
+        1 => "1 paciente seleccionado",
+        _ => $"{modelo.PacienteIds.Count} pacientes seleccionados"
+    };
 
     private void AlternarSelectorPacientes()
     {
@@ -1499,74 +1562,106 @@
         cargando = true;
         Mensaje = string.Empty;
 
-        var respTurnos =
-            await Http.Get<List<TipoTurnoListadoDTO>>(
-                "api/tipoturno/ListaTipoTurno"
-            );
-
-        if (!respTurnos.Error
-            && respTurnos.Respuesta is not null)
+        try
         {
-            tiposTurno = respTurnos.Respuesta;
-        }
-        else if (respTurnos.Error)
-        {
-            Mensaje = respTurnos.ObtenerError();
-        }
+            var respTurnos =
+                await Http.Get<List<TipoTurnoListadoDTO>>(
+                    "api/tipoturno/ListaTipoTurno"
+                );
 
-        var respConsultorios =
-            await Http.Get<List<TipoConsultorioListadoDTO>>(
-                "api/tipoconsultorio/ListaTipoConsultorio"
-            );
+            if (!respTurnos.Error &&
+                respTurnos.Respuesta is not null)
+            {
+                tiposTurno = respTurnos.Respuesta;
+            }
+            else
+            {
+                Mensaje =
+                    "No pudimos cargar los tipos de turno. " +
+                    "Recargá la página e intentá nuevamente.";
+            }
 
-        if (!respConsultorios.Error
-            && respConsultorios.Respuesta is not null)
-        {
-            consultorios = respConsultorios.Respuesta;
-        }
-        else if (respConsultorios.Error
-            && string.IsNullOrWhiteSpace(Mensaje))
-        {
-            Mensaje = respConsultorios.ObtenerError();
-        }
+            var respConsultorios =
+                await Http.Get<List<TipoConsultorioListadoDTO>>(
+                    "api/tipoconsultorio/ListaTipoConsultorio"
+                );
 
-        var respProfesionales =
-    await Http.Get<List<ProfesionalListadoDTO>>(
-        "api/profesional/ListaProfesional"
-    );
+            if (!respConsultorios.Error &&
+                respConsultorios.Respuesta is not null)
+            {
+                consultorios = respConsultorios.Respuesta;
+            }
+            else if (string.IsNullOrWhiteSpace(Mensaje))
+            {
+                Mensaje =
+                    "No pudimos cargar los consultorios. " +
+                    "Recargá la página e intentá nuevamente.";
+            }
 
-        if (!respProfesionales.Error
-            && respProfesionales.Respuesta is not null)
-        {
-            profesionales = respProfesionales.Respuesta
-                .OrderBy(profesional => profesional.Nombre)
-                .ToList();
-        }
-        else if (respProfesionales.Error
-            && string.IsNullOrWhiteSpace(Mensaje))
-        {
-            Mensaje = respProfesionales.ObtenerError();
-        }
+            var respProfesionales =
+                await Http.Get<List<ProfesionalListadoDTO>>(
+                    "api/profesional/ListaProfesional"
+                );
 
-        var respPacientes =
-    await Http.Get<List<PacienteResumenDTO>>(
-        "api/paciente/ListaPaciente"
-    );
+            if (!respProfesionales.Error &&
+                respProfesionales.Respuesta is not null)
+            {
+                profesionales = respProfesionales.Respuesta
+                    .OrderBy(profesional =>
+                        profesional.Nombre
+                    )
+                    .ToList();
+            }
+            else if (string.IsNullOrWhiteSpace(Mensaje))
+            {
+                Mensaje =
+                    "No pudimos cargar los profesionales. " +
+                    "Recargá la página e intentá nuevamente.";
+            }
 
-        if (!respPacientes.Error
-            && respPacientes.Respuesta is not null)
-        {
-            pacientes = respPacientes.Respuesta
-                .OrderBy(paciente => paciente.Nombre)
-                .ToList();
-        }
-        else if (respPacientes.Error
-            && string.IsNullOrWhiteSpace(Mensaje))
-        {
-            Mensaje = respPacientes.ObtenerError();
-        }
+            var respPacientes =
+                await Http.Get<List<PacienteResumenDTO>>(
+                    "api/paciente/ListaPaciente"
+                );
 
-        cargando = false;
+            if (!respPacientes.Error &&
+                respPacientes.Respuesta is not null)
+            {
+                pacientes = respPacientes.Respuesta
+                    .OrderBy(paciente =>
+                        paciente.Nombre
+                    )
+                    .ToList();
+            }
+            else if (string.IsNullOrWhiteSpace(Mensaje))
+            {
+                Mensaje =
+                    "No pudimos cargar los pacientes. " +
+                    "Recargá la página e intentá nuevamente.";
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            Mensaje =
+                "La carga está tardando más de lo esperado. " +
+                "Verificá tu conexión e intentá nuevamente.";
+        }
+        catch (HttpRequestException)
+        {
+            Mensaje =
+                "No pudimos conectarnos con el servidor. " +
+                "Verificá tu conexión e intentá nuevamente.";
+        }
+        catch (Exception)
+        {
+            Mensaje =
+                "Ocurrió un problema al preparar el formulario. " +
+                "Recargá la página e intentá nuevamente.";
+        }
+        finally
+        {
+            cargando = false;
+        }
     }
 
     private async Task CargarHorasDisponibles()
@@ -1620,28 +1715,71 @@
             parametrosProfesionales +
             parametrosPacientes;
 
-        var respuesta =
-            await Http.Get<List<string>>(url);
-
-        // Ignora respuestas de una selección anterior.
-        if (versionActual != versionConsultaHorarios)
+        try
         {
-            return;
+            var respuesta =
+                await Http.Get<List<string>>(url);
+
+            // Ignora respuestas pertenecientes a una selección anterior.
+            if (versionActual != versionConsultaHorarios)
+            {
+                return;
+            }
+
+            if (respuesta.Error)
+            {
+                Mensaje =
+                    "No pudimos consultar los horarios disponibles. " +
+                    "Revisá la selección e intentá nuevamente.";
+
+                return;
+            }
+
+            horariosConsultados = true;
+
+            horasDisponibles =
+                respuesta.Respuesta ?? new List<string>();
         }
-
-        consultandoHorarios = false;
-
-        if (respuesta.Error)
+        catch (TaskCanceledException)
         {
-            horariosConsultados = false;
-            Mensaje = respuesta.ObtenerError();
-            return;
+            if (versionActual != versionConsultaHorarios)
+            {
+                return;
+            }
+
+            Mensaje =
+                "La consulta de horarios tardó más de lo esperado. " +
+                "Intentá nuevamente.";
         }
+        catch (HttpRequestException)
+        {
+            if (versionActual != versionConsultaHorarios)
+            {
+                return;
+            }
 
-        horariosConsultados = true;
+            Mensaje =
+                "No pudimos conectarnos para consultar los horarios. " +
+                "Verificá tu conexión e intentá nuevamente.";
+        }
+        catch (Exception)
+        {
+            if (versionActual != versionConsultaHorarios)
+            {
+                return;
+            }
 
-        horasDisponibles =
-            respuesta.Respuesta ?? new List<string>();
+            Mensaje =
+                "Ocurrió un problema al consultar los horarios disponibles. " +
+                "Intentá nuevamente.";
+        }
+        finally
+        {
+            if (versionActual == versionConsultaHorarios)
+            {
+                consultandoHorarios = false;
+            }
+        }
     }
 
     private void SeleccionarHora(string hora)
@@ -1720,21 +1858,21 @@
     }
 
     private void AlternarCalendario()
+    {
+        calendarioAbierto = !calendarioAbierto;
+
+        // Evita tener abiertos los dos calendarios.
+        calendarioRecurrenciaAbierto = false;
+
+        if (calendarioAbierto)
         {
-            calendarioAbierto = !calendarioAbierto;
-
-            // Evita tener abiertos los dos calendarios.
-            calendarioRecurrenciaAbierto = false;
-
-            if (calendarioAbierto)
-            {
-                mesCalendario = new DateTime(
-                    modelo.Fecha.Year,
-                    modelo.Fecha.Month,
-                    1
-                );
-            }
+            mesCalendario = new DateTime(
+                modelo.Fecha.Year,
+                modelo.Fecha.Month,
+                1
+            );
         }
+    }
 
     private void IrMesAnteriorCalendario()
     {
@@ -1787,7 +1925,7 @@
 
         calendarioAbierto = false;
 
-       await CargarHorasDisponibles();
+        await CargarHorasDisponibles();
     }
 
     private async Task SeleccionarHoy()
@@ -1839,7 +1977,7 @@
 
         return char.ToUpper(texto[0]) + texto[1..];
     }
-    
+
     private void AlternarCalendarioRecurrencia()
     {
         calendarioRecurrenciaAbierto =
@@ -1971,6 +2109,60 @@
             $"&pacientes={PacientesDesdeUrl ?? string.Empty}";
     }
 
+    private string ObtenerFiltrosParaRegresoConTurnoCreado()
+    {
+        var consultorios = CombinarFiltroConIds(
+            ConsultoriosDesdeUrl,
+            new[] { modelo.TipoConsultorioId }
+        );
+
+        var tiposTurno = CombinarFiltroConIds(
+            TiposDesdeUrl,
+            new[] { modelo.TipoTurnoId }
+        );
+
+        var profesionales = CombinarFiltroConIds(
+            ProfesionalesDesdeUrl,
+            modelo.ProfesionalIds
+        );
+
+        var pacientes = CombinarFiltroConIds(
+            PacientesDesdeUrl,
+            modelo.PacienteIds
+        );
+
+        return
+            $"&consultorios={consultorios}" +
+            $"&tipos={tiposTurno}" +
+            $"&profesionales={profesionales}" +
+            $"&pacientes={pacientes}";
+    }
+
+    private static string CombinarFiltroConIds(string? filtroActual,IEnumerable<int> idsNuevos)
+    {
+        var idsActuales =
+            (filtroActual ?? string.Empty)
+                .Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries |
+                    StringSplitOptions.TrimEntries
+                )
+                .Select(valor =>
+                    int.TryParse(valor, out var id)
+                        ? id
+                        : 0
+                );
+
+        return string.Join(
+            ",",
+            idsActuales
+                .Concat(idsNuevos)
+                .Where(id => id > 0)
+                .Distinct()
+                .OrderBy(id => id)
+        );
+    }
+
     private int ObtenerPrestacionSeleccionada(int profesionalId)
     {
         return modelo.ProfesionalPrestaciones
@@ -1980,7 +2172,7 @@
             ?.TipoPrestacionId ?? 0;
     }
 
-    private void SeleccionarPrestacion(int profesionalId,ChangeEventArgs evento)
+    private void SeleccionarPrestacion(int profesionalId, ChangeEventArgs evento)
     {
         if (!int.TryParse(
                 evento.Value?.ToString(),
@@ -2037,53 +2229,182 @@
 
     private async Task Grabar()
     {
-        if (!PuedeGuardar)
+        if (guardando)
         {
-            Mensaje =
-                "Completá los datos y seleccioná un horario.";
+            return;
+        }
+
+        if (!ValidarAntesDeGuardar())
+        {
             return;
         }
 
         guardando = true;
         Mensaje = string.Empty;
 
-        modelo.Hora =
-            TimeOnly.ParseExact(
-                horaSeleccionada,
-                "HH:mm"
-            );
-
-        var resp =
-            await Http.Post<TurnoDTO, int>(
-                "api/turno",
-                modelo
-            );
-
-        if (resp.Error)
+        try
         {
-            Mensaje = resp.ObtenerError();
+            modelo.Hora =
+                TimeOnly.ParseExact(
+                    horaSeleccionada,
+                    "HH:mm"
+                );
+
+            var respuesta =
+                await Http.Post<TurnoDTO, int>(
+                    "api/turno",
+                    modelo
+                );
+
+            if (respuesta.Error)
+            {
+                Mensaje =
+                    await ObtenerMensajeErrorGuardado(
+                        respuesta.HttpResponseMessage
+                    );
+
+                return;
+            }
+
+            var vistaDestino =
+                string.IsNullOrWhiteSpace(VistaOrigen)
+                    ? "diaria"
+                    : VistaOrigen;
+
+            var fechaDestino =
+                modelo.Fecha.ToString("yyyy-MM-dd");
+
+            Nav.NavigateTo(
+                "/turnos" +
+                "?estado=creado" +
+                $"&vista={vistaDestino}" +
+                $"&fecha={fechaDestino}" +
+                ObtenerFiltrosParaRegresoConTurnoCreado(),
+                forceLoad: true
+            );
+        }
+        catch (TaskCanceledException)
+        {
+            Mensaje =
+                "El guardado tardó más de lo esperado. " +
+                "Verificá si el turno fue creado antes de intentarlo nuevamente.";
+        }
+        catch (HttpRequestException)
+        {
+            Mensaje =
+                "No pudimos conectarnos con el servidor para guardar el turno. " +
+                "Verificá tu conexión e intentá nuevamente.";
+        }
+        catch (Exception)
+        {
+            Mensaje =
+                "Ocurrió un problema al guardar el turno. " +
+                "Revisá los datos e intentá nuevamente.";
+        }
+        finally
+        {
             guardando = false;
-            return;
+        }
+    }
+
+    private async Task<string> ObtenerMensajeErrorGuardado(HttpResponseMessage respuesta)
+    {
+        string? mensajeApi = null;
+
+        try
+        {
+            var contenido =
+                await respuesta.Content.ReadAsStringAsync();
+
+            if (!string.IsNullOrWhiteSpace(contenido))
+            {
+                using var documento =
+                    System.Text.Json.JsonDocument.Parse(
+                        contenido
+                    );
+
+                if (documento.RootElement.ValueKind ==
+                        System.Text.Json.JsonValueKind.Object &&
+                    documento.RootElement.TryGetProperty(
+                        "mensaje",
+                        out var propiedadMensaje
+                    ))
+                {
+                    mensajeApi =
+                        propiedadMensaje.GetString();
+                }
+            }
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            // Si la API no devuelve JSON, usamos un mensaje alternativo.
+        }
+        catch (InvalidOperationException)
+        {
+            // Si el contenido no puede leerse, usamos un mensaje alternativo.
         }
 
-        var vistaDestino =
-    string.IsNullOrWhiteSpace(VistaOrigen)
-        ? "diaria"
-        : VistaOrigen;
+        if (!string.IsNullOrWhiteSpace(mensajeApi))
+        {
+            return mensajeApi switch
+            {
+                "Debe seleccionar una hora válida." =>
+                    "Seleccioná un horario válido.",
 
-        var fechaDestino =
-            string.IsNullOrWhiteSpace(FechaOrigen)
-                ? modelo.Fecha.ToString("yyyy-MM-dd")
-                : FechaOrigen;
+                "Debe seleccionar un tipo de turno válido." =>
+                    "Seleccioná un tipo de turno válido.",
 
-        Nav.NavigateTo(
-    "/turnos" +
-    "?estado=creado" +
-    $"&vista={vistaDestino}" +
-    $"&fecha={fechaDestino}" +
-    ObtenerFiltrosParaRegreso(),
-    forceLoad: true
-);
+                "Debe seleccionar un consultorio válido." =>
+                    "Seleccioná un consultorio válido.",
+
+                "Debe seleccionar al menos un profesional." =>
+                    "Seleccioná al menos un profesional.",
+
+                "Debe seleccionar al menos un paciente." =>
+                    "Seleccioná al menos un paciente.",
+
+                "Debe seleccionar una prestación para cada profesional." =>
+                    "Seleccioná una prestación para cada profesional.",
+
+                "Las prestaciones seleccionadas no coinciden con los profesionales del turno." =>
+                    "Revisá las prestaciones seleccionadas. " +
+                    "Cada prestación debe corresponder a su profesional.",
+
+                "La prestación seleccionada no pertenece al profesional indicado." =>
+                    "La prestación seleccionada no está asignada al profesional. " +
+                    "Elegí otra prestación.",
+
+                "Uno o más pacientes seleccionados no existen." =>
+                    "Uno de los pacientes seleccionados ya no está disponible. " +
+                    "Actualizá la página e intentá nuevamente.",
+
+                _ when mensajeApi.StartsWith(
+                    "No existe el tipo de turno",
+                    StringComparison.OrdinalIgnoreCase
+                ) =>
+                    "El tipo de turno seleccionado ya no está disponible. " +
+                    "Elegí otro e intentá nuevamente.",
+
+                _ => mensajeApi
+            };
+        }
+
+        return respuesta.StatusCode switch
+        {
+            System.Net.HttpStatusCode.Unauthorized =>
+                "Tu sesión venció. Volvé a iniciar sesión para guardar el turno.",
+
+            System.Net.HttpStatusCode.Forbidden =>
+                "No tenés permiso para crear turnos.",
+
+            System.Net.HttpStatusCode.BadRequest =>
+                "No pudimos guardar el turno. " +
+                "Revisá los datos e intentá nuevamente.",
+
+            _ =>
+                "No pudimos guardar el turno en este momento. " +
+                "Intentá nuevamente."
+        };
     }
 
     private void Cancelar()

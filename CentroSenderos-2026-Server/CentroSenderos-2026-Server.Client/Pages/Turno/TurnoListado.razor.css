@@ -13,6 +13,9 @@
 
 /* #endregion */
 
+
+
+
 /* #region DETALLE DEL TURNO - JERARQUÍA OPERATIVA
    Prioriza pacientes y atención. Horario, tipo y recurrencia quedan como contexto. */
 
@@ -311,6 +314,8 @@
 
 /* #endregion */
 
+
+
 /* #region BARRA SUPERIOR Y NAVEGACIÓN
    Modifica la fecha, los botones de vista y las acciones superiores. */
 
@@ -471,6 +476,8 @@
 
 /* #endregion */
 
+
+
 /* #region DISTRIBUCIÓN PRINCIPAL Y FILTROS
    Modifica la relación entre calendario, filtros y contenido. */
 
@@ -624,6 +631,42 @@
     border-top: 1px solid #deded9;
 }
 
+.btn-restaurar-filtros {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: calc(100% - 28px);
+    min-height: 36px;
+    margin: 12px 14px 14px;
+    padding: 8px 10px;
+    border: 1px solid #cfd8cc;
+    border-radius: 8px;
+    background-color: #f5f8f3;
+    color: #4d6847;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+    .btn-restaurar-filtros:hover {
+        border-color: #aebda9;
+        background-color: #eaf0e7;
+        color: #3f5c39;
+    }
+
+    .btn-restaurar-filtros:focus-visible {
+        outline: 2px solid #71866a;
+        outline-offset: 2px;
+    }
+
+    .btn-restaurar-filtros i {
+        font-size: 13px;
+    }
+
 .filtro-bloque {
     padding: 13px 14px;
     border-bottom: 1px solid #e6e6e1;
@@ -718,6 +761,8 @@
 /* Contenido diario */
 
 /* #endregion */
+
+
 
 /* #region VISTA DIARIA Y TARJETAS
    Modifica las tarjetas utilizadas por los turnos en la agenda diaria. */
@@ -1109,6 +1154,8 @@
 
 /* #endregion */
 
+
+
 /* #region VISTA SEMANAL
    Modifica exclusivamente la distribución semanal. */
 
@@ -1198,6 +1245,8 @@
 /* Agenda diaria ampliada */
 
 /* #endregion */
+
+
 
 /* #region VISTA DIARIA AMPLIADA
    Modifica la vista simultánea organizada por consultorios. */
@@ -1654,6 +1703,8 @@
 
 /* #endregion */
 
+
+
 /* #region INTERACCIÓN DE TARJETAS
    Modifica los estados hover y foco de los turnos seleccionables. */
 
@@ -1673,6 +1724,8 @@
     }
 
 /* #endregion */
+
+
 
 /* #region MODAL DE DETALLE - ESTILOS BASE
    Contiene el fondo, las acciones, la recurrencia y las animaciones. */
@@ -2013,6 +2066,8 @@
 
 /* #endregion */
 
+
+
 /* #region MENSAJES DE RESULTADO
    Modifica los mensajes temporales mostrados después de una operación. */
 
@@ -2053,6 +2108,8 @@
         font-size: 13px;
     }
 /* #endregion */
+
+
 
 /* #region DATOS HISTÓRICOS DEL DETALLE
    Conserva la presentación de pacientes y obras sociales históricas. */
@@ -2199,6 +2256,8 @@
 }
 
 /* #endregion */
+
+
 
 /* #region ESCALA Y POSICIONAMIENTO DE LA GRILLA
    Modifica alturas, líneas horarias y posición de los turnos. */
@@ -2493,6 +2552,8 @@
 
 /* #endregion */
 
+
+
 /* #region NUEVO DETALLE DEL TURNO
    Modifica únicamente el modal solicitado:
    C1 + prestaciones + profesionales, horario principal y datos inferiores. */
@@ -2757,6 +2818,9 @@
 }
 
 /* #endregion */
+
+
+
 
 /* #region DETALLE - PROFESIONAL Y PRESTACIÓN UNIFICADOS */
 
