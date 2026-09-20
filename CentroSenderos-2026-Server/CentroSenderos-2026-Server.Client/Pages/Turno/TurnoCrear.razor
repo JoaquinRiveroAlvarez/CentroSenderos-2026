@@ -1562,6 +1562,8 @@
         cargando = true;
         Mensaje = string.Empty;
 
+        AplicarFechaOrigen();
+
         try
         {
             var respTurnos =
@@ -1662,6 +1664,35 @@
         {
             cargando = false;
         }
+    }
+
+    private void AplicarFechaOrigen()
+    {
+        if (string.IsNullOrWhiteSpace(FechaOrigen) ||
+            !DateTime.TryParseExact(
+                FechaOrigen,
+                "yyyy-MM-dd",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out var fechaOrigen
+            ))
+        {
+            return;
+        }
+
+        modelo.Fecha = fechaOrigen.Date;
+
+        mesCalendario = new DateTime(
+            fechaOrigen.Year,
+            fechaOrigen.Month,
+            1
+        );
+
+        mesCalendarioRecurrencia = new DateTime(
+            fechaOrigen.Year,
+            fechaOrigen.Month,
+            1
+        );
     }
 
     private async Task CargarHorasDisponibles()
@@ -2138,7 +2169,10 @@
             $"&pacientes={pacientes}";
     }
 
-    private static string CombinarFiltroConIds(string? filtroActual,IEnumerable<int> idsNuevos)
+    private static string CombinarFiltroConIds(
+        string? filtroActual,
+        IEnumerable<int> idsNuevos
+    )
     {
         var idsActuales =
             (filtroActual ?? string.Empty)

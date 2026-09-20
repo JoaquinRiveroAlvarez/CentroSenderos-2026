@@ -29,7 +29,7 @@
 
             <div>
                 <strong>Turno actualizado</strong>
-                <span>Turno actualizado correctamente.</span>
+                <span>El turno se actualizó correctamente.</span>
             </div>
 
         </div>
@@ -42,7 +42,7 @@
 
             <div>
                 <strong>Serie actualizada</strong>
-                <span>Turnos futuros de la serie actualizados correctamente.</span>
+                <span>Los turnos futuros de la serie se actualizaron correctamente.</span>
             </div>
 
         </div>
@@ -732,11 +732,11 @@
 
             <i class="bi bi-calendar-x"></i>
 
-            <h2>No hay turnos programados</h2>
+            <h2>No encontramos turnos</h2>
 
             <p>
-                No se encontraron turnos para esta fecha
-                con los filtros seleccionados.
+                No hay turnos para esta fecha con los filtros seleccionados.
+                Podés restaurar los filtros o crear un turno nuevo.
             </p>
 
             <button type="button"
@@ -1382,15 +1382,23 @@
 
     private async Task CargarConsultorios()
     {
-        var resp =
-            await Http.Get<List<TipoConsultorioListadoDTO>>(
-                "api/tipoconsultorio/ListaTipoConsultorio"
-            );
+        try
+        {
+            var resp =
+                await Http.Get<List<TipoConsultorioListadoDTO>>(
+                    "api/tipoconsultorio/ListaTipoConsultorio"
+                );
 
-        consultorios = resp.Error
-            ? new List<TipoConsultorioListadoDTO>()
-            : resp.Respuesta ??
-              new List<TipoConsultorioListadoDTO>();
+            consultorios = resp.Error
+                ? new List<TipoConsultorioListadoDTO>()
+                : resp.Respuesta ??
+                  new List<TipoConsultorioListadoDTO>();
+        }
+        catch
+        {
+            // La agenda puede obtener los consultorios desde los turnos cargados.
+            consultorios = new List<TipoConsultorioListadoDTO>();
+        }
     }
 
     private async Task CargarTurnos()
@@ -1398,41 +1406,147 @@
         cargando = true;
         Mensaje = string.Empty;
 
-        var resp =
-            await Http.Get<List<TurnoListadoDTO>>(
-                "api/turno/ListaTurnos"
-            );
-
-        if (resp.Error)
+        try
         {
-            listaTurnos = new List<TurnoListadoDTO>();
+            var resp =
+                await Http.Get<List<TurnoListadoDTO>>(
+                    "api/turno/ListaTurnos"
+                );
 
-            var error = resp.ObtenerError();
-
-            if (!error.Contains(
-                "No hay turnos disponibles",
-                StringComparison.OrdinalIgnoreCase))
+            if (resp.Error)
             {
-                Mensaje = error;
+                listaTurnos = new List<TurnoListadoDTO>();
+
+                var error = resp.ObtenerError();
+
+                if (!error.Contains(
+                    "No hay turnos disponibles",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    Mensaje = ObtenerMensajeAmigable(
+                        error,
+                        "No pudimos cargar los turnos. Intentá nuevamente."
+                    );
+                }
+            }
+            else
+            {
+                listaTurnos =
+                    resp.Respuesta ??
+                    new List<TurnoListadoDTO>();
+
+                InicializarFiltros();
             }
         }
-        else
+        catch (TaskCanceledException)
         {
-            listaTurnos =
-                resp.Respuesta ??
-                new List<TurnoListadoDTO>();
+            listaTurnos = new List<TurnoListadoDTO>();
+            Mensaje =
+                "La carga de turnos tardó más de lo esperado. " +
+                "Actualizá la página para intentarlo nuevamente.";
+        }
+        catch (HttpRequestException)
+        {
+            listaTurnos = new List<TurnoListadoDTO>();
+            Mensaje =
+                "No pudimos conectarnos con el servidor para cargar los turnos. " +
+                "Verificá tu conexión e intentá nuevamente.";
+        }
+        catch (Exception)
+        {
+            listaTurnos = new List<TurnoListadoDTO>();
+            Mensaje =
+                "Ocurrió un problema al cargar los turnos. " +
+                "Actualizá la página para intentarlo nuevamente.";
+        }
+        finally
+        {
+            pacientesSeleccionados =
+                PacientesDisponibles
+                    .Select(paciente => paciente.Id)
+                    .ToHashSet();
 
-            InicializarFiltros();
+            cargando = false;
+        }
+    }
+
+    private static string ObtenerMensajeAmigable(
+        string? mensaje,
+        string mensajeAlternativo
+    )
+    {
+        if (string.IsNullOrWhiteSpace(mensaje))
+        {
+            return mensajeAlternativo;
         }
 
-        pacientesSeleccionados =
-        PacientesDisponibles
-        .Select(paciente =>
-            paciente.Id
-        )
-        .ToHashSet();
+        var mensajeLimpio = mensaje.Trim();
 
-        cargando = false;
+        if (mensajeLimpio.Contains(
+                "The operation was canceled",
+                StringComparison.OrdinalIgnoreCase
+            ) ||
+            mensajeLimpio.Contains(
+                "TaskCanceledException",
+                StringComparison.OrdinalIgnoreCase
+            ))
+        {
+            return
+                "La carga tardó más de lo esperado. " +
+                "Actualizá la página para intentarlo nuevamente.";
+        }
+
+        if (mensajeLimpio.Contains(
+                "Unable to read data from the transport connection",
+                StringComparison.OrdinalIgnoreCase
+            ) ||
+            mensajeLimpio.Contains(
+                "SocketException",
+                StringComparison.OrdinalIgnoreCase
+            ))
+        {
+            return
+                "Se interrumpió la conexión con el servidor. " +
+                "Verificá tu conexión e intentá nuevamente.";
+        }
+
+        if (mensajeLimpio.StartsWith(
+                "System.",
+                StringComparison.OrdinalIgnoreCase
+            ))
+        {
+            var separador = mensajeLimpio.IndexOf(':');
+
+            if (separador >= 0 &&
+                separador < mensajeLimpio.Length - 1)
+            {
+                mensajeLimpio =
+                    mensajeLimpio[(separador + 1)..].Trim();
+            }
+
+            mensajeLimpio =
+                mensajeLimpio
+                    .Split(
+                        new[] { '\r', '\n' },
+                        StringSplitOptions.RemoveEmptyEntries
+                    )
+                    .FirstOrDefault()
+                ?? mensajeAlternativo;
+        }
+
+        if (mensajeLimpio.Contains(
+                "InternalServerError",
+                StringComparison.OrdinalIgnoreCase
+            ) ||
+            mensajeLimpio.Contains(
+                "Response status code does not indicate success",
+                StringComparison.OrdinalIgnoreCase
+            ))
+        {
+            return mensajeAlternativo;
+        }
+
+        return mensajeLimpio;
     }
 
     private void InicializarFiltros()
@@ -1452,6 +1566,8 @@
         )
         .ToHashSet();
     }
+
+
 
     private bool EstaConsultorioSeleccionado(int id)
     {

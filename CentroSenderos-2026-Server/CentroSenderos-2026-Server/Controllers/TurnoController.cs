@@ -1,6 +1,8 @@
 ﻿using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
@@ -9,31 +11,82 @@ namespace CentroSenderos_2026_Server.Controllers
     public class TurnoController : ControllerBase
     {
         private readonly ITurnoRepositorio repositorio;
+        private readonly ILogger<TurnoController> logger;
 
-        public TurnoController(ITurnoRepositorio repositorio)
+        public TurnoController(
+            ITurnoRepositorio repositorio,
+            ILogger<TurnoController> logger
+        )
         {
             this.repositorio = repositorio;
+            this.logger = logger;
         }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<TurnoDTO>> GetById(int id)
         {
-            var entidad = await repositorio.SelectPorId(id);
-            if (entidad == null) return NotFound($"No existe turno con id {id}.");
-            return Ok(entidad);
+            try
+            {
+                var entidad =
+                    await repositorio.SelectPorId(id);
+
+                if (entidad is null)
+                {
+                    return NotFound(
+                        new RespuestaDTO
+                        {
+                            mensaje =
+                                "No encontramos el turno solicitado."
+                        }
+                    );
+                }
+
+                return Ok(entidad);
+            }
+            catch (Exception ex)
+            {
+                return ErrorInterno(
+                    ex,
+                    "cargar el turno",
+                    "No pudimos cargar el turno en este momento. " +
+                    "Intentá nuevamente."
+                );
+            }
         }
 
         [HttpGet("ListaTurnos")]
         public async Task<IActionResult> GetListaTurnos()
         {
-            var lista = await repositorio.SelectListaTurnos();
-            if (lista == null || !lista.Any())
-                return NotFound("No hay turnos disponibles.");
-            return Ok(lista);
+            try
+            {
+                var lista =
+                    await repositorio.SelectListaTurnos();
+
+                if (lista is null || !lista.Any())
+                {
+                    return NotFound(
+                        "No hay turnos disponibles."
+                    );
+                }
+
+                return Ok(lista);
+            }
+            catch (Exception ex)
+            {
+                return ErrorInterno(
+                    ex,
+                    "cargar el listado de turnos",
+                    "No pudimos cargar los turnos en este momento. " +
+                    "Intentá nuevamente."
+                );
+            }
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put(int id,[FromBody] TurnoDTO dto)
+        public async Task<IActionResult> Put(
+            int id,
+            [FromBody] TurnoDTO dto
+        )
         {
             try
             {
@@ -49,14 +102,14 @@ namespace CentroSenderos_2026_Server.Controllers
                         new RespuestaDTO
                         {
                             mensaje =
-                                $"No se encontró el turno con id {id}."
+                                "No encontramos el turno que querés actualizar."
                         }
                     );
                 }
 
                 var mensaje = dto.ModificarTodaLaSerie
-                    ? "Los turnos futuros de la serie fueron actualizados correctamente."
-                    : "El turno fue actualizado correctamente.";
+                    ? "Los turnos futuros de la serie se actualizaron correctamente."
+                    : "El turno se actualizó correctamente.";
 
                 return Ok(
                     new RespuestaDTO
@@ -74,19 +127,47 @@ namespace CentroSenderos_2026_Server.Controllers
                     }
                 );
             }
+            catch (Exception ex)
+            {
+                return ErrorInterno(
+                    ex,
+                    "actualizar el turno",
+                    "No pudimos guardar los cambios del turno. " +
+                    "Intentá nuevamente."
+                );
+            }
         }
 
-        public async Task<IActionResult> Post([FromBody] TurnoDTO dto)
+        [HttpPost]
+        public async Task<IActionResult> Post(
+            [FromBody] TurnoDTO dto
+        )
         {
-                try
-                {
-                    int id = await repositorio.InsertarTurno(dto);
-                    return Ok(id);
-                }
-                catch (ApplicationException ex)
-                {
-                    return BadRequest(new { mensaje = ex.Message });
-                }
+            try
+            {
+                var id =
+                    await repositorio.InsertarTurno(dto);
+
+                return Ok(id);
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(
+                    new RespuestaDTO
+                    {
+                        mensaje = ex.Message
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return ErrorInterno(
+                    ex,
+                    "crear el turno",
+                    "No pudimos crear el turno en este momento. " +
+                    "Intentá nuevamente."
+                );
+            }
         }
 
         [HttpGet("Disponibles")]
@@ -96,7 +177,8 @@ namespace CentroSenderos_2026_Server.Controllers
             int consultorioId,
             [FromQuery] List<int>? profesionalIds = null,
             [FromQuery] List<int>? pacienteIds = null,
-            int? turnoIdExcluir = null)
+            int? turnoIdExcluir = null
+        )
         {
             try
             {
@@ -121,21 +203,80 @@ namespace CentroSenderos_2026_Server.Controllers
             catch (ApplicationException ex)
             {
                 return BadRequest(
-                    new
+                    new RespuestaDTO
                     {
                         mensaje = ex.Message
                     }
                 );
             }
+            catch (Exception ex)
+            {
+                return ErrorInterno(
+                    ex,
+                    "consultar los horarios disponibles",
+                    "No pudimos consultar los horarios disponibles. " +
+                    "Intentá nuevamente."
+                );
+            }
         }
-        
+
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var resultado = await repositorio.DeleteTurno(id);
-            if (!resultado) return NotFound($"No existe turno con id {id}.");
-            return Ok($"Turno {id} eliminado correctamente.");
+            try
+            {
+                var resultado =
+                    await repositorio.DeleteTurno(id);
+
+                if (!resultado)
+                {
+                    return NotFound(
+                        new RespuestaDTO
+                        {
+                            mensaje =
+                                "No encontramos el turno que querés eliminar."
+                        }
+                    );
+                }
+
+                return Ok(
+                    new RespuestaDTO
+                    {
+                        mensaje =
+                            "El turno se eliminó correctamente."
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return ErrorInterno(
+                    ex,
+                    "eliminar el turno",
+                    "No pudimos eliminar el turno en este momento. " +
+                    "Intentá nuevamente."
+                );
+            }
+        }
+
+        private ObjectResult ErrorInterno(
+            Exception exception,
+            string operacion,
+            string mensaje
+        )
+        {
+            logger.LogError(
+                exception,
+                "Error inesperado al {Operacion}.",
+                operacion
+            );
+
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new RespuestaDTO
+                {
+                    mensaje = mensaje
+                }
+            );
         }
     }
 }
-

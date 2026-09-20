@@ -390,21 +390,21 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (dto.Hora == TimeOnly.MinValue)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar una hora válida."
+                    "Seleccioná un horario válido."
                 );
             }
 
             if (dto.TipoTurnoId <= 0)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar un tipo de turno válido."
+                    "Seleccioná un tipo de turno válido."
                 );
             }
 
             if (dto.TipoConsultorioId <= 0)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar un consultorio válido."
+                    "Seleccioná un consultorio válido."
                 );
             }
 
@@ -460,21 +460,21 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (profesionalIds.Count == 0)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar al menos un profesional."
+                    "Seleccioná al menos un profesional."
                 );
             }
 
             if (pacienteIds.Count == 0)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar al menos un paciente."
+                    "Seleccioná al menos un paciente."
                 );
             }
 
             if (profesionalPrestaciones.Count != profesionalIds.Count)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar una prestación para cada profesional."
+                    "Seleccioná una prestación para cada profesional."
                 );
             }
 
@@ -496,7 +496,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 ))
             {
                 throw new ApplicationException(
-                    "Las prestaciones seleccionadas no coinciden con los profesionales del turno."
+                    "Revisá las prestaciones seleccionadas. " +
+                    "Cada prestación debe corresponder a su profesional."
                 );
             }
 
@@ -542,7 +543,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (existeSeleccionInvalida)
             {
                 throw new ApplicationException(
-                    "La prestación seleccionada no pertenece al profesional indicado."
+                    "La prestación seleccionada no está asignada al profesional. " +
+                    "Elegí otra prestación."
                 );
             }
 
@@ -572,8 +574,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (tipoTurno is null)
             {
                 throw new ApplicationException(
-                    "No existe el tipo de turno " +
-                    $"con id {dto.TipoTurnoId}."
+                    "El tipo de turno seleccionado ya no está disponible. " +
+                    "Elegí otro e intentá nuevamente."
                 );
             }
 
@@ -710,9 +712,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         ? "El profesional"
                         : "Los profesionales";
 
+                var verbo =
+                    conflictosProfesionales.Count == 1
+                        ? "ya tiene"
+                        : "ya tienen";
+
                 throw new ApplicationException(
                     $"{inicioMensaje} {conflictosTexto} " +
-                    "ya tiene un turno en ese horario."
+                    $"{verbo} un turno en ese horario."
                 );
             }
 
@@ -809,7 +816,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (datosPacientes.Count != pacienteIds.Count)
             {
                 throw new ApplicationException(
-                    "Uno o más pacientes seleccionados no existen."
+                    "Uno de los pacientes seleccionados ya no está disponible. " +
+                    "Actualizá la página e intentá nuevamente."
                 );
             }
 
@@ -820,7 +828,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (existeSeleccionInvalida)
             {
                 throw new ApplicationException(
-                    "La prestación seleccionada no pertenece al profesional indicado."
+                    "La prestación seleccionada no está asignada al profesional. " +
+                    "Elegí otra prestación."
                 );
             }
 
@@ -1022,7 +1031,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (tipoTurno is null)
             {
                 throw new ApplicationException(
-                    "Tipo de turno inválido."
+                    "El tipo de turno seleccionado no es válido."
                 );
             }
 
@@ -1118,21 +1127,21 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (dto.Hora == TimeOnly.MinValue)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar una hora válida."
+                    "Seleccioná un horario válido."
                 );
             }
 
             if (dto.TipoTurnoId <= 0)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar un tipo de turno válido."
+                    "Seleccioná un tipo de turno válido."
                 );
             }
 
             if (dto.TipoConsultorioId <= 0)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar un consultorio válido."
+                    "Seleccioná un consultorio válido."
                 );
             }
 
@@ -1182,14 +1191,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (profesionalIds.Count == 0)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar al menos un profesional."
+                    "Seleccioná al menos un profesional."
                 );
             }
 
             if (pacienteIds.Count == 0)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar al menos un paciente."
+                    "Seleccioná al menos un paciente."
                 );
             }
 
@@ -1197,7 +1206,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
     profesionalIds.Count)
             {
                 throw new ApplicationException(
-                    "Debe seleccionar una prestación para cada profesional."
+                    "Seleccioná una prestación para cada profesional."
                 );
             }
 
@@ -1223,7 +1232,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 ))
             {
                 throw new ApplicationException(
-                    "Las prestaciones seleccionadas no coinciden con los profesionales del turno."
+                    "Revisá las prestaciones seleccionadas. " +
+                    "Cada prestación debe corresponder a su profesional."
                 );
             }
 
@@ -1262,7 +1272,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (existeSeleccionInvalidaActualizacion)
             {
                 throw new ApplicationException(
-                    "La prestación seleccionada no pertenece al profesional indicado."
+                    "La prestación seleccionada no está asignada al profesional. " +
+                    "Elegí otra prestación."
                 );
             }
 
@@ -1282,8 +1293,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (tipoTurno is null)
             {
                 throw new ApplicationException(
-                    "No existe el tipo de turno " +
-                    $"con id {dto.TipoTurnoId}."
+                    "El tipo de turno seleccionado ya no está disponible. " +
+                    "Elegí otro e intentá nuevamente."
                 );
             }
 
@@ -1313,7 +1324,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             if (fechaInicioUtc.Date < DateTime.UtcNow.Date)
             {
-                throw new ApplicationException("No se pueden mover turnos a días pasados.");
+                throw new ApplicationException(
+                    "No podés mover un turno a una fecha pasada. " +
+                    "Elegí la fecha de hoy o una fecha futura."
+                );
             }
 
             var fechaFinUtc = fechaInicioUtc.AddMinutes(duracionMinutos);
@@ -1516,7 +1530,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (datosPacientesActuales.Count != pacienteIds.Count)
             {
                 throw new ApplicationException(
-                    "Uno o más pacientes seleccionados no existen."
+                    "Uno de los pacientes seleccionados ya no está disponible. " +
+                    "Actualizá la página e intentá nuevamente."
                 );
             }
 
@@ -1674,7 +1689,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (!turnoSeleccionado.SerieTurnoId.HasValue)
             {
                 throw new ApplicationException(
-                    "El turno seleccionado no pertenece a una serie."
+                    "Este turno no pertenece a una serie."
                 );
             }
 
@@ -1712,7 +1727,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (turnosSerie.Count == 0)
             {
                 throw new ApplicationException(
-                    "No se encontraron turnos futuros en la serie."
+                    "No hay turnos futuros de esta serie para actualizar."
                 );
             }
 
@@ -1897,9 +1912,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                             ? "ya tiene"
                             : "ya tienen";
 
+                    var bloqueo =
+                        conflictosProfesionales.Count == 1
+                            ? "no permite"
+                            : "no permiten";
+
                     throw new ApplicationException(
                         $"{inicioMensaje} {conflictosTexto} " +
-                        $"{verbo} un turno y no permite actualizar " +
+                        $"{verbo} un turno y {bloqueo} actualizar " +
                         "los turnos futuros de la serie."
                     );
                 }
@@ -1981,9 +2001,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                             ? "ya tiene"
                             : "ya tienen";
 
+                    var bloqueo =
+                        conflictosPacientes.Count == 1
+                            ? "no permite"
+                            : "no permiten";
+
                     throw new ApplicationException(
                         $"{inicioMensaje} {conflictosTexto} " +
-                        $"{verbo} un turno y no permite actualizar " +
+                        $"{verbo} un turno y {bloqueo} actualizar " +
                         "los turnos futuros de la serie."
                     );
                 }
@@ -2038,7 +2063,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (datosPacientesActuales.Count != pacienteIds.Count)
             {
                 throw new ApplicationException(
-                    "Uno o más pacientes seleccionados no existen."
+                    "Uno de los pacientes seleccionados ya no está disponible. " +
+                    "Actualizá la página e intentá nuevamente."
                 );
             }
 
