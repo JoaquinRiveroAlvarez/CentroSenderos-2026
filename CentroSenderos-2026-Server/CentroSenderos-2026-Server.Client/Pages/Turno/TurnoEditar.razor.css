@@ -993,6 +993,16 @@ select.control-formulario {
     width: 100%;
 }
 
+.selector-cierre-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: default;
+}
+
 .selector-desplegable-boton {
     width: 100%;
     min-height: 43px;
@@ -1136,39 +1146,6 @@ select.control-formulario {
     font-size: 12px;
     text-align: center;
 }
-
-.selector-desplegable-footer {
-    min-height: 45px;
-    padding: 8px 11px;
-    border-top: 1px solid #ebece8;
-    background-color: #fafbf9;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-    .selector-desplegable-footer span {
-        color: #737c70;
-        font-family: inherit;
-        font-size: 11px;
-    }
-
-    .selector-desplegable-footer button {
-        padding: 6px 13px;
-        border: 1px solid #80927a;
-        border-radius: 7px;
-        background-color: #eef3ec;
-        color: #425a3e;
-        font-family: inherit;
-        font-size: 12px;
-        font-weight: 650;
-        cursor: pointer;
-    }
-
-        .selector-desplegable-footer button:hover {
-            background-color: #dfe8dc;
-        }
 
 .selector-multiple-seleccionados {
     margin-top: 9px;
