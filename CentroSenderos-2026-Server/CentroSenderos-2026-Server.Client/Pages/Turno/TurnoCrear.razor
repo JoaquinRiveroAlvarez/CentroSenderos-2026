@@ -935,15 +935,47 @@
                     }
                     else
                     {
-                        <div class="horarios-grid">
+                        <div class="@(MostrarNavegacionHorarios
+                                             ? "horarios-navegacion"
+                                             : "horarios-navegacion sin-flechas")">
 
-                            @foreach (var hora in horasDisponibles)
+                            @if (MostrarNavegacionHorarios)
                             {
                                 <button type="button"
-                                        class="@ObtenerClaseHorario(hora)"
-                                        @onclick="() => SeleccionarHora(hora)">
+                                        class="horarios-flecha"
+                                        title="Horarios anteriores"
+                                        disabled="@(!PuedeRetrocederHorarios)"
+                                        @onclick="RetrocederHorarios">
 
-                                    @hora
+                                    <i class="bi bi-chevron-left"></i>
+
+                                </button>
+                            }
+
+                            <div class="horarios-grid">
+
+                                @foreach (var hora in HorariosVisibles)
+                                {
+                                    <button type="button"
+                                            class="@ObtenerClaseHorario(hora)"
+                                            @onclick="() => SeleccionarHora(hora)">
+
+                                        @hora
+
+                                    </button>
+                                }
+
+                            </div>
+
+                            @if (MostrarNavegacionHorarios)
+                            {
+                                <button type="button"
+                                        class="horarios-flecha"
+                                        title="Horarios siguientes"
+                                        disabled="@(!PuedeAvanzarHorarios)"
+                                        @onclick="AvanzarHorarios">
+
+                                    <i class="bi bi-chevron-right"></i>
 
                                 </button>
                             }
@@ -1090,6 +1122,51 @@
     private List<ProfesionalListadoDTO> profesionales = new();
     private List<PacienteResumenDTO> pacientes = new();
     private List<string> horasDisponibles = new();
+    private const int HorariosPorPagina = 24;
+    private int paginaHorarios = 0;
+    private IEnumerable<string> HorariosVisibles =>
+    horasDisponibles
+        .Skip(
+            paginaHorarios *
+            HorariosPorPagina
+        )
+        .Take(HorariosPorPagina);
+
+    private int CantidadPaginasHorarios =>
+        (int)Math.Ceiling(
+            horasDisponibles.Count /
+            (double)HorariosPorPagina
+        );
+
+    private bool MostrarNavegacionHorarios =>
+        CantidadPaginasHorarios > 1;
+
+    private bool PuedeRetrocederHorarios =>
+        paginaHorarios > 0;
+
+    private bool PuedeAvanzarHorarios =>
+        paginaHorarios <
+        CantidadPaginasHorarios - 1;
+
+    private void RetrocederHorarios()
+    {
+        if (!PuedeRetrocederHorarios)
+        {
+            return;
+        }
+
+        paginaHorarios--;
+    }
+
+    private void AvanzarHorarios()
+    {
+        if (!PuedeAvanzarHorarios)
+        {
+            return;
+        }
+
+        paginaHorarios++;
+    }
 
     private List<KeyValuePair<int, string>> PrestacionesDisponibles =>
     profesionales
@@ -1499,6 +1576,7 @@
 
         Mensaje = string.Empty;
         horasDisponibles.Clear();
+        paginaHorarios = 0;
         horaSeleccionada = string.Empty;
         modelo.Hora = TimeOnly.MinValue;
         horariosConsultados = false;

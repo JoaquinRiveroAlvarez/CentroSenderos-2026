@@ -1589,15 +1589,20 @@ select.control-formulario {
 
 /* #region Horarios disponibles y resumen inferior */
 
-/* Horarios disponibles: tarjeta ubicada en la columna derecha */
+/* Tarjeta de horarios */
 
 .horarios-card {
+    display: flex;
+    flex-direction: column;
+    align-self: start;
     min-width: 0;
+    min-height: 0;
+    height: fit-content;
     padding: 26px;
 }
 
 
-/* Mensaje mostrado antes de consultar o cuando no existen horarios */
+/* Estado vacío */
 
 .horarios-vacio {
     display: flex;
@@ -1626,29 +1631,90 @@ select.control-formulario {
         line-height: 1.5;
     }
 
-/* Grilla de horarios con el mismo formato utilizado al crear */
+/* Estado de carga */
 
-/* Todos los horarios permanecen visibles, sin scroll interno */
+.horarios-cargando {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 90px;
+    color: #647b5b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Navegación de horarios */
+
+.horarios-navegacion {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 34px;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+    .horarios-navegacion.sin-flechas {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+.horarios-flecha {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid #d4ddd1;
+    border-radius: 8px;
+    background-color: #f4f7f2;
+    color: #556f4f;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+    .horarios-flecha:hover:not(:disabled) {
+        border-color: #9dac98;
+        background-color: #e7eee4;
+        color: #40583b;
+    }
+
+    .horarios-flecha:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+
+    .horarios-flecha i {
+        font-size: 14px;
+    }
+
+/* Grilla de horarios */
 
 .horarios-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     align-content: start;
-    gap: 9px;
+    gap: 7px;
     width: 100%;
+    min-width: 0;
     padding: 2px;
 }
 
 .horario-opcion {
+    width: 100%;
+    min-width: 0;
     min-height: 39px;
-    padding: 7px 8px;
+    padding: 7px 3px;
     border: 1px solid #d7d8d3;
     border-radius: 7px;
     background-color: #ffffff;
     color: #4c5049;
     font-family: inherit;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 550;
+    line-height: 1;
+    white-space: nowrap;
+    box-sizing: border-box;
     cursor: pointer;
     transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
 }
@@ -1667,20 +1733,7 @@ select.control-formulario {
         box-shadow: 0 3px 8px rgba(85, 111, 79, 0.2);
     }
 
-/* Retroalimentación durante la actualización automática */
-
-.horarios-cargando {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 9px;
-    min-height: 90px;
-    color: #647b5b;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-/* Resumen inferior: ocupa el ancho de ambas columnas */
+/* Resumen inferior */
 
 .resumen-card-inferior {
     grid-column: 1 / -1;
@@ -1697,11 +1750,11 @@ select.control-formulario {
         min-width: 0;
     }
 
-/* Distribución de horarios y resumen en pantallas medianas */
+/* Pantallas medianas */
 
 @media (max-width: 1100px) {
     .horarios-grid {
-        grid-template-columns: repeat(3, minmax(55px, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .resumen-card-inferior .resumen-datos {
@@ -1709,7 +1762,7 @@ select.control-formulario {
     }
 }
 
-/* En tablet, las tarjetas laterales mantienen dos columnas */
+/* Tablet */
 
 @media (max-width: 850px) {
     .resumen-card-inferior {
@@ -1721,7 +1774,7 @@ select.control-formulario {
         }
 }
 
-/* En celular, horarios y resumen pasan a una sola columna */
+/* Celular */
 
 @media (max-width: 650px) {
     .horarios-card {
@@ -1729,7 +1782,28 @@ select.control-formulario {
     }
 
     .horarios-grid {
-        grid-template-columns: repeat(3, minmax(55px, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .horarios-navegacion {
+        grid-template-columns: 30px minmax(0, 1fr) 30px;
+        gap: 6px;
+    }
+
+        .horarios-navegacion.sin-flechas {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+    .horarios-flecha {
+        width: 30px;
+        height: 39px;
+    }
+
+    .horario-opcion {
+        padding-right: 2px;
+        padding-left: 2px;
+        font-size: 10px;
     }
 
     .resumen-card-inferior .resumen-datos {

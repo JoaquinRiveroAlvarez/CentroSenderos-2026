@@ -82,7 +82,7 @@
 .form-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(340px, 0.85fr);
-    align-items: stretch;
+    align-items: start;
     gap: 18px;
 }
 
@@ -635,7 +635,9 @@
 .horarios-card {
     display: flex;
     flex-direction: column;
-    min-height: 310px;
+    align-self: start;
+    min-height: 0;
+    height: fit-content;
 }
 
 .horarios-vacio {
@@ -678,13 +680,57 @@
     font-weight: 600;
 }
 
+.horarios-navegacion {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 34px;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+    .horarios-navegacion.sin-flechas {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
 .horarios-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(64px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     align-content: start;
     gap: 9px;
+    width: 100%;
+    min-width: 0;
     padding: 2px;
 }
+
+.horarios-flecha {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid #d4ddd1;
+    border-radius: 8px;
+    background-color: #f4f7f2;
+    color: #556f4f;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+    .horarios-flecha:hover:not(:disabled) {
+        border-color: #9dac98;
+        background-color: #e7eee4;
+        color: #40583b;
+    }
+
+    .horarios-flecha:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+
+    .horarios-flecha i {
+        font-size: 14px;
+    }
 
 .horario-opcion {
     min-height: 39px;
@@ -1241,7 +1287,7 @@
     }
 
     .horarios-grid {
-        grid-template-columns: repeat(3, minmax(64px, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .resumen-grid {
@@ -1271,7 +1317,7 @@
     }
 
     .horarios-grid {
-        grid-template-columns: repeat(4, minmax(60px, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         max-height: none;
     }
 
@@ -1322,7 +1368,28 @@
     }
 
     .horarios-grid {
-        grid-template-columns: repeat(3, minmax(58px, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .horarios-navegacion {
+        grid-template-columns: 30px minmax(0, 1fr) 30px;
+        gap: 6px;
+    }
+
+        .horarios-navegacion.sin-flechas {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+    .horarios-flecha {
+        width: 30px;
+        height: 39px;
+    }
+
+    .horario-opcion {
+        padding-right: 4px;
+        padding-left: 4px;
+        font-size: 11px;
     }
 
     .resumen-turno {
