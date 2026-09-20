@@ -985,6 +985,10 @@
     public string? ConsultoriosDesdeUrl { get; set; }
     [SupplyParameterFromQuery(Name = "tipos")]
     public string? TiposDesdeUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "profesionales")]
+    public string? ProfesionalesDesdeUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "pacientes")]
+    public string? PacientesDesdeUrl { get; set; }
 
     private List<ProfesionalListadoDTO> profesionales = new();
     private List<PacienteResumenDTO> pacientes = new();
@@ -1755,12 +1759,16 @@
     forceLoad: true
 );
     }
+
     private string ObtenerFiltrosParaRegreso()
     {
         return
             $"&consultorios={ConsultoriosDesdeUrl ?? string.Empty}" +
-            $"&tipos={TiposDesdeUrl ?? string.Empty}";
+            $"&tipos={TiposDesdeUrl ?? string.Empty}" +
+            $"&profesionales={ProfesionalesDesdeUrl ?? string.Empty}" +
+            $"&pacientes={PacientesDesdeUrl ?? string.Empty}";
     }
+
     private async Task SolicitarGuardado()
     {
         if (!PuedeGuardar || guardando)
@@ -2001,6 +2009,7 @@
     forceLoad: true
 );
     }
+
     private void Volver()
     {
         var vista =

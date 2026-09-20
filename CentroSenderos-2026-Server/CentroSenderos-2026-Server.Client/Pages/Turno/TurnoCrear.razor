@@ -1080,6 +1080,10 @@
     public string? ConsultoriosDesdeUrl { get; set; }
     [SupplyParameterFromQuery(Name = "tipos")]
     public string? TiposDesdeUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "profesionales")]
+    public string? ProfesionalesDesdeUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "pacientes")]
+    public string? PacientesDesdeUrl { get; set; }
 
     private List<TipoTurnoListadoDTO> tiposTurno = new();
     private List<TipoConsultorioListadoDTO> consultorios = new();
@@ -1884,7 +1888,9 @@
     {
         return
             $"&consultorios={ConsultoriosDesdeUrl ?? string.Empty}" +
-            $"&tipos={TiposDesdeUrl ?? string.Empty}";
+            $"&tipos={TiposDesdeUrl ?? string.Empty}" +
+            $"&profesionales={ProfesionalesDesdeUrl ?? string.Empty}" +
+            $"&pacientes={PacientesDesdeUrl ?? string.Empty}";
     }
 
     private int ObtenerPrestacionSeleccionada(int profesionalId)
