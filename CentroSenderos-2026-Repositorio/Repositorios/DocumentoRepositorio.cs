@@ -41,7 +41,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (paciente == null)
                 throw new InvalidOperationException($"PacienteId {dto.PacienteId} no existe.");
 
-            var nombreGenerado = $"{paciente.Nombre}_{tipo.Tipo}_{DateTime.UtcNow:yyyyMMddHHmmss}";
+            var nombreGenerado = $"{paciente.Nombre}_{tipo.Tipo}_{DateTime.UtcNow:yyyyMMddHHmmss}_";
 
             var documento = new Documento
             {
