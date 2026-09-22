@@ -1,275 +1,272 @@
-/* CSS for TipoPlanillasCrear component */
-/* ===========================================
-   PÁGINA
-=========================================== */
+/* #region Página */
 
+/* Conserva el ancho y la posición del formulario de Crear paciente. */
 .crear-planilla-page {
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     box-sizing: border-box;
-    padding: 30px;
 }
 
-
-/* ===========================================
-   TARJETA
-=========================================== */
-
-.planilla-card {
-    width: 100%;
-    max-width: 520px;
-    box-sizing: border-box;
-    padding: 24px 26px;
-    background: #fffdf9;
-    border: 1px solid #e5e1db;
-    border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
-}
-
-
-/* ===========================================
-   HEADER
-=========================================== */
-
-.planilla-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 20px;
-    margin-bottom: 24px;
-}
-
-    .planilla-card-header h1 {
-        margin: 0 0 4px;
+    .crear-planilla-page h1 {
+        margin: 0 0 20px;
         color: #556f4f;
-        font-size: 24px;
-        font-weight: 600;
+        font-size: 28px;
+        font-weight: 500;
     }
 
-    .planilla-card-header p {
-        margin: 0;
-        color: #888888;
-        font-size: 11px;
-    }
+/* #endregion */
 
 
-/* ===========================================
-   CERRAR
-=========================================== */
+/* #region Formulario y sección */
 
-.close-button {
-    width: 30px;
-    height: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-shrink: 0;
-    padding: 0;
-    background: transparent;
-    border: none;
-    border-radius: 50%;
-    color: #888888;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-    .close-button:hover {
-        background: #f0eeea;
-        color: #555555;
-    }
-
-
-/* ===========================================
-   FORMULARIO
-=========================================== */
-
+/* Tarjeta principal con la misma superficie que el formulario de paciente. */
 .planilla-form {
     width: 100%;
+    box-sizing: border-box;
+    padding: 22px 24px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #e4e1dc;
+    border-radius: 22px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
 }
 
+.form-section {
+    margin-bottom: 28px;
+}
 
-/* ===========================================
-   CAMPOS
-=========================================== */
+/* Título numerado de la sección. */
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 16px;
+    color: #9b7163;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.section-number {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #f8e8df;
+    border-radius: 50%;
+    color: #9a6553;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* #endregion */
+
+
+/* #region Campos */
+
+/* Coloca nombre y descripción uno debajo del otro. */
+.form-grid {
+    display: grid;
+    gap: 18px;
+}
 
 .field-group {
     display: flex;
     flex-direction: column;
-    margin-bottom: 18px;
+    min-width: 0;
 }
 
     .field-group label {
-        margin: 0 0 7px 2px;
-        color: #666666;
-        font-size: 10px;
+        margin: 0 0 7px 6px;
+        color: #656565;
+        font-size: 13px;
         font-weight: 600;
         text-transform: uppercase;
     }
 
-
-/* ===========================================
-   INPUT
-=========================================== */
-
-::deep .form-input {
-    width: 100%;
-    height: 42px;
-    box-sizing: border-box;
-    padding: 0 14px;
-    background: #ffffff;
-    border: 1px solid #d9ddd6;
-    border-radius: 10px;
-    color: #444444;
-    font-size: 12px;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-    ::deep .form-input::placeholder {
-        color: #a2a2a2;
-        opacity: 1;
-    }
-
-    ::deep .form-input:focus {
-        border-color: #789175;
-        box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
-    }
-
-
-/* ===========================================
-   DESCRIPCIÓN
-=========================================== */
-
+/* InputText e InputTextArea generan elementos dentro de componentes Blazor. */
+::deep .form-input,
 ::deep .form-textarea {
     width: 100%;
-    min-height: 100px;
     box-sizing: border-box;
-    padding: 12px 14px;
-    resize: vertical;
+    padding: 0 16px;
     background: #ffffff;
     border: 1px solid #d9ddd6;
-    border-radius: 10px;
+    border-radius: 22px;
     color: #444444;
     font-family: inherit;
-    font-size: 12px;
+    font-size: 14px;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+::deep .form-input {
+    height: 42px;
+}
+
+::deep .form-textarea {
+    min-height: 100px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    resize: vertical;
+}
+
+    ::deep .form-input::placeholder,
     ::deep .form-textarea::placeholder {
-        color: #a2a2a2;
+        color: #999999;
         opacity: 1;
     }
 
+    ::deep .form-input:hover,
+    ::deep .form-textarea:hover {
+        border-color: #bbc5b7;
+    }
+
+    ::deep .form-input:focus,
     ::deep .form-textarea:focus {
         border-color: #789175;
         box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
     }
 
+    ::deep .form-input.invalid,
+    ::deep .form-textarea.invalid {
+        border-color: #d8857e;
+    }
 
-/* ===========================================
-   BOTONES
-=========================================== */
+::deep .validation-message {
+    margin: 5px 0 0 6px;
+    color: #b54b43;
+    font-size: 13px;
+}
 
+/* #endregion */
+
+
+/* #region Acciones y navegación */
+
+/* Ubica Cancelar y Guardar al pie, como en Crear paciente. */
 .form-actions {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 12px;
-    margin-top: 26px;
+    gap: 14px;
+    margin-top: 16px;
 }
 
-
-/* Cancelar */
-
 .cancel-button {
-    min-width: 100px;
-    height: 38px;
-    padding: 0 18px;
-    background: transparent;
-    border: none;
-    border-radius: 19px;
-    color: #666666;
-    font-size: 11px;
+    min-width: 120px;
+    height: 42px;
+    padding: 0 22px;
+    background: #ffffff;
+    border: 1px solid #9d9d96;
+    border-radius: 22px;
+    color: #555555;
+    font-family: inherit;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
 }
 
-    .cancel-button:hover {
-        background: #f0eeea;
+    .cancel-button:hover:not(:disabled) {
+        background: #f5f5f3;
+        border-color: #777770;
     }
 
-
-/* Guardar */
-
 .save-button {
-    min-width: 110px;
-    height: 38px;
-    padding: 0 20px;
+    min-width: 150px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 24px;
     background: #647b5b;
     border: none;
-    border-radius: 19px;
+    border-radius: 22px;
     color: #ffffff;
-    font-size: 11px;
+    font-family: inherit;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
 }
 
-    .save-button:hover {
+    .save-button:hover:not(:disabled) {
         background: #52694a;
     }
 
-    .save-button:active {
-        transform: scale(0.98);
-    }
-
-
-/* ===========================================
-   VALIDACIONES / MENSAJE
-=========================================== */
-
-.validation-summary {
-    margin-bottom: 16px;
-    color: #b54b43;
-    font-size: 11px;
+/* Botón Volver situado antes del título. */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #6f786a;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
 }
 
+    .back-button:hover:not(:disabled) {
+        color: #556f4f;
+    }
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+/* #endregion */
+
+
+/* #region Mensajes */
+
+/* Presenta errores de guardado dentro del formulario. */
 .form-message {
     margin-top: 12px;
-    color: #657461;
-    font-size: 12px;
+    padding: 12px 16px;
+    background: #fdf2f0;
+    border: 1px solid #efd0cc;
+    border-radius: 12px;
+    color: #a94b44;
+    font-size: 14px;
 }
 
+/* #endregion */
 
-/* ===========================================
-   RESPONSIVE
-=========================================== */
 
-@media (max-width: 600px) {
+/* #region Pantallas pequeñas */
 
-    .crear-planilla-page {
-        padding: 18px;
+/* Ajusta los espacios y apila los botones en celulares. */
+@media (max-width: 700px) {
+    .crear-planilla-page h1 {
+        font-size: 25px;
     }
 
-    .planilla-card {
-        padding: 22px 20px;
-        border-radius: 14px;
+    .planilla-form {
+        padding: 20px;
+        border-radius: 16px;
     }
+}
 
-    .planilla-card-header h1 {
-        font-size: 21px;
+@media (max-width: 500px) {
+    .planilla-form {
+        padding: 18px 15px;
     }
 
     .form-actions {
         flex-direction: column-reverse;
-        align-items: stretch;
     }
 
     .cancel-button,
     .save-button {
         width: 100%;
+        font-size: 14px;
     }
 }
+
+/* #endregion */

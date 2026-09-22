@@ -6,233 +6,122 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-
 <div class="planillas-page">
-
-    <div class="planillas-header">
-
-        <div class="search-box">
-            <i class="bi bi-search"></i>
-
-            <input type="text"
-                   placeholder="Buscar planilla..."
-                   @bind="busqueda"
-                   @bind:event="oninput" />
+    <div class="page-header">
+        <div>
+            <h1>Tipos de planilla</h1>
+            <p>Administrá las categorías de planillas de Centro Senderos.</p>
         </div>
 
-        <button class="new-planilla-button"
-                @onclick="IrACrear">
-
-            <i class="bi bi-plus"></i>
-            <span>Planilla</span>
-
+        <button type="button" class="new-button" @onclick="IrACrear">
+            <i class="bi bi-plus-lg"></i>
+            Nuevo tipo
         </button>
-
     </div>
 
+    <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="search"
+               aria-label="Buscar tipos de planilla"
+               placeholder="Buscar por nombre o descripción..."
+               @bind="busqueda"
+               @bind:event="oninput" />
+    </div>
 
     @if (cargando)
     {
-        <p class="planillas-mensaje">
-            Cargando registros...
-        </p>
+        <div class="state-card">Cargando tipos de planilla...</div>
     }
     else if (lista.Count == 0)
     {
-        <p class="planillas-mensaje">
-            No hay planillas registradas.
-        </p>
+        <div class="state-card">
+            <i class="bi bi-file-earmark-text"></i>
+            <h2>No hay tipos de planilla registrados</h2>
+            <p>Creá el primero para comenzar a organizarlos.</p>
+        </div>
+    }
+    else if (!TiposFiltrados.Any())
+    {
+        <div class="state-card">
+            <i class="bi bi-search"></i>
+            <h2>Sin resultados</h2>
+            <p>Probá con otro nombre o descripción.</p>
+        </div>
     }
     else
     {
-        <div class="planillas-content">
-
-            <!-- LISTADO DE TIPOS -->
-
-            <div class="tipos-planilla-list">
-
-                @foreach (var item in TiposFiltrados)
-                {
-                    <button class="tipo-planilla-card @(tipoSeleccionado?.Id == item.Id ? "selected" : "")"
-                            @onclick="() => SeleccionarTipo(item)">
-
-                        @item.Tipo
-
-                    </button>
-                }
-
+        <div class="list-card">
+            <div class="list-header">
+                <span>Tipo de planilla</span>
+                <span>Descripción</span>
+                <span class="actions-heading">Acción</span>
             </div>
 
-
-            <!-- DETALLE DEL TIPO SELECCIONADO -->
-
-            @if (tipoSeleccionado != null)
+            @foreach (var item in TiposFiltrados)
             {
-                <div class="tipo-detalle">
-
-                    <div class="detalle-header">
-
-                        <h2>
-                            @tipoSeleccionado.Tipo
-                        </h2>
-
-                        <button type="button"
-                                class="close-detail-button"
-                                @onclick="CerrarDetalle">
-
-                            <i class="bi bi-x-lg"></i>
-
-                        </button>
-
+                <div class="planilla-row" @key="item.Id">
+                    <div class="planilla-name">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <strong>@item.Tipo</strong>
                     </div>
 
-
-                    <div class="detalle-field">
-
-                        <label>Nombre</label>
-
-                        <div class="detalle-value">
-                            @tipoSeleccionado.Tipo
-                        </div>
-
+                    <div class="planilla-description">
+                        @(string.IsNullOrWhiteSpace(item.Descripcion)
+                            ? "Sin descripción"
+                            : item.Descripcion)
                     </div>
 
-
-                    <div class="detalle-field">
-
-                        <label>Descripción</label>
-
-                        <div class="detalle-value detalle-description">
-
-                            @if (string.IsNullOrWhiteSpace(tipoSeleccionado.Descripcion))
-                            {
-                                <span class="sin-descripcion">
-                                    Sin descripción
-                                </span>
-                            }
-                            else
-                            {
-                                @tipoSeleccionado.Descripcion
-                            }
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="detalle-actions">
-
+                    <div class="planilla-actions">
                         <button type="button"
                                 class="edit-button"
-                                @onclick="() => IrAEditar(tipoSeleccionado.Id)">
-
+                                aria-label="@($"Editar {item.Tipo}")"
+                                @onclick="() => IrAEditar(item.Id)">
                             <i class="bi bi-pencil"></i>
-                            <span>Editar</span>
-
                         </button>
-
                     </div>
-
                 </div>
             }
 
+            <div class="list-footer">
+                Mostrando @TiposFiltrados.Count() de @lista.Count tipos de planilla
+            </div>
         </div>
     }
 
-
     @if (!string.IsNullOrWhiteSpace(Mensaje))
     {
-        <p class="planillas-mensaje">
+        <div class="error-message" role="alert">
+            <i class="bi bi-exclamation-circle"></i>
             @Mensaje
-        </p>
+        </div>
     }
-
 </div>
-
-<p>@Mensaje</p>
 
 @code {
     private List<TipoListadoDTO> lista = new();
-
-    private TipoListadoDTO? tipoSeleccionado;
-
     private bool cargando = true;
-
-    private string Mensaje = "";
-
-    private string busqueda = "";
-
+    private string Mensaje = string.Empty;
+    private string busqueda = string.Empty;
 
     private IEnumerable<TipoListadoDTO> TiposFiltrados =>
         string.IsNullOrWhiteSpace(busqueda)
             ? lista
             : lista.Where(x =>
-                x.Tipo?.Contains(
-                    busqueda,
-                    StringComparison.OrdinalIgnoreCase
-                ) == true
-                ||
-                x.Descripcion?.Contains(
-                    busqueda,
-                    StringComparison.OrdinalIgnoreCase
-                ) == true
-            );
-
+                (x.Tipo?.Contains(busqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (x.Descripcion?.Contains(busqueda, StringComparison.OrdinalIgnoreCase) ?? false));
 
     protected override async Task OnInitializedAsync()
     {
-        await Cargar();
-    }
+        var resp = await Http.Get<List<TipoListadoDTO>>(
+            "api/tipoplanillas/ListaTipoPlanillas");
 
-
-    private async Task Cargar()
-    {
-        cargando = true;
-
-        var resp =
-            await Http.Get<List<TipoListadoDTO>>(
-                "api/tipoplanillas/ListaTipoPlanillas"
-            );
-
-        lista =
-            resp.Error
-                ? new()
-                : resp.Respuesta ?? new();
-
-        Mensaje =
-            resp.Error
-                ? resp.ObtenerError()
-                : "";
-
+        lista = resp.Error ? new() : resp.Respuesta ?? new();
+        Mensaje = resp.Error ? resp.ObtenerError() : string.Empty;
         cargando = false;
     }
 
+    private void IrACrear() => Nav.NavigateTo("/tipoplanillas/crear");
 
-    private void SeleccionarTipo(TipoListadoDTO tipo)
-    {
-        tipoSeleccionado = tipo;
-    }
-
-
-    private void CerrarDetalle()
-    {
-        tipoSeleccionado = null;
-    }
-
-
-    private void IrAEditar(int id)
-    {
-        Nav.NavigateTo(
-            $"/tipoplanillas/editar/{id}"
-        );
-    }
-
-
-    private void IrACrear()
-    {
-        Nav.NavigateTo(
-            "/tipoplanillas/crear"
-        );
-    }
+    private void IrAEditar(int id) =>
+        Nav.NavigateTo($"/tipoplanillas/editar/{id}");
 }
-

@@ -8,230 +8,247 @@
 
 <div class="editar-planilla-page">
 
+    <button type="button"
+            class="back-button"
+            disabled="@(guardando || eliminando)"
+            @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver</span>
+    </button>
+
+    <h1>Editar tipo de planilla</h1>
+
     @if (cargando)
     {
-        <p class="estado-mensaje">Cargando...</p>
+        <div class="editar-loading">Cargando datos...</div>
+    }
+    else if (errorCarga)
+    {
+        <div class="editar-mensaje" role="alert">@Mensaje</div>
     }
     else
     {
-        <div class="planilla-card">
+        <EditForm Model="@modelo"
+                  OnValidSubmit="Grabar"
+                  FormName="EditarTipoPlanillaForm"
+                  class="planilla-form">
 
-            <div class="planilla-card-header">
+            <DataAnnotationsValidator />
 
-                <div>
-                    <h1>Editar Planilla</h1>
-                    <p>Modifique los datos del tipo de planilla</p>
+            <section class="form-section">
+                <div class="section-title">
+                    <span class="section-number">01</span>
+                    <span>Información de la planilla</span>
                 </div>
 
-                <button type="button"
-                        class="close-button"
-                        @onclick="Cancelar">
-                    <i class="bi bi-x-lg"></i>
-                </button>
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label for="tipoPlanilla">Nombre del tipo</label>
 
-            </div>
+                        <InputText id="tipoPlanilla"
+                                   class="form-input"
+                                   @bind-Value="modelo.Tipo"
+                                   placeholder="Insertar nombre" />
 
-            <EditForm Model="@modelo"
-                      OnValidSubmit="Grabar"
-                      class="planilla-form">
-
-                <DataAnnotationsValidator />
-                <ValidationSummary class="validation-summary" />
-
-                <div class="field-group">
-                    <label>Tipo de planilla</label>
-
-                    <InputText class="form-input"
-                               @bind-Value="modelo.Tipo"
-                               placeholder="Tipo de planilla" />
-                </div>
-
-                <div class="field-group">
-                    <label>Descripción</label>
-
-                    <InputTextArea class="form-textarea"
-                                   @bind-Value="modelo.Descripcion"
-                                   placeholder="Descripción" />
-                </div>
-
-                <div class="form-actions">
-
-                    <button type="button"
-                            class="delete-button"
-                            @onclick="AbrirConfirmacionEliminar">
-
-                        <i class="bi bi-trash"></i>
-                        <span>Eliminar</span>
-
-                    </button>
-
-                    <div class="form-actions-right">
-
-                        <button type="button"
-                                class="cancel-button"
-                                @onclick="Cancelar">
-                            Cancelar
-                        </button>
-
-                        <button type="submit"
-                                class="save-button">
-                            Guardar
-                        </button>
-
+                        <ValidationMessage For="@(() => modelo.Tipo)"
+                                           class="validation-message" />
                     </div>
 
+                    <div class="field-group">
+                        <label for="descripcionPlanilla">Descripción</label>
+
+                        <InputTextArea id="descripcionPlanilla"
+                                       class="form-textarea"
+                                       @bind-Value="modelo.Descripcion"
+                                       placeholder="Insertar descripción" />
+
+                        <ValidationMessage For="@(() => modelo.Descripcion)"
+                                           class="validation-message" />
+                    </div>
                 </div>
+            </section>
 
-            </EditForm>
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <div class="editar-mensaje" role="alert">
+                    @Mensaje
+                </div>
+            }
 
-        </div>
+            <div class="form-actions">
+                <button type="button"
+                        class="delete-button"
+                        disabled="@(guardando || eliminando)"
+                        @onclick="AbrirConfirmacionEliminar">
+                    <i class="bi bi-trash"></i>
+                    <span>Eliminar</span>
+                </button>
+
+                <div class="form-actions-right">
+                    <button type="button"
+                            class="cancel-button"
+                            disabled="@(guardando || eliminando)"
+                            @onclick="Cancelar">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="save-button"
+                            disabled="@(guardando || eliminando)">
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar cambios</span>
+                        }
+                    </button>
+                </div>
+            </div>
+
+        </EditForm>
     }
-
-    @if (!string.IsNullOrWhiteSpace(Mensaje))
-    {
-        <p class="estado-mensaje">@Mensaje</p>
-    }
-
 </div>
-
 
 @if (mostrarConfirmacionEliminar)
 {
     <div class="modal-overlay">
-
         <div class="delete-modal">
-
             <div class="delete-warning-icon">
                 <i class="bi bi-exclamation-triangle-fill"></i>
             </div>
 
-            <h2>¿Estás seguro que querés eliminar?</h2>
-
+            <h2>¿Eliminar tipo de planilla?</h2>
             <p>
-                Confirmá que deseás eliminar definitivamente
-                este tipo de planilla.
+                <strong>@modelo.Tipo</strong> dejará de aparecer
+                entre los tipos disponibles.
             </p>
 
-            <div class="delete-modal-actions">
+            @if (!string.IsNullOrWhiteSpace(MensajeEliminar))
+            {
+                <div class="delete-error" role="alert">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@MensajeEliminar</span>
+                </div>
+            }
 
+            <div class="delete-modal-actions">
                 <button type="button"
                         class="confirm-delete-button"
+                        disabled="@eliminando"
                         @onclick="ConfirmarEliminar">
-                    Eliminar
+                    @(eliminando ? "Eliminando..." : "Eliminar")
                 </button>
 
                 <button type="button"
                         class="modal-cancel-button"
+                        disabled="@eliminando"
                         @onclick="CerrarConfirmacionEliminar">
                     Cancelar
                 </button>
-
             </div>
-
         </div>
-
     </div>
 }
 
-<p>@Mensaje</p>
+@code {
+    [Parameter]
+    public int id { get; set; }
 
-    @code {
-        [Parameter]
-        public int id { get; set; }
+    private TipoDTO modelo = new()
+    {
+        Tipo = string.Empty,
+        Descripcion = string.Empty
+    };
 
-        private TipoDTO modelo = new TipoDTO
+    private bool cargando = true;
+    private bool errorCarga;
+    private bool guardando;
+    private bool eliminando;
+    private bool mostrarConfirmacionEliminar;
+
+    private string Mensaje = string.Empty;
+    private string MensajeEliminar = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resp = await Http.Get<TipoDTO>($"api/tipoplanillas/{id}");
+
+        if (!resp.Error && resp.Respuesta != null)
         {
-            Tipo = string.Empty,
-            Descripcion = string.Empty
-        };
-
-        private bool cargando = true;
-        private bool mostrarConfirmacionEliminar = false;
-
-        private string Mensaje = "";
-
-        protected override async Task OnInitializedAsync()
+            modelo = resp.Respuesta;
+        }
+        else
         {
-            var resp =
-                await Http.Get<TipoDTO>(
-                    $"api/tipoplanillas/{id}");
-
-            modelo =
-                resp.Error
-                    ? new TipoDTO
-                    {
-                        Tipo = string.Empty,
-                        Descripcion = string.Empty
-                    }
-                    : resp.Respuesta
-                        ?? new TipoDTO
-                        {
-                            Tipo = string.Empty,
-                            Descripcion = string.Empty
-                        };
-
-            Mensaje =
-                resp.Error
-                    ? resp.ObtenerError()
-                    : "";
-
-            cargando = false;
+            errorCarga = true;
+            Mensaje = resp.Error
+                ? resp.ObtenerError()
+                : "No se encontró el tipo de planilla.";
         }
 
-        private async Task Grabar()
-        {
-            var resp =
-                await Http.Put<TipoDTO, RespuestaDTO>(
-                    $"api/tipoplanillas/{id}",
-                    modelo);
+        cargando = false;
+    }
 
-            Mensaje =
-                resp.Error
-                    ? resp.ObtenerError()
-                    : resp.Respuesta?.mensaje!;
+    private async Task Grabar()
+    {
+        Mensaje = string.Empty;
+        guardando = true;
 
-            if (!resp.Error)
-            {
-                Nav.NavigateTo(
-                    "/tipoplanillas",
-                    true);
-            }
-        }
+        var resp = await Http.Put<TipoDTO, RespuestaDTO>(
+            $"api/tipoplanillas/{id}",
+            modelo
+        );
 
-        private void AbrirConfirmacionEliminar()
-        {
-            mostrarConfirmacionEliminar = true;
-        }
+        guardando = false;
 
-        private void CerrarConfirmacionEliminar()
-        {
-            mostrarConfirmacionEliminar = false;
-        }
-
-        private async Task ConfirmarEliminar()
-        {
-            var resp =
-                await Http.Delete(
-                    $"api/tipoplanillas/{id}");
-
-            Mensaje =
-                resp.Error
-                    ? resp.ObtenerError()
-                    : "Planilla eliminada correctamente.";
-
-            if (!resp.Error)
-            {
-                mostrarConfirmacionEliminar = false;
-
-                Nav.NavigateTo(
-                    "/tipoplanillas",
-                    true);
-            }
-        }
-
-        private void Cancelar()
+        if (!resp.Error)
         {
             Nav.NavigateTo("/tipoplanillas");
         }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
     }
 
+    private void AbrirConfirmacionEliminar()
+    {
+        MensajeEliminar = string.Empty;
+        mostrarConfirmacionEliminar = true;
+    }
+
+    private void CerrarConfirmacionEliminar()
+    {
+        if (eliminando)
+            return;
+
+        MensajeEliminar = string.Empty;
+        mostrarConfirmacionEliminar = false;
+    }
+
+    private async Task ConfirmarEliminar()
+    {
+        MensajeEliminar = string.Empty;
+        eliminando = true;
+
+        var resp = await Http.Delete($"api/tipoplanillas/{id}");
+
+        eliminando = false;
+
+        if (!resp.Error)
+        {
+            mostrarConfirmacionEliminar = false;
+            Nav.NavigateTo("/tipoplanillas");
+        }
+        else
+        {
+            MensajeEliminar = resp.ObtenerError();
+        }
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/tipoplanillas");
+
+    private void Volver() => Nav.NavigateTo("/tipoplanillas");
+}
