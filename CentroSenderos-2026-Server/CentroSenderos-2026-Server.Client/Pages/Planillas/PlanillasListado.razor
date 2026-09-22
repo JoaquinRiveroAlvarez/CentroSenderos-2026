@@ -1,0 +1,27 @@
+﻿@page "/planillas"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@rendermode InteractiveAuto
+
+<div class="planillas-page">
+    <div class="page-header">
+    <div>
+        <h1>Planillas</h1>
+        <p>Consultá y descargá las planillas base de Centro Senderos.</p>
+    </div>
+
+    <a href="/planillas/crear" class="new-button">
+        <i class="bi bi-plus-lg"></i>
+        Nueva planilla
+    </a>
+</div>
+
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="bi bi-file-earmark-pdf"></i>
+        </div>
+
+        <h2>No hay planillas para mostrar</h2>
+        <p>Las planillas PDF cargadas aparecerán en este espacio.</p>
+    </div>
+</div>

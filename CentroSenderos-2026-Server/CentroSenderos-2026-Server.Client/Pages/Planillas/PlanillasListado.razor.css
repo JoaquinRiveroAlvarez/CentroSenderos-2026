@@ -1,0 +1,119 @@
+/* #region Página y encabezado */
+
+/* Mantiene los márgenes del listado de Tipos de planilla. */
+.planillas-page {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 34px 36px 40px;
+}
+
+/* Distribuye el título y el acceso al formulario de carga. */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 26px;
+}
+
+.new-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 22px;
+    background: #647b5b;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+    .new-button:hover {
+        background: #52694a;
+        color: #ffffff;
+    }
+    .page-header h1 {
+        margin: 0 0 5px;
+        color: #3f463d;
+        font-size: 28px;
+        font-weight: 600;
+    }
+
+    .page-header p {
+        margin: 0;
+        color: #777c74;
+        font-size: 14px;
+    }
+
+/* #endregion */
+
+
+/* #region Estado vacío */
+
+/* Ocupa el espacio donde después aparecerá el listado de PDFs. */
+.empty-state {
+    display: flex;
+    min-height: 310px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 32px;
+    border: 1px solid #e9e5de;
+    border-radius: 16px;
+    background: #fffdf9;
+    box-shadow: 0 8px 28px rgba(56, 54, 48, 0.05);
+    text-align: center;
+}
+
+.empty-icon {
+    display: flex;
+    width: 60px;
+    height: 60px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    border-radius: 50%;
+    background: #dfe5dc;
+    color: #556f4f;
+    font-size: 26px;
+}
+
+.empty-state h2 {
+    margin: 0 0 8px;
+    color: #3f463d;
+    font-size: 19px;
+    font-weight: 600;
+}
+
+.empty-state p {
+    margin: 0;
+    color: #777c74;
+    font-size: 14px;
+}
+
+/* #endregion */
+
+
+/* #region Pantallas pequeñas */
+
+/* Reduce los márgenes para que el contenido respire en celulares. */
+@media (max-width: 700px) {
+    .planillas-page {
+        padding: 22px 18px;
+    }
+
+    .page-header h1 {
+        font-size: 25px;
+    }
+
+    .empty-state {
+        min-height: 260px;
+        padding: 24px;
+    }
+}
+
+/* #endregion */

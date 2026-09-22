@@ -1,0 +1,180 @@
+﻿@page "/planillas/crear"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<div class="crear-planilla-page">
+
+    <button type="button" class="back-button" @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver</span>
+    </button>
+
+    <h1>Nueva planilla</h1>
+
+    @if (cargando)
+    {
+        <div class="loading-message">Cargando tipos de planilla...</div>
+    }
+    else
+    {
+        <div class="planilla-form">
+            <section class="form-section">
+                <div class="section-title">
+                    <span class="section-number">01</span>
+                    <span>Información de la planilla</span>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label for="nombrePlanilla">Nombre</label>
+                        <input id="nombrePlanilla"
+                               class="form-input"
+                               type="text"
+                               placeholder="Ej.: Ficha de ingreso"
+                               @bind="nombre"
+                               @bind:event="oninput" />
+                    </div>
+
+                    <div class="field-group">
+                        <label for="tipoPlanilla">Tipo de planilla</label>
+                        <select id="tipoPlanilla"
+                                class="form-input"
+                                @bind="tipoPlanillaId">
+                            <option value="0">Seleccione un tipo</option>
+
+                            @foreach (var tipo in tiposPlanilla)
+                            {
+                                <option value="@tipo.Id">@tipo.Tipo</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="field-group full-width">
+                        <label for="descripcionPlanilla">Descripción</label>
+                        <textarea id="descripcionPlanilla"
+                                  class="form-textarea"
+                                  placeholder="Describí para qué se utiliza esta planilla"
+                                  @bind="descripcion"
+                                  @bind:event="oninput"></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="section-title">
+                    <span class="section-number">02</span>
+                    <span>Archivo PDF</span>
+                </div>
+
+                <div class="file-field">
+                    <div class="file-icon">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </div>
+
+                    <div class="file-content">
+                        <strong>Seleccioná la planilla base</strong>
+                        <span>Archivo en formato PDF</span>
+
+                        <InputFile OnChange="SeleccionarArchivo"
+                                   accept=".pdf,application/pdf"
+                                   class="file-input" />
+
+                        @if (archivo != null)
+                        {
+                            <span class="selected-file">
+                                <i class="bi bi-check-circle"></i>
+                                @archivo.Name
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(MensajeArchivo))
+                {
+                    <div class="form-message" role="alert">
+                        @MensajeArchivo
+                    </div>
+                }
+            </section>
+
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <div class="form-message" role="alert">
+                    @Mensaje
+                </div>
+            }
+
+            <div class="form-actions">
+                <button type="button"
+                        class="cancel-button"
+                        @onclick="Cancelar">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="save-button"
+                        disabled>
+                    Guardar planilla
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<TipoListadoDTO> tiposPlanilla = new();
+
+    private string nombre = string.Empty;
+    private string descripcion = string.Empty;
+    private int tipoPlanillaId;
+    private IBrowserFile? archivo;
+
+    private bool cargando = true;
+    private string Mensaje = string.Empty;
+    private string MensajeArchivo = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resp = await Http.Get<List<TipoListadoDTO>>(
+            "api/tipoplanillas/ListaTipoPlanillas"
+        );
+
+        if (!resp.Error && resp.Respuesta != null)
+        {
+            tiposPlanilla = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+
+        cargando = false;
+    }
+
+    private void SeleccionarArchivo(InputFileChangeEventArgs e)
+    {
+        MensajeArchivo = string.Empty;
+        archivo = null;
+
+        var seleccionado = e.File;
+
+        if (!seleccionado.Name.EndsWith(
+                ".pdf",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            MensajeArchivo = "Seleccioná un archivo PDF.";
+            return;
+        }
+
+        archivo = seleccionado;
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/planillas");
+
+    private void Volver() => Nav.NavigateTo("/planillas");
+}
