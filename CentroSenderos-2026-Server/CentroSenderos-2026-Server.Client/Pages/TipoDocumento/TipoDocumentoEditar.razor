@@ -1,0 +1,87 @@
+﻿@page "/tipodocumento/editar/{id:int}"
+@attribute [Authorize]
+@using CentroSenderos_2026_Shared.DTO
+@using Microsoft.AspNetCore.Authorization
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<div class="documento-form-page">
+    <div class="documento-card">
+
+        <div class="card-header">
+            <h1>Editar Tipo de Documento</h1>
+            <p>Modifique los datos del documento.</p>
+        </div>
+
+        @if (cargando)
+        {
+            <div class="loading-state">
+                <div class="spinner-border" role="status"></div>
+                <span>Cargando documento...</span>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@modelo" OnValidSubmit="Grabar" class="documento-form">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="field-group">
+                    <label>Tipo</label>
+                    <InputText class="senderos-input" @bind-Value="modelo.Tipo" />
+                    <!-- CORRECCIÓN: usar directamente la propiedad -->
+                    <ValidationMessage For="@(() => modelo.Tipo)" />
+                </div>
+
+                <div class="field-group">
+                    <label>Descripción</label>
+                    <InputTextArea class="senderos-textarea" @bind-Value="modelo.Descripcion" />
+                    <!-- CORRECCIÓN: usar directamente la propiedad -->
+                    <ValidationMessage For="@(() => modelo.Descripcion)" />
+                </div>
+
+                <div class="form-actions editar-actions">
+                    <button type="button" class="btn-cancelar" @onclick="Cancelar">Cancelar</button>
+                    <div class="right-actions">
+                        <button type="submit" class="btn-guardar">Guardar Cambios</button>
+                    </div>
+                </div>
+            </EditForm>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Mensaje))
+        {
+            <div class="form-message">
+                <i class="bi bi-exclamation-circle"></i>
+                <span>@Mensaje</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public int id { get; set; }
+    private TipoDocumentoDTO modelo = new() { Tipo = string.Empty, Descripcion = string.Empty };
+    private bool cargando = true;
+    private string Mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resp = await Http.Get<TipoDocumentoDTO>($"api/tipodocumento/{id}");
+        modelo = resp.Error
+            ? new TipoDocumentoDTO { Tipo = string.Empty, Descripcion = string.Empty }
+            : resp.Respuesta ?? new TipoDocumentoDTO { Tipo = string.Empty, Descripcion = string.Empty };
+        Mensaje = resp.Error ? resp.ObtenerError() : "";
+        cargando = false;
+    }
+
+    private async Task Grabar()
+    {
+        var resp = await Http.Put<TipoDocumentoDTO, string>($"api/tipodocumento/{id}", modelo);
+        Mensaje = resp.Error ? resp.ObtenerError() : "Actualizado correctamente.";
+        if (!resp.Error) Nav.NavigateTo("/tipodocumento", true);
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/tipodocumento");
+}

@@ -1,0 +1,63 @@
+﻿@page "/tipodocumento/crear"
+@attribute [Authorize]
+@using CentroSenderos_2026_Shared.DTO
+@using Microsoft.AspNetCore.Authorization
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<div class="documento-form-page">
+    <div class="documento-card">
+
+        <div class="card-header">
+            <h1>Nuevo Tipo de Documento</h1>
+            <p>Complete los datos del documento.</p>
+        </div>
+
+        <EditForm Model="@modelo" OnValidSubmit="Grabar" class="documento-form">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="field-group">
+                <label>Tipo</label>
+                <InputText class="senderos-input" @bind-Value="modelo.Tipo" />
+                <!-- CORRECCIÓN: usar directamente la propiedad -->
+                <ValidationMessage For="@(() => modelo.Tipo)" />
+            </div>
+
+            <div class="field-group">
+                <label>Descripción</label>
+                <InputTextArea class="senderos-textarea" @bind-Value="modelo.Descripcion" />
+                <!-- CORRECCIÓN: usar directamente la propiedad -->
+                <ValidationMessage For="@(() => modelo.Descripcion)" />
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-cancelar" @onclick="Cancelar">Cancelar</button>
+                <button type="submit" class="btn-guardar">Guardar</button>
+            </div>
+        </EditForm>
+
+        @if (!string.IsNullOrWhiteSpace(Mensaje))
+        {
+            <div class="form-message">
+                <i class="bi bi-exclamation-circle"></i>
+                <span>@Mensaje</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private TipoDocumentoDTO modelo = new() { Tipo = string.Empty, Descripcion = string.Empty };
+    private string Mensaje = "";
+
+    private async Task Grabar()
+    {
+        var resp = await Http.Post<TipoDocumentoDTO, int>("api/tipodocumento", modelo);
+        Mensaje = resp.Error ? resp.ObtenerError() : "Guardado correctamente.";
+        if (!resp.Error) Nav.NavigateTo("/tipodocumento", true);
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/tipodocumento");
+}

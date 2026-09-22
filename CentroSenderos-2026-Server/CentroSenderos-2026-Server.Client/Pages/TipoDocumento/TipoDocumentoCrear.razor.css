@@ -1,0 +1,75 @@
+﻿.documento-form-page {
+    width: 100%;
+    padding: 34px 36px 40px;
+}
+
+.documento-card {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 28px 30px 26px;
+    background: #fffdf9;
+    border: 1px solid #e9e5df;
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(56, 53, 47, 0.06);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+    .card-header h1 {
+        margin: 0;
+        color: #556f4f;
+        font-size: 26px;
+        font-weight: 500;
+    }
+
+.senderos-input,
+.senderos-textarea {
+    width: 100%;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+::deep .validation-summary {
+    margin-bottom: 20px;
+    padding: 12px 15px;
+    background: #fff1ee;
+    color: #a74740;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+.btn-cancelar {
+    background: #efedeb;
+    border-radius: 22px;
+}
+
+.btn-guardar {
+    background: #647b5b;
+    color: white;
+    border-radius: 22px;
+}
+
+.form-message {
+    margin-top: 18px;
+    padding: 12px 15px;
+    background: #fff1ee;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    color: #a74740;
+    font-size: 14px;
+}

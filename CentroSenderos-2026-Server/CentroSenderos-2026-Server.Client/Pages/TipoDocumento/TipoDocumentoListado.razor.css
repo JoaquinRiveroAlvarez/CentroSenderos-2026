@@ -1,0 +1,124 @@
+﻿.documentos-page {
+    width: 100%;
+    padding: 34px 36px 40px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 28px;
+}
+
+    .page-header h1 {
+        margin: 0;
+        color: #3f463d;
+        font-size: 30px;
+        font-weight: 600;
+    }
+
+.search-box {
+    display: flex;
+    width: 340px;
+    height: 44px;
+    padding: 0 14px;
+    align-items: center;
+    background: #fffefa;
+    border: 1px solid #d9ddd6;
+    border-radius: 22px;
+}
+
+.btn-nueva,
+.btn-nueva-estado {
+    background: #647b5b;
+    color: white;
+    border-radius: 22px;
+    padding: 0 22px;
+}
+
+.list-card {
+    background: #fffdf9;
+    border: 1px solid #e9e5de;
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(56, 54, 48, 0.05);
+}
+
+.list-header {
+    display: grid;
+    grid-template-columns: 1fr 2fr 2fr 120px;
+    padding: 0 24px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #969993;
+}
+
+.documento-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr 2fr 120px;
+    padding: 0 24px;
+    border-bottom: 1px solid #f0ede8;
+    cursor: pointer;
+}
+
+    .documento-row:hover {
+        background: #f5f7f2;
+    }
+
+.documento-action {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.list-footer {
+    padding: 0 24px;
+    color: #999b96;
+    background: #fdfbf8;
+    border-top: 1px solid #eeebe5;
+    font-size: 13px;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+}
+
+.estado-card {
+    display: flex;
+    min-height: 310px;
+    padding: 30px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    color: #777c74;
+    text-align: center;
+    background: #fffdf9;
+    border: 1px solid #e9e5de;
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(56, 54, 48, 0.04);
+}
+
+.estado-icon {
+    display: flex;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 5px;
+    align-items: center;
+    justify-content: center;
+    color: #556f4f;
+    background: #dfe5dc;
+    border-radius: 50%;
+    font-size: 22px;
+}
+
+.mensaje-error {
+    margin-top: 16px;
+    padding: 12px 15px;
+    background: #fff0ee;
+    border: 1px solid #f1d5d1;
+    border-radius: 10px;
+    color: #a8443d;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}

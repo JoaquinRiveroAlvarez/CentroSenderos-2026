@@ -1,0 +1,63 @@
+﻿.documento-form-page {
+    width: 100%;
+    padding: 34px 36px 40px;
+}
+
+.documento-card {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    background: #fffdf9;
+    border: 1px solid #e9e5df;
+    border-radius: 18px;
+    padding: 28px 30px;
+}
+
+.editar-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+}
+
+.right-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-eliminar {
+    background: #ef4545;
+    color: white;
+    border-radius: 22px;
+}
+
+.btn-cancelar {
+    background: #efedeb;
+    color: #555852;
+    border-radius: 22px;
+}
+
+.btn-guardar {
+    background: #647b5b;
+    color: white;
+    border-radius: 22px;
+}
+
+.loading-state {
+    min-height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    color: #747970;
+}
+
+.form-message {
+    margin-top: 18px;
+    padding: 12px 15px;
+    background: #fff1ee;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    color: #a74740;
+    font-size: 14px;
+}

@@ -55,12 +55,22 @@
             <div class="admin-card-arrow"><i class="bi bi-chevron-right"></i></div>
         </button>
 
-        <!-- Tipos de Planillas -->
+@*         <!-- Tipos de Planillas -->
         <button type="button" class="admin-card" @onclick="IrAPlanillas">
             <div class="admin-card-icon"><i class="bi bi-file-earmark-text"></i></div>
             <div class="admin-card-content">
                 <h2>Tipos de Planillas</h2>
                 <p>Administrá los diferentes tipos de planillas utilizados por el centro.</p>
+            </div>
+            <div class="admin-card-arrow"><i class="bi bi-chevron-right"></i></div>
+        </button>
+ *@
+        <!-- Tipos de Documentos -->
+        <button type="button" class="admin-card" @onclick="IrATipoDocumentos">
+            <div class="admin-card-icon"><i class="bi bi-file-earmark-text"></i></div>
+            <div class="admin-card-content">
+                <h2>Tipos de Documentos</h2>
+                <p>Administrá los diferentes tipos de documentos utilizados por el centro.</p>
             </div>
             <div class="admin-card-arrow"><i class="bi bi-chevron-right"></i></div>
         </button>
@@ -94,6 +104,7 @@
     private void IrATurnos() => Nav.NavigateTo("/tipoturno");
     private void IrASocios() => Nav.NavigateTo("/socio");
     private void IrAPlanillas() => Nav.NavigateTo("/tipoplanillas");
+    private void IrATipoDocumentos() => Nav.NavigateTo("/tipodocumento");
     private void IrAConsultorios() => Nav.NavigateTo("/tipoconsultorio");
 
     // Nuevo método para Roles

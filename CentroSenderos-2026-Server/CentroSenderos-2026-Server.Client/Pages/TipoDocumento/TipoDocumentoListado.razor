@@ -1,0 +1,117 @@
+﻿@page "/tipodocumento"
+@attribute [Authorize]
+@using CentroSenderos_2026_Shared.DTO
+@using Microsoft.AspNetCore.Authorization
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveAuto
+
+<div class="documentos-page">
+
+    <div class="page-header">
+        <div class="header-title">
+            <h1>Tipos de Documento</h1>
+            <p>Gestioná los documentos disponibles en Senderos.</p>
+        </div>
+
+        <div class="header-actions">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Buscar documento..." @bind="textoBusqueda" @bind:event="oninput" />
+            </div>
+            <a href="/tipodocumento/crear" class="btn-nueva">+ Nuevo Documento</a>
+        </div>
+    </div>
+
+    @if (cargando)
+    {
+        <div class="estado-card">
+            <div class="spinner-border" role="status"></div>
+            <span>Cargando documentos...</span>
+        </div>
+    }
+    else if (lista == null || lista.Count == 0)
+    {
+        <div class="estado-card">
+            <div class="estado-icon"><i class="bi bi-clipboard2-pulse"></i></div>
+            <h2>No hay documentos registrados</h2>
+            <p>Podés crear el primero desde esta pantalla.</p>
+            <a href="/tipodocumento/crear" class="btn-nueva-estado">+ Nuevo Documento</a>
+        </div>
+    }
+    else
+    {
+        <div class="list-card">
+            <div class="list-header">
+                <div>ID</div>
+                <div>Tipo</div>
+                <div>Descripción</div>
+                <div></div>
+            </div>
+
+            <div class="list-body">
+                @foreach (var item in DocumentosFiltrados)
+                {
+                    <div class="documento-row">
+                        <div>@item.Id</div>
+                        <div>@item.Tipo</div>
+                        <div>@(string.IsNullOrWhiteSpace(item.Descripcion) ? "—" : item.Descripcion)</div>
+                        <div class="documento-action">
+                            <a href="/tipodocumento/editar/@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                            <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(item.Id)">Eliminar</button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="list-footer">
+                <span>
+                    Mostrando <strong>@DocumentosFiltrados.Count()</strong> de <strong>@lista.Count</strong> documentos
+                </span>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje))
+    {
+        <div class="mensaje-error">
+            <i class="bi bi-exclamation-circle"></i>
+            <span>@Mensaje</span>
+        </div>
+    }
+</div>
+
+@code {
+    private List<TipoDocumentoDTO> lista = new();
+    private bool cargando = true;
+    private string Mensaje = "";
+    private string textoBusqueda = "";
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar()
+    {
+        var resp = await Http.Get<List<TipoDocumentoDTO>>("api/tipodocumento/ListaTipoDocumentos");
+        lista = resp.Error ? new() : resp.Respuesta ?? new();
+        Mensaje = resp.Error ? resp.ObtenerError() : "";
+        cargando = false;
+    }
+
+    private IEnumerable<TipoDocumentoDTO> DocumentosFiltrados =>
+        string.IsNullOrWhiteSpace(textoBusqueda)
+            ? lista
+            : lista.Where(d => d.Tipo.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase)
+                            || (d.Descripcion ?? "").Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase));
+
+    private async Task Eliminar(int id)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar registro?"))
+        {
+            var resp = await Http.Delete($"api/tipodocumento/{id}");
+            Mensaje = resp.Error ? resp.ObtenerError() : "Eliminado correctamente.";
+            await Cargar();
+        }
+    }
+}
+
