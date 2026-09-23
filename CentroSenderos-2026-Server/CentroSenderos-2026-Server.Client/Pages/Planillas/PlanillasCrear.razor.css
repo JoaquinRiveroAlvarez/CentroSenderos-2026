@@ -192,14 +192,49 @@
         cursor: pointer;
     }
 
+/* Muestra el archivo elegido y permite quitarlo antes de guardar. */
 .selected-file {
     display: flex;
     align-items: center;
-    gap: 7px;
+    justify-content: space-between;
+    gap: 12px;
     max-width: 100%;
-    overflow-wrap: anywhere;
-    color: #486243 !important;
+    margin-top: 4px;
+    padding: 8px 10px;
+    border: 1px solid #cbd5c7;
+    border-radius: 10px;
+    background: #f4f7f2;
+    color: #486243;
 }
+
+    .selected-file span {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-size: 13px;
+    }
+
+        .selected-file span i {
+            margin-right: 5px;
+        }
+
+.remove-file-button {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #a8443d;
+    cursor: pointer;
+}
+
+    .remove-file-button:hover {
+        background: #f9e7e4;
+    }
 
 /* #endregion */
 

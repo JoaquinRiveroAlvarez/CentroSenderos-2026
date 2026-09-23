@@ -80,16 +80,27 @@
                         <strong>Seleccioná la planilla base</strong>
                         <span>Archivo en formato PDF</span>
 
-                        <InputFile OnChange="SeleccionarArchivo"
+                        <InputFile @key="versionArchivo"
+                                   OnChange="SeleccionarArchivo"
                                    accept=".pdf,application/pdf"
                                    class="file-input" />
 
                         @if (archivo != null)
                         {
-                            <span class="selected-file">
-                                <i class="bi bi-check-circle"></i>
-                                @archivo.Name
-                            </span>
+                            <div class="selected-file">
+                                <span>
+                                    <i class="bi bi-check-circle"></i>
+                                    @archivo.Name
+                                </span>
+
+                                <button type="button"
+                                        class="remove-file-button"
+                                        title="Quitar archivo"
+                                        aria-label="Quitar archivo seleccionado"
+                                        @onclick="QuitarArchivo">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
                         }
                     </div>
                 </div>
@@ -133,6 +144,8 @@
     private string descripcion = string.Empty;
     private int tipoPlanillaId;
     private IBrowserFile? archivo;
+    private int versionArchivo;
+
 
     private bool cargando = true;
     private string Mensaje = string.Empty;
@@ -172,6 +185,13 @@
         }
 
         archivo = seleccionado;
+    }
+
+    private void QuitarArchivo()
+    {
+        archivo = null;
+        MensajeArchivo = string.Empty;
+        versionArchivo++;
     }
 
     private void Cancelar() => Nav.NavigateTo("/planillas");
