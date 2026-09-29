@@ -1,0 +1,297 @@
+/* #region Página y encabezado */
+
+/* Define el espacio general del listado dentro de Senderos. */
+.tipos-gasto-page {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 34px 36px 40px;
+}
+
+/* Separa el título del botón para crear un tipo. */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 26px;
+}
+
+    .page-header h1 {
+        margin: 0 0 5px;
+        color: #3f463d;
+        font-size: 28px;
+        font-weight: 600;
+    }
+
+    .page-header p {
+        margin: 0;
+        color: #777c74;
+        font-size: 14px;
+    }
+
+/* Abre la página de creación. */
+.new-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 22px;
+    background: #647b5b;
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .new-button:hover {
+        background: #52694a;
+    }
+
+/* #endregion */
+
+
+/* #region Buscador */
+
+/* Agrupa el ícono y la búsqueda por nombre o descripción. */
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(100%, 390px);
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0 15px;
+    margin-bottom: 20px;
+    border: 1px solid #d9ddd6;
+    border-radius: 22px;
+    background: #fffefa;
+    color: #72816f;
+}
+
+    .search-box input {
+        flex: 1;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #3f463d;
+        font-family: inherit;
+        font-size: 14px;
+    }
+
+    .search-box:focus-within {
+        border-color: #647b5b;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.12);
+    }
+
+/* #endregion */
+
+
+/* #region Tarjeta y filas del listado */
+
+/* Comparte la superficie visual entre la tabla y sus estados. */
+.list-card,
+.state-card {
+    overflow: hidden;
+    border: 1px solid #e9e5de;
+    border-radius: 16px;
+    background: #fffdf9;
+    box-shadow: 0 8px 28px rgba(56, 54, 48, 0.05);
+}
+
+/* Mantiene alineadas las tres columnas del listado. */
+.list-header,
+.tipo-gasto-row {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.5fr) 110px;
+    align-items: center;
+    gap: 20px;
+    padding: 0 24px;
+}
+
+.list-header {
+    min-height: 48px;
+    border-bottom: 1px solid #e9e5de;
+    color: #737a70;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Muestra cada tipo de gasto en una fila independiente. */
+.tipo-gasto-row {
+    min-height: 68px;
+    border-bottom: 1px solid #f0ede8;
+    color: #444b42;
+    font-size: 14px;
+}
+
+    .tipo-gasto-row:hover {
+        background: #f5f7f2;
+    }
+
+.tipo-gasto-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+    .tipo-gasto-name i {
+        flex: none;
+        color: #647b5b;
+        font-size: 19px;
+    }
+
+    .tipo-gasto-name strong,
+    .tipo-gasto-description {
+        overflow-wrap: anywhere;
+    }
+
+    .tipo-gasto-name strong {
+        font-weight: 600;
+    }
+
+.tipo-gasto-description {
+    color: #687067;
+}
+
+/* Alinea la acción de editar al final de su columna. */
+.actions-heading,
+.tipo-gasto-actions {
+    text-align: right;
+}
+
+.tipo-gasto-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.edit-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #d9e2d5;
+    border-radius: 9px;
+    background: #f4f7f1;
+    color: #486243;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+    .edit-button:hover {
+        background: #e7eee3;
+    }
+
+/* Informa cuántos tipos coinciden con la búsqueda. */
+.list-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #eeebe5;
+    color: #777c74;
+    font-size: 13px;
+}
+
+/* #endregion */
+
+
+/* #region Estados y mensajes */
+
+/* Centra la carga, los errores y los estados sin resultados. */
+.state-card {
+    display: flex;
+    min-height: 230px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    color: #777c74;
+    text-align: center;
+}
+
+    .state-card > i {
+        margin-bottom: 12px;
+        color: #647b5b;
+        font-size: 30px;
+    }
+
+    .state-card h2 {
+        margin: 0 0 7px;
+        color: #3f463d;
+        font-size: 18px;
+    }
+
+    .state-card p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+/* Permite volver a consultar los datos si la carga falla. */
+.retry-button {
+    margin-top: 17px;
+    padding: 9px 18px;
+    border: 1px solid #d9e2d5;
+    border-radius: 9px;
+    background: #f4f7f1;
+    color: #486243;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .retry-button:hover {
+        background: #e7eee3;
+    }
+
+/* Muestra los avisos de creación, edición o eliminación. */
+.success-message {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 16px;
+    padding: 12px 15px;
+    border: 1px solid #d9e5d5;
+    border-radius: 10px;
+    background: #f1f7ee;
+    color: #486243;
+    font-size: 14px;
+}
+
+/* #endregion */
+
+
+/* #region Pantallas pequeñas */
+
+/* Apila el encabezado y las columnas en pantallas angostas. */
+@media (max-width: 760px) {
+    .tipos-gasto-page {
+        padding: 22px 18px;
+    }
+
+    .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .list-header {
+        display: none;
+    }
+
+    .tipo-gasto-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 17px 18px;
+    }
+
+    .tipo-gasto-actions {
+        justify-content: flex-start;
+    }
+}
+
+/* #endregion */

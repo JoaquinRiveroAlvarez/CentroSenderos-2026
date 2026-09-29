@@ -1,0 +1,140 @@
+﻿@page "/tipogasto/crear"
+@attribute [Authorize]
+@using CentroSenderos_2026_Shared.DTO
+@using Microsoft.AspNetCore.Authorization
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<div class="crear-tipo-gasto-page">
+    <button type="button"
+            class="back-button"
+            disabled="@guardando"
+            @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver</span>
+    </button>
+
+    <h1>Crear tipo de gasto</h1>
+
+    <EditForm Model="@modelo"
+              OnValidSubmit="Grabar"
+              FormName="CrearTipoGastoForm"
+              class="tipo-gasto-form">
+
+        <DataAnnotationsValidator />
+
+        <section class="form-section">
+            <div class="section-title">
+                <span class="section-number">01</span>
+                <span>Información del tipo de gasto</span>
+            </div>
+
+            <div class="form-grid">
+                <div class="field-group">
+                    <label for="nombreTipoGasto">Nombre del tipo</label>
+
+                    <InputText id="nombreTipoGasto"
+                               class="form-input"
+                               @bind-Value="modelo.Tipo"
+                               placeholder="Ej.: Alquiler" />
+
+                    <ValidationMessage For="@(() => modelo.Tipo)"
+                                       class="validation-message" />
+                </div>
+
+                <div class="field-group">
+                    <label for="descripcionTipoGasto">Descripción</label>
+
+                    <InputTextArea id="descripcionTipoGasto"
+                                   class="form-textarea"
+                                   @bind-Value="modelo.Descripcion"
+                                   placeholder="Describí qué gastos incluye este tipo" />
+
+                    <ValidationMessage For="@(() => modelo.Descripcion)"
+                                       class="validation-message" />
+                </div>
+            </div>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(Mensaje))
+        {
+            <div class="form-message" role="alert">
+                <i class="bi bi-exclamation-circle"></i>
+                <span>@Mensaje</span>
+            </div>
+        }
+
+        <div class="form-actions">
+            <button type="button"
+                    class="cancel-button"
+                    disabled="@guardando"
+                    @onclick="Cancelar">
+                Cancelar
+            </button>
+
+            <button type="submit"
+                    class="save-button"
+                    disabled="@guardando">
+                @if (guardando)
+                {
+                    <span class="spinner-border spinner-border-sm"
+                          role="status"></span>
+                    <span>Guardando...</span>
+                }
+                else
+                {
+                    <span>Guardar tipo de gasto</span>
+                }
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private TipoDTO modelo = new()
+    {
+        Tipo = string.Empty,
+        Descripcion = string.Empty
+    };
+
+    private bool guardando;
+    private string Mensaje = string.Empty;
+
+    private async Task Grabar()
+    {
+        if (guardando)
+            return;
+
+        Mensaje = string.Empty;
+        guardando = true;
+
+        try
+        {
+            var respuesta = await Http.Post<TipoDTO, int>(
+                "api/tipogasto",
+                modelo);
+
+            if (respuesta.Error)
+            {
+                Mensaje = respuesta.ObtenerError();
+                return;
+            }
+
+            Nav.NavigateTo("/tipogasto?estado=creado");
+        }
+        catch
+        {
+            Mensaje =
+                "No pudimos guardar el tipo de gasto. Intentá nuevamente.";
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/tipogasto");
+
+    private void Volver() => Nav.NavigateTo("/tipogasto");
+}

@@ -85,6 +85,16 @@
             <div class="admin-card-arrow"><i class="bi bi-chevron-right"></i></div>
         </button>
 
+        <!-- Tipos de Gasto -->
+<button type="button" class="admin-card" @onclick="IrATiposGasto">
+    <div class="admin-card-icon"><i class="bi bi-receipt"></i></div>
+    <div class="admin-card-content">
+        <h2>Tipos de Gasto</h2>
+        <p>Administrá los conceptos disponibles para registrar gastos.</p>
+    </div>
+    <div class="admin-card-arrow"><i class="bi bi-chevron-right"></i></div>
+</button>
+
         <!-- Consultorios -->
         <button type="button" class="admin-card" @onclick="IrAConsultorios">
             <div class="admin-card-icon"><i class="bi bi-door-open"></i></div>
@@ -117,6 +127,7 @@
     private void IrATipoDocumentos() => Nav.NavigateTo("/tipodocumento");
     private void IrAConsultorios() => Nav.NavigateTo("/tipoconsultorio");
     private void IrAAreas() => Nav.NavigateTo("/tipoarea");
+    private void IrATiposGasto() => Nav.NavigateTo("/tipogasto");
 
     // Nuevo método para Roles
     private void IrARoles() => Nav.NavigateTo("/roles");

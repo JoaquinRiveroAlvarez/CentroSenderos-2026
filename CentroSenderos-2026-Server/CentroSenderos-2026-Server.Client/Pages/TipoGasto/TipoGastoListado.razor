@@ -1,0 +1,206 @@
+﻿@page "/tipogasto"
+@attribute [Authorize]
+@using CentroSenderos_2026_Shared.DTO
+@using Microsoft.AspNetCore.Authorization
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<div class="tipos-gasto-page">
+    <div class="page-header">
+        <div>
+            <h1>Tipos de gasto</h1>
+            <p>Administrá los conceptos disponibles para registrar gastos.</p>
+        </div>
+
+        <button type="button"
+                class="new-button"
+                @onclick="IrACrear">
+            <i class="bi bi-plus-lg"></i>
+            <span>Nuevo tipo</span>
+        </button>
+    </div>
+
+    <div class="search-box">
+        <i class="bi bi-search"></i>
+
+        <input type="search"
+               aria-label="Buscar tipos de gasto"
+               placeholder="Buscar por nombre o descripción..."
+               @bind="busqueda"
+               @bind:event="oninput" />
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(MensajeExito))
+    {
+        <div class="success-message" role="status">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>@MensajeExito</span>
+        </div>
+    }
+
+    @if (cargando)
+    {
+        <div class="state-card">
+            <div class="spinner-border spinner-border-sm"
+                 role="status"></div>
+            <p>Cargando tipos de gasto...</p>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(MensajeCarga))
+    {
+        <div class="state-card" role="alert">
+            <i class="bi bi-exclamation-circle"></i>
+            <h2>No pudimos cargar los tipos de gasto</h2>
+            <p>@MensajeCarga</p>
+
+            <button type="button"
+                    class="retry-button"
+                    @onclick="Cargar">
+                Reintentar
+            </button>
+        </div>
+    }
+    else if (tiposGasto.Count == 0)
+    {
+        <div class="state-card">
+            <i class="bi bi-receipt"></i>
+            <h2>No hay tipos de gasto registrados</h2>
+            <p>Creá el primero para clasificar los gastos del centro.</p>
+        </div>
+    }
+    else if (!TiposFiltrados.Any())
+    {
+        <div class="state-card">
+            <i class="bi bi-search"></i>
+            <h2>Sin resultados</h2>
+            <p>Probá con otro nombre o descripción.</p>
+        </div>
+    }
+    else
+    {
+        <div class="list-card">
+            <div class="list-header">
+                <span>Tipo de gasto</span>
+                <span>Descripción</span>
+                <span class="actions-heading">Acción</span>
+            </div>
+
+            @foreach (var tipoGasto in TiposFiltrados)
+            {
+                <div class="tipo-gasto-row" @key="tipoGasto.Id">
+                    <div class="tipo-gasto-name">
+                        <i class="bi bi-receipt"></i>
+                        <strong>@tipoGasto.Tipo</strong>
+                    </div>
+
+                    <div class="tipo-gasto-description">
+                        @(string.IsNullOrWhiteSpace(tipoGasto.Descripcion)
+                            ? "Sin descripción"
+                            : tipoGasto.Descripcion)
+                    </div>
+
+                    <div class="tipo-gasto-actions">
+                        <button type="button"
+                                class="edit-button"
+                                title="Editar"
+                                aria-label="@($"Editar {tipoGasto.Tipo}")"
+                                @onclick="() => IrAEditar(tipoGasto.Id)">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <div class="list-footer">
+                Mostrando @TiposFiltrados.Count()
+                de @tiposGasto.Count tipos de gasto
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "estado")]
+    public string? Estado { get; set; }
+
+    private List<TipoListadoDTO> tiposGasto = new();
+    private string busqueda = string.Empty;
+    private string MensajeCarga = string.Empty;
+    private bool cargando = true;
+
+    private string MensajeExito => Estado switch
+    {
+        "creado" => "Tipo de gasto creado correctamente.",
+        "actualizado" => "Tipo de gasto actualizado correctamente.",
+        "eliminado" => "Tipo de gasto eliminado correctamente.",
+        _ => string.Empty
+    };
+
+    private IEnumerable<TipoListadoDTO> TiposFiltrados =>
+        string.IsNullOrWhiteSpace(busqueda)
+            ? tiposGasto
+            : tiposGasto.Where(tipoGasto =>
+                tipoGasto.Tipo.Contains(
+                    busqueda,
+                    StringComparison.OrdinalIgnoreCase) ||
+                (tipoGasto.Descripcion?.Contains(
+                    busqueda,
+                    StringComparison.OrdinalIgnoreCase) ?? false));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargar();
+    }
+
+    private async Task Cargar()
+    {
+        cargando = true;
+        MensajeCarga = string.Empty;
+
+        try
+        {
+            var respuesta = await Http.Get<List<TipoListadoDTO>>(
+                "api/tipogasto/ListaTipoGasto");
+
+            if (respuesta.Error)
+            {
+                tiposGasto = new();
+                MensajeCarga = respuesta.ObtenerError();
+            }
+            else
+            {
+                tiposGasto = respuesta.Respuesta ?? new();
+            }
+        }
+        catch
+        {
+            tiposGasto = new();
+            MensajeCarga =
+                "No pudimos cargar los tipos de gasto. Intentá nuevamente.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || string.IsNullOrWhiteSpace(MensajeExito))
+            return;
+
+        await Task.Delay(5000);
+
+        var rutaActual = Nav.ToBaseRelativePath(Nav.Uri);
+
+        if (rutaActual == $"tipogasto?estado={Estado}")
+            Nav.NavigateTo("/tipogasto", replace: true);
+    }
+
+    private void IrACrear() =>
+        Nav.NavigateTo("/tipogasto/crear");
+
+    private void IrAEditar(int id) =>
+        Nav.NavigateTo($"/tipogasto/editar/{id}");
+}
