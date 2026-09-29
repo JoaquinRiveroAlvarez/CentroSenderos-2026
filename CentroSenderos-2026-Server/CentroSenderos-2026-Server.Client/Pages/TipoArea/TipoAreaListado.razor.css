@@ -1,0 +1,296 @@
+/* #region Página y encabezado */
+
+/* Define el espacio general del listado de áreas. */
+.areas-page {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 34px 36px 40px;
+}
+
+/* Separa el título de la acción de creación. */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 26px;
+}
+
+    .page-header h1 {
+        margin: 0 0 5px;
+        color: #3f463d;
+        font-size: 28px;
+        font-weight: 600;
+    }
+
+    .page-header p {
+        margin: 0;
+        color: #777c74;
+        font-size: 14px;
+    }
+
+/* Abre el formulario para registrar un área. */
+.new-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 22px;
+    background: #647b5b;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .new-button:hover {
+        background: #52694a;
+    }
+
+/* #endregion */
+
+
+/* #region Buscador */
+
+/* Agrupa el ícono y el campo de búsqueda. */
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(100%, 390px);
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0 15px;
+    margin-bottom: 20px;
+    border: 1px solid #d9ddd6;
+    border-radius: 22px;
+    background: #fffefa;
+    color: #72816f;
+}
+
+    .search-box input {
+        flex: 1;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #3f463d;
+        font: inherit;
+        font-size: 14px;
+    }
+
+    .search-box:focus-within {
+        border-color: #647b5b;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.12);
+    }
+
+/* #endregion */
+
+
+/* #region Listado */
+
+/* Comparte la superficie visual entre las filas y los estados vacíos. */
+.list-card,
+.state-card {
+    overflow: hidden;
+    border: 1px solid #e9e5de;
+    border-radius: 16px;
+    background: #fffdf9;
+    box-shadow: 0 8px 28px rgba(56, 54, 48, 0.05);
+}
+
+/* Mantiene alineadas las tres columnas. */
+.list-header,
+.area-row {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.5fr) 110px;
+    align-items: center;
+    gap: 20px;
+    padding: 0 24px;
+}
+
+.list-header {
+    min-height: 48px;
+    border-bottom: 1px solid #e9e5de;
+    color: #737a70;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Presenta cada área en una fila separada. */
+.area-row {
+    min-height: 68px;
+    border-bottom: 1px solid #f0ede8;
+    color: #444b42;
+    font-size: 14px;
+}
+
+    .area-row:hover {
+        background: #f5f7f2;
+    }
+
+.area-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+    .area-name i {
+        flex: none;
+        color: #647b5b;
+        font-size: 19px;
+    }
+
+    /* Evita que textos largos rompan las columnas. */
+    .area-name strong,
+    .area-description {
+        overflow-wrap: anywhere;
+    }
+
+    .area-name strong {
+        font-weight: 600;
+    }
+
+.area-description {
+    color: #687067;
+}
+
+/* Alinea el botón de edición con su encabezado. */
+.actions-heading,
+.area-actions {
+    text-align: right;
+}
+
+.area-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.edit-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #d9e2d5;
+    border-radius: 9px;
+    background: #f4f7f1;
+    color: #486243;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+    .edit-button:hover {
+        background: #e7eee3;
+    }
+
+/* Indica la cantidad de resultados de la búsqueda. */
+.list-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #eeebe5;
+    color: #777c74;
+    font-size: 13px;
+}
+
+/* #endregion */
+
+
+/* #region Estados y mensajes */
+
+/* Centra carga, errores, ausencia de registros y búsquedas vacías. */
+.state-card {
+    display: flex;
+    min-height: 230px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    color: #777c74;
+    text-align: center;
+}
+
+    .state-card > i {
+        margin-bottom: 12px;
+        color: #647b5b;
+        font-size: 30px;
+    }
+
+    .state-card h2 {
+        margin: 0 0 7px;
+        color: #3f463d;
+        font-size: 18px;
+    }
+
+    .state-card p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+/* Repite la consulta cuando la carga falla. */
+.retry-button {
+    margin-top: 17px;
+    padding: 9px 18px;
+    border: 1px solid #d9e2d5;
+    border-radius: 9px;
+    background: #f4f7f1;
+    color: #486243;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .retry-button:hover {
+        background: #e7eee3;
+    }
+
+/* Muestra el resultado de Crear, Editar o Eliminar durante cinco segundos. */
+.success-message {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 16px;
+    padding: 12px 15px;
+    border: 1px solid #d9e5d5;
+    border-radius: 10px;
+    background: #f1f7ee;
+    color: #486243;
+    font-size: 14px;
+}
+
+/* #endregion */
+
+
+/* #region Pantallas pequeñas */
+
+/* Apila el encabezado y las columnas en pantallas angostas. */
+@media (max-width: 760px) {
+    .areas-page {
+        padding: 22px 18px;
+    }
+
+    .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .list-header {
+        display: none;
+    }
+
+    .area-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 17px 18px;
+    }
+
+    .area-actions {
+        justify-content: flex-start;
+    }
+}
+
+/* #endregion */

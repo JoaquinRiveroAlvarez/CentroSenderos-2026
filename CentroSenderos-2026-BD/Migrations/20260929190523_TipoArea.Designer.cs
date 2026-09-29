@@ -3,6 +3,7 @@ using System;
 using CentroSenderos_2026_BD;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CentroSenderos_2026_BD.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260929190523_TipoArea")]
+    partial class TipoArea
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,7 +74,7 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     b.HasIndex("TipoModalidadId");
 
-                    b.ToTable("DetalleLiquidaciones", (string)null);
+                    b.ToTable("DetalleLiquidaciones");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Documento", b =>
@@ -112,7 +115,7 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     b.HasIndex("TipoDocumentoId");
 
-                    b.ToTable("Documentos", (string)null);
+                    b.ToTable("Documentos");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Gasto", b =>
@@ -148,7 +151,7 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     b.HasIndex("TipoGastoId");
 
-                    b.ToTable("Gastos", (string)null);
+                    b.ToTable("Gastos");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.GastoSocio", b =>
@@ -178,7 +181,7 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     b.HasIndex("SocioId");
 
-                    b.ToTable("GastoSocio", (string)null);
+                    b.ToTable("GastoSocio");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Liquidacion", b =>
@@ -222,7 +225,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "NumeroLiquidacion" }, "NumeroLiquidacion_UQ")
                         .IsUnique();
 
-                    b.ToTable("Liquidaciones", (string)null);
+                    b.ToTable("Liquidaciones");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Paciente", b =>
@@ -287,7 +290,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "NumeroAfiliado" }, "NumeroAfiliado_UQ")
                         .IsUnique();
 
-                    b.ToTable("Pacientes", (string)null);
+                    b.ToTable("Pacientes");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.PacienteTelefono", b =>
@@ -322,7 +325,7 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     b.HasIndex("PacienteId");
 
-                    b.ToTable("PacienteTelefonos", (string)null);
+                    b.ToTable("PacienteTelefonos");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Profesional", b =>
@@ -390,7 +393,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "RNP" }, "Profesional_RNP_UQ")
                         .IsUnique();
 
-                    b.ToTable("Profesionales", (string)null);
+                    b.ToTable("Profesionales");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.ProfesionalTipoPrestacion", b =>
@@ -421,7 +424,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex("ProfesionalId", "TipoPrestacionId")
                         .IsUnique();
 
-                    b.ToTable("ProfesionalTipoPrestaciones", (string)null);
+                    b.ToTable("ProfesionalTipoPrestaciones");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.SerieTurno", b =>
@@ -456,7 +459,7 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SeriesTurnos", (string)null);
+                    b.ToTable("SeriesTurnos");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Socio", b =>
@@ -482,7 +485,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "ProfesionalId" }, "ProfesionalId_UQ")
                         .IsUnique();
 
-                    b.ToTable("Socios", (string)null);
+                    b.ToTable("Socios");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoArea", b =>
@@ -513,7 +516,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "Tipo" }, "TipoArea_Tipo_UQ")
                         .IsUnique();
 
-                    b.ToTable("TipoAreas", (string)null);
+                    b.ToTable("TipoAreas");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoConsultorio", b =>
@@ -549,7 +552,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "Tipo" }, "TipoConsultorio_Tipo_UQ")
                         .IsUnique();
 
-                    b.ToTable("TipoConsultorios", (string)null);
+                    b.ToTable("TipoConsultorios");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoDiagnostico", b =>
@@ -580,7 +583,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "Tipo" }, "TipoDiagnostico_Tipo_UQ")
                         .IsUnique();
 
-                    b.ToTable("TipoDiagnosticos", (string)null);
+                    b.ToTable("TipoDiagnosticos");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoDocumento", b =>
@@ -611,7 +614,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "Tipo" }, "TipoDocumento_Tipo_UQ")
                         .IsUnique();
 
-                    b.ToTable("TipoDocumentos", (string)null);
+                    b.ToTable("TipoDocumentos");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoGasto", b =>
@@ -642,7 +645,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "Tipo" }, "TipoGasto_Tipo_UQ")
                         .IsUnique();
 
-                    b.ToTable("TipoGastos", (string)null);
+                    b.ToTable("TipoGastos");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoModalidad", b =>
@@ -673,7 +676,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "Tipo" }, "TipoModalidad_Tipo_UQ")
                         .IsUnique();
 
-                    b.ToTable("TipoModalidades", (string)null);
+                    b.ToTable("TipoModalidades");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoObraSocial", b =>
@@ -711,7 +714,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "Tipo" }, "TipoObraSocial_Tipo_UQ")
                         .IsUnique();
 
-                    b.ToTable("TipoObraSocial", (string)null);
+                    b.ToTable("TipoObraSocial");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoPlanilla", b =>
@@ -742,7 +745,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "Tipo" }, "TipoPlanilla_Tipo_UQ")
                         .IsUnique();
 
-                    b.ToTable("TipoPlanillas", (string)null);
+                    b.ToTable("TipoPlanillas");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoPrestacion", b =>
@@ -784,7 +787,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "Tipo" }, "TipoPrestacion_Tipo_UQ")
                         .IsUnique();
 
-                    b.ToTable("TipoPrestaciones", (string)null);
+                    b.ToTable("TipoPrestaciones");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoTurno", b =>
@@ -818,7 +821,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "Tipo" }, "TipoTurno_Tipo_UQ")
                         .IsUnique();
 
-                    b.ToTable("TipoTurnos", (string)null);
+                    b.ToTable("TipoTurnos");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Turno", b =>
@@ -862,7 +865,7 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     b.HasIndex("TipoTurnoId");
 
-                    b.ToTable("Turnos", (string)null);
+                    b.ToTable("Turnos");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TurnoPaciente", b =>
@@ -900,7 +903,7 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     b.HasIndex("TurnoId");
 
-                    b.ToTable("TurnoPaciente", (string)null);
+                    b.ToTable("TurnoPaciente");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TurnoProfesional", b =>
@@ -930,7 +933,7 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     b.HasIndex("TurnoId");
 
-                    b.ToTable("TurnoProfesional", (string)null);
+                    b.ToTable("TurnoProfesional");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TurnoTipoPrestacion", b =>
@@ -966,7 +969,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex("TurnoId", "ProfesionalId")
                         .IsUnique();
 
-                    b.ToTable("TurnoTipoPrestaciones", (string)null);
+                    b.ToTable("TurnoTipoPrestaciones");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.MiUsuario", b =>
@@ -1512,7 +1515,7 @@ namespace CentroSenderos_2026_BD.Migrations
 
                             b1.HasKey("IdentityUserPasskeyCredentialId");
 
-                            b1.ToTable("AspNetUserPasskeys", (string)null);
+                            b1.ToTable("AspNetUserPasskeys");
 
                             b1
                                 .ToJson("Data")

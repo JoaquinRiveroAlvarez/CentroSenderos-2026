@@ -50,6 +50,7 @@ builder.Services.AddScoped<ITipoPrestacionRepositorio, TipoPrestacionRepositorio
 builder.Services.AddScoped<ITipoDiagnosticoRepositorio, TipoDiagnosticoRepositorio>();
 builder.Services.AddScoped<ISocioRepositorio, SocioRepositorio>();
 builder.Services.AddScoped<ITipoPlanillaRepositorio, TipoPlanillaRepositorio>();
+builder.Services.AddScoped<ITipoAreaRepositorio, TipoAreaRepositorio>();
 builder.Services.AddScoped<ITurnoRepositorio, TurnoRepositorio>();
 builder.Services.AddScoped<ITipoConsultorioRepositorio, TipoConsultorioRepositorio>();
 builder.Services.AddScoped<ITipoDocumentoRepositorio, TipoDocumentoRepositorio>();

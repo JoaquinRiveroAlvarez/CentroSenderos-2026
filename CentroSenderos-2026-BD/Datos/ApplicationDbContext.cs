@@ -19,6 +19,7 @@ namespace CentroSenderos_2026_BD
         public DbSet<TipoModalidad> TipoModalidades { get; set; }
         public DbSet<TipoObraSocial> TipoObrasSociales { get; set; }
         public DbSet<TipoPlanilla> TipoPlanillas { get; set; }
+        public DbSet<TipoArea> TipoAreas { get; set; }
         public DbSet<TipoPrestacion> TipoPrestaciones { get; set; }
         public DbSet<TipoTurno> TipoTurnos { get; set; }
         public DbSet<Turno> Turnos { get; set; }
@@ -29,6 +30,7 @@ namespace CentroSenderos_2026_BD
         public DbSet<Liquidacion> Liquidaciones { get; set; }
         public DbSet<Gasto> Gastos { get; set; }
         public DbSet<Documento> Documentos { get; set; }
+       
 
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {

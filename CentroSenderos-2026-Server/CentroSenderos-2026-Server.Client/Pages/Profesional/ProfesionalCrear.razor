@@ -130,15 +130,30 @@
                 </div>
 
                 <div class="field-group">
-                    <label>Área</label>
+                            <label for="areaProfesional">Área</label>
 
-                    <InputText class="form-input"
-                               @bind-Value="modelo.Area"
-                               placeholder="Ej: Psicología" />
+                            <InputSelect id="areaProfesional"
+                                         class="form-input"
+                                         @bind-Value="modelo.Area"
+                                         disabled="@(guardando || cargandoAreas || listaTipoAreas.Count == 0)">
+                                <option value="">-- Seleccionar área --</option>
 
-                    <ValidationMessage For="@(() => modelo.Area)"
-                                       class="validation-message" />
-                </div>
+                                @foreach (var area in listaTipoAreas.OrderBy(x => x.Tipo))
+                                {
+                                    <option value="@area.Tipo">@area.Tipo</option>
+                                }
+                            </InputSelect>
+
+                            <ValidationMessage For="@(() => modelo.Area)"
+                                               class="validation-message" />
+
+                            @if (!cargandoAreas && listaTipoAreas.Count == 0)
+                            {
+                                <span class="areas-help">
+                                    Primero cargá un tipo de área desde Administración.
+                                </span>
+                            }
+                        </div>  
 
                 <div class="field-group">
                     <label>M.P. (Matrícula Profesional)</label>
@@ -297,6 +312,8 @@
     };
 
     private List<TipoPrestacionListadoDTO> listaTipoPrestaciones = new();
+    private List<TipoListadoDTO> listaTipoAreas = new();
+    private bool cargandoAreas = true;
 
     private int? prestacionSeleccionadaId;
 
@@ -312,6 +329,7 @@
     protected override async Task OnInitializedAsync()
     {
         await CargarTipoPrestaciones();
+        await CargarTipoAreas();
     }
 
     private async Task CargarTipoPrestaciones()
@@ -330,6 +348,33 @@
             Mensaje = resp.ObtenerError();
         }
     }
+
+    private async Task CargarTipoAreas()
+{
+    cargandoAreas = true;
+
+    try
+    {
+        var respuesta = await Http.Get<List<TipoListadoDTO>>(
+            "api/tipoarea/ListaTipoArea");
+
+        if (respuesta.Error)
+        {
+            Mensaje = respuesta.ObtenerError();
+            return;
+        }
+
+        listaTipoAreas = respuesta.Respuesta ?? new();
+    }
+    catch
+    {
+        Mensaje = "No pudimos cargar las áreas. Intentá nuevamente.";
+    }
+    finally
+    {
+        cargandoAreas = false;
+    }
+}
 
     private void AgregarPrestacion()
     {

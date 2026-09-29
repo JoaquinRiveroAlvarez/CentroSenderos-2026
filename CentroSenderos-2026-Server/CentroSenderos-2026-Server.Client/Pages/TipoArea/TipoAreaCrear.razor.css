@@ -1,0 +1,269 @@
+/* #region Página y navegación */
+
+/* Mantiene el formulario dentro del área de contenido de Senderos. */
+.crear-area-page {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+    .crear-area-page h1 {
+        margin: 0 0 20px;
+        color: #556f4f;
+        font-size: 28px;
+        font-weight: 500;
+    }
+
+/* Regresa al listado de áreas sin guardar. */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #6f786a;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+    .back-button:hover:not(:disabled) {
+        color: #556f4f;
+    }
+
+/* #endregion */
+
+
+/* #region Formulario y sección */
+
+/* Tarjeta principal, consistente con Crear paciente y los otros catálogos. */
+.area-form {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 22px 24px;
+    border: 1px solid #e4e1dc;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+}
+
+.form-section {
+    margin-bottom: 28px;
+}
+
+/* Identifica la sección de datos mediante un número y un título. */
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 16px;
+    color: #9b7163;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.section-number {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #f8e8df;
+    color: #9a6553;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* #endregion */
+
+
+/* #region Campos y validación */
+
+/* Coloca nombre y descripción uno debajo del otro. */
+.form-grid {
+    display: grid;
+    gap: 18px;
+}
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+    .field-group label {
+        margin: 0 0 7px 6px;
+        color: #656565;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+/* Aplica el estilo del sistema a InputText e InputTextArea. */
+::deep .form-input,
+::deep .form-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 16px;
+    border: 1px solid #d9ddd6;
+    border-radius: 22px;
+    background: #fff;
+    color: #444;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+::deep .form-input {
+    height: 42px;
+}
+
+::deep .form-textarea {
+    min-height: 100px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    resize: vertical;
+}
+
+    ::deep .form-input::placeholder,
+    ::deep .form-textarea::placeholder {
+        color: #999;
+        opacity: 1;
+    }
+
+    ::deep .form-input:hover,
+    ::deep .form-textarea:hover {
+        border-color: #bbc5b7;
+    }
+
+    ::deep .form-input:focus,
+    ::deep .form-textarea:focus {
+        border-color: #789175;
+        box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
+    }
+
+    ::deep .form-input.invalid,
+    ::deep .form-textarea.invalid {
+        border-color: #d8857e;
+    }
+
+/* Muestra cada validación junto al campo correspondiente. */
+::deep .validation-message {
+    margin: 5px 0 0 6px;
+    color: #b54b43;
+    font-size: 13px;
+}
+
+/* #endregion */
+
+
+/* #region Mensajes y acciones */
+
+/* Comunica errores de guardado o de conexión. */
+.form-message {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 12px;
+    padding: 12px 16px;
+    border: 1px solid #efd0cc;
+    border-radius: 12px;
+    background: #fdf2f0;
+    color: #a94b44;
+    font-size: 14px;
+}
+
+/* Alinea Cancelar y Guardar al pie del formulario. */
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.cancel-button,
+.save-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 22px;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.cancel-button {
+    min-width: 120px;
+    border: 1px solid #9d9d96;
+    background: #fff;
+    color: #555;
+    font-weight: 500;
+}
+
+    .cancel-button:hover:not(:disabled) {
+        background: #f5f5f3;
+    }
+
+.save-button {
+    min-width: 165px;
+    border: 0;
+    background: #647b5b;
+    color: #fff;
+    font-weight: 600;
+}
+
+    .save-button:hover:not(:disabled) {
+        background: #52694a;
+    }
+
+/* Evita nuevas acciones mientras se guarda. */
+button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* #endregion */
+
+
+/* #region Pantallas pequeñas */
+
+/* Reduce el espacio de la tarjeta en pantallas angostas. */
+@media (max-width: 700px) {
+    .crear-area-page h1 {
+        font-size: 25px;
+    }
+
+    .area-form {
+        padding: 20px;
+        border-radius: 16px;
+    }
+}
+
+/* Apila las acciones en celulares. */
+@media (max-width: 500px) {
+    .area-form {
+        padding: 18px 15px;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .cancel-button,
+    .save-button {
+        width: 100%;
+    }
+}
+
+/* #endregion */

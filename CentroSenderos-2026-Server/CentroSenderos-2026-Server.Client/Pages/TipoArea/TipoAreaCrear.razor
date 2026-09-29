@@ -1,0 +1,138 @@
+﻿@page "/tipoarea/crear"
+@attribute [Authorize]
+@using CentroSenderos_2026_Shared.DTO
+@using Microsoft.AspNetCore.Authorization
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<div class="crear-area-page">
+    <button type="button"
+            class="back-button"
+            disabled="@guardando"
+            @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver</span>
+    </button>
+
+    <h1>Crear tipo de área</h1>
+
+    <EditForm Model="@modelo"
+              OnValidSubmit="Grabar"
+              FormName="CrearTipoAreaForm"
+              class="area-form">
+
+        <DataAnnotationsValidator />
+
+        <section class="form-section">
+            <div class="section-title">
+                <span class="section-number">01</span>
+                <span>Información del área</span>
+            </div>
+
+            <div class="form-grid">
+                <div class="field-group">
+                    <label for="nombreArea">Nombre del área</label>
+
+                    <InputText id="nombreArea"
+                               class="form-input"
+                               @bind-Value="modelo.Tipo"
+                               placeholder="Ej.: Psicología" />
+
+                    <ValidationMessage For="@(() => modelo.Tipo)"
+                                       class="validation-message" />
+                </div>
+
+                <div class="field-group">
+                    <label for="descripcionArea">Descripción</label>
+
+                    <InputTextArea id="descripcionArea"
+                                   class="form-textarea"
+                                   @bind-Value="modelo.Descripcion"
+                                   placeholder="Describí brevemente esta área" />
+
+                    <ValidationMessage For="@(() => modelo.Descripcion)"
+                                       class="validation-message" />
+                </div>
+            </div>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(Mensaje))
+        {
+            <div class="form-message" role="alert">
+                <i class="bi bi-exclamation-circle"></i>
+                <span>@Mensaje</span>
+            </div>
+        }
+
+        <div class="form-actions">
+            <button type="button"
+                    class="cancel-button"
+                    disabled="@guardando"
+                    @onclick="Cancelar">
+                Cancelar
+            </button>
+
+            <button type="submit"
+                    class="save-button"
+                    disabled="@guardando">
+                @if (guardando)
+                {
+                    <span class="spinner-border spinner-border-sm"></span>
+                    <span>Guardando...</span>
+                }
+                else
+                {
+                    <span>Guardar tipo de área</span>
+                }
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private TipoDTO modelo = new()
+    {
+        Tipo = string.Empty,
+        Descripcion = string.Empty
+    };
+
+    private bool guardando;
+    private string Mensaje = string.Empty;
+
+    private async Task Grabar()
+    {
+        if (guardando)
+            return;
+
+        Mensaje = string.Empty;
+        guardando = true;
+
+        try
+        {
+            var respuesta = await Http.Post<TipoDTO, int>(
+                "api/tipoarea",
+                modelo);
+
+            if (respuesta.Error)
+            {
+                Mensaje = respuesta.ObtenerError();
+                return;
+            }
+
+            Nav.NavigateTo("/tipoarea?estado=creado");
+        }
+        catch
+        {
+            Mensaje = "No pudimos guardar el área. Intentá nuevamente.";
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/tipoarea");
+
+    private void Volver() => Nav.NavigateTo("/tipoarea");
+}

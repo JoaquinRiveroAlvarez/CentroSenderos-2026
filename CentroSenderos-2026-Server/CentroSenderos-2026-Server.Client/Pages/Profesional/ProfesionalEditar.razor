@@ -17,10 +17,10 @@
     </button>
 
     <div class="editar-title-row">
-
         <h1>Editar Profesional</h1>
 
-        @if (!string.IsNullOrWhiteSpace(modelo.RolAsignado))
+        @if (!cargando && !errorCarga &&
+             !string.IsNullOrWhiteSpace(modelo.RolAsignado))
         {
             <span class="rol-badge">
                 <i class="bi bi-person-badge"></i>
@@ -28,20 +28,25 @@
             </span>
         }
 
-        @if (!cargando && modelo.EsSocio)
+        @if (!cargando && !errorCarga && modelo.EsSocio)
         {
             <span class="socio-badge">
                 <i class="bi bi-star-fill"></i>
                 <span>Socio</span>
             </span>
         }
-
     </div>
 
     @if (cargando)
     {
         <div class="editar-loading">
             Cargando datos del profesional...
+        </div>
+    }
+    else if (errorCarga)
+    {
+        <div class="form-message" role="alert">
+            @Mensaje
         </div>
     }
     else
@@ -54,14 +59,12 @@
             <DataAnnotationsValidator />
 
             <section class="form-section">
-
                 <div class="section-title">
                     <span class="section-number">01</span>
                     <span>Información Personal</span>
                 </div>
 
                 <div class="form-grid form-grid-2">
-
                     <div class="field-group">
                         <label>Nombre completo</label>
 
@@ -83,20 +86,16 @@
                         <ValidationMessage For="@(() => modelo.Cuit)"
                                            class="validation-message" />
                     </div>
-
                 </div>
-
             </section>
 
             <section class="form-section">
-
                 <div class="section-title">
                     <span class="section-number">02</span>
                     <span>Información Profesional</span>
                 </div>
 
                 <div class="form-grid form-grid-3">
-
                     <div class="field-group prestaciones-field">
                         <label>Prestaciones</label>
 
@@ -115,22 +114,18 @@
                                     @prestacion.Tipo
                                 </option>
                             }
-
                         </InputSelect>
 
                         @if (modelo.TipoPrestacionIds.Count > 0)
                         {
                             <div class="prestaciones-seleccionadas">
-
                                 @foreach (var prestacionId in modelo.TipoPrestacionIds)
                                 {
-                                    var prestacion =
-                                        ObtenerPrestacion(prestacionId);
+                                    var prestacion = ObtenerPrestacion(prestacionId);
 
-                                    if (prestacion != null)
+                                    if (prestacion is not null)
                                     {
                                         <div class="prestacion-chip">
-
                                             <span>@prestacion.Tipo</span>
 
                                             <button type="button"
@@ -138,15 +133,11 @@
                                                     title="Quitar prestación"
                                                     disabled="@(guardando || eliminando)"
                                                     @onclick="() => QuitarPrestacion(prestacion.Id)">
-
                                                 <i class="bi bi-x"></i>
-
                                             </button>
-
                                         </div>
                                     }
                                 }
-
                             </div>
                         }
                         else
@@ -155,18 +146,47 @@
                                 Todavía no hay prestaciones asignadas.
                             </span>
                         }
-
                     </div>
 
                     <div class="field-group">
-                        <label>Área</label>
+                        <label for="areaProfesional">Área</label>
 
-                        <InputText class="form-input"
-                                   @bind-Value="modelo.Area"
-                                   placeholder="Ej: Psicología" />
+                        <InputSelect id="areaProfesional"
+                                     class="form-input"
+                                     @bind-Value="modelo.Area"
+                                     @bind-Value:after="AlSeleccionarArea"
+                                     disabled="@(guardando || eliminando || listaTipoAreas.Count == 0)">
+
+                            <option value="">
+                                -- Seleccionar área --
+                            </option>
+
+                            @foreach (var area in listaTipoAreas.OrderBy(x => x.Tipo))
+                            {
+                                <option value="@area.Tipo">
+                                    @area.Tipo
+                                </option>
+                            }
+                        </InputSelect>
 
                         <ValidationMessage For="@(() => modelo.Area)"
                                            class="validation-message" />
+
+                        @if (!string.IsNullOrWhiteSpace(areaAnteriorSinCatalogo))
+                        {
+                            <span class="areas-help">
+                                El área anterior «@areaAnteriorSinCatalogo»
+                                no figura en el catálogo. Seleccioná una
+                                de las áreas disponibles.
+                            </span>
+                        }
+                        else if (listaTipoAreas.Count == 0)
+                        {
+                            <span class="areas-help">
+                                No hay áreas disponibles. Cargá un tipo de área
+                                desde Administración para poder editar este profesional.
+                            </span>
+                        }
                     </div>
 
                     <div class="field-group">
@@ -190,20 +210,16 @@
                         <ValidationMessage For="@(() => modelo.RNP)"
                                            class="validation-message" />
                     </div>
-
                 </div>
-
             </section>
 
             <section class="form-section">
-
                 <div class="section-title">
                     <span class="section-number">03</span>
                     <span>Datos de Contacto</span>
                 </div>
 
                 <div class="form-grid form-grid-2">
-
                     <div class="field-group">
                         <label>Teléfono</label>
 
@@ -225,20 +241,16 @@
                         <ValidationMessage For="@(() => modelo.Email)"
                                            class="validation-message" />
                     </div>
-
                 </div>
-
             </section>
 
             <section class="form-section">
-
                 <div class="section-title">
                     <span class="section-number">04</span>
                     <span>Usuario del Sistema</span>
                 </div>
 
                 <div class="form-grid form-grid-2">
-
                     <div class="field-group">
                         <label>Rol</label>
 
@@ -265,35 +277,28 @@
                             <option value="AdministradorEquipo">
                                 Administrador/Equipo
                             </option>
-
                         </InputSelect>
                     </div>
-
                 </div>
-
             </section>
 
             @if (!string.IsNullOrWhiteSpace(Mensaje))
             {
-                <div class="form-message">
+                <div class="form-message" role="alert">
                     @Mensaje
                 </div>
             }
 
             <div class="form-actions">
-
                 <button type="button"
                         class="delete-button"
-                        disabled="@(eliminando || guardando)"
+                        disabled="@(guardando || eliminando)"
                         @onclick="AbrirConfirmacionEliminar">
-
                     <i class="bi bi-trash"></i>
                     <span>Eliminar Profesional</span>
-
                 </button>
 
                 <div class="form-actions-right">
-
                     <button type="button"
                             class="cancel-button"
                             disabled="@(guardando || eliminando)"
@@ -303,7 +308,7 @@
 
                     <button type="submit"
                             class="save-button"
-                            disabled="@(guardando || eliminando)">
+                            disabled="@(guardando || eliminando || listaTipoAreas.Count == 0)">
 
                         @if (guardando)
                         {
@@ -314,29 +319,28 @@
                         {
                             <span>Guardar Profesional</span>
                         }
-
                     </button>
-
                 </div>
-
             </div>
-
         </EditForm>
     }
-
 </div>
 
 @if (mostrarConfirmacionEliminar)
 {
     <div class="modal-overlay">
-
-        <div class="delete-modal">
+        <div class="delete-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="tituloEliminarProfesional">
 
             <div class="delete-warning-icon">
                 <i class="bi bi-exclamation-triangle-fill"></i>
             </div>
 
-            <h2>¿Eliminar profesional?</h2>
+            <h2 id="tituloEliminarProfesional">
+                ¿Eliminar profesional?
+            </h2>
 
             <p>
                 ¿Estás seguro de que querés eliminar a
@@ -346,14 +350,13 @@
 
             @if (!string.IsNullOrWhiteSpace(MensajeEliminar))
             {
-                <div class="delete-error">
+                <div class="delete-error" role="alert">
                     <i class="bi bi-exclamation-circle"></i>
                     <span>@MensajeEliminar</span>
                 </div>
             }
 
             <div class="delete-modal-actions">
-
                 <button type="button"
                         class="confirm-delete-button"
                         disabled="@eliminando"
@@ -369,7 +372,6 @@
                         <i class="bi bi-trash"></i>
                         <span>Eliminar profesional</span>
                     }
-
                 </button>
 
                 <button type="button"
@@ -378,11 +380,8 @@
                         @onclick="CerrarConfirmacionEliminar">
                     Cancelar
                 </button>
-
             </div>
-
         </div>
-
     </div>
 }
 
@@ -392,12 +391,13 @@
 
     private ProfesionalDTO modelo = CrearModeloVacio();
 
-    private List<TipoPrestacionListadoDTO>
-        listaTipoPrestaciones = new();
+    private List<TipoPrestacionListadoDTO> listaTipoPrestaciones = new();
+    private List<TipoListadoDTO> listaTipoAreas = new();
 
     private int? prestacionSeleccionadaId;
 
     private bool cargando = true;
+    private bool errorCarga;
     private bool guardando;
     private bool eliminando;
     private bool mostrarConfirmacionEliminar;
@@ -405,6 +405,7 @@
     private string Mensaje = string.Empty;
     private string MensajeEliminar = string.Empty;
     private string rolOriginal = string.Empty;
+    private string areaAnteriorSinCatalogo = string.Empty;
 
     private IEnumerable<TipoPrestacionListadoDTO> PrestacionesDisponibles =>
         listaTipoPrestaciones
@@ -412,7 +413,7 @@
                 !modelo.TipoPrestacionIds.Contains(prestacion.Id))
             .OrderBy(prestacion => prestacion.Tipo);
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         await CargarDatos();
     }
@@ -420,71 +421,114 @@
     private async Task CargarDatos()
     {
         cargando = true;
+        errorCarga = false;
+        mostrarConfirmacionEliminar = false;
         Mensaje = string.Empty;
+        MensajeEliminar = string.Empty;
+        areaAnteriorSinCatalogo = string.Empty;
+        listaTipoAreas = new();
+        listaTipoPrestaciones = new();
 
-        var prestacionesTask =
-            Http.Get<List<TipoPrestacionListadoDTO>>(
-                "api/tipoprestacion/ListaTipoPrestacion"
-            );
-
-        var profesionalTask =
-            Http.Get<ProfesionalDTO>(
-                $"api/profesional/{id}"
-            );
-
-        await Task.WhenAll(
-            prestacionesTask,
-            profesionalTask
-        );
-
-        var prestacionesResp = await prestacionesTask;
-        var profesionalResp = await profesionalTask;
-
-        if (!prestacionesResp.Error &&
-            prestacionesResp.Respuesta != null)
+        try
         {
-            listaTipoPrestaciones =
-                prestacionesResp.Respuesta;
-        }
-        else
-        {
-            Mensaje = prestacionesResp.ObtenerError();
-        }
+            var prestacionesTask =
+                Http.Get<List<TipoPrestacionListadoDTO>>(
+                    "api/tipoprestacion/ListaTipoPrestacion");
 
-        if (!profesionalResp.Error &&
-            profesionalResp.Respuesta != null)
-        {
+            var areasTask =
+                Http.Get<List<TipoListadoDTO>>(
+                    "api/tipoarea/ListaTipoArea");
+
+            var profesionalTask =
+                Http.Get<ProfesionalDTO>(
+                    $"api/profesional/{id}");
+
+            await Task.WhenAll(
+                prestacionesTask,
+                areasTask,
+                profesionalTask);
+
+            var prestacionesResp = await prestacionesTask;
+            var areasResp = await areasTask;
+            var profesionalResp = await profesionalTask;
+
+            if (profesionalResp.Error ||
+                profesionalResp.Respuesta is null)
+            {
+                errorCarga = true;
+                Mensaje = profesionalResp.Error
+                    ? profesionalResp.ObtenerError()
+                    : "No se encontró el profesional.";
+                return;
+            }
+
             modelo = profesionalResp.Respuesta;
-
             modelo.TipoPrestacionIds ??= new List<int>();
             modelo.TipoPrestacionNombres ??= new List<string>();
+            rolOriginal = modelo.RolAsignado ?? string.Empty;
 
-            rolOriginal =
-                modelo.RolAsignado ?? string.Empty;
+            if (!prestacionesResp.Error)
+            {
+                listaTipoPrestaciones =
+                    prestacionesResp.Respuesta ?? new();
+            }
+            else
+            {
+                Mensaje = prestacionesResp.ObtenerError();
+            }
+
+            if (!areasResp.Error)
+            {
+                listaTipoAreas = areasResp.Respuesta ?? new();
+
+                var areaRegistrada = listaTipoAreas.FirstOrDefault(
+                    area => string.Equals(
+                        area.Tipo,
+                        modelo.Area?.Trim(),
+                        StringComparison.OrdinalIgnoreCase));
+
+                if (areaRegistrada is not null)
+                {
+                    modelo.Area = areaRegistrada.Tipo;
+                }
+                else if (!string.IsNullOrWhiteSpace(modelo.Area) &&
+                         listaTipoAreas.Count > 0)
+                {
+                    areaAnteriorSinCatalogo = modelo.Area;
+                    modelo.Area = string.Empty;
+                }
+            }
+            else
+            {
+                Mensaje = areasResp.ObtenerError();
+            }
         }
-        else
+        catch
         {
-            modelo = CrearModeloVacio();
-            Mensaje = profesionalResp.ObtenerError();
+            errorCarga = true;
+            Mensaje =
+                "No pudimos cargar los datos del profesional. Intentá nuevamente.";
         }
+        finally
+        {
+            cargando = false;
+        }
+    }
 
-        cargando = false;
+    private void AlSeleccionarArea()
+    {
+        areaAnteriorSinCatalogo = string.Empty;
     }
 
     private void AgregarPrestacion()
     {
         if (!prestacionSeleccionadaId.HasValue)
-        {
             return;
-        }
 
-        var prestacionId =
-            prestacionSeleccionadaId.Value;
+        var prestacionId = prestacionSeleccionadaId.Value;
 
         if (!modelo.TipoPrestacionIds.Contains(prestacionId))
-        {
             modelo.TipoPrestacionIds.Add(prestacionId);
-        }
 
         prestacionSeleccionadaId = null;
     }
@@ -494,72 +538,87 @@
         modelo.TipoPrestacionIds.Remove(prestacionId);
     }
 
-    private TipoPrestacionListadoDTO? ObtenerPrestacion(
-        int prestacionId)
+    private TipoPrestacionListadoDTO? ObtenerPrestacion(int prestacionId)
     {
-        return listaTipoPrestaciones
-            .FirstOrDefault(prestacion =>
-                prestacion.Id == prestacionId);
+        return listaTipoPrestaciones.FirstOrDefault(
+            prestacion => prestacion.Id == prestacionId);
     }
 
     private async Task Grabar()
     {
-        guardando = true;
-        Mensaje = string.Empty;
+        if (guardando || eliminando)
+            return;
 
-        var rolCambio =
-            !string.Equals(
-                modelo.RolAsignado ?? string.Empty,
-                rolOriginal,
-                StringComparison.OrdinalIgnoreCase
-            );
-
-        var resp = await Http.Put<ProfesionalDTO, RespuestaDTO>(
-            $"api/profesional/{id}",
-            modelo
-        );
-
-        if (resp.Error)
+        if (!listaTipoAreas.Any(area =>
+                string.Equals(
+                    area.Tipo,
+                    modelo.Area,
+                    StringComparison.Ordinal)))
         {
-            Mensaje = resp.ObtenerError();
-            guardando = false;
+            Mensaje = "Seleccioná un área válida.";
             return;
         }
 
-        if (rolCambio &&
-            !string.IsNullOrWhiteSpace(modelo.RolAsignado))
+        guardando = true;
+        Mensaje = string.Empty;
+
+        try
         {
-            var rolResp =
-                await Http.Post<RolAsignacionDTO, string>(
+            var rolCambio = !string.Equals(
+                modelo.RolAsignado ?? string.Empty,
+                rolOriginal,
+                StringComparison.OrdinalIgnoreCase);
+
+            var resp = await Http.Put<ProfesionalDTO, RespuestaDTO>(
+                $"api/profesional/{id}",
+                modelo);
+
+            if (resp.Error)
+            {
+                Mensaje = resp.ObtenerError();
+                return;
+            }
+
+            if (rolCambio &&
+                !string.IsNullOrWhiteSpace(modelo.RolAsignado))
+            {
+                var rolResp = await Http.Post<RolAsignacionDTO, string>(
                     "api/seguridad/asignarRol",
                     new RolAsignacionDTO
                     {
                         Email = modelo.Email,
                         Rol = modelo.RolAsignado
-                    }
-                );
+                    });
 
-            if (rolResp.Error)
-            {
-                Mensaje =
-                    "Los datos del profesional se actualizaron, " +
-                    "pero ocurrió un error al asignar el rol: " +
-                    rolResp.ObtenerError();
-
-                guardando = false;
-                return;
+                if (rolResp.Error)
+                {
+                    Mensaje =
+                        "Los datos del profesional se actualizaron, " +
+                        "pero ocurrió un error al asignar el rol: " +
+                        rolResp.ObtenerError();
+                    return;
+                }
             }
+
+            Nav.NavigateTo(
+                $"/profesionales/detalle/{id}?estado=actualizado");
         }
-
-        guardando = false;
-
-        Nav.NavigateTo(
-            $"/profesionales/detalle/{id}?estado=actualizado"
-        );
+        catch
+        {
+            Mensaje =
+                "No pudimos guardar los cambios. Intentá nuevamente.";
+        }
+        finally
+        {
+            guardando = false;
+        }
     }
 
     private void AbrirConfirmacionEliminar()
     {
+        if (guardando || eliminando)
+            return;
+
         MensajeEliminar = string.Empty;
         mostrarConfirmacionEliminar = true;
     }
@@ -567,9 +626,7 @@
     private void CerrarConfirmacionEliminar()
     {
         if (eliminando)
-        {
             return;
-        }
 
         MensajeEliminar = string.Empty;
         mostrarConfirmacionEliminar = false;
@@ -577,27 +634,34 @@
 
     private async Task ConfirmarEliminar()
     {
+        if (guardando || eliminando)
+            return;
+
         eliminando = true;
         MensajeEliminar = string.Empty;
 
-        var resp = await Http.Delete(
-            $"api/profesional/{id}"
-        );
-
-        eliminando = false;
-
-        if (!resp.Error)
+        try
         {
+            var resp = await Http.Delete($"api/profesional/{id}");
+
+            if (resp.Error)
+            {
+                MensajeEliminar = resp.ObtenerError();
+                return;
+            }
+
             mostrarConfirmacionEliminar = false;
-
-            Nav.NavigateTo(
-                "/profesionales?estado=eliminado"
-            );
-
-            return;
+            Nav.NavigateTo("/profesionales?estado=eliminado");
         }
-
-        MensajeEliminar = resp.ObtenerError();
+        catch
+        {
+            MensajeEliminar =
+                "No pudimos eliminar el profesional. Intentá nuevamente.";
+        }
+        finally
+        {
+            eliminando = false;
+        }
     }
 
     private static string ObtenerNombreRol(string rol)
@@ -614,16 +678,12 @@
 
     private void Cancelar()
     {
-        Nav.NavigateTo(
-            $"/profesionales/detalle/{id}"
-        );
+        Nav.NavigateTo($"/profesionales/detalle/{id}");
     }
 
     private void Volver()
     {
-        Nav.NavigateTo(
-            $"/profesionales/detalle/{id}"
-        );
+        Nav.NavigateTo($"/profesionales/detalle/{id}");
     }
 
     private static ProfesionalDTO CrearModeloVacio()

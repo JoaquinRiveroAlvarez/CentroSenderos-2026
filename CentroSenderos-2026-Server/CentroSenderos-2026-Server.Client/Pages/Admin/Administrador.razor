@@ -35,6 +35,16 @@
             <div class="admin-card-arrow"><i class="bi bi-chevron-right"></i></div>
         </button>
 
+        <!-- Tipos de Área -->
+<button type="button" class="admin-card" @onclick="IrAAreas">
+    <div class="admin-card-icon"><i class="bi bi-person-workspace"></i></div>
+    <div class="admin-card-content">
+        <h2>Tipos de Área</h2>
+        <p>Administrá las áreas disponibles para los profesionales.</p>
+    </div>
+    <div class="admin-card-arrow"><i class="bi bi-chevron-right"></i></div>
+</button>
+
         <!-- Tipos de Turno -->
         <button type="button" class="admin-card" @onclick="IrATurnos">
             <div class="admin-card-icon"><i class="bi bi-clock-history"></i></div>
@@ -106,6 +116,7 @@
     private void IrAPlanillas() => Nav.NavigateTo("/tipoplanillas");
     private void IrATipoDocumentos() => Nav.NavigateTo("/tipodocumento");
     private void IrAConsultorios() => Nav.NavigateTo("/tipoconsultorio");
+    private void IrAAreas() => Nav.NavigateTo("/tipoarea");
 
     // Nuevo método para Roles
     private void IrARoles() => Nav.NavigateTo("/roles");

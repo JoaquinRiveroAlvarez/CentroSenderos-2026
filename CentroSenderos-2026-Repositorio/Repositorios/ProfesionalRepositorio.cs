@@ -57,8 +57,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<ProfesionalListadoDTO?>
-            SelectByCuit(string cod)
+        public async Task<ProfesionalListadoDTO?>SelectByCuit(string cod)
         {
             var cuitLimpio = NormalizarCuit(cod);
 
@@ -184,14 +183,13 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 )
                 .ToListAsync();
         }
-        public async Task<int> InsertarProfesional(
-            ProfesionalDTO dto)
+        public async Task<int> InsertarProfesional(ProfesionalDTO dto)
         {
             var nombreLimpio =
                 NormalizarTexto(dto.Nombre);
 
             var areaLimpia =
-                NormalizarTexto(dto.Area);
+                await ObtenerAreaActiva(dto.Area);
 
             var cuitLimpio =
                 NormalizarCuit(dto.Cuit);
@@ -301,9 +299,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
         }
 
-        public async Task<bool> ActualizarProfesional(
-            int id,
-            ProfesionalDTO dto)
+        public async Task<bool> ActualizarProfesional(int id,ProfesionalDTO dto)
         {
             var profesional =
                 await context.Profesionales
@@ -321,7 +317,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 NormalizarTexto(dto.Nombre);
 
             var areaLimpia =
-                NormalizarTexto(dto.Area);
+                await ObtenerAreaActiva(dto.Area);
 
             var cuitLimpio =
                 NormalizarCuit(dto.Cuit);
@@ -459,6 +455,31 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
+        private async Task<string> ObtenerAreaActiva(string? area)
+        {
+            var nombreBuscado = area?.Trim();
+
+            if (string.IsNullOrWhiteSpace(nombreBuscado))
+            {
+                throw new ApplicationException(
+                    "Seleccioná un área profesional.");
+            }
+
+            var nombreEnCatalogo = await context.TipoAreas
+                .Where(tipoArea =>
+                    tipoArea.EstadoRegistro == EnumEstadoRegistro.activo &&
+                    tipoArea.Tipo.ToLower() == nombreBuscado.ToLower())
+                .Select(tipoArea => tipoArea.Tipo)
+                .FirstOrDefaultAsync();
+
+            if (nombreEnCatalogo is null)
+            {
+                throw new ApplicationException(
+                    "El área seleccionada no existe o ya no está disponible.");
+            }
+
+            return nombreEnCatalogo;
+        }
         private static void ValidarCuit(string cuit)
         {
             if (!CuitValidador.EsValido(cuit))
@@ -469,11 +490,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
         }
 
-        private static void LanzarErrorDuplicado(
-            DbUpdateException ex,
-            string cuit,
-            string mp,
-            string rnp)
+        private static void LanzarErrorDuplicado(DbUpdateException ex,string cuit,string mp,string rnp)
         {
             var mensajeInterno =
                 ex.InnerException?.Message ??

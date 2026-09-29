@@ -1,0 +1,304 @@
+﻿@page "/tipoarea/editar/{id:int}"
+@attribute [Authorize]
+@using CentroSenderos_2026_Shared.DTO
+@using Microsoft.AspNetCore.Authorization
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<div class="editar-area-page">
+    <button type="button"
+            class="back-button"
+            disabled="@(guardando || eliminando)"
+            @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver</span>
+    </button>
+
+    <h1>Editar tipo de área</h1>
+
+    @if (cargando)
+    {
+        <div class="state-card">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+            <span>Cargando tipo de área...</span>
+        </div>
+    }
+    else if (errorCarga)
+    {
+        <div class="state-card error-state" role="alert">
+            <i class="bi bi-exclamation-circle"></i>
+            <p>@Mensaje</p>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="@modelo"
+                  OnValidSubmit="Grabar"
+                  FormName="EditarTipoAreaForm"
+                  class="area-form">
+
+            <DataAnnotationsValidator />
+
+            <section class="form-section">
+                <div class="section-title">
+                    <span class="section-number">01</span>
+                    <span>Información del tipo de área</span>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label for="tipoArea">Nombre del área</label>
+
+                        <InputText id="tipoArea"
+                                   class="form-input"
+                                   @bind-Value="modelo.Tipo"
+                                   placeholder="Ej.: Psicología" />
+
+                        <ValidationMessage For="@(() => modelo.Tipo)"
+                                           class="validation-message" />
+                    </div>
+
+                    <div class="field-group">
+                        <label for="descripcionArea">Descripción</label>
+
+                        <InputTextArea id="descripcionArea"
+                                       class="form-textarea"
+                                       @bind-Value="modelo.Descripcion"
+                                       placeholder="Describí esta área" />
+
+                        <ValidationMessage For="@(() => modelo.Descripcion)"
+                                           class="validation-message" />
+                    </div>
+                </div>
+            </section>
+
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <div class="form-message" role="alert">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@Mensaje</span>
+                </div>
+            }
+
+            <div class="form-actions">
+                <button type="button"
+                        class="delete-button"
+                        disabled="@(guardando || eliminando)"
+                        @onclick="AbrirConfirmacionEliminar">
+                    <i class="bi bi-trash"></i>
+                    <span>Eliminar</span>
+                </button>
+
+                <div class="form-actions-right">
+                    <button type="button"
+                            class="cancel-button"
+                            disabled="@(guardando || eliminando)"
+                            @onclick="Cancelar">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="save-button"
+                            disabled="@(guardando || eliminando)">
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar cambios</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@if (mostrarConfirmacionEliminar)
+{
+    <div class="modal-overlay">
+        <div class="delete-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="tituloEliminarTipoArea">
+
+            <div class="delete-warning-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+            <h2 id="tituloEliminarTipoArea">¿Eliminar tipo de área?</h2>
+
+            <p>
+                <strong>@modelo.Tipo</strong> dejará de aparecer entre las áreas
+                disponibles para los profesionales. Si está asignada a un
+                profesional, no se podrá eliminar.
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(MensajeEliminar))
+            {
+                <div class="delete-error" role="alert">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@MensajeEliminar</span>
+                </div>
+            }
+
+            <div class="delete-modal-actions">
+                <button type="button"
+                        class="modal-cancel-button"
+                        disabled="@eliminando"
+                        @onclick="CerrarConfirmacionEliminar">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminando"
+                        @onclick="ConfirmarEliminar">
+                    @(eliminando ? "Eliminando..." : "Eliminar")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private TipoDTO modelo = new()
+    {
+        Tipo = string.Empty,
+        Descripcion = string.Empty
+    };
+
+    private bool cargando = true;
+    private bool errorCarga;
+    private bool guardando;
+    private bool eliminando;
+    private bool mostrarConfirmacionEliminar;
+
+    private string Mensaje = string.Empty;
+    private string MensajeEliminar = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        cargando = true;
+        errorCarga = false;
+        mostrarConfirmacionEliminar = false;
+        Mensaje = string.Empty;
+        MensajeEliminar = string.Empty;
+
+        try
+        {
+            var respuesta = await Http.Get<TipoDTO>($"api/tipoarea/{id}");
+
+            if (respuesta.Error || respuesta.Respuesta is null)
+            {
+                errorCarga = true;
+                Mensaje = respuesta.Error
+                    ? respuesta.ObtenerError()
+                    : "No se encontró el tipo de área.";
+                return;
+            }
+
+            modelo = respuesta.Respuesta;
+        }
+        catch
+        {
+            errorCarga = true;
+            Mensaje = "No pudimos cargar el tipo de área. Intentá nuevamente.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task Grabar()
+    {
+        if (guardando || eliminando)
+            return;
+
+        Mensaje = string.Empty;
+        guardando = true;
+
+        try
+        {
+            var respuesta = await Http.Put<TipoDTO, RespuestaDTO>(
+                $"api/tipoarea/{id}",
+                modelo);
+
+            if (respuesta.Error)
+            {
+                Mensaje = respuesta.ObtenerError();
+                return;
+            }
+
+            Nav.NavigateTo("/tipoarea?estado=actualizado");
+        }
+        catch
+        {
+            Mensaje = "No pudimos guardar los cambios. Intentá nuevamente.";
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+    private void AbrirConfirmacionEliminar()
+    {
+        if (guardando || eliminando)
+            return;
+
+        MensajeEliminar = string.Empty;
+        mostrarConfirmacionEliminar = true;
+    }
+
+    private void CerrarConfirmacionEliminar()
+    {
+        if (eliminando)
+            return;
+
+        mostrarConfirmacionEliminar = false;
+        MensajeEliminar = string.Empty;
+    }
+
+    private async Task ConfirmarEliminar()
+    {
+        if (guardando || eliminando)
+            return;
+
+        MensajeEliminar = string.Empty;
+        eliminando = true;
+
+        try
+        {
+            var respuesta = await Http.Delete($"api/tipoarea/{id}");
+
+            if (respuesta.Error)
+            {
+                MensajeEliminar = respuesta.ObtenerError();
+                return;
+            }
+
+            mostrarConfirmacionEliminar = false;
+            Nav.NavigateTo("/tipoarea?estado=eliminado");
+        }
+        catch
+        {
+            MensajeEliminar = "No pudimos eliminar el tipo de área. Intentá nuevamente.";
+        }
+        finally
+        {
+            eliminando = false;
+        }
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/tipoarea");
+
+    private void Volver() => Nav.NavigateTo("/tipoarea");
+}

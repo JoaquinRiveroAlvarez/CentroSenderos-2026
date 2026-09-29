@@ -1,7 +1,6 @@
-/* ===========================================
-   PÁGINA
-=========================================== */
+/* #region Página y navegación */
 
+/* Ocupa el ancho disponible en el área principal del sistema. */
 .crear-profesional-page {
     width: 100%;
     box-sizing: border-box;
@@ -14,36 +13,62 @@
         font-weight: 500;
     }
 
-
-/* ===========================================
-   FORMULARIO PRINCIPAL
-=========================================== */
-
-.profesional-form {
-    width: 100%;
-    padding: 22px 24px;
-    box-sizing: border-box;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid #e4e1dc;
-    border-radius: 22px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+/* Regresa al listado sin guardar el formulario. */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #6f786a;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s ease;
 }
 
+    .back-button i {
+        font-size: 16px;
+        transition: transform 0.2s ease;
+    }
 
-/* ===========================================
-   SECCIONES
-=========================================== */
+    .back-button:hover:not(:disabled) {
+        color: #556f4f;
+    }
+
+        .back-button:hover:not(:disabled) i {
+            transform: translateX(-3px);
+        }
+
+    .back-button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+
+/* #endregion */
+
+
+/* #region Formulario y secciones */
+
+/* Contiene los datos del profesional en una tarjeta. */
+.profesional-form {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 22px 24px;
+    border: 1px solid #e4e1dc;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+}
 
 .form-section {
     margin-bottom: 26px;
 }
-.rol-select {
-    border: 1px solid #0d6efd;
-    background-color: #e7f1ff;
-    color: #0d6efd;
-    font-weight: 600;
-}
 
+/* Identifica cada sección con su número y nombre. */
 .section-title {
     display: flex;
     align-items: center;
@@ -52,49 +77,42 @@
     color: #9b7163;
     font-size: 13px;
     font-weight: 600;
-    text-transform: uppercase;
     letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
-
-/* Número 01, 02, 03 */
-
 .section-number {
-    width: 28px;
-    height: 28px;
     display: flex;
+    flex: none;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    background: #f8e8df;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
+    background: #f8e8df;
     color: #9a6553;
     font-size: 12px;
     font-weight: 700;
 }
 
+/* #endregion */
 
-/* ===========================================
-   GRILLAS
-=========================================== */
 
+/* #region Distribución de campos */
+
+/* Organiza los campos en una, dos o tres columnas según la sección. */
 .form-grid {
     display: grid;
     gap: 18px;
 }
 
 .form-grid-2 {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .form-grid-3 {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-
-
-/* ===========================================
-   CAMPOS
-=========================================== */
 
 .field-group {
     display: flex;
@@ -110,175 +128,62 @@
         text-transform: uppercase;
     }
 
+/* #endregion */
 
-/* ===========================================
-   INPUTS
-=========================================== */
 
+/* #region Entradas y selectores */
+
+/* Aplica el mismo aspecto a InputText e InputSelect de Blazor. */
 ::deep .form-input {
     width: 100%;
     height: 44px;
     box-sizing: border-box;
     padding: 0 16px;
-    background: #ffffff;
     border: 1px solid #d9ddd6;
     border-radius: 22px;
-    color: #444444;
-    font-size: 14px;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    background: #fff;
+    color: #444;
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
     ::deep .form-input::placeholder {
-        color: #999999;
+        color: #999;
         opacity: 1;
     }
 
+    ::deep .form-input:hover:not(:disabled) {
+        border-color: #bbc5b7;
+    }
+
     ::deep .form-input:focus {
-        background: #ffffff;
         border-color: #789175;
         box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
     }
 
+    ::deep .form-input.invalid {
+        border-color: #d8857e;
+    }
 
-/* ===========================================
-   BOTONES
-=========================================== */
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 14px;
-    margin-top: 16px;
-}
-
-
-/* Cancelar */
-
-.cancel-button {
-    min-width: 120px;
-    height: 44px;
-    padding: 0 22px;
-    background: #ffffff;
-    border: 1px solid #9d9d96;
-    border-radius: 22px;
-    color: #555555;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-}
-
-    .cancel-button:hover {
+    ::deep .form-input:disabled {
         background: #f5f5f3;
-        border-color: #777770;
+        color: #77736d;
+        cursor: not-allowed;
     }
 
-
-/* Guardar */
-
-.save-button {
-    min-width: 170px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 0 24px;
-    background: #647b5b;
-    border: none;
-    border-radius: 22px;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s, opacity 0.2s;
-}
-
-    .save-button:hover:not(:disabled) {
-        background: #52694a;
-    }
-
-    .save-button:active:not(:disabled) {
-        transform: scale(0.98);
-    }
-
-    .save-button:disabled {
-        opacity: 0.65;
-        cursor: default;
-    }
+/* #endregion */
 
 
-/* Volver */
-.back-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 14px;
-    padding: 0;
-    background: transparent;
-    border: none;
-    color: #6f786a;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
+/* #region Prestaciones seleccionadas */
 
-    .back-button i {
-        font-size: 16px;
-        transition: transform 0.2s ease;
-    }
-
-    .back-button:hover {
-        color: #556f4f;
-    }
-
-        .back-button:hover i {
-            transform: translateX(-3px);
-        }
-
-/* ===========================================
-   VALIDACIONES
-=========================================== */
-
-.validation-summary {
-    margin-bottom: 18px;
-    padding: 12px 15px;
-    background: #fff1ee;
-    border: 1px solid #f0d3cf;
-    border-radius: 10px;
-    color: #b54b43;
-    font-size: 14px;
-}
-
-::deep .validation-message {
-    margin: 5px 0 0 6px;
-    color: #b54b43;
-    font-size: 13px;
-}
-
-
-/* ===========================================
-   MENSAJES
-=========================================== */
-
-.form-message {
-    margin-top: 12px;
-    padding: 12px 15px;
-    background: #fff1ee;
-    border: 1px solid #f0d3cf;
-    border-radius: 10px;
-    color: #a74740;
-    font-size: 14px;
-}
-
+/* Extiende el selector de prestaciones a todo el ancho de la grilla. */
 .prestaciones-field {
     grid-column: 1 / -1;
 }
 
+/* Presenta cada prestación agregada como una etiqueta removible. */
 .prestaciones-seleccionadas {
     display: flex;
     flex-wrap: wrap;
@@ -292,10 +197,10 @@
     gap: 6px;
     min-height: 34px;
     padding: 6px 8px 6px 12px;
-    color: #3f563a;
-    background-color: #dfe5dc;
     border: 1px solid #c8d2c4;
     border-radius: 20px;
+    background: #dfe5dc;
+    color: #3f563a;
     font-size: 13px;
     font-weight: 600;
 }
@@ -304,19 +209,25 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: none;
     width: 22px;
     height: 22px;
     padding: 0;
-    color: #556f4f;
-    background: transparent;
-    border: none;
+    border: 0;
     border-radius: 50%;
+    background: transparent;
+    color: #556f4f;
     cursor: pointer;
 }
 
-    .prestacion-chip-remove:hover {
-        color: #ffffff;
-        background-color: #ef4545;
+    .prestacion-chip-remove:hover:not(:disabled) {
+        background: #ef4545;
+        color: #fff;
+    }
+
+    .prestacion-chip-remove:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
     }
 
     .prestacion-chip-remove i {
@@ -331,20 +242,128 @@
     font-size: 12px;
 }
 
-/* ===========================================
-   RESPONSIVE
-=========================================== */
+/* #endregion */
 
+
+/* #region Selector de área */
+
+/* Explica por qué no se puede seleccionar un área si el catálogo está vacío. */
+.areas-help {
+    display: block;
+    margin: 7px 0 0 6px;
+    color: #77736d;
+    font-size: 12px;
+}
+
+/* #endregion */
+
+
+/* #region Validación y mensajes */
+
+/* Deja cada error de validación debajo de su campo. */
+::deep .validation-message {
+    margin: 5px 0 0 6px;
+    color: #b54b43;
+    font-size: 13px;
+}
+
+/* Muestra los errores de carga o guardado del formulario. */
+.form-message {
+    margin-top: 12px;
+    padding: 12px 15px;
+    border: 1px solid #f0d3cf;
+    border-radius: 10px;
+    background: #fff1ee;
+    color: #a74740;
+    font-size: 14px;
+}
+
+/* #endregion */
+
+
+/* #region Acciones del formulario */
+
+/* Alinea Cancelar y Guardar al final del formulario. */
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.cancel-button,
+.save-button {
+    display: inline-flex;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0 22px;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* Sale sin crear el profesional. */
+.cancel-button {
+    min-width: 120px;
+    border: 1px solid #9d9d96;
+    background: #fff;
+    color: #555;
+    font-weight: 500;
+}
+
+    .cancel-button:hover:not(:disabled) {
+        border-color: #777770;
+        background: #f5f5f3;
+    }
+
+/* Envía el formulario para crear el profesional. */
+.save-button {
+    min-width: 170px;
+    gap: 8px;
+    border: 0;
+    background: #647b5b;
+    color: #fff;
+    font-weight: 600;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+    .save-button:hover:not(:disabled) {
+        background: #52694a;
+    }
+
+    .save-button:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+
+    .cancel-button:disabled,
+    .save-button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+
+/* #endregion */
+
+
+/* #region Pantallas medianas */
+
+/* Reduce de tres a dos columnas cuando hay menos espacio. */
 @media (max-width: 900px) {
-
     .form-grid-3 {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
+/* #endregion */
 
+
+/* #region Pantallas pequeñas */
+
+/* Apila los campos y botones para que se puedan usar en celular. */
 @media (max-width: 650px) {
-
     .crear-profesional-page h1 {
         font-size: 24px;
     }
@@ -356,7 +375,7 @@
 
     .form-grid-2,
     .form-grid-3 {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .form-actions {
@@ -369,3 +388,5 @@
         width: 100%;
     }
 }
+
+/* #endregion */
