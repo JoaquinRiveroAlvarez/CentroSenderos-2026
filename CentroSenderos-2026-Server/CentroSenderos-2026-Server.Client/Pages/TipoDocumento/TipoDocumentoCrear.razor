@@ -6,58 +6,133 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="documento-form-page">
-    <div class="documento-card">
+<div class="crear-documento-page">
+    <button type="button"
+            class="back-button"
+            disabled="@guardando"
+            @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver</span>
+    </button>
 
-        <div class="card-header">
-            <h1>Nuevo Tipo de Documento</h1>
-            <p>Complete los datos del documento.</p>
-        </div>
+    <h1>Crear tipo de documento</h1>
 
-        <EditForm Model="@modelo" OnValidSubmit="Grabar" class="documento-form">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+    <EditForm Model="@modelo"
+              OnValidSubmit="Grabar"
+              FormName="CrearTipoDocumentoForm"
+              class="documento-form">
 
-            <div class="field-group">
-                <label>Tipo</label>
-                <InputText class="senderos-input" @bind-Value="modelo.Tipo" />
-                <!-- CORRECCIÓN: usar directamente la propiedad -->
-                <ValidationMessage For="@(() => modelo.Tipo)" />
+        <DataAnnotationsValidator />
+
+        <section class="form-section">
+            <div class="section-title">
+                <span class="section-number">01</span>
+                <span>Información del tipo de documento</span>
             </div>
 
-            <div class="field-group">
-                <label>Descripción</label>
-                <InputTextArea class="senderos-textarea" @bind-Value="modelo.Descripcion" />
-                <!-- CORRECCIÓN: usar directamente la propiedad -->
-                <ValidationMessage For="@(() => modelo.Descripcion)" />
-            </div>
+            <div class="form-grid">
+                <div class="field-group">
+                    <label for="tipoDocumento">Nombre del tipo</label>
 
-            <div class="form-actions">
-                <button type="button" class="btn-cancelar" @onclick="Cancelar">Cancelar</button>
-                <button type="submit" class="btn-guardar">Guardar</button>
+                    <InputText id="tipoDocumento"
+                               class="form-input"
+                               @bind-Value="modelo.Tipo"
+                               placeholder="Ej.: Certificado médico" />
+
+                    <ValidationMessage For="@(() => modelo.Tipo)"
+                                       class="validation-message" />
+                </div>
+
+                <div class="field-group">
+                    <label for="descripcionDocumento">Descripción</label>
+
+                    <InputTextArea id="descripcionDocumento"
+                                   class="form-textarea"
+                                   @bind-Value="modelo.Descripcion"
+                                   placeholder="Describí para qué se utiliza este tipo de documento" />
+
+                    <ValidationMessage For="@(() => modelo.Descripcion)"
+                                       class="validation-message" />
+                </div>
             </div>
-        </EditForm>
+        </section>
 
         @if (!string.IsNullOrWhiteSpace(Mensaje))
         {
-            <div class="form-message">
+            <div class="form-message" role="alert">
                 <i class="bi bi-exclamation-circle"></i>
                 <span>@Mensaje</span>
             </div>
         }
-    </div>
+
+        <div class="form-actions">
+            <button type="button"
+                    class="cancel-button"
+                    disabled="@guardando"
+                    @onclick="Cancelar">
+                Cancelar
+            </button>
+
+            <button type="submit"
+                    class="save-button"
+                    disabled="@guardando">
+                @if (guardando)
+                {
+                    <span class="spinner-border spinner-border-sm"></span>
+                    <span>Guardando...</span>
+                }
+                else
+                {
+                    <span>Guardar tipo de documento</span>
+                }
+            </button>
+        </div>
+    </EditForm>
 </div>
 
 @code {
-    private TipoDocumentoDTO modelo = new() { Tipo = string.Empty, Descripcion = string.Empty };
-    private string Mensaje = "";
+    private TipoDocumentoDTO modelo = new()
+    {
+        Tipo = string.Empty,
+        Descripcion = string.Empty
+    };
+
+    private bool guardando;
+    private string Mensaje = string.Empty;
 
     private async Task Grabar()
     {
-        var resp = await Http.Post<TipoDocumentoDTO, int>("api/tipodocumento", modelo);
-        Mensaje = resp.Error ? resp.ObtenerError() : "Guardado correctamente.";
-        if (!resp.Error) Nav.NavigateTo("/tipodocumento", true);
+        if (guardando)
+            return;
+
+        Mensaje = string.Empty;
+        guardando = true;
+
+        try
+        {
+            var respuesta = await Http.Post<TipoDocumentoDTO, int>(
+                "api/tipodocumento",
+                modelo);
+
+            if (respuesta.Error)
+            {
+                Mensaje = respuesta.ObtenerError();
+                return;
+            }
+
+            Nav.NavigateTo("/tipodocumento");
+        }
+        catch
+        {
+            Mensaje = "No pudimos guardar el tipo de documento. Intentá nuevamente.";
+        }
+        finally
+        {
+            guardando = false;
+        }
     }
 
     private void Cancelar() => Nav.NavigateTo("/tipodocumento");
+
+    private void Volver() => Nav.NavigateTo("/tipodocumento");
 }

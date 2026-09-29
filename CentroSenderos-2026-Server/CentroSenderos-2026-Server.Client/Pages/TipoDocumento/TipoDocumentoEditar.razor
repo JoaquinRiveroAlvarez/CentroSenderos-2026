@@ -6,82 +6,295 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="documento-form-page">
-    <div class="documento-card">
+<div class="editar-documento-page">
+    <button type="button"
+            class="back-button"
+            disabled="@(guardando || eliminando)"
+            @onclick="Volver">
+        <i class="bi bi-arrow-left"></i>
+        <span>Volver</span>
+    </button>
 
-        <div class="card-header">
-            <h1>Editar Tipo de Documento</h1>
-            <p>Modifique los datos del documento.</p>
+    <h1>Editar tipo de documento</h1>
+
+    @if (cargando)
+    {
+        <div class="state-card">Cargando tipo de documento...</div>
+    }
+    else if (errorCarga)
+    {
+        <div class="state-card error-state" role="alert">
+            <i class="bi bi-exclamation-circle"></i>
+            <p>@Mensaje</p>
         </div>
+    }
+    else
+    {
+        <EditForm Model="@modelo"
+                  OnValidSubmit="Grabar"
+                  FormName="EditarTipoDocumentoForm"
+                  class="documento-form">
 
-        @if (cargando)
-        {
-            <div class="loading-state">
-                <div class="spinner-border" role="status"></div>
-                <span>Cargando documento...</span>
-            </div>
-        }
-        else
-        {
-            <EditForm Model="@modelo" OnValidSubmit="Grabar" class="documento-form">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
+            <DataAnnotationsValidator />
 
-                <div class="field-group">
-                    <label>Tipo</label>
-                    <InputText class="senderos-input" @bind-Value="modelo.Tipo" />
-                    <!-- CORRECCIÓN: usar directamente la propiedad -->
-                    <ValidationMessage For="@(() => modelo.Tipo)" />
+            <section class="form-section">
+                <div class="section-title">
+                    <span class="section-number">01</span>
+                    <span>Información del tipo de documento</span>
                 </div>
 
-                <div class="field-group">
-                    <label>Descripción</label>
-                    <InputTextArea class="senderos-textarea" @bind-Value="modelo.Descripcion" />
-                    <!-- CORRECCIÓN: usar directamente la propiedad -->
-                    <ValidationMessage For="@(() => modelo.Descripcion)" />
-                </div>
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label for="tipoDocumento">Nombre del tipo</label>
 
-                <div class="form-actions editar-actions">
-                    <button type="button" class="btn-cancelar" @onclick="Cancelar">Cancelar</button>
-                    <div class="right-actions">
-                        <button type="submit" class="btn-guardar">Guardar Cambios</button>
+                        <InputText id="tipoDocumento"
+                                   class="form-input"
+                                   @bind-Value="modelo.Tipo"
+                                   placeholder="Ej.: Certificado médico" />
+
+                        <ValidationMessage For="@(() => modelo.Tipo)"
+                                           class="validation-message" />
+                    </div>
+
+                    <div class="field-group">
+                        <label for="descripcionDocumento">Descripción</label>
+
+                        <InputTextArea id="descripcionDocumento"
+                                       class="form-textarea"
+                                       @bind-Value="modelo.Descripcion"
+                                       placeholder="Describí para qué se utiliza este tipo de documento" />
+
+                        <ValidationMessage For="@(() => modelo.Descripcion)"
+                                           class="validation-message" />
                     </div>
                 </div>
-            </EditForm>
-        }
+            </section>
 
-        @if (!string.IsNullOrWhiteSpace(Mensaje))
-        {
-            <div class="form-message">
-                <i class="bi bi-exclamation-circle"></i>
-                <span>@Mensaje</span>
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <div class="form-message" role="alert">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@Mensaje</span>
+                </div>
+            }
+
+            <div class="form-actions">
+                <button type="button"
+                        class="delete-button"
+                        disabled="@(guardando || eliminando)"
+                        @onclick="AbrirConfirmacionEliminar">
+                    <i class="bi bi-trash"></i>
+                    <span>Eliminar</span>
+                </button>
+
+                <div class="form-actions-right">
+                    <button type="button"
+                            class="cancel-button"
+                            disabled="@(guardando || eliminando)"
+                            @onclick="Cancelar">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="save-button"
+                            disabled="@(guardando || eliminando)">
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar cambios</span>
+                        }
+                    </button>
+                </div>
             </div>
-        }
-    </div>
+        </EditForm>
+    }
 </div>
 
-@code {
-    [Parameter] public int id { get; set; }
-    private TipoDocumentoDTO modelo = new() { Tipo = string.Empty, Descripcion = string.Empty };
-    private bool cargando = true;
-    private string Mensaje = "";
+@if (mostrarConfirmacionEliminar)
+{
+    <div class="modal-overlay">
+        <div class="delete-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="tituloEliminarTipoDocumento">
 
-    protected override async Task OnInitializedAsync()
+            <div class="delete-warning-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+            <h2 id="tituloEliminarTipoDocumento">
+                ¿Eliminar tipo de documento?
+            </h2>
+
+            <p>
+                <strong>@modelo.Tipo</strong> dejará de aparecer entre los tipos
+                disponibles para cargar documentos a los pacientes.
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(MensajeEliminar))
+            {
+                <div class="delete-error" role="alert">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@MensajeEliminar</span>
+                </div>
+            }
+
+            <div class="delete-modal-actions">
+                <button type="button"
+                        class="modal-cancel-button"
+                        disabled="@eliminando"
+                        @onclick="CerrarConfirmacionEliminar">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminando"
+                        @onclick="ConfirmarEliminar">
+                    @(eliminando ? "Eliminando..." : "Eliminar")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private TipoDocumentoDTO modelo = new()
     {
-        var resp = await Http.Get<TipoDocumentoDTO>($"api/tipodocumento/{id}");
-        modelo = resp.Error
-            ? new TipoDocumentoDTO { Tipo = string.Empty, Descripcion = string.Empty }
-            : resp.Respuesta ?? new TipoDocumentoDTO { Tipo = string.Empty, Descripcion = string.Empty };
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
-        cargando = false;
+        Tipo = string.Empty,
+        Descripcion = string.Empty
+    };
+
+    private bool cargando = true;
+    private bool errorCarga;
+    private bool guardando;
+    private bool eliminando;
+    private bool mostrarConfirmacionEliminar;
+
+    private string Mensaje = string.Empty;
+    private string MensajeEliminar = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        cargando = true;
+        errorCarga = false;
+        Mensaje = string.Empty;
+
+        try
+        {
+            var respuesta = await Http.Get<TipoDocumentoDTO>(
+                $"api/tipodocumento/{id}");
+
+            if (respuesta.Error || respuesta.Respuesta is null)
+            {
+                errorCarga = true;
+                Mensaje = respuesta.Error
+                    ? respuesta.ObtenerError()
+                    : "No se encontró el tipo de documento.";
+                return;
+            }
+
+            modelo = respuesta.Respuesta;
+        }
+        catch
+        {
+            errorCarga = true;
+            Mensaje = "No pudimos cargar el tipo de documento. Intentá nuevamente.";
+        }
+        finally
+        {
+            cargando = false;
+        }
     }
 
     private async Task Grabar()
     {
-        var resp = await Http.Put<TipoDocumentoDTO, string>($"api/tipodocumento/{id}", modelo);
-        Mensaje = resp.Error ? resp.ObtenerError() : "Actualizado correctamente.";
-        if (!resp.Error) Nav.NavigateTo("/tipodocumento", true);
+        if (guardando || eliminando)
+            return;
+
+        Mensaje = string.Empty;
+        guardando = true;
+
+        try
+        {
+            var respuesta = await Http.Put<TipoDocumentoDTO, RespuestaDTO>(
+                $"api/tipodocumento/{id}",
+                modelo);
+
+            if (respuesta.Error)
+            {
+                Mensaje = respuesta.ObtenerError();
+                return;
+            }
+
+            Nav.NavigateTo("/tipodocumento");
+        }
+        catch
+        {
+            Mensaje = "No pudimos guardar los cambios. Intentá nuevamente.";
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+    private void AbrirConfirmacionEliminar()
+    {
+        MensajeEliminar = string.Empty;
+        mostrarConfirmacionEliminar = true;
+    }
+
+    private void CerrarConfirmacionEliminar()
+    {
+        if (eliminando)
+            return;
+
+        mostrarConfirmacionEliminar = false;
+        MensajeEliminar = string.Empty;
+    }
+
+    private async Task ConfirmarEliminar()
+    {
+        if (eliminando)
+            return;
+
+        MensajeEliminar = string.Empty;
+        eliminando = true;
+
+        try
+        {
+            var respuesta = await Http.Delete(
+                $"api/tipodocumento/{id}");
+
+            if (respuesta.Error)
+            {
+                MensajeEliminar = respuesta.ObtenerError();
+                return;
+            }
+
+            mostrarConfirmacionEliminar = false;
+            Nav.NavigateTo("/tipodocumento?estado=eliminado");
+        }
+        catch
+        {
+            MensajeEliminar =
+                "No pudimos eliminar el tipo de documento. Intentá nuevamente.";
+        }
+        finally
+        {
+            eliminando = false;
+        }
     }
 
     private void Cancelar() => Nav.NavigateTo("/tipodocumento");
+
+    private void Volver() => Nav.NavigateTo("/tipodocumento");
 }

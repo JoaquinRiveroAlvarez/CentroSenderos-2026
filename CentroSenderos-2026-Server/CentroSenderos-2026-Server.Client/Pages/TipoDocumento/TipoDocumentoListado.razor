@@ -4,114 +4,187 @@
 @using Microsoft.AspNetCore.Authorization
 @inject IHttpServicio Http
 @inject NavigationManager Nav
-@inject IJSRuntime JSRuntime
 @rendermode InteractiveAuto
 
 <div class="documentos-page">
-
     <div class="page-header">
-        <div class="header-title">
-            <h1>Tipos de Documento</h1>
-            <p>Gestioná los documentos disponibles en Senderos.</p>
+        <div>
+            <h1>Tipos de documento</h1>
+            <p>Administrá los tipos de documentos que se pueden cargar a los pacientes.</p>
         </div>
 
-        <div class="header-actions">
-            <div class="search-box">
-                <i class="bi bi-search"></i>
-                <input type="text" placeholder="Buscar documento..." @bind="textoBusqueda" @bind:event="oninput" />
-            </div>
-            <a href="/tipodocumento/crear" class="btn-nueva">+ Nuevo Documento</a>
-        </div>
+        <button type="button" class="new-button" @onclick="IrACrear">
+            <i class="bi bi-plus-lg"></i>
+            <span>Nuevo tipo</span>
+        </button>
     </div>
+
+    <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="search"
+               aria-label="Buscar tipos de documento"
+               placeholder="Buscar por nombre o descripción..."
+               @bind="textoBusqueda"
+               @bind:event="oninput" />
+    </div>
+
+    @if (Estado == "eliminado")
+    {
+        <div class="success-message" role="status">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Tipo de documento eliminado correctamente.</span>
+        </div>
+    }
 
     @if (cargando)
     {
-        <div class="estado-card">
-            <div class="spinner-border" role="status"></div>
-            <span>Cargando documentos...</span>
+        <div class="state-card">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+            <p>Cargando tipos de documento...</p>
         </div>
     }
-    else if (lista == null || lista.Count == 0)
+    else if (!string.IsNullOrWhiteSpace(MensajeCarga))
     {
-        <div class="estado-card">
-            <div class="estado-icon"><i class="bi bi-clipboard2-pulse"></i></div>
-            <h2>No hay documentos registrados</h2>
-            <p>Podés crear el primero desde esta pantalla.</p>
-            <a href="/tipodocumento/crear" class="btn-nueva-estado">+ Nuevo Documento</a>
+        <div class="state-card">
+            <i class="bi bi-exclamation-circle"></i>
+            <h2>No pudimos cargar los tipos de documento</h2>
+            <p>@MensajeCarga</p>
+
+            <button type="button" class="retry-button" @onclick="Cargar">
+                Reintentar
+            </button>
+        </div>
+    }
+    else if (lista.Count == 0)
+    {
+        <div class="state-card">
+            <i class="bi bi-file-earmark-text"></i>
+            <h2>No hay tipos de documento registrados</h2>
+            <p>Creá el primero para organizar los documentos de los pacientes.</p>
+        </div>
+    }
+    else if (!DocumentosFiltrados.Any())
+    {
+        <div class="state-card">
+            <i class="bi bi-search"></i>
+            <h2>Sin resultados</h2>
+            <p>Probá con otro nombre o descripción.</p>
         </div>
     }
     else
     {
         <div class="list-card">
             <div class="list-header">
-                <div>ID</div>
-                <div>Tipo</div>
-                <div>Descripción</div>
-                <div></div>
+                <span>Tipo de documento</span>
+                <span>Descripción</span>
+                <span class="actions-heading">Acción</span>
             </div>
 
-            <div class="list-body">
-                @foreach (var item in DocumentosFiltrados)
-                {
-                    <div class="documento-row">
-                        <div>@item.Id</div>
-                        <div>@item.Tipo</div>
-                        <div>@(string.IsNullOrWhiteSpace(item.Descripcion) ? "—" : item.Descripcion)</div>
-                        <div class="documento-action">
-                            <a href="/tipodocumento/editar/@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                            <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(item.Id)">Eliminar</button>
-                        </div>
+            @foreach (var item in DocumentosFiltrados)
+            {
+                <div class="documento-row" @key="item.Id">
+                    <div class="documento-name">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <strong>@item.Tipo</strong>
                     </div>
-                }
-            </div>
+
+                    <div class="documento-description">
+                        @(string.IsNullOrWhiteSpace(item.Descripcion)
+                            ? "Sin descripción"
+                            : item.Descripcion)
+                    </div>
+
+                    <div class="documento-actions">
+                        <button type="button"
+                                class="edit-button"
+                                title="Editar"
+                                aria-label="@($"Editar {item.Tipo}")"
+                                @onclick="() => IrAEditar(item.Id)">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </div>
+                </div>
+            }
 
             <div class="list-footer">
-                <span>
-                    Mostrando <strong>@DocumentosFiltrados.Count()</strong> de <strong>@lista.Count</strong> documentos
-                </span>
+                Mostrando @DocumentosFiltrados.Count() de @lista.Count tipos de documento
             </div>
-        </div>
-    }
-
-    @if (!string.IsNullOrWhiteSpace(Mensaje))
-    {
-        <div class="mensaje-error">
-            <i class="bi bi-exclamation-circle"></i>
-            <span>@Mensaje</span>
         </div>
     }
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "estado")]
+    public string? Estado { get; set; }
+
     private List<TipoDocumentoDTO> lista = new();
+    private string textoBusqueda = string.Empty;
+    private string MensajeCarga = string.Empty;
     private bool cargando = true;
-    private string Mensaje = "";
-    private string textoBusqueda = "";
-
-    protected override async Task OnInitializedAsync() => await Cargar();
-
-    private async Task Cargar()
-    {
-        var resp = await Http.Get<List<TipoDocumentoDTO>>("api/tipodocumento/ListaTipoDocumentos");
-        lista = resp.Error ? new() : resp.Respuesta ?? new();
-        Mensaje = resp.Error ? resp.ObtenerError() : "";
-        cargando = false;
-    }
 
     private IEnumerable<TipoDocumentoDTO> DocumentosFiltrados =>
         string.IsNullOrWhiteSpace(textoBusqueda)
             ? lista
-            : lista.Where(d => d.Tipo.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase)
-                            || (d.Descripcion ?? "").Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase));
+            : lista.Where(item =>
+                item.Tipo.Contains(
+                    textoBusqueda,
+                    StringComparison.OrdinalIgnoreCase) ||
+                (item.Descripcion?.Contains(
+                    textoBusqueda,
+                    StringComparison.OrdinalIgnoreCase) ?? false));
 
-    private async Task Eliminar(int id)
+    protected override async Task OnInitializedAsync()
     {
-        if (await JSRuntime.InvokeAsync<bool>("confirm", "¿Eliminar registro?"))
-        {
-            var resp = await Http.Delete($"api/tipodocumento/{id}");
-            Mensaje = resp.Error ? resp.ObtenerError() : "Eliminado correctamente.";
-            await Cargar();
-        }
+        await Cargar();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (!firstRender || Estado != "eliminado")
+        return;
+
+    await Task.Delay(5000);
+
+    // Evita volver al listado si la persona ya navegó a otra página.
+    if (Nav.ToBaseRelativePath(Nav.Uri) == "tipodocumento?estado=eliminado")
+    {
+        Nav.NavigateTo("/tipodocumento", replace: true);
     }
 }
 
+    private async Task Cargar()
+    {
+        cargando = true;
+        MensajeCarga = string.Empty;
+
+        var respuesta = await Http.Get<List<TipoDocumentoDTO>>(
+            "api/tipodocumento/ListaTipoDocumentos");
+
+        if (respuesta.Error)
+        {
+            lista = new();
+
+            var error = respuesta.ObtenerError();
+
+            // El endpoint actual devuelve 404 si aún no hay tipos registrados.
+            if (!error.Contains(
+                    "No hay tipos de documentos registrados",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                MensajeCarga = error;
+            }
+        }
+        else
+        {
+            lista = respuesta.Respuesta ?? new();
+        }
+
+        cargando = false;
+    }
+
+    private void IrACrear() =>
+        Nav.NavigateTo("/tipodocumento/crear");
+
+    private void IrAEditar(int id) =>
+        Nav.NavigateTo($"/tipodocumento/editar/{id}");
+}

@@ -1,124 +1,302 @@
-﻿.documentos-page {
+﻿/* #region Página y encabezado */
+
+/* Define el espacio general del listado. */
+.documentos-page {
     width: 100%;
+    box-sizing: border-box;
     padding: 34px 36px 40px;
 }
 
+/* Separa el título del botón de creación. */
 .page-header {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 28px;
+    gap: 20px;
+    margin-bottom: 26px;
 }
 
     .page-header h1 {
-        margin: 0;
+        margin: 0 0 5px;
         color: #3f463d;
-        font-size: 30px;
+        font-size: 28px;
         font-weight: 600;
     }
 
+    .page-header p {
+        margin: 0;
+        color: #777c74;
+        font-size: 14px;
+    }
+
+/* Abre el formulario para crear un tipo de documento. */
+.new-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 22px;
+    background: #647b5b;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .new-button:hover {
+        background: #52694a;
+    }
+
+/* #endregion */
+
+
+/* #region Buscador */
+
+/* Agrupa el ícono y el campo que filtra nombre y descripción. */
 .search-box {
     display: flex;
-    width: 340px;
-    height: 44px;
-    padding: 0 14px;
     align-items: center;
-    background: #fffefa;
+    gap: 10px;
+    width: min(100%, 390px);
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0 15px;
+    margin-bottom: 20px;
     border: 1px solid #d9ddd6;
     border-radius: 22px;
+    background: #fffefa;
+    color: #72816f;
 }
 
-.btn-nueva,
-.btn-nueva-estado {
-    background: #647b5b;
-    color: white;
-    border-radius: 22px;
-    padding: 0 22px;
-}
+    .search-box input {
+        flex: 1;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #3f463d;
+        font: inherit;
+        font-size: 14px;
+    }
 
-.list-card {
-    background: #fffdf9;
+    .search-box:focus-within {
+        border-color: #647b5b;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.12);
+    }
+
+/* #endregion */
+
+
+/* #region Contenedores y columnas */
+
+/* Comparte la misma superficie entre el listado y sus estados. */
+.list-card,
+.state-card {
+    overflow: hidden;
     border: 1px solid #e9e5de;
-    border-radius: 18px;
+    border-radius: 16px;
+    background: #fffdf9;
     box-shadow: 0 8px 28px rgba(56, 54, 48, 0.05);
 }
 
-.list-header {
-    display: grid;
-    grid-template-columns: 1fr 2fr 2fr 120px;
-    padding: 0 24px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #969993;
-}
-
+/* Alinea tipo, descripción y acción en el encabezado y las filas. */
+.list-header,
 .documento-row {
     display: grid;
-    grid-template-columns: 1fr 2fr 2fr 120px;
+    grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.5fr) 110px;
+    align-items: center;
+    gap: 20px;
     padding: 0 24px;
+}
+
+.list-header {
+    min-height: 48px;
+    border-bottom: 1px solid #e9e5de;
+    color: #737a70;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* #endregion */
+
+
+/* #region Filas y edición */
+
+/* Separa visualmente cada tipo de documento. */
+.documento-row {
+    min-height: 68px;
     border-bottom: 1px solid #f0ede8;
-    cursor: pointer;
+    color: #444b42;
+    font-size: 14px;
 }
 
     .documento-row:hover {
         background: #f5f7f2;
     }
 
-.documento-action {
+/* Agrupa el ícono con el nombre del tipo. */
+.documento-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+    .documento-name i {
+        flex: none;
+        color: #647b5b;
+        font-size: 19px;
+    }
+
+    /* Mantiene legibles los textos largos. */
+    .documento-name strong,
+    .documento-description {
+        overflow-wrap: anywhere;
+    }
+
+    .documento-name strong {
+        font-weight: 600;
+    }
+
+.documento-description {
+    color: #687067;
+}
+
+/* Alinea el único botón de acción: Editar. */
+.actions-heading,
+.documento-actions {
+    text-align: right;
+}
+
+.documento-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
 }
 
-.list-footer {
-    padding: 0 24px;
-    color: #999b96;
-    background: #fdfbf8;
-    border-top: 1px solid #eeebe5;
-    font-size: 13px;
-    min-height: 50px;
-    display: flex;
-    align-items: center;
-}
-
-.estado-card {
-    display: flex;
-    min-height: 310px;
-    padding: 30px;
+.edit-button {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #d9e2d5;
+    border-radius: 9px;
+    background: #f4f7f1;
+    color: #486243;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+    .edit-button:hover {
+        background: #e7eee3;
+    }
+
+/* Indica cuántos registros coinciden con la búsqueda. */
+.list-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #eeebe5;
+    color: #777c74;
+    font-size: 13px;
+}
+
+/* #endregion */
+
+
+/* #region Estados y mensajes */
+
+/* Presenta carga, ausencia de registros, falta de resultados o error. */
+.state-card {
+    display: flex;
+    min-height: 230px;
     flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
     color: #777c74;
     text-align: center;
-    background: #fffdf9;
-    border: 1px solid #e9e5de;
-    border-radius: 18px;
-    box-shadow: 0 8px 28px rgba(56, 54, 48, 0.04);
 }
 
-.estado-icon {
-    display: flex;
-    width: 54px;
-    height: 54px;
-    margin-bottom: 5px;
-    align-items: center;
-    justify-content: center;
-    color: #556f4f;
-    background: #dfe5dc;
-    border-radius: 50%;
-    font-size: 22px;
+    .state-card > i {
+        margin-bottom: 12px;
+        color: #647b5b;
+        font-size: 30px;
+    }
+
+    .state-card h2 {
+        margin: 0 0 7px;
+        color: #3f463d;
+        font-size: 18px;
+    }
+
+    .state-card p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+/* Permite reintentar una carga fallida. */
+.retry-button {
+    margin-top: 17px;
+    padding: 9px 18px;
+    border: 1px solid #d9e2d5;
+    border-radius: 9px;
+    background: #f4f7f1;
+    color: #486243;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
 }
 
-.mensaje-error {
-    margin-top: 16px;
-    padding: 12px 15px;
-    background: #fff0ee;
-    border: 1px solid #f1d5d1;
-    border-radius: 10px;
-    color: #a8443d;
-    font-size: 14px;
+    .retry-button:hover {
+        background: #e7eee3;
+    }
+
+/* Confirma la eliminación al regresar desde Editar. */
+.success-message {
     display: flex;
     align-items: center;
     gap: 9px;
+    margin-bottom: 16px;
+    padding: 12px 15px;
+    border: 1px solid #d9e5d5;
+    border-radius: 10px;
+    background: #f1f7ee;
+    color: #486243;
+    font-size: 14px;
 }
+
+/* #endregion */
+
+
+/* #region Pantallas pequeñas */
+
+/* Apila el encabezado y presenta cada fila como una tarjeta vertical. */
+@media (max-width: 760px) {
+    .documentos-page {
+        padding: 22px 18px;
+    }
+
+    .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .list-header {
+        display: none;
+    }
+
+    .documento-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 17px 18px;
+    }
+
+    .documento-actions {
+        justify-content: flex-start;
+    }
+}
+
+/* #endregion */
