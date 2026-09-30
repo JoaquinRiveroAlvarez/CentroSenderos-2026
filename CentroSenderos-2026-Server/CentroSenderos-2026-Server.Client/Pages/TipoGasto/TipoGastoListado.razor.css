@@ -53,6 +53,47 @@
 
 /* #endregion */
 
+/* #region Navegación de regreso */
+
+/* Regresa desde Tipos de Gasto al panel de Administración. */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #6f786a;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+    /* Desplaza suavemente la flecha al pasar el cursor. */
+    .back-button i {
+        font-size: 16px;
+        transition: transform 0.2s ease;
+    }
+
+    .back-button:hover {
+        color: #556f4f;
+    }
+
+        .back-button:hover i {
+            transform: translateX(-3px);
+        }
+
+    /* Destaca el botón al navegar con el teclado. */
+    .back-button:focus-visible {
+        outline: 2px solid #789175;
+        outline-offset: 4px;
+        border-radius: 4px;
+    }
+
+/* #endregion */
 
 /* #region Buscador */
 

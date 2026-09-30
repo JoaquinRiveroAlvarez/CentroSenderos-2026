@@ -10,6 +10,13 @@
 
     <div class="page-header">
         <div class="header-title">
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
+
             <h1>Gestión de Roles</h1>
             <p>Asigná o remové roles a los usuarios del sistema.</p>
         </div>
@@ -154,4 +161,6 @@
     {
         textoBusqueda = string.Empty;
     }
+
+    private void Volver() => Nav.NavigateTo("/admin");
 }

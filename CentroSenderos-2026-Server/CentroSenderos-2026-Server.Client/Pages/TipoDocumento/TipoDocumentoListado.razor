@@ -9,6 +9,14 @@
 <div class="documentos-page">
     <div class="page-header">
         <div>
+
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
+
             <h1>Tipos de documento</h1>
             <p>Administrá los tipos de documentos que se pueden cargar a los pacientes.</p>
         </div>
@@ -187,4 +195,6 @@
 
     private void IrAEditar(int id) =>
         Nav.NavigateTo($"/tipodocumento/editar/{id}");
+
+    private void Volver() => Nav.NavigateTo("/admin");
 }

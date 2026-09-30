@@ -9,6 +9,14 @@
 <div class="planillas-page">
     <div class="page-header">
         <div>
+
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
+
             <h1>Tipos de planilla</h1>
             <p>Administrá las categorías de planillas de Centro Senderos.</p>
         </div>
@@ -124,4 +132,6 @@
 
     private void IrAEditar(int id) =>
         Nav.NavigateTo($"/tipoplanillas/editar/{id}");
+
+    private void Volver() => Nav.NavigateTo("/admin");
 }

@@ -9,6 +9,13 @@
 <div class="tipos-gasto-page">
     <div class="page-header">
         <div>
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
+
             <h1>Tipos de gasto</h1>
             <p>Administrá los conceptos disponibles para registrar gastos.</p>
         </div>
@@ -128,6 +135,8 @@
     private string busqueda = string.Empty;
     private string MensajeCarga = string.Empty;
     private bool cargando = true;
+    private void Volver() => Nav.NavigateTo("/admin");
+
 
     private string MensajeExito => Estado switch
     {

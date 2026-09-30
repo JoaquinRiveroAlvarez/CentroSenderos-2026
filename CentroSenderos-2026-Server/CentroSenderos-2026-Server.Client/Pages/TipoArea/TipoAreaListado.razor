@@ -9,6 +9,14 @@
 <div class="areas-page">
     <div class="page-header">
         <div>
+
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
+
             <h1>Tipos de área</h1>
             <p>Administrá las áreas disponibles para los profesionales.</p>
         </div>
@@ -195,4 +203,6 @@
 
     private void IrAEditar(int id) =>
         Nav.NavigateTo($"/tipoarea/editar/{id}");
+
+    private void Volver() => Nav.NavigateTo("/admin");
 }
