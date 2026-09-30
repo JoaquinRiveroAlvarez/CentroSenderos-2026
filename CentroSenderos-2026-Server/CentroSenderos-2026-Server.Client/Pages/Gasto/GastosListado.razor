@@ -1,5 +1,97 @@
-﻿<h3>GastosListado</h3>
+﻿@page "/gastos"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+
+@using Microsoft.AspNetCore.Authorization
+
+@inject NavigationManager Nav
+
+<div class="gastos-page">
+    <div class="page-header">
+        <div>
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+            </button>
+
+            <h1>Gastos</h1>
+            <p>Registrá los gastos y los aportes de cada socio.</p>
+        </div>
+
+        <button type="button"
+                class="new-button"
+                @onclick="AbrirCrear">
+            <i class="bi bi-plus-lg"></i>
+            <span>Nuevo gasto</span>
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(mensajeExito))
+    {
+        <div class="success-message" role="status">
+            <div>
+                <i class="bi bi-check-circle"></i>
+                <span>@mensajeExito</span>
+            </div>
+
+            <button type="button"
+                    aria-label="Cerrar mensaje"
+                    @onclick="CerrarMensaje">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    }
+
+    <div class="state-card">
+        <div class="state-icon">
+            <i class="bi bi-receipt"></i>
+        </div>
+
+        <h2>Registro de gastos</h2>
+        <p>
+            Ya podés registrar gastos desde Nuevo gasto.
+            La consulta de los registros estará disponible
+            cuando conectemos el listado.
+        </p>
+    </div>
+
+    @if (mostrarCrear)
+    {
+        <GastosCrear OnCerrar="CerrarCrear"
+                     OnGuardado="GastoGuardado" />
+    }
+</div>
 
 @code {
+    private bool mostrarCrear;
+    private string mensajeExito = string.Empty;
 
+    private void AbrirCrear()
+    {
+        mensajeExito = string.Empty;
+        mostrarCrear = true;
+    }
+
+    private void CerrarCrear()
+    {
+        mostrarCrear = false;
+    }
+
+    private void GastoGuardado()
+    {
+        mostrarCrear = false;
+        mensajeExito = "Gasto registrado correctamente.";
+    }
+
+    private void CerrarMensaje()
+    {
+        mensajeExito = string.Empty;
+    }
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/admin");
+    }
 }

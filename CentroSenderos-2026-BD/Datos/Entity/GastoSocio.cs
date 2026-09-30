@@ -11,5 +11,7 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         [Required(ErrorMessage = "El socio es obligatorio")]
         public int SocioId { get; set; }
         public Socio? Socios { get; set; }
+
+        public decimal Monto { get; set; }
     }
 }

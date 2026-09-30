@@ -55,7 +55,7 @@ builder.Services.AddScoped<ITurnoRepositorio, TurnoRepositorio>();
 builder.Services.AddScoped<ITipoConsultorioRepositorio, TipoConsultorioRepositorio>();
 builder.Services.AddScoped<ITipoDocumentoRepositorio, TipoDocumentoRepositorio>();
 builder.Services.AddScoped<ITipoGastoRepositorio, TipoGastoRepositorio>();
-
+builder.Services.AddScoped<IGastoRepositorio, GastoRepositorio>();
 builder.Services.AddSingleton<SupabaseStorageService>();
 builder.Services.AddScoped<IDocumentoRepositorio, DocumentoRepositorio>();
 

@@ -142,7 +142,9 @@ namespace CentroSenderos_2026_BD
                 .WithMany(serie => serie.Turnos)
                 .HasForeignKey(turno => turno.SerieTurnoId)
                 .OnDelete(DeleteBehavior.Restrict);
-
+            modelBuilder.Entity<GastoSocio>()
+                .Property(aporte => aporte.Monto)
+                .HasPrecision(18, 2);
         }
     }
 }

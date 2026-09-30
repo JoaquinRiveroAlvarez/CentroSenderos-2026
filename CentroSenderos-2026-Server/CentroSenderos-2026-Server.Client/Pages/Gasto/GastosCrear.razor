@@ -1,5 +1,496 @@
-﻿<h3>GastosCrear</h3>
+﻿@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Servicio.ServiciosHttp
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Globalization
+
+@inject IHttpServicio Http
+
+<div class="gasto-overlay" @onclick="Cerrar">
+    <section class="gasto-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="tituloNuevoGasto"
+             @onclick:stopPropagation="true">
+
+        <header class="modal-header">
+            <div>
+                <h2 id="tituloNuevoGasto">Nuevo gasto</h2>
+                <p>Completá los datos y el aporte de cada socio.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    aria-label="Cerrar nuevo gasto"
+                    disabled="@guardando"
+                    @onclick="Cerrar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </header>
+
+        @if (cargando)
+        {
+            <div class="loading-message" role="status">
+                <span class="spinner-border spinner-border-sm"></span>
+                <span>Cargando tipos de gasto y socios...</span>
+            </div>
+        }
+        else if (!datosCargados)
+        {
+            <div class="load-error">
+                <p role="alert">@mensajeCarga</p>
+
+                <button type="button"
+                        class="secondary-button"
+                        @onclick="CargarDatos">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Reintentar
+                </button>
+            </div>
+        }
+        else
+        {
+            <EditForm EditContext="@contexto"
+                      OnValidSubmit="Guardar"
+                      FormName="CrearGastoForm">
+
+                <DataAnnotationsValidator />
+
+                <fieldset class="form-fields" disabled="@guardando">
+                    <section class="form-section">
+                        <h3>Detalles del gasto</h3>
+
+                        <div class="form-grid">
+                            <div class="field-group">
+                                <label for="tipoGasto">Tipo de gasto</label>
+
+                                <InputSelect id="tipoGasto"
+                                             class="form-input"
+                                             @bind-Value="modelo.TipoGastoId">
+                                    <option value="0">
+                                        Seleccionar tipo
+                                    </option>
+
+                                    @foreach (var tipo in tiposGasto)
+                                    {
+                                        <option value="@tipo.Id">
+                                            @tipo.Tipo
+                                        </option>
+                                    }
+                                </InputSelect>
+
+                                <ValidationMessage
+                                    For="@(() => modelo.TipoGastoId)" />
+
+                                @if (tiposGasto.Count == 0)
+                                {
+                                    <span class="field-help">
+                                        Primero registrá un tipo de gasto
+                                        en Administración.
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="field-group">
+                                <label for="fechaGasto">Fecha</label>
+
+                                <InputDate id="fechaGasto"
+                                           class="form-input"
+                                           @bind-Value="modelo.Fecha" />
+
+                                <ValidationMessage
+                                    For="@(() => modelo.Fecha)" />
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h3>Aportes de los socios</h3>
+
+                        <div class="field-group">
+                            <label for="socioGasto">Agregar socio</label>
+
+                            <select id="socioGasto"
+                                    class="form-input"
+                                    value=""
+                                    @onchange="AgregarSocio"
+                                    disabled="@(guardando ||
+                                                !SociosDisponibles.Any())">
+                                <option value="">Seleccionar socio</option>
+
+                                @foreach (var socio in SociosDisponibles)
+                                {
+                                    <option value="@socio.Id">
+                                        @socio.Profesional
+                                    </option>
+                                }
+                            </select>
+
+                            @if (socios.Count == 0)
+                            {
+                                <span class="field-help">
+                                    Primero registrá un socio
+                                    en Administración.
+                                </span>
+                            }
+                            else if (!SociosDisponibles.Any())
+                            {
+                                <span class="field-help">
+                                    Ya agregaste todos los socios disponibles.
+                                </span>
+                            }
+                        </div>
+
+                        @if (modelo.GastoSocios.Count == 0)
+                        {
+                            <div class="empty-aportes">
+                                Agregá los socios que pagaron este gasto.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="aportes-list">
+                                @foreach (var aporte in modelo.GastoSocios)
+                                {
+                                    <div class="aporte-row"
+                                         @key="aporte.SocioId">
+
+                                        <div class="aporte-name">
+                                            <i class="bi bi-person"></i>
+                                            <span>
+                                                @NombreSocio(aporte.SocioId)
+                                            </span>
+                                        </div>
+
+                                        <div class="field-group">
+                                            <label for="@($"aporte-{aporte.SocioId}")">
+                                                Monto aportado
+                                            </label>
+
+                                            <InputNumber
+                                                id="@($"aporte-{aporte.SocioId}")"
+                                                class="form-input"
+                                                @bind-Value="aporte.Monto"
+                                                min="0.01"
+                                                step="0.01" />
+
+                                            <ValidationMessage
+                                                For="@(() => aporte.Monto)" />
+                                        </div>
+
+                                        <button type="button"
+                                                class="remove-button"
+                                                aria-label="@($"Quitar a {NombreSocio(aporte.SocioId)}")"
+                                                @onclick="() => QuitarSocio(aporte)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <ValidationMessage
+                            For="@(() => modelo.GastoSocios)" />
+
+                        <div class="total-box" aria-live="polite">
+                            <span>Monto total</span>
+                            <strong>
+                                @modelo.Monto.ToString("C2", cultura)
+                            </strong>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h3>Notas adicionales</h3>
+
+                        <div class="field-group">
+                            <label for="descripcionGasto">
+                                Descripción
+                            </label>
+
+                            <InputTextArea id="descripcionGasto"
+                                           class="form-textarea"
+                                           @bind-Value="modelo.Descripcion"
+                                           maxlength="100"
+                                           placeholder="Describí el gasto..." />
+
+                            <ValidationMessage
+                                For="@(() => modelo.Descripcion)" />
+
+                            <span class="field-help">
+                                Máximo 100 caracteres.
+                            </span>
+                        </div>
+                    </section>
+                </fieldset>
+
+                @if (!string.IsNullOrWhiteSpace(mensaje))
+                {
+                    <div class="form-message" role="alert">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>@mensaje</span>
+                    </div>
+                }
+
+                <footer class="form-actions">
+                    <button type="button"
+                            class="secondary-button"
+                            disabled="@guardando"
+                            @onclick="Cerrar">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="save-button"
+                            disabled="@(guardando ||
+                                        tiposGasto.Count == 0 ||
+                                        socios.Count == 0)">
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar gasto</span>
+                        }
+                    </button>
+                </footer>
+            </EditForm>
+        }
+    </section>
+</div>
 
 @code {
+    [Parameter]
+    public EventCallback OnCerrar { get; set; }
 
+    [Parameter]
+    public EventCallback OnGuardado { get; set; }
+
+    private readonly GastoCrearDTO modelo = new()
+    {
+        Fecha = DateTime.Today,
+        Descripcion = string.Empty,
+        GastoSocios = new()
+    };
+
+    private readonly CultureInfo cultura =
+        CultureInfo.GetCultureInfo("es-AR");
+
+    private List<TipoListadoDTO> tiposGasto = new();
+    private List<SocioListadoDTO> socios = new();
+
+    private EditContext contexto = default!;
+    private ValidationMessageStore erroresAportes = default!;
+
+    private bool cargando = true;
+    private bool datosCargados;
+    private bool guardando;
+
+    private string mensaje = string.Empty;
+    private string mensajeCarga = string.Empty;
+
+    private IEnumerable<SocioListadoDTO> SociosDisponibles =>
+        socios.Where(socio =>
+            !modelo.GastoSocios.Any(aporte =>
+                aporte.SocioId == socio.Id));
+
+    protected override async Task OnInitializedAsync()
+    {
+        contexto = new EditContext(modelo);
+        erroresAportes = new ValidationMessageStore(contexto);
+
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        cargando = true;
+        datosCargados = false;
+        mensajeCarga = string.Empty;
+
+        try
+        {
+            var respuestaTipos =
+                await Http.Get<List<TipoListadoDTO>>(
+                    "api/tipogasto/ListaTipoGasto");
+
+            if (respuestaTipos.Error)
+            {
+                mensajeCarga = respuestaTipos.ObtenerError();
+                return;
+            }
+
+            var respuestaSocios =
+                await Http.Get<List<SocioListadoDTO>>(
+                    "api/socio/ListaSocio");
+
+            if (respuestaSocios.Error)
+            {
+                mensajeCarga = respuestaSocios.ObtenerError();
+                return;
+            }
+
+            tiposGasto = respuestaTipos.Respuesta ?? new();
+            socios = respuestaSocios.Respuesta ?? new();
+
+            datosCargados = true;
+        }
+        catch (TaskCanceledException)
+        {
+            mensajeCarga =
+                "La carga tardó demasiado. Volvé a intentarlo.";
+        }
+        catch (Exception)
+        {
+            mensajeCarga =
+                "No se pudieron cargar los tipos de gasto o los socios. " +
+                "Verificá la conexión y la respuesta de la API.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void AgregarSocio(ChangeEventArgs e)
+    {
+        if (guardando)
+            return;
+
+        if (!int.TryParse(e.Value?.ToString(), out var socioId))
+            return;
+
+        if (!socios.Any(socio => socio.Id == socioId))
+            return;
+
+        if (modelo.GastoSocios.Any(aporte =>
+                aporte.SocioId == socioId))
+            return;
+
+        modelo.GastoSocios.Add(new GastoSocioDTO
+        {
+            SocioId = socioId,
+            Monto = 0m
+        });
+
+        LimpiarErroresAportes();
+    }
+
+    private void QuitarSocio(GastoSocioDTO aporte)
+    {
+        if (guardando)
+            return;
+
+        modelo.GastoSocios.Remove(aporte);
+        LimpiarErroresAportes();
+    }
+
+    private string NombreSocio(int socioId)
+    {
+        return socios.FirstOrDefault(socio =>
+            socio.Id == socioId)?.Profesional ?? "Socio";
+    }
+
+    private bool ValidarAportes()
+    {
+        erroresAportes.Clear();
+
+        if (modelo.GastoSocios.Count == 0)
+        {
+            erroresAportes.Add(
+                new FieldIdentifier(
+                    modelo,
+                    nameof(modelo.GastoSocios)),
+                "Agregá al menos un socio.");
+        }
+
+        foreach (var aporte in modelo.GastoSocios)
+        {
+            if (aporte.Monto <= 0)
+            {
+                erroresAportes.Add(
+                    new FieldIdentifier(
+                        aporte,
+                        nameof(aporte.Monto)),
+                    "Ingresá un monto mayor a cero.");
+            }
+        }
+
+        contexto.NotifyValidationStateChanged();
+
+        return !contexto.GetValidationMessages().Any();
+    }
+
+    private void LimpiarErroresAportes()
+    {
+        erroresAportes.Clear();
+
+        contexto.NotifyFieldChanged(
+            new FieldIdentifier(
+                modelo,
+                nameof(modelo.GastoSocios)));
+
+        contexto.NotifyValidationStateChanged();
+        mensaje = string.Empty;
+    }
+
+    private async Task Guardar()
+    {
+        if (guardando)
+            return;
+
+        mensaje = string.Empty;
+
+        if (!ValidarAportes())
+            return;
+
+        guardando = true;
+        var registrado = false;
+
+        try
+        {
+            var respuesta =
+                await Http.Post<GastoCrearDTO, int>(
+                    "api/gasto/insertar",
+                    modelo);
+
+            if (respuesta.Error)
+            {
+                mensaje = respuesta.ObtenerError();
+                return;
+            }
+
+            registrado = true;
+        }
+        catch (TaskCanceledException)
+        {
+            mensaje =
+                "No se pudo confirmar el registro a tiempo. " +
+                "Verificá si se guardó antes de volver a enviarlo.";
+        }
+        catch (Exception)
+        {
+            mensaje =
+                "No se pudo confirmar el registro del gasto. " +
+                "Verificá la conexión antes de volver a enviarlo.";
+        }
+        finally
+        {
+            guardando = false;
+        }
+
+        if (registrado)
+        {
+            await OnGuardado.InvokeAsync();
+        }
+    }
+
+    private async Task Cerrar()
+    {
+        if (guardando)
+            return;
+
+        await OnCerrar.InvokeAsync();
+    }
 }

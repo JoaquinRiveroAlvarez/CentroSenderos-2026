@@ -20,14 +20,7 @@ namespace CentroSenderos_2026_Server.Controllers
         public async Task<ActionResult<List<SocioListadoDTO>>> GetListaSocio()
         {
             var lista = await repositorio.SelectListaSocios();
-            if (lista == null)
-            {
-                return NotFound("No se encontró la lista de socios, VERIFICAR.");
-            }
-            if (lista.Count == 0)
-            {
-                return Ok("No existen socios en la lista en este momento");
-            }
+
             return Ok(lista);
         }
 
