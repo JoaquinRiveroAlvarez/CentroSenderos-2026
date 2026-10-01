@@ -29,6 +29,7 @@ namespace CentroSenderos_2026_BD
         public DbSet<DetalleLiquidacion> DetalleLiquidaciones { get; set; }
         public DbSet<Liquidacion> Liquidaciones { get; set; }
         public DbSet<Gasto> Gastos { get; set; }
+        public DbSet<GastoHistorial> GastoHistoriales { get; set; }
         public DbSet<Documento> Documentos { get; set; }
        
 
@@ -145,6 +146,28 @@ namespace CentroSenderos_2026_BD
             modelBuilder.Entity<GastoSocio>()
                 .Property(aporte => aporte.Monto)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<GastoHistorial>()
+                .HasOne(historial => historial.Gasto)
+                .WithMany()
+                .HasForeignKey(historial => historial.GastoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<GastoHistorial>()
+                .HasOne(historial => historial.Usuario)
+                .WithMany()
+                .HasForeignKey(historial => historial.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<GastoHistorial>()
+                .HasIndex(historial => new
+                {
+                    historial.GastoId,
+                    historial.FechaCambio
+                });
+
+
+
         }
     }
 }

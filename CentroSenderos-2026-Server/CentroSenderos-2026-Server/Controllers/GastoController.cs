@@ -1,9 +1,11 @@
 ﻿using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace CentroSenderos_2026_Server.Controllers
@@ -67,5 +69,89 @@ namespace CentroSenderos_2026_Server.Controllers
                 );
             }
         }
+
+        [Authorize]
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<GastoCrearDTO>> GetGastoPorId(int id)
+        {
+            try
+            {
+                var gasto = await repositorio.SelectGastoPorId(id);
+
+                if (gasto == null)
+                {
+                    return NotFound(new
+                    {
+                        mensaje = "El gasto no existe o está dado de baja."
+                    });
+                }
+
+                return Ok(gasto);
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        mensaje = "Ocurrió un error inesperado al consultar el gasto."
+                    });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> ActualizarGasto(
+            int id,
+            [FromBody] GastoEditarDTO dto)
+        {
+            var usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(usuarioId))
+            {
+                return Unauthorized(new
+                {
+                    mensaje = "Iniciá sesión para modificar el gasto."
+                });
+            }
+
+            try
+            {
+                var actualizado = await repositorio.ActualizarGasto(
+                    id,
+                    dto,
+                    usuarioId);
+
+                if (!actualizado)
+                {
+                    return NotFound(new
+                    {
+                        mensaje = "El gasto no existe o está dado de baja."
+                    });
+                }
+
+                return Ok(new RespuestaDTO
+                {
+                    mensaje = "Gasto actualizado correctamente."
+                });
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(new RespuestaDTO
+                {
+                    mensaje = ex.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new RespuestaDTO
+                    {
+                        mensaje = "No se pudo completar la actualización del gasto."
+                    });
+            }
+        }
+
     }
 }

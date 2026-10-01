@@ -308,6 +308,38 @@
 
 /* #endregion */
 
+/* #region Acciones del gasto */
+
+/* Centra la lapicera en su columna. */
+.gastos-table .actions-column {
+    width: 80px;
+    text-align: center;
+}
+
+.edit-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #d5dbcf;
+    border-radius: 9px;
+    background: #dfe5dc;
+    color: #556f4f;
+    cursor: pointer;
+}
+
+    .edit-button:hover {
+        background: #d3ddce;
+    }
+
+    .edit-button:focus-visible {
+        outline: 2px solid #556f4f;
+        outline-offset: 2px;
+    }
+
+/* #endregion */
+
 /* #region Responsive */
 
 /* Reorganiza el encabezado para pantallas pequeñas. */

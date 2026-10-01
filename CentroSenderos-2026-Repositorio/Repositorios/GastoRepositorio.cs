@@ -5,6 +5,8 @@ using CentroSenderos_2026_Shared.Enum;
 using Microsoft.EntityFrameworkCore;
 using Modelado2025_1Repositorio.Repositorios;
 using System.Collections.Generic;
+using System.Data;
+using System.Text.Json;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -140,6 +142,278 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return gasto.Id;
         }
 
+        public async Task<bool> ActualizarGasto(
+    int id,
+    GastoEditarDTO dto,
+    string usuarioId)
+        {
+            if (string.IsNullOrWhiteSpace(usuarioId))
+            {
+                throw new ApplicationException(
+                    "No se pudo identificar al usuario.");
+            }
+
+            if (dto.Fecha == null ||
+                dto.Fecha.Value.Date == DateTime.MinValue.Date)
+            {
+                throw new ApplicationException(
+                    "La fecha es obligatoria.");
+            }
+
+            var descripcion = dto.Descripcion?.Trim() ?? string.Empty;
+            var motivo = dto.Motivo?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(descripcion))
+            {
+                throw new ApplicationException(
+                    "La descripción es obligatoria.");
+            }
+
+            if (descripcion.Length > 100)
+            {
+                throw new ApplicationException(
+                    "La descripción no puede exceder los 100 caracteres.");
+            }
+
+            if (string.IsNullOrWhiteSpace(motivo))
+            {
+                throw new ApplicationException(
+                    "Ingresá el motivo de la modificación.");
+            }
+
+            if (motivo.Length > 500)
+            {
+                throw new ApplicationException(
+                    "El motivo no puede exceder los 500 caracteres.");
+            }
+
+            if (dto.GastoSocios == null ||
+                dto.GastoSocios.Count == 0)
+            {
+                throw new ApplicationException(
+                    "Seleccioná al menos un socio.");
+            }
+
+            if (dto.GastoSocios.Any(aporte => aporte == null))
+            {
+                throw new ApplicationException(
+                    "Hay un aporte sin datos.");
+            }
+
+            if (dto.GastoSocios.Any(aporte =>
+                aporte.SocioId <= 0 || aporte.Monto <= 0))
+            {
+                throw new ApplicationException(
+                    "Seleccioná socios válidos e importes mayores que cero.");
+            }
+
+            if (dto.GastoSocios.Any(aporte =>
+                decimal.Round(aporte.Monto, 2) != aporte.Monto))
+            {
+                throw new ApplicationException(
+                    "Los importes pueden tener como máximo dos decimales.");
+            }
+
+            if (dto.GastoSocios.Any(aporte =>
+                aporte.Monto > 9999999999999999.99m))
+            {
+                throw new ApplicationException(
+                    "Uno de los aportes supera el importe permitido.");
+            }
+
+            var socioIds = dto.GastoSocios
+                .Select(aporte => aporte.SocioId)
+                .ToList();
+
+            if (socioIds.Distinct().Count() != socioIds.Count)
+            {
+                throw new ApplicationException(
+                    "No se puede agregar el mismo socio más de una vez.");
+            }
+
+            decimal montoTotal;
+
+            try
+            {
+                montoTotal = dto.GastoSocios.Sum(aporte => aporte.Monto);
+            }
+            catch (OverflowException)
+            {
+                throw new ApplicationException(
+                    "El monto total supera el importe permitido.");
+            }
+
+            await using var transaccion =
+                await context.Database.BeginTransactionAsync(
+                    IsolationLevel.Serializable);
+
+            var usuario = await context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(usuario =>
+                    usuario.Id == usuarioId);
+
+            if (usuario == null)
+            {
+                throw new ApplicationException(
+                    "El usuario identificado no existe.");
+            }
+
+            var gasto = await context.Gastos
+                .Include(gasto => gasto.TipoGastos)
+                .Include(gasto => gasto.GastoSocios)
+                    .ThenInclude(aporte => aporte.Socios)
+                        .ThenInclude(socio => socio!.Profesionales)
+                .FirstOrDefaultAsync(gasto =>
+                    gasto.Id == id &&
+                    gasto.EstadoRegistro == EnumEstadoRegistro.activo);
+
+            if (gasto == null)
+                return false;
+
+            var tipoGasto = await context.TipoGastos
+                .FirstOrDefaultAsync(tipo =>
+                    tipo.Id == dto.TipoGastoId);
+
+            if (tipoGasto == null ||
+                (tipoGasto.EstadoRegistro != EnumEstadoRegistro.activo &&
+                 dto.TipoGastoId != gasto.TipoGastoId))
+            {
+                throw new ApplicationException(
+                    "El tipo de gasto seleccionado no existe o está inactivo.");
+            }
+
+            var aportesActuales = gasto.GastoSocios
+                .Where(aporte =>
+                    aporte.EstadoRegistro == EnumEstadoRegistro.activo)
+                .ToList();
+
+            var socioIdsActuales = aportesActuales
+                .Select(aporte => aporte.SocioId)
+                .ToList();
+
+            var sociosSeleccionados = await context.Socios
+                .Include(socio => socio.Profesionales)
+                .Where(socio => socioIds.Contains(socio.Id))
+                .ToListAsync();
+
+            if (sociosSeleccionados.Count != socioIds.Count)
+            {
+                throw new ApplicationException(
+                    "Uno de los socios seleccionados no existe.");
+            }
+
+            var nuevoSocioInvalido = sociosSeleccionados.Any(socio =>
+                !socioIdsActuales.Contains(socio.Id) &&
+                (socio.EstadoRegistro != EnumEstadoRegistro.activo ||
+                 socio.Profesionales == null ||
+                 socio.Profesionales.EstadoRegistro !=
+                     EnumEstadoRegistro.activo));
+
+            if (nuevoSocioInvalido)
+            {
+                throw new ApplicationException(
+                    "No se pueden agregar socios o profesionales inactivos.");
+            }
+
+            var datosAnteriores = JsonSerializer.Serialize(
+                ObtenerVersionGasto(gasto));
+
+            foreach (var aporteActual in aportesActuales)
+            {
+                if (!socioIds.Contains(aporteActual.SocioId))
+                {
+                    aporteActual.EstadoRegistro = EnumEstadoRegistro.borrado;
+                }
+            }
+
+            foreach (var aporteNuevo in dto.GastoSocios)
+            {
+                var aporteActual = aportesActuales
+                    .FirstOrDefault(aporte =>
+                        aporte.SocioId == aporteNuevo.SocioId);
+
+                if (aporteActual != null)
+                {
+                    aporteActual.Monto = aporteNuevo.Monto;
+                }
+                else
+                {
+                    var socio = sociosSeleccionados
+                        .First(socio => socio.Id == aporteNuevo.SocioId);
+
+                    gasto.GastoSocios.Add(new GastoSocio
+                    {
+                        GastoId = gasto.Id,
+                        SocioId = aporteNuevo.SocioId,
+                        Socios = socio,
+                        Monto = aporteNuevo.Monto,
+                        EstadoRegistro = EnumEstadoRegistro.activo
+                    });
+                }
+            }
+
+            gasto.Fecha = DateTime.SpecifyKind(
+                dto.Fecha.Value.Date,
+                DateTimeKind.Utc);
+
+            gasto.TipoGastoId = tipoGasto.Id;
+            gasto.TipoGastos = tipoGasto;
+            gasto.Descripcion = descripcion;
+            gasto.Monto = montoTotal;
+
+            var datosNuevos = JsonSerializer.Serialize(
+                ObtenerVersionGasto(gasto));
+
+            if (datosAnteriores == datosNuevos)
+            {
+                throw new ApplicationException(
+                    "No hay cambios en el gasto para guardar.");
+            }
+
+            var historial = new GastoHistorial
+            {
+                GastoId = gasto.Id,
+                UsuarioId = usuario.Id,
+                NombreUsuario = usuario.UserName ?? usuario.Id,
+                FechaCambio = DateTime.UtcNow,
+                Motivo = motivo,
+                DatosAnteriores = datosAnteriores,
+                DatosNuevos = datosNuevos
+            };
+
+            context.GastoHistoriales.Add(historial);
+
+            await context.SaveChangesAsync();
+            await transaccion.CommitAsync();
+
+            return true;
+        }
+
+        private static GastoListadoDTO ObtenerVersionGasto(Gasto gasto)
+        {
+            return new GastoListadoDTO
+            {
+                Id = gasto.Id,
+                Fecha = gasto.Fecha,
+                TipoGastoId = gasto.TipoGastoId,
+                TipoGasto = gasto.TipoGastos?.Tipo ?? string.Empty,
+                Descripcion = gasto.Descripcion,
+                Monto = gasto.Monto,
+                GastoSocios = gasto.GastoSocios
+                    .Where(aporte =>
+                        aporte.EstadoRegistro == EnumEstadoRegistro.activo)
+                    .OrderBy(aporte => aporte.SocioId)
+                    .Select(aporte => new GastoSocioListadoDTO
+                    {
+                        SocioId = aporte.SocioId,
+                        Profesional =
+                            aporte.Socios?.Profesionales?.Nombre ?? string.Empty,
+                        Monto = aporte.Monto
+                    })
+                    .ToList()
+            };
+        }
+
         public async Task<List<GastoListadoDTO>> SelectListaGastos()
         {
             return await context.Gastos
@@ -174,6 +448,40 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .ToList()
                 })
                 .ToListAsync();
+    
         }
+
+        public async Task<GastoCrearDTO?> SelectGastoPorId(int id)
+        {
+            return await context.Gastos
+                .AsNoTracking()
+                .Where(gasto =>
+                    gasto.Id == id &&
+                    gasto.EstadoRegistro == EnumEstadoRegistro.activo)
+                .Select(gasto => new GastoCrearDTO
+                {
+                    Fecha = gasto.Fecha,
+                    TipoGastoId = gasto.TipoGastoId,
+                    Descripcion = gasto.Descripcion,
+                    GastoSocios = gasto.GastoSocios
+                        .Where(aporte =>
+                            aporte.EstadoRegistro == EnumEstadoRegistro.activo)
+                        .OrderBy(aporte => aporte.SocioId)
+                        .Select(aporte => new GastoSocioDTO
+                        {
+                            SocioId = aporte.SocioId,
+                            Monto = aporte.Monto
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+        }
+
+
+
+
+
+
+
     }
 }

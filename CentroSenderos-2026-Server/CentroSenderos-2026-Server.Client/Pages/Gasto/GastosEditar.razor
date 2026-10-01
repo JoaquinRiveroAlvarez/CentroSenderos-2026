@@ -1,0 +1,587 @@
+﻿@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Servicio.ServiciosHttp
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Globalization
+
+@inject IHttpServicio Http
+
+<div class="gasto-overlay" @onclick="Cerrar">
+    <section class="gasto-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="tituloEditarGasto"
+             @onclick:stopPropagation="true">
+
+        <header class="modal-header">
+            <div>
+                <h2 id="tituloEditarGasto">Editar gasto</h2>
+                <p>La modificación quedará registrada en el historial.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    aria-label="Cerrar edición"
+                    disabled="@guardando"
+                    @onclick="Cerrar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </header>
+
+        @if (cargando)
+        {
+            <div class="loading-message" role="status">
+                <span class="spinner-border spinner-border-sm"></span>
+                <span>Cargando gasto...</span>
+            </div>
+        }
+        else if (!datosCargados)
+        {
+            <div class="load-error">
+                <p role="alert">@mensajeCarga</p>
+
+                <button type="button"
+                        class="secondary-button"
+                        @onclick="CargarDatos">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Reintentar
+                </button>
+            </div>
+        }
+        else
+        {
+            <EditForm EditContext="@contexto"
+                      OnSubmit="Guardar"
+                      FormName="EditarGastoForm">
+
+                <DataAnnotationsValidator />
+
+                <fieldset class="form-fields" disabled="@guardando">
+                    <section class="form-section">
+                        <h3>Detalles del gasto</h3>
+
+                        <div class="form-grid">
+                            <div class="field-group">
+                                <label for="editarTipoGasto">
+                                    Tipo de gasto
+                                </label>
+
+                                <InputSelect id="editarTipoGasto"
+                                             class="form-input"
+                                             @bind-Value="modelo.TipoGastoId">
+                                    <option value="0">Seleccionar tipo</option>
+
+                                    @foreach (var tipo in tiposGasto)
+                                    {
+                                        <option value="@tipo.Id">
+                                            @tipo.Tipo
+                                        </option>
+                                    }
+                                </InputSelect>
+
+                                <ValidationMessage
+                                    For="@(() => modelo.TipoGastoId)" />
+                            </div>
+
+                            <div class="field-group">
+                                <label for="editarFechaGasto">Fecha</label>
+
+                                <InputDate id="editarFechaGasto"
+                                           class="form-input"
+                                           @bind-Value="modelo.Fecha" />
+
+                                <ValidationMessage
+                                    For="@(() => modelo.Fecha)" />
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h3>Aportes de los socios</h3>
+
+                        <div class="field-group">
+                            <label for="editarSocioGasto">Agregar socio</label>
+
+                            <select id="editarSocioGasto"
+                                    class="form-input"
+                                    @bind="socioSeleccionadoId"
+                                    @bind:after="AgregarSocio"
+                                    disabled="@(!SociosDisponibles.Any())">
+                                <option value="0">Seleccionar socio</option>
+
+                                @foreach (var socio in SociosDisponibles)
+                                {
+                                    <option value="@socio.Id">
+                                        @socio.Profesional
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        @if (modelo.GastoSocios.Count == 0)
+                        {
+                            <div class="empty-aportes">
+                                Agregá los socios que pagaron este gasto.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="aportes-list">
+                                @foreach (var aporte in modelo.GastoSocios)
+                                {
+                                    <div class="aporte-row"
+                                         @key="aporte.SocioId">
+
+                                        <div class="aporte-name">
+                                            <i class="bi bi-person"></i>
+                                            <span>
+                                                @NombreSocio(aporte.SocioId)
+                                            </span>
+                                        </div>
+
+                                        <div class="field-group">
+                                            <label for="@($"editar-aporte-{aporte.SocioId}")">
+                                                Monto aportado
+                                            </label>
+
+                                            <InputNumber
+                                                id="@($"editar-aporte-{aporte.SocioId}")"
+                                                class="form-input"
+                                                @bind-Value="aporte.Monto"
+                                                min="0.01"
+                                                step="0.01" />
+
+                                            <ValidationMessage
+                                                For="@(() => aporte.Monto)" />
+                                        </div>
+
+                                        <button type="button"
+                                                class="remove-button"
+                                                aria-label="@($"Quitar a {NombreSocio(aporte.SocioId)}")"
+                                                @onclick="() => QuitarSocio(aporte)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <ValidationMessage
+                            For="@(() => modelo.GastoSocios)" />
+
+                        <div class="total-box" aria-live="polite">
+                            <span>Monto total</span>
+                            <strong>
+                                @modelo.Monto.ToString("C2", cultura)
+                            </strong>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h3>Notas adicionales</h3>
+
+                        <div class="field-group">
+                            <label for="editarDescripcionGasto">
+                                Descripción
+                            </label>
+
+                            <InputTextArea id="editarDescripcionGasto"
+                                           class="form-textarea"
+                                           @bind-Value="modelo.Descripcion"
+                                           maxlength="100"
+                                           placeholder="Describí el gasto..." />
+
+                            <ValidationMessage
+                                For="@(() => modelo.Descripcion)" />
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h3>Motivo de la modificación</h3>
+
+                        <div class="field-group">
+                            <label for="motivoEdicionGasto">
+                                ¿Por qué modificás el gasto?
+                            </label>
+
+                            <InputTextArea id="motivoEdicionGasto"
+                                           class="form-textarea"
+                                           @bind-Value="modelo.Motivo"
+                                           maxlength="500"
+                                           placeholder="Explicá la corrección..." />
+
+                            <ValidationMessage
+                                For="@(() => modelo.Motivo)" />
+
+                            <span class="field-help">
+                                Obligatorio. Máximo 500 caracteres.
+                            </span>
+                        </div>
+                    </section>
+                </fieldset>
+
+                @if (!string.IsNullOrWhiteSpace(mensaje))
+                {
+                    <div class="form-message" role="alert">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>@mensaje</span>
+                    </div>
+                }
+
+                <footer class="form-actions">
+                    <button type="button"
+                            class="secondary-button"
+                            disabled="@guardando"
+                            @onclick="Cerrar">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="save-button"
+                            disabled="@guardando">
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar cambios</span>
+                        }
+                    </button>
+                </footer>
+            </EditForm>
+        }
+    </section>
+</div>
+
+@code {
+    [Parameter]
+    public int GastoId { get; set; }
+
+    [Parameter]
+    public EventCallback OnCerrar { get; set; }
+
+    [Parameter]
+    public EventCallback OnGuardado { get; set; }
+
+    private readonly CultureInfo cultura =
+        CultureInfo.GetCultureInfo("es-AR");
+
+    private GastoEditarDTO modelo = new();
+
+    private List<TipoListadoDTO> tiposGasto = new();
+    private List<SocioListadoDTO> socios = new();
+
+    private EditContext contexto = default!;
+    private ValidationMessageStore erroresAportes = default!;
+
+    private bool cargando = true;
+    private bool datosCargados;
+    private bool guardando;
+
+    private int socioSeleccionadoId;
+
+    private string mensaje = string.Empty;
+    private string mensajeCarga = string.Empty;
+
+    private IEnumerable<SocioListadoDTO> SociosDisponibles =>
+        socios.Where(socio =>
+            !modelo.GastoSocios.Any(aporte =>
+                aporte.SocioId == socio.Id));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        cargando = true;
+        datosCargados = false;
+        mensajeCarga = string.Empty;
+        mensaje = string.Empty;
+        socioSeleccionadoId = 0;
+
+        try
+        {
+            var respuestaGasto =
+                await Http.Get<GastoCrearDTO>(
+                    $"api/gasto/{GastoId}");
+
+            if (respuestaGasto.Error)
+            {
+                mensajeCarga = respuestaGasto.ObtenerError();
+                return;
+            }
+
+            var gasto = respuestaGasto.Respuesta;
+
+            if (gasto == null)
+            {
+                mensajeCarga = "No se encontraron los datos del gasto.";
+                return;
+            }
+
+            var respuestaTipos =
+                await Http.Get<List<TipoListadoDTO>>(
+                    "api/tipogasto/ListaTipoGasto");
+
+            if (respuestaTipos.Error)
+            {
+                mensajeCarga = respuestaTipos.ObtenerError();
+                return;
+            }
+
+            var respuestaSocios =
+                await Http.Get<List<SocioListadoDTO>>(
+                    "api/socio/ListaSocio");
+
+            if (respuestaSocios.Error)
+            {
+                mensajeCarga = respuestaSocios.ObtenerError();
+                return;
+            }
+
+            tiposGasto = respuestaTipos.Respuesta ?? new();
+            socios = respuestaSocios.Respuesta ?? new();
+
+            if (!tiposGasto.Any(tipo => tipo.Id == gasto.TipoGastoId))
+            {
+                var respuestaTipo =
+                    await Http.Get<TipoDTO>(
+                        $"api/tipogasto/{gasto.TipoGastoId}");
+
+                if (respuestaTipo.Error)
+                {
+                    mensajeCarga = respuestaTipo.ObtenerError();
+                    return;
+                }
+
+                if (respuestaTipo.Respuesta == null)
+                {
+                    mensajeCarga =
+                        "No se pudo cargar el tipo de gasto original.";
+                    return;
+                }
+
+                tiposGasto.Add(new TipoListadoDTO
+                {
+                    Id = gasto.TipoGastoId,
+                    Tipo = respuestaTipo.Respuesta.Tipo
+                });
+            }
+
+            foreach (var aporte in gasto.GastoSocios)
+            {
+                if (socios.Any(socio => socio.Id == aporte.SocioId))
+                    continue;
+
+                var respuestaSocio =
+                    await Http.Get<SocioListadoDTO>(
+                        $"api/socio/{aporte.SocioId}");
+
+                if (respuestaSocio.Error)
+                {
+                    mensajeCarga = respuestaSocio.ObtenerError();
+                    return;
+                }
+
+                if (respuestaSocio.Respuesta == null)
+                {
+                    mensajeCarga =
+                        "No se pudo cargar uno de los socios originales.";
+                    return;
+                }
+
+                socios.Add(respuestaSocio.Respuesta);
+            }
+
+            modelo = new GastoEditarDTO
+            {
+                Fecha = gasto.Fecha,
+                TipoGastoId = gasto.TipoGastoId,
+                Descripcion = gasto.Descripcion,
+                Motivo = string.Empty,
+                GastoSocios = gasto.GastoSocios
+                    .Select(aporte => new GastoSocioDTO
+                    {
+                        SocioId = aporte.SocioId,
+                        Monto = aporte.Monto
+                    })
+                    .ToList()
+            };
+
+            contexto = new EditContext(modelo);
+            erroresAportes = new ValidationMessageStore(contexto);
+
+            datosCargados = true;
+        }
+        catch (TaskCanceledException)
+        {
+            mensajeCarga =
+                "La carga tardó demasiado. Volvé a intentarlo.";
+        }
+        catch (Exception)
+        {
+            mensajeCarga =
+                "No se pudieron cargar los datos del gasto. " +
+                "Verificá la conexión.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void AgregarSocio()
+    {
+        var socioId = socioSeleccionadoId;
+        socioSeleccionadoId = 0;
+
+        if (guardando || socioId <= 0)
+            return;
+
+        if (!socios.Any(socio => socio.Id == socioId))
+            return;
+
+        if (modelo.GastoSocios.Any(aporte =>
+                aporte.SocioId == socioId))
+            return;
+
+        modelo.GastoSocios.Add(new GastoSocioDTO
+        {
+            SocioId = socioId,
+            Monto = 0m
+        });
+
+        LimpiarErroresAportes();
+    }
+
+    private void QuitarSocio(GastoSocioDTO aporte)
+    {
+        if (guardando)
+            return;
+
+        modelo.GastoSocios.Remove(aporte);
+        LimpiarErroresAportes();
+    }
+
+    private string NombreSocio(int socioId)
+    {
+        return socios.FirstOrDefault(socio =>
+            socio.Id == socioId)?.Profesional ?? "Socio";
+    }
+
+    private bool ValidarFormulario()
+    {
+        erroresAportes.Clear();
+
+        var datosValidos = contexto.Validate();
+
+        if (modelo.GastoSocios.Count == 0)
+        {
+            erroresAportes.Add(
+                new FieldIdentifier(
+                    modelo,
+                    nameof(modelo.GastoSocios)),
+                "Agregá al menos un socio.");
+        }
+
+        foreach (var aporte in modelo.GastoSocios)
+        {
+            var campo = new FieldIdentifier(
+                aporte,
+                nameof(aporte.Monto));
+
+            if (aporte.Monto <= 0)
+            {
+                erroresAportes.Add(
+                    campo,
+                    "Ingresá un monto mayor a cero.");
+            }
+            else if (decimal.Round(aporte.Monto, 2) != aporte.Monto)
+            {
+                erroresAportes.Add(
+                    campo,
+                    "El monto puede tener como máximo dos decimales.");
+            }
+        }
+
+        contexto.NotifyValidationStateChanged();
+
+        return datosValidos &&
+               !contexto.GetValidationMessages().Any();
+    }
+
+    private void LimpiarErroresAportes()
+    {
+        erroresAportes.Clear();
+
+        contexto.NotifyFieldChanged(
+            new FieldIdentifier(
+                modelo,
+                nameof(modelo.GastoSocios)));
+
+        contexto.NotifyValidationStateChanged();
+        mensaje = string.Empty;
+    }
+
+    private async Task Guardar()
+    {
+        if (guardando)
+            return;
+
+        mensaje = string.Empty;
+
+        if (!ValidarFormulario())
+            return;
+
+        guardando = true;
+        var actualizado = false;
+
+        try
+        {
+            var respuesta =
+                await Http.Put<GastoEditarDTO, RespuestaDTO>(
+                    $"api/gasto/{GastoId}",
+                    modelo);
+
+            if (respuesta.Error)
+            {
+                mensaje = respuesta.ObtenerError();
+                return;
+            }
+
+            actualizado = true;
+        }
+        catch (TaskCanceledException)
+        {
+            mensaje =
+                "No se pudo confirmar la actualización a tiempo. " +
+                "Verificá el gasto antes de volver a enviarlo.";
+        }
+        catch (Exception)
+        {
+            mensaje =
+                "No se pudo confirmar la actualización del gasto. " +
+                "Verificá la conexión antes de volver a enviarlo.";
+        }
+        finally
+        {
+            guardando = false;
+        }
+
+        if (actualizado)
+        {
+            await OnGuardado.InvokeAsync();
+        }
+    }
+
+    private async Task Cerrar()
+    {
+        if (guardando)
+            return;
+
+        await OnCerrar.InvokeAsync();
+    }
+}

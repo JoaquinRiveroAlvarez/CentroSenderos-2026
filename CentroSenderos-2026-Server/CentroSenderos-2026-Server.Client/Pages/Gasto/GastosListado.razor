@@ -118,6 +118,9 @@
                             <th scope="col" class="amount-column">
                                 Monto total
                             </th>
+                            <th scope="col" class="actions-column">
+                                Acción
+                            </th>
                         </tr>
                     </thead>
 
@@ -158,6 +161,16 @@
                                 <td class="amount-column total-cell">
                                     @gasto.Monto.ToString("C2", cultura)
                                 </td>
+
+                                <td class="actions-column">
+                                    <button type="button"
+                                            class="edit-button"
+                                            title="Editar gasto"
+                                            aria-label="@($"Editar gasto del {gasto.Fecha:dd/MM/yyyy}: {gasto.Descripcion}")"
+                                            @onclick="() => AbrirEditar(gasto.Id)">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -175,6 +188,14 @@
         <GastosCrear OnCerrar="CerrarCrear"
                      OnGuardado="GastoGuardado" />
     }
+
+    @if (mostrarEditar)
+    {
+        <GastosEditar @key="gastoEditarId"
+                      GastoId="gastoEditarId"
+                      OnCerrar="CerrarEditar"
+                      OnGuardado="GastoActualizado" />
+    }
 </div>
 
 @code {
@@ -186,7 +207,9 @@
     private bool cargando = true;
     private bool cargaEnCurso;
     private bool mostrarCrear;
+    private bool mostrarEditar;
 
+    private int gastoEditarId;
     private int versionMensaje;
 
     private string busqueda = string.Empty;
@@ -270,6 +293,7 @@
     private void AbrirCrear()
     {
         CerrarMensaje();
+        mostrarEditar = false;
         mostrarCrear = true;
     }
 
@@ -278,11 +302,37 @@
         mostrarCrear = false;
     }
 
+    private void AbrirEditar(int id)
+    {
+        CerrarMensaje();
+        mostrarCrear = false;
+        gastoEditarId = id;
+        mostrarEditar = true;
+    }
+
+    private void CerrarEditar()
+    {
+        mostrarEditar = false;
+    }
+
     private async Task GastoGuardado()
     {
         mostrarCrear = false;
-        mensajeExito = "Gasto registrado correctamente.";
         busqueda = string.Empty;
+
+        await ConfirmarCambio("Gasto registrado correctamente.");
+    }
+
+    private async Task GastoActualizado()
+    {
+        mostrarEditar = false;
+
+        await ConfirmarCambio("Gasto actualizado correctamente.");
+    }
+
+    private async Task ConfirmarCambio(string texto)
+    {
+        mensajeExito = texto;
 
         var versionActual = ++versionMensaje;
 
