@@ -4,6 +4,7 @@ using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
 using Microsoft.EntityFrameworkCore;
 using Modelado2025_1Repositorio.Repositorios;
+using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -137,6 +138,42 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             await context.SaveChangesAsync();
 
             return gasto.Id;
+        }
+
+        public async Task<List<GastoListadoDTO>> SelectListaGastos()
+        {
+            return await context.Gastos
+                .AsNoTracking()
+                .Where(gasto =>
+                    gasto.EstadoRegistro == EnumEstadoRegistro.activo)
+                .OrderByDescending(gasto => gasto.Fecha)
+                .ThenByDescending(gasto => gasto.Id)
+                .Select(gasto => new GastoListadoDTO
+                {
+                    Id = gasto.Id,
+                    Fecha = gasto.Fecha,
+                    TipoGastoId = gasto.TipoGastoId,
+                    TipoGasto = gasto.TipoGastos != null
+                        ? gasto.TipoGastos.Tipo
+                        : string.Empty,
+                    Descripcion = gasto.Descripcion,
+                    Monto = gasto.Monto,
+                    GastoSocios = gasto.GastoSocios
+                        .Where(aporte =>
+                            aporte.EstadoRegistro == EnumEstadoRegistro.activo)
+                        .OrderBy(aporte => aporte.SocioId)
+                        .Select(aporte => new GastoSocioListadoDTO
+                        {
+                            SocioId = aporte.SocioId,
+                            Profesional = aporte.Socios != null &&
+                                          aporte.Socios.Profesionales != null
+                                ? aporte.Socios.Profesionales.Nombre
+                                : string.Empty,
+                            Monto = aporte.Monto
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
         }
     }
 }

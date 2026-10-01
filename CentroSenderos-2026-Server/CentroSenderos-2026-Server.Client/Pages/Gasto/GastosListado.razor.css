@@ -132,6 +132,182 @@
 
 /* #endregion */
 
+/* #region Buscador */
+
+/* Permite buscar sin modificar los registros cargados. */
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border: 1px solid #e7e3dc;
+    border-radius: 12px;
+    background: #faf8f5;
+}
+
+    .search-box > i {
+        color: #788170;
+    }
+
+    .search-box input {
+        width: 100%;
+        min-width: 0;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: #333a31;
+        font-family: inherit;
+        font-size: 14px;
+    }
+
+    .search-box:focus-within {
+        border-color: #647b5b;
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.12);
+    }
+
+/* #endregion */
+
+/* #region Tabla de gastos */
+
+.list-card {
+    overflow: hidden;
+    border: 1px solid #e7e3dc;
+    border-radius: 16px;
+    background: #faf8f5;
+}
+
+/* El desplazamiento horizontal queda dentro de la tabla. */
+.table-container {
+    overflow-x: auto;
+}
+
+.gastos-table {
+    width: 100%;
+    min-width: 820px;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+    .gastos-table th {
+        padding: 16px;
+        border-bottom: 1px solid #e7e3dc;
+        background: #eeeee7;
+        color: #687160;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    .gastos-table td {
+        padding: 16px;
+        border-bottom: 1px solid #e7e3dc;
+        vertical-align: top;
+    }
+
+    .gastos-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .gastos-table tbody tr:hover {
+        background: #f1f2eb;
+    }
+
+.date-cell {
+    white-space: nowrap;
+    color: #687160;
+}
+
+.type-cell {
+    min-width: 140px;
+    font-weight: 600;
+}
+
+.description-cell {
+    min-width: 180px;
+    max-width: 300px;
+    color: #73796f;
+    overflow-wrap: anywhere;
+}
+
+.gastos-table .amount-column {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.total-cell {
+    color: #45623b;
+    font-weight: 650;
+}
+
+/* #endregion */
+
+/* #region Detalle de aportes */
+
+/* Cada socio aparece junto al importe que aportó. */
+.socios-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 230px;
+}
+
+.socio-aporte {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.socio-name {
+    color: #5d6557;
+    overflow-wrap: anywhere;
+}
+
+.socio-amount {
+    flex-shrink: 0;
+    color: #647b5b;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+/* #endregion */
+
+/* #region Pie del listado */
+
+.list-footer {
+    padding: 14px 16px;
+    border-top: 1px solid #e7e3dc;
+    color: #858a7e;
+    font-size: 12px;
+}
+
+/* #endregion */
+
+/* #region Reintentar consulta */
+
+.retry-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    margin-top: 18px;
+    border: 1px solid #d5dbcf;
+    border-radius: 9px;
+    background: #dfe5dc;
+    color: #45563e;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+    .retry-button:hover {
+        background: #d3ddce;
+    }
+
+/* #endregion */
+
 /* #region Responsive */
 
 /* Reorganiza el encabezado para pantallas pequeñas. */

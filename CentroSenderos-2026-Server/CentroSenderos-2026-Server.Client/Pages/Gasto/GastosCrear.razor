@@ -111,11 +111,11 @@
 
                             <select id="socioGasto"
                                     class="form-input"
-                                    value=""
-                                    @onchange="AgregarSocio"
-                                    disabled="@(guardando ||
-                                                !SociosDisponibles.Any())">
-                                <option value="">Seleccionar socio</option>
+                                    @bind="socioSeleccionadoId"
+                                    @bind:after="AgregarSocio"
+                                    disabled="@(guardando || !SociosDisponibles.Any())">
+
+                                <option value="0">Seleccionar socio</option>
 
                                 @foreach (var socio in SociosDisponibles)
                                 {
@@ -290,6 +290,8 @@
     private string mensaje = string.Empty;
     private string mensajeCarga = string.Empty;
 
+    private int socioSeleccionadoId;
+
     private IEnumerable<SocioListadoDTO> SociosDisponibles =>
         socios.Where(socio =>
             !modelo.GastoSocios.Any(aporte =>
@@ -353,12 +355,12 @@
         }
     }
 
-    private void AgregarSocio(ChangeEventArgs e)
+    private void AgregarSocio()
     {
-        if (guardando)
-            return;
+        var socioId = socioSeleccionadoId;
+        socioSeleccionadoId = 0;
 
-        if (!int.TryParse(e.Value?.ToString(), out var socioId))
+        if (guardando || socioId <= 0)
             return;
 
         if (!socios.Any(socio => socio.Id == socioId))

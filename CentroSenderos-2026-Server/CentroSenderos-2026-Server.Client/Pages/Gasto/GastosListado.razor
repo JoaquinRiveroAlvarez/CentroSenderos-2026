@@ -3,7 +3,11 @@
 @rendermode InteractiveAuto
 
 @using Microsoft.AspNetCore.Authorization
+@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Servicio.ServiciosHttp
+@using System.Globalization
 
+@inject IHttpServicio Http
 @inject NavigationManager Nav
 
 <div class="gastos-page">
@@ -17,7 +21,7 @@
             </button>
 
             <h1>Gastos</h1>
-            <p>Registrá los gastos y los aportes de cada socio.</p>
+            <p>Consultá los gastos y los aportes de cada socio.</p>
         </div>
 
         <button type="button"
@@ -44,18 +48,127 @@
         </div>
     }
 
-    <div class="state-card">
-        <div class="state-icon">
-            <i class="bi bi-receipt"></i>
-        </div>
+    <div class="search-box">
+        <i class="bi bi-search"></i>
 
-        <h2>Registro de gastos</h2>
-        <p>
-            Ya podés registrar gastos desde Nuevo gasto.
-            La consulta de los registros estará disponible
-            cuando conectemos el listado.
-        </p>
+        <input type="search"
+               aria-label="Buscar gastos"
+               placeholder="Buscar por tipo, descripción o socio..."
+               @bind="busqueda"
+               @bind:event="oninput" />
     </div>
+
+    @if (cargando)
+    {
+        <div class="state-card" role="status">
+            <p>Cargando gastos...</p>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(mensajeError))
+    {
+        <div class="state-card">
+            <div class="state-icon">
+                <i class="bi bi-exclamation-circle"></i>
+            </div>
+
+            <h2>No se pudo actualizar el listado</h2>
+            <p role="alert">@mensajeError</p>
+
+            <button type="button"
+                    class="retry-button"
+                    @onclick="CargarGastos">
+                <i class="bi bi-arrow-clockwise"></i>
+                Reintentar
+            </button>
+        </div>
+    }
+    else if (lista.Count == 0)
+    {
+        <div class="state-card">
+            <div class="state-icon">
+                <i class="bi bi-receipt"></i>
+            </div>
+
+            <h2>No hay gastos registrados</h2>
+            <p>Creá el primero desde Nuevo gasto.</p>
+        </div>
+    }
+    else if (!GastosFiltrados.Any())
+    {
+        <div class="state-card">
+            <div class="state-icon">
+                <i class="bi bi-search"></i>
+            </div>
+
+            <h2>Sin resultados</h2>
+            <p>Probá con otro tipo, descripción o nombre de socio.</p>
+        </div>
+    }
+    else
+    {
+        <div class="list-card">
+            <div class="table-container">
+                <table class="gastos-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">Tipo de gasto</th>
+                            <th scope="col">Descripción</th>
+                            <th scope="col">Aportes por socio</th>
+                            <th scope="col" class="amount-column">
+                                Monto total
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var gasto in GastosFiltrados)
+                        {
+                            <tr @key="gasto.Id">
+                                <td class="date-cell">
+                                    @gasto.Fecha.ToString("dd/MM/yyyy")
+                                </td>
+
+                                <td class="type-cell">
+                                    @gasto.TipoGasto
+                                </td>
+
+                                <td class="description-cell">
+                                    @gasto.Descripcion
+                                </td>
+
+                                <td>
+                                    <div class="socios-list">
+                                        @foreach (var aporte in gasto.GastoSocios)
+                                        {
+                                            <div class="socio-aporte"
+                                                 @key="aporte.SocioId">
+                                                <span class="socio-name">
+                                                    @aporte.Profesional
+                                                </span>
+
+                                                <span class="socio-amount">
+                                                    @aporte.Monto.ToString("C2", cultura)
+                                                </span>
+                                            </div>
+                                        }
+                                    </div>
+                                </td>
+
+                                <td class="amount-column total-cell">
+                                    @gasto.Monto.ToString("C2", cultura)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="list-footer">
+                Mostrando @GastosFiltrados.Count() de @lista.Count gastos
+            </div>
+        </div>
+    }
 
     @if (mostrarCrear)
     {
@@ -65,12 +178,98 @@
 </div>
 
 @code {
+    private readonly CultureInfo cultura =
+        CultureInfo.GetCultureInfo("es-AR");
+
+    private List<GastoListadoDTO> lista = new();
+
+    private bool cargando = true;
+    private bool cargaEnCurso;
     private bool mostrarCrear;
+
+    private int versionMensaje;
+
+    private string busqueda = string.Empty;
     private string mensajeExito = string.Empty;
+    private string mensajeError = string.Empty;
+
+    private IEnumerable<GastoListadoDTO> GastosFiltrados
+    {
+        get
+        {
+            var texto = busqueda.Trim();
+
+            if (string.IsNullOrWhiteSpace(texto))
+                return lista;
+
+            return lista.Where(gasto =>
+                gasto.TipoGasto.Contains(
+                    texto,
+                    StringComparison.OrdinalIgnoreCase) ||
+                gasto.Descripcion.Contains(
+                    texto,
+                    StringComparison.OrdinalIgnoreCase) ||
+                gasto.GastoSocios.Any(aporte =>
+                    aporte.Profesional.Contains(
+                        texto,
+                        StringComparison.OrdinalIgnoreCase)));
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarGastos();
+    }
+
+    private async Task CargarGastos()
+    {
+        if (cargaEnCurso)
+            return;
+
+        cargaEnCurso = true;
+        cargando = true;
+        mensajeError = string.Empty;
+
+        try
+        {
+            var respuesta =
+                await Http.Get<List<GastoListadoDTO>>(
+                    "api/gasto/ListaGastos");
+
+            if (respuesta.Error)
+            {
+                mensajeError = respuesta.ObtenerError();
+
+                if (string.IsNullOrWhiteSpace(mensajeError))
+                {
+                    mensajeError = "No se pudieron consultar los gastos.";
+                }
+
+                return;
+            }
+
+            lista = respuesta.Respuesta ?? new();
+        }
+        catch (TaskCanceledException)
+        {
+            mensajeError =
+                "La consulta tardó demasiado. Volvé a intentarlo.";
+        }
+        catch (Exception)
+        {
+            mensajeError =
+                "No se pudieron cargar los gastos. Verificá la conexión.";
+        }
+        finally
+        {
+            cargando = false;
+            cargaEnCurso = false;
+        }
+    }
 
     private void AbrirCrear()
     {
-        mensajeExito = string.Empty;
+        CerrarMensaje();
         mostrarCrear = true;
     }
 
@@ -79,14 +278,29 @@
         mostrarCrear = false;
     }
 
-    private void GastoGuardado()
+    private async Task GastoGuardado()
     {
         mostrarCrear = false;
         mensajeExito = "Gasto registrado correctamente.";
+        busqueda = string.Empty;
+
+        var versionActual = ++versionMensaje;
+
+        await CargarGastos();
+
+        StateHasChanged();
+
+        await Task.Delay(4000);
+
+        if (versionActual == versionMensaje)
+        {
+            mensajeExito = string.Empty;
+        }
     }
 
     private void CerrarMensaje()
     {
+        versionMensaje++;
         mensajeExito = string.Empty;
     }
 
