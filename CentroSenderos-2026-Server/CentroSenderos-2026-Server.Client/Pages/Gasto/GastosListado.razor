@@ -163,13 +163,26 @@
                                 </td>
 
                                 <td class="actions-column">
-                                    <button type="button"
-                                            class="edit-button"
-                                            title="Editar gasto"
-                                            aria-label="@($"Editar gasto del {gasto.Fecha:dd/MM/yyyy}: {gasto.Descripcion}")"
-                                            @onclick="() => AbrirEditar(gasto.Id)">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
+                                    <div class="gasto-actions">
+                                        <button type="button"
+                                                class="edit-button"
+                                                title="Editar gasto"
+                                                aria-label="@($"Editar gasto del {gasto.Fecha:dd/MM/yyyy}: {gasto.Descripcion}")"
+                                                @onclick="() => AbrirEditar(gasto.Id)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+
+                                        @if (gasto.TieneHistorial)
+                                        {
+                                            <button type="button"
+                                                    class="edit-button"
+                                                    title="Ver historial"
+                                                    aria-label="@($"Ver historial del gasto del {gasto.Fecha:dd/MM/yyyy}: {gasto.Descripcion}")"
+                                                    @onclick="() => AbrirHistorial(gasto.Id)">
+                                                <i class="bi bi-clock-history"></i>
+                                            </button>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -196,6 +209,15 @@
                       OnCerrar="CerrarEditar"
                       OnGuardado="GastoActualizado" />
     }
+
+    @if (mostrarHistorial)
+    {
+        <GastosHistorial @key="gastoHistorialId"
+                         GastoId="gastoHistorialId"
+                         OnCerrar="CerrarHistorial" />
+    }
+
+
 </div>
 
 @code {
@@ -215,6 +237,23 @@
     private string busqueda = string.Empty;
     private string mensajeExito = string.Empty;
     private string mensajeError = string.Empty;
+
+    private bool mostrarHistorial;
+    private int gastoHistorialId;
+
+    private void AbrirHistorial(int id)
+    {
+        CerrarMensaje();
+        mostrarCrear = false;
+        mostrarEditar = false;
+        gastoHistorialId = id;
+        mostrarHistorial = true;
+    }
+
+    private void CerrarHistorial()
+    {
+        mostrarHistorial = false;
+    }
 
     private IEnumerable<GastoListadoDTO> GastosFiltrados
     {

@@ -153,5 +153,40 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("{id:int}/historial")]
+        public async Task<ActionResult<List<GastoHistorialDTO>>> GetHistorialGasto(int id)
+        {
+            try
+            {
+                var historial = await repositorio.SelectHistorialGasto(id);
+
+                if (historial == null)
+                {
+                    return NotFound(new RespuestaDTO
+                    {
+                        mensaje = "El gasto no existe."
+                    });
+                }
+
+                return Ok(historial);
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new RespuestaDTO
+                    {
+                        mensaje = "Ocurrió un error inesperado al consultar el historial del gasto."
+                    });
+            }
+        }
+
+
+
+
+
+
+
     }
 }

@@ -1,0 +1,276 @@
+/* #region Fondo y modal */
+
+/* Mantiene el historial sobre el listado con desplazamiento interno. */
+.historial-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(30, 37, 28, 0.42);
+}
+
+.historial-modal {
+    width: 100%;
+    max-width: 850px;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+    padding: 26px;
+    border: 1px solid #e7e3dc;
+    border-radius: 20px;
+    background: #faf8f5;
+    color: #333a31;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.16);
+}
+
+/* #endregion */
+
+/* #region Encabezado */
+
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 0 20px;
+    border-bottom: 1px solid #e7e3dc;
+}
+
+    .modal-header h2 {
+        margin: 0 0 6px;
+        font-size: 26px;
+        font-weight: 650;
+    }
+
+    .modal-header p {
+        margin: 0;
+        color: #73796f;
+        font-size: 14px;
+    }
+
+.close-button {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 8px;
+    background: #eeebe5;
+    color: #687160;
+    cursor: pointer;
+}
+
+/* #endregion */
+
+/* #region Tarjetas de cambios */
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 20px;
+}
+
+.history-card {
+    padding: 20px;
+    border: 1px solid #e7e3dc;
+    border-radius: 14px;
+    background: white;
+}
+
+.history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.history-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+    .history-user i {
+        color: #647b5b;
+    }
+
+.history-date {
+    color: #858a7e;
+    font-size: 12px;
+}
+
+.history-reason {
+    padding: 12px 14px;
+    margin-top: 14px;
+    border-radius: 10px;
+    background: #f5f3ef;
+}
+
+    .history-reason > span {
+        color: #73796f;
+        font-size: 12px;
+    }
+
+    .history-reason p {
+        margin: 5px 0 0;
+        font-size: 14px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+.history-card h3 {
+    margin: 20px 0 10px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* #endregion */
+
+/* #region Comparación de versiones */
+
+.table-container {
+    overflow-x: auto;
+    border: 1px solid #e7e3dc;
+    border-radius: 10px;
+}
+
+.comparison-table {
+    width: 100%;
+    min-width: 450px;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 13px;
+}
+
+    .comparison-table thead th {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7e3dc;
+        background: #eeeee7;
+        color: #687160;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    .comparison-table tbody th,
+    .comparison-table tbody td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #e7e3dc;
+        vertical-align: top;
+        text-align: left;
+        overflow-wrap: anywhere;
+    }
+
+    .comparison-table tbody th {
+        font-weight: 500;
+    }
+
+    .comparison-table tbody tr:last-child th,
+    .comparison-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Resalta únicamente las filas cuyos valores cambiaron. */
+    .comparison-table .changed-row {
+        background: #edf3e9;
+    }
+
+    .comparison-table .amount-cell {
+        font-variant-numeric: tabular-nums;
+    }
+
+.comparison-help {
+    margin: 10px 0 0;
+    color: #858a7e;
+    font-size: 12px;
+}
+
+/* #endregion */
+
+/* #region Estados y botones */
+
+.state-card {
+    padding: 36px 16px;
+    text-align: center;
+}
+
+.state-icon {
+    color: #647b5b;
+    font-size: 30px;
+}
+
+.state-card h3 {
+    margin: 14px 0 8px;
+    font-size: 18px;
+}
+
+.state-card p {
+    margin: 10px 0 16px;
+    color: #73796f;
+    font-size: 14px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 20px;
+}
+
+.secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 10px 18px;
+    border: 1px solid #deded3;
+    border-radius: 9px;
+    background: transparent;
+    color: #646d5b;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+    .secondary-button:hover {
+        background: #eeeee7;
+    }
+
+button:focus-visible {
+    outline: 2px solid #556f4f;
+    outline-offset: 2px;
+}
+
+/* #endregion */
+
+/* #region Responsive */
+
+@media (max-width: 600px) {
+    .historial-overlay {
+        padding: 12px;
+    }
+
+    .historial-modal {
+        max-height: calc(100dvh - 24px);
+        padding: 18px;
+    }
+
+    .history-card {
+        padding: 14px;
+    }
+
+    .history-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+/* #endregion */

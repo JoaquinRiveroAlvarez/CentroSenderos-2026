@@ -432,6 +432,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         : string.Empty,
                     Descripcion = gasto.Descripcion,
                     Monto = gasto.Monto,
+                    TieneHistorial = context.GastoHistoriales.Any(historial => historial.GastoId == gasto.Id),
                     GastoSocios = gasto.GastoSocios
                         .Where(aporte =>
                             aporte.EstadoRegistro == EnumEstadoRegistro.activo)
@@ -475,6 +476,55 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .ToList()
                 })
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<GastoHistorialDTO>?> SelectHistorialGasto(
+    int gastoId)
+        {
+            var existe = await context.Gastos
+                .AsNoTracking()
+                .AnyAsync(gasto => gasto.Id == gastoId);
+
+            if (!existe)
+                return null;
+
+            var registros = await context.GastoHistoriales
+                .AsNoTracking()
+                .Where(historial => historial.GastoId == gastoId)
+                .OrderByDescending(historial => historial.FechaCambio)
+                .ThenByDescending(historial => historial.Id)
+                .Select(historial => new
+                {
+                    historial.Id,
+                    historial.GastoId,
+                    historial.NombreUsuario,
+                    historial.FechaCambio,
+                    historial.Motivo,
+                    historial.DatosAnteriores,
+                    historial.DatosNuevos
+                })
+                .ToListAsync();
+
+            return registros
+                .Select(registro => new GastoHistorialDTO
+                {
+                    Id = registro.Id,
+                    GastoId = registro.GastoId,
+                    NombreUsuario = registro.NombreUsuario,
+                    FechaCambio = registro.FechaCambio,
+                    Motivo = registro.Motivo,
+                    DatosAnteriores =
+                        JsonSerializer.Deserialize<GastoListadoDTO>(
+                            registro.DatosAnteriores)
+                        ?? throw new InvalidOperationException(
+                            "No se pudo interpretar la versión anterior del gasto."),
+                    DatosNuevos =
+                        JsonSerializer.Deserialize<GastoListadoDTO>(
+                            registro.DatosNuevos)
+                        ?? throw new InvalidOperationException(
+                            "No se pudo interpretar la versión nueva del gasto.")
+                })
+                .ToList();
         }
 
 

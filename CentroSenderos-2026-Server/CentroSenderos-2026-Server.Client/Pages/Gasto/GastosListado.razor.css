@@ -340,6 +340,23 @@
 
 /* #endregion */
 
+/* #region Botones de edición e historial */
+
+/* Amplía la columna para mostrar ambos botones. */
+.gastos-table .actions-column {
+    width: 112px;
+    min-width: 112px;
+}
+
+.gasto-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* #endregion */
+
 /* #region Responsive */
 
 /* Reorganiza el encabezado para pantallas pequeñas. */

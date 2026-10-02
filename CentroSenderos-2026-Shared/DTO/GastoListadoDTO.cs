@@ -18,6 +18,8 @@ namespace CentroSenderos_2026_Shared.DTO
 
         public decimal Monto { get; set; }
 
+        public bool TieneHistorial { get; set; }
+
         public List<GastoSocioListadoDTO> GastoSocios { get; set; } = new();
     }
 }

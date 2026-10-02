@@ -1,0 +1,305 @@
+﻿@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Servicio.ServiciosHttp
+@using System.Globalization
+
+@inject IHttpServicio Http
+
+<div class="historial-overlay" @onclick="Cerrar">
+    <section class="historial-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="tituloHistorialGasto"
+             @onclick:stopPropagation="true">
+
+        <header class="modal-header">
+            <div>
+                <h2 id="tituloHistorialGasto">Historial del gasto</h2>
+                <p>Consultá las modificaciones y sus motivos.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    aria-label="Cerrar historial"
+                    @onclick="Cerrar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </header>
+
+        @if (cargando)
+        {
+            <div class="state-card" role="status">
+                <span class="spinner-border spinner-border-sm"></span>
+                <p>Cargando historial...</p>
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(mensajeError))
+        {
+            <div class="state-card">
+                <i class="bi bi-exclamation-circle state-icon"></i>
+                <h3>No se pudo cargar el historial</h3>
+                <p role="alert">@mensajeError</p>
+
+                <button type="button"
+                        class="secondary-button"
+                        @onclick="CargarHistorial">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Reintentar
+                </button>
+            </div>
+        }
+        else if (historial.Count == 0)
+        {
+            <div class="state-card">
+                <i class="bi bi-clock-history state-icon"></i>
+                <h3>Sin modificaciones</h3>
+                <p>Este gasto todavía no tiene cambios registrados.</p>
+            </div>
+        }
+        else
+        {
+            <div class="history-list">
+                @foreach (var cambio in historial)
+                {
+                    <article class="history-card" @key="cambio.Id">
+                        <div class="history-header">
+                            <div class="history-user">
+                                <i class="bi bi-person"></i>
+                                <strong>@cambio.NombreUsuario</strong>
+                            </div>
+
+                            <span class="history-date">
+                                @FechaArgentina(cambio.FechaCambio)
+                            </span>
+                        </div>
+
+                        <div class="history-reason">
+                            <span>Motivo de la modificación</span>
+                            <p>@cambio.Motivo</p>
+                        </div>
+
+                        <h3>Datos del gasto</h3>
+
+                        <div class="table-container">
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Dato</th>
+                                        <th scope="col">Antes</th>
+                                        <th scope="col">Después</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <tr class="@(cambio.DatosAnteriores.Fecha.Date != cambio.DatosNuevos.Fecha.Date ? "changed-row" : null)">
+                                        <th scope="row">Fecha</th>
+                                        <td>
+                                            @cambio.DatosAnteriores.Fecha.ToString("dd/MM/yyyy")
+                                        </td>
+                                        <td>
+                                            @cambio.DatosNuevos.Fecha.ToString("dd/MM/yyyy")
+                                        </td>
+                                    </tr>
+
+                                    <tr class="@(cambio.DatosAnteriores.TipoGastoId != cambio.DatosNuevos.TipoGastoId || cambio.DatosAnteriores.TipoGasto != cambio.DatosNuevos.TipoGasto ? "changed-row" : null)">
+                                        <th scope="row">Tipo de gasto</th>
+                                        <td>@cambio.DatosAnteriores.TipoGasto</td>
+                                        <td>@cambio.DatosNuevos.TipoGasto</td>
+                                    </tr>
+
+                                    <tr class="@(cambio.DatosAnteriores.Descripcion != cambio.DatosNuevos.Descripcion ? "changed-row" : null)">
+                                        <th scope="row">Descripción</th>
+                                        <td>@cambio.DatosAnteriores.Descripcion</td>
+                                        <td>@cambio.DatosNuevos.Descripcion</td>
+                                    </tr>
+
+                                    <tr class="@(cambio.DatosAnteriores.Monto != cambio.DatosNuevos.Monto ? "changed-row" : null)">
+                                        <th scope="row">Monto total</th>
+                                        <td class="amount-cell">
+                                            @Moneda(cambio.DatosAnteriores.Monto)
+                                        </td>
+                                        <td class="amount-cell">
+                                            @Moneda(cambio.DatosNuevos.Monto)
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Aportes por socio</h3>
+
+                        <div class="table-container">
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Socio</th>
+                                        <th scope="col">Antes</th>
+                                        <th scope="col">Después</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var socioId in SocioIds(cambio))
+                                    {
+                                        var anterior = Aporte(
+                                            cambio.DatosAnteriores,
+                                            socioId);
+
+                                        var nuevo = Aporte(
+                                            cambio.DatosNuevos,
+                                            socioId);
+
+                                        <tr class="@(anterior?.Monto != nuevo?.Monto || anterior?.Profesional != nuevo?.Profesional ? "changed-row" : null)"
+                                            @key="socioId">
+
+                                            <th scope="row">
+                                                @(nuevo?.Profesional ?? anterior?.Profesional)
+                                            </th>
+
+                                            <td class="amount-cell">
+                                                @(anterior == null
+                                                    ? "Sin aporte"
+                                                    : Moneda(anterior.Monto))
+                                            </td>
+
+                                            <td class="amount-cell">
+                                                @(nuevo == null
+                                                    ? "Sin aporte"
+                                                    : Moneda(nuevo.Monto))
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p class="comparison-help">
+                            Las filas resaltadas indican cambios.
+                        </p>
+                    </article>
+                }
+            </div>
+        }
+
+        <footer class="modal-actions">
+            <button type="button"
+                    class="secondary-button"
+                    @onclick="Cerrar">
+                Cerrar
+            </button>
+        </footer>
+    </section>
+</div>
+
+@code {
+    [Parameter]
+    public int GastoId { get; set; }
+
+    [Parameter]
+    public EventCallback OnCerrar { get; set; }
+
+    private readonly CultureInfo cultura =
+        CultureInfo.GetCultureInfo("es-AR");
+
+    private readonly TimeZoneInfo zonaArgentina =
+        TimeZoneInfo.FindSystemTimeZoneById(
+            "America/Argentina/Buenos_Aires");
+
+    private List<GastoHistorialDTO> historial = new();
+
+    private bool cargando = true;
+    private bool cargaEnCurso;
+
+    private string mensajeError = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarHistorial();
+    }
+
+    private async Task CargarHistorial()
+    {
+        if (cargaEnCurso)
+            return;
+
+        cargaEnCurso = true;
+        cargando = true;
+        mensajeError = string.Empty;
+
+        try
+        {
+            var respuesta =
+                await Http.Get<List<GastoHistorialDTO>>(
+                    $"api/gasto/{GastoId}/historial");
+
+            if (respuesta.Error)
+            {
+                mensajeError = respuesta.ObtenerError();
+
+                if (string.IsNullOrWhiteSpace(mensajeError))
+                {
+                    mensajeError =
+                        "No se pudo consultar el historial del gasto.";
+                }
+
+                return;
+            }
+
+            historial = respuesta.Respuesta ?? new();
+        }
+        catch (TaskCanceledException)
+        {
+            mensajeError =
+                "La consulta tardó demasiado. Volvé a intentarlo.";
+        }
+        catch (Exception)
+        {
+            mensajeError =
+                "No se pudo cargar el historial. Verificá la conexión.";
+        }
+        finally
+        {
+            cargando = false;
+            cargaEnCurso = false;
+        }
+    }
+
+    private string FechaArgentina(DateTime fecha)
+    {
+        var fechaUtc = DateTime.SpecifyKind(
+            fecha,
+            DateTimeKind.Utc);
+
+        return TimeZoneInfo.ConvertTimeFromUtc(
+                fechaUtc,
+                zonaArgentina)
+            .ToString("dd/MM/yyyy HH:mm:ss", cultura);
+    }
+
+    private string Moneda(decimal monto)
+    {
+        return monto.ToString("C2", cultura);
+    }
+
+    private static IEnumerable<int> SocioIds(GastoHistorialDTO cambio)
+    {
+        return cambio.DatosAnteriores.GastoSocios
+            .Select(aporte => aporte.SocioId)
+            .Union(
+                cambio.DatosNuevos.GastoSocios
+                    .Select(aporte => aporte.SocioId))
+            .OrderBy(id => id);
+    }
+
+    private static GastoSocioListadoDTO? Aporte(
+        GastoListadoDTO version,
+        int socioId)
+    {
+        return version.GastoSocios.FirstOrDefault(
+            aporte => aporte.SocioId == socioId);
+    }
+
+    private async Task Cerrar()
+    {
+        await OnCerrar.InvokeAsync();
+    }
+}
