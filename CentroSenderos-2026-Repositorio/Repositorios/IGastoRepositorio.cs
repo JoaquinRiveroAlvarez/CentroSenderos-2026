@@ -13,6 +13,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         Task<bool> ActualizarGasto(int id,GastoEditarDTO dto,string usuarioId);
         Task<GastoCrearDTO?> SelectGastoPorId(int id);
         Task<List<GastoHistorialDTO>?> SelectHistorialGasto(int gastoId);
+        Task<GastoListadoDTO?> SelectDetalleGasto(int id);
 
     }
 }

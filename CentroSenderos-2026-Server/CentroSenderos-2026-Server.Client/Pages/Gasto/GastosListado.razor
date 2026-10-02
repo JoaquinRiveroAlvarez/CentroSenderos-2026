@@ -127,7 +127,10 @@
                     <tbody>
                         @foreach (var gasto in GastosFiltrados)
                         {
-                            <tr @key="gasto.Id">
+                            <tr @key="gasto.Id"
+                                class="gasto-row"
+                                @onclick="() => AbrirDetalle(gasto.Id)">
+
                                 <td class="date-cell">
                                     @gasto.Fecha.ToString("dd/MM/yyyy")
                                 </td>
@@ -163,7 +166,9 @@
                                 </td>
 
                                 <td class="actions-column">
-                                    <div class="gasto-actions">
+                                    <div class="gasto-actions"
+                                         @onclick:stopPropagation="true">
+
                                         <button type="button"
                                                 class="edit-button"
                                                 title="Editar gasto"
@@ -217,7 +222,12 @@
                          OnCerrar="CerrarHistorial" />
     }
 
-
+    @if (mostrarDetalle)
+    {
+        <GastosDetalle @key="gastoDetalleId"
+                       GastoId="gastoDetalleId"
+                       OnCerrar="CerrarDetalle" />
+    }
 </div>
 
 @code {
@@ -230,30 +240,17 @@
     private bool cargaEnCurso;
     private bool mostrarCrear;
     private bool mostrarEditar;
+    private bool mostrarHistorial;
+    private bool mostrarDetalle;
 
     private int gastoEditarId;
+    private int gastoHistorialId;
+    private int gastoDetalleId;
     private int versionMensaje;
 
     private string busqueda = string.Empty;
     private string mensajeExito = string.Empty;
     private string mensajeError = string.Empty;
-
-    private bool mostrarHistorial;
-    private int gastoHistorialId;
-
-    private void AbrirHistorial(int id)
-    {
-        CerrarMensaje();
-        mostrarCrear = false;
-        mostrarEditar = false;
-        gastoHistorialId = id;
-        mostrarHistorial = true;
-    }
-
-    private void CerrarHistorial()
-    {
-        mostrarHistorial = false;
-    }
 
     private IEnumerable<GastoListadoDTO> GastosFiltrados
     {
@@ -332,7 +329,8 @@
     private void AbrirCrear()
     {
         CerrarMensaje();
-        mostrarEditar = false;
+        CerrarModales();
+
         mostrarCrear = true;
     }
 
@@ -344,7 +342,8 @@
     private void AbrirEditar(int id)
     {
         CerrarMensaje();
-        mostrarCrear = false;
+        CerrarModales();
+
         gastoEditarId = id;
         mostrarEditar = true;
     }
@@ -354,9 +353,45 @@
         mostrarEditar = false;
     }
 
-    private async Task GastoGuardado()
+    private void AbrirHistorial(int id)
+    {
+        CerrarMensaje();
+        CerrarModales();
+
+        gastoHistorialId = id;
+        mostrarHistorial = true;
+    }
+
+    private void CerrarHistorial()
+    {
+        mostrarHistorial = false;
+    }
+
+    private void AbrirDetalle(int id)
+    {
+        CerrarMensaje();
+        CerrarModales();
+
+        gastoDetalleId = id;
+        mostrarDetalle = true;
+    }
+
+    private void CerrarDetalle()
+    {
+        mostrarDetalle = false;
+    }
+
+    private void CerrarModales()
     {
         mostrarCrear = false;
+        mostrarEditar = false;
+        mostrarHistorial = false;
+        mostrarDetalle = false;
+    }
+
+    private async Task GastoGuardado()
+    {
+        CerrarModales();
         busqueda = string.Empty;
 
         await ConfirmarCambio("Gasto registrado correctamente.");
@@ -364,7 +399,7 @@
 
     private async Task GastoActualizado()
     {
-        mostrarEditar = false;
+        CerrarModales();
 
         await ConfirmarCambio("Gasto actualizado correctamente.");
     }

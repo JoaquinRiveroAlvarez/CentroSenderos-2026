@@ -1,0 +1,197 @@
+﻿@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Servicio.ServiciosHttp
+@using System.Globalization
+
+@inject IHttpServicio Http
+
+<div class="detalle-overlay" @onclick="Cerrar">
+    <section class="detalle-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="tituloDetalleGasto"
+             @onclick:stopPropagation="true">
+
+        <header class="modal-header">
+            <div>
+                <h2 id="tituloDetalleGasto">Detalle del gasto</h2>
+                <p>Información del gasto y aportes de los socios.</p>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    aria-label="Cerrar detalle"
+                    @onclick="Cerrar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </header>
+
+        @if (cargando)
+        {
+            <div class="state-card" role="status">
+                <span class="spinner-border spinner-border-sm"></span>
+                <p>Cargando gasto...</p>
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(mensajeError))
+        {
+            <div class="state-card">
+                <i class="bi bi-exclamation-circle state-icon"></i>
+                <h3>No se pudo cargar el gasto</h3>
+                <p role="alert">@mensajeError</p>
+
+                <button type="button"
+                        class="secondary-button"
+                        @onclick="CargarDetalle">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Reintentar
+                </button>
+            </div>
+        }
+        else if (gasto != null)
+        {
+            <section class="detail-section">
+                <h3>Información del gasto</h3>
+
+                <dl class="detail-grid">
+                    <div class="detail-field">
+                        <dt>Tipo de gasto</dt>
+                        <dd>@gasto.TipoGasto</dd>
+                    </div>
+
+                    <div class="detail-field">
+                        <dt>Fecha</dt>
+                        <dd>@gasto.Fecha.ToString("dd/MM/yyyy")</dd>
+                    </div>
+
+                    <div class="detail-field full-width">
+                        <dt>Descripción</dt>
+                        <dd class="description">@gasto.Descripcion</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section class="detail-section">
+                <h3>Aportes de los socios</h3>
+
+                @if (gasto.GastoSocios.Count == 0)
+                {
+                    <p class="empty-aportes">
+                        No hay aportes registrados para este gasto.
+                    </p>
+                }
+                else
+                {
+                    <div class="aportes-list">
+                        @foreach (var aporte in gasto.GastoSocios)
+                        {
+                            <div class="aporte-row" @key="aporte.SocioId">
+                                <div class="aporte-name">
+                                    <i class="bi bi-person"></i>
+                                    <span>@aporte.Profesional</span>
+                                </div>
+
+                                <strong class="aporte-amount">
+                                    @aporte.Monto.ToString("C2", cultura)
+                                </strong>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="total-box">
+                    <span>Monto total</span>
+                    <strong>@gasto.Monto.ToString("C2", cultura)</strong>
+                </div>
+            </section>
+        }
+
+        <footer class="modal-actions">
+            <button type="button"
+                    class="secondary-button"
+                    @onclick="Cerrar">
+                Cerrar
+            </button>
+        </footer>
+    </section>
+</div>
+
+@code {
+    [Parameter]
+    public int GastoId { get; set; }
+
+    [Parameter]
+    public EventCallback OnCerrar { get; set; }
+
+    private readonly CultureInfo cultura =
+        CultureInfo.GetCultureInfo("es-AR");
+
+    private GastoListadoDTO? gasto;
+
+    private bool cargando = true;
+    private bool cargaEnCurso;
+
+    private string mensajeError = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDetalle();
+    }
+
+    private async Task CargarDetalle()
+    {
+        if (cargaEnCurso)
+            return;
+
+        cargaEnCurso = true;
+        cargando = true;
+        mensajeError = string.Empty;
+
+        try
+        {
+            var respuesta =
+                await Http.Get<GastoListadoDTO>(
+                    $"api/gasto/{GastoId}/detalle");
+
+            if (respuesta.Error)
+            {
+                mensajeError = respuesta.ObtenerError();
+
+                if (string.IsNullOrWhiteSpace(mensajeError))
+                {
+                    mensajeError =
+                        "No se pudo consultar el detalle del gasto.";
+                }
+
+                return;
+            }
+
+            gasto = respuesta.Respuesta;
+
+            if (gasto == null)
+            {
+                mensajeError =
+                    "No se encontraron los datos del gasto.";
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            mensajeError =
+                "La consulta tardó demasiado. Volvé a intentarlo.";
+        }
+        catch (Exception)
+        {
+            mensajeError =
+                "No se pudo cargar el gasto. Verificá la conexión.";
+        }
+        finally
+        {
+            cargando = false;
+            cargaEnCurso = false;
+        }
+    }
+
+    private async Task Cerrar()
+    {
+        await OnCerrar.InvokeAsync();
+    }
+}

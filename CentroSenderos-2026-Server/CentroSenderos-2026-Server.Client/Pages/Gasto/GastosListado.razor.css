@@ -357,6 +357,15 @@
 
 /* #endregion */
 
+/* #region Apertura del detalle */
+
+/* Indica que la fila permite consultar el gasto. */
+.gasto-row {
+    cursor: pointer;
+}
+
+/* #endregion */
+
 /* #region Responsive */
 
 /* Reorganiza el encabezado para pantallas pequeñas. */

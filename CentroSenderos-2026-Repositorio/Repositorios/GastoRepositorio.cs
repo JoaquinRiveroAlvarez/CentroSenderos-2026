@@ -142,10 +142,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return gasto.Id;
         }
 
-        public async Task<bool> ActualizarGasto(
-    int id,
-    GastoEditarDTO dto,
-    string usuarioId)
+        public async Task<bool> ActualizarGasto(int id,GastoEditarDTO dto,string usuarioId)
         {
             if (string.IsNullOrWhiteSpace(usuarioId))
             {
@@ -478,8 +475,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<GastoHistorialDTO>?> SelectHistorialGasto(
-    int gastoId)
+        public async Task<List<GastoHistorialDTO>?> SelectHistorialGasto(int gastoId)
         {
             var existe = await context.Gastos
                 .AsNoTracking()
@@ -527,7 +523,42 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .ToList();
         }
 
-
+        public async Task<GastoListadoDTO?> SelectDetalleGasto(int id)
+        {
+            return await context.Gastos
+                .AsNoTracking()
+                .Where(gasto =>
+                    gasto.Id == id &&
+                    gasto.EstadoRegistro == EnumEstadoRegistro.activo)
+                .Select(gasto => new GastoListadoDTO
+                {
+                    Id = gasto.Id,
+                    Fecha = gasto.Fecha,
+                    TipoGastoId = gasto.TipoGastoId,
+                    TipoGasto = gasto.TipoGastos != null
+                        ? gasto.TipoGastos.Tipo
+                        : string.Empty,
+                    Descripcion = gasto.Descripcion,
+                    Monto = gasto.Monto,
+                    TieneHistorial = context.GastoHistoriales
+                        .Any(historial => historial.GastoId == gasto.Id),
+                    GastoSocios = gasto.GastoSocios
+                        .Where(aporte =>
+                            aporte.EstadoRegistro == EnumEstadoRegistro.activo)
+                        .OrderBy(aporte => aporte.SocioId)
+                        .Select(aporte => new GastoSocioListadoDTO
+                        {
+                            SocioId = aporte.SocioId,
+                            Profesional = aporte.Socios != null &&
+                                          aporte.Socios.Profesionales != null
+                                ? aporte.Socios.Profesionales.Nombre
+                                : string.Empty,
+                            Monto = aporte.Monto
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+        }
 
 
 

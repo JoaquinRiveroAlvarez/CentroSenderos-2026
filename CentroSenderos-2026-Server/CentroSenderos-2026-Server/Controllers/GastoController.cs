@@ -43,8 +43,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPost("insertar")]
-        public async Task<ActionResult<int>> InsertarGasto(
-            [FromBody] GastoCrearDTO dto)
+        public async Task<ActionResult<int>> InsertarGasto([FromBody] GastoCrearDTO dto)
         {
             try
             {
@@ -182,7 +181,34 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("{id:int}/detalle")]
+        public async Task<ActionResult<GastoListadoDTO>> GetDetalleGasto(int id)
+        {
+            try
+            {
+                var gasto = await repositorio.SelectDetalleGasto(id);
 
+                if (gasto == null)
+                {
+                    return NotFound(new RespuestaDTO
+                    {
+                        mensaje = "El gasto no existe o está dado de baja."
+                    });
+                }
+
+                return Ok(gasto);
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new RespuestaDTO
+                    {
+                        mensaje = "Ocurrió un error inesperado al consultar el detalle del gasto."
+                    });
+            }
+        }
 
 
 
