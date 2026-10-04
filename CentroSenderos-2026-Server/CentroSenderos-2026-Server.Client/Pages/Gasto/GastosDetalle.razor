@@ -105,7 +105,29 @@
             </section>
         }
 
-        <footer class="modal-actions">
+                <footer class="modal-actions">
+            @if (gasto != null &&
+                 !cargando &&
+                 string.IsNullOrWhiteSpace(mensajeError))
+            {
+                @if (gasto.TieneHistorial)
+                {
+                    <button type="button"
+                            class="secondary-button"
+                            @onclick="AbrirHistorial">
+                        <i class="bi bi-clock-history"></i>
+                        Ver historial
+                    </button>
+                }
+
+                <button type="button"
+                        class="secondary-button"
+                        @onclick="AbrirEditar">
+                    <i class="bi bi-pencil"></i>
+                    Editar
+                </button>
+            }
+
             <button type="button"
                     class="secondary-button"
                     @onclick="Cerrar">
@@ -121,6 +143,11 @@
 
     [Parameter]
     public EventCallback OnCerrar { get; set; }
+    [Parameter]
+    public EventCallback<int> OnEditar { get; set; }
+    [Parameter]
+    public EventCallback<int> OnHistorial { get; set; }
+
 
     private readonly CultureInfo cultura =
         CultureInfo.GetCultureInfo("es-AR");
@@ -189,6 +216,23 @@
             cargaEnCurso = false;
         }
     }
+
+        private async Task AbrirEditar()
+    {
+        if (gasto == null)
+            return;
+
+        await OnEditar.InvokeAsync(GastoId);
+    }
+
+    private async Task AbrirHistorial()
+    {
+        if (gasto == null || !gasto.TieneHistorial)
+            return;
+
+        await OnHistorial.InvokeAsync(GastoId);
+    }
+
 
     private async Task Cerrar()
     {

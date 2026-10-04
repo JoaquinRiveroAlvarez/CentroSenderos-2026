@@ -213,7 +213,8 @@
 .modal-actions {
     display: flex;
     justify-content: flex-end;
-    padding-top: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .secondary-button {

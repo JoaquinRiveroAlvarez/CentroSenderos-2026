@@ -226,7 +226,9 @@
     {
         <GastosDetalle @key="gastoDetalleId"
                        GastoId="gastoDetalleId"
-                       OnCerrar="CerrarDetalle" />
+                       OnCerrar="CerrarDetalle"
+                       OnEditar="AbrirEditar"
+                       OnHistorial="AbrirHistorial" />
     }
 </div>
 
@@ -242,6 +244,9 @@
     private bool mostrarEditar;
     private bool mostrarHistorial;
     private bool mostrarDetalle;
+    private bool volverAlDetalle;
+
+
 
     private int gastoEditarId;
     private int gastoHistorialId;
@@ -341,6 +346,8 @@
 
     private void AbrirEditar(int id)
     {
+        volverAlDetalle = mostrarDetalle;
+
         CerrarMensaje();
         CerrarModales();
 
@@ -351,10 +358,18 @@
     private void CerrarEditar()
     {
         mostrarEditar = false;
+
+        if (volverAlDetalle)
+        {
+            volverAlDetalle = false;
+            AbrirDetalle(gastoEditarId);
+        }
     }
 
     private void AbrirHistorial(int id)
     {
+        volverAlDetalle = mostrarDetalle;
+
         CerrarMensaje();
         CerrarModales();
 
@@ -365,6 +380,12 @@
     private void CerrarHistorial()
     {
         mostrarHistorial = false;
+
+        if (volverAlDetalle)
+        {
+            volverAlDetalle = false;
+            AbrirDetalle(gastoHistorialId);
+        }
     }
 
     private void AbrirDetalle(int id)
@@ -399,7 +420,15 @@
 
     private async Task GastoActualizado()
     {
+        var regresarAlDetalle = volverAlDetalle;
+        volverAlDetalle = false;
+
         CerrarModales();
+
+        if (regresarAlDetalle)
+        {
+            AbrirDetalle(gastoEditarId);
+        }
 
         await ConfirmarCambio("Gasto actualizado correctamente.");
     }
