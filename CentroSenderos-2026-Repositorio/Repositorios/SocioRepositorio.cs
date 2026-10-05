@@ -101,18 +101,68 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
         public async Task<bool> ActualizarSocio(int id, SocioDTO dto)
         {
-            var socio = await context.Socios.FirstOrDefaultAsync(s => s.Id == id);
-            if (socio == null) return false;
+            await using var transaccion =
+                await context.Database.BeginTransactionAsync(
+                    System.Data.IsolationLevel.Serializable);
 
-            socio.ProfesionalId = dto.ProfesionalId;
+            var socio = await context.Socios
+                .FirstOrDefaultAsync(socio => socio.Id == id);
+
+            if (socio == null)
+                return false;
+
+            if (socio.ProfesionalId != dto.ProfesionalId)
+            {
+                var tienePagos = await context.Gastos
+                    .AnyAsync(gasto =>
+                        gasto.GastoSocios.Any(aporte =>
+                            aporte.SocioId == id));
+
+                var tieneRepartos = await context.GastoRepartos
+                    .AnyAsync(reparto =>
+                        reparto.SocioId == id);
+
+                if (tienePagos || tieneRepartos)
+                {
+                    throw new ApplicationException(
+                        "No se puede cambiar el profesional de un socio " +
+                        "que tiene pagos o repartos registrados. " +
+                        "Podés modificar su observación.");
+                }
+
+                var profesionalExiste = await context.Profesionales
+                    .AnyAsync(profesional =>
+                        profesional.Id == dto.ProfesionalId &&
+                        profesional.EstadoRegistro ==
+                            EnumEstadoRegistro.activo);
+
+                if (!profesionalExiste)
+                {
+                    throw new ApplicationException(
+                        "El profesional seleccionado no existe o está inactivo.");
+                }
+
+                var profesionalYaEsSocio = await context.Socios
+                    .AnyAsync(otro =>
+                        otro.Id != id &&
+                        otro.ProfesionalId == dto.ProfesionalId);
+
+                if (profesionalYaEsSocio)
+                {
+                    throw new ApplicationException(
+                        "El profesional seleccionado ya tiene un registro de socio.");
+                }
+
+                socio.ProfesionalId = dto.ProfesionalId;
+            }
+
             socio.Observacion = dto.Observacion;
-            //socio.EstadoRegistro = dto.EstadoRegistro;
 
-            context.Socios.Update(socio);
             await context.SaveChangesAsync();
+            await transaccion.CommitAsync();
+
             return true;
         }
-
         public async Task<List<SocioListadoDTO>> SelectListaSociosParaReparto()
         {
             return await context.Socios

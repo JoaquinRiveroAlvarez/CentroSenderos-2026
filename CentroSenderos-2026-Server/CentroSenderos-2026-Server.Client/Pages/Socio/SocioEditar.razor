@@ -258,7 +258,6 @@
         await CargarDatos();
     }
 
-
     private async Task CargarDatos()
     {
         cargando = true;
@@ -304,7 +303,7 @@
     }
 
 
-    private async Task Grabar()
+            private async Task Grabar()
     {
         if (modelo == null)
             return;
@@ -315,25 +314,19 @@
         var resp =
             await Http.Put<SocioDTO, RespuestaDTO>(
                 $"api/socio/{id}",
-                modelo
-            );
+                modelo);
 
         guardando = false;
 
-
         if (!resp.Error)
         {
-            Nav.NavigateTo(
-                "/socio",
-                true
-            );
+            Nav.NavigateTo("/socio", true);
         }
         else
         {
             Mensaje = resp.ObtenerError();
         }
     }
-
 
     private void AbrirConfirmacionEliminar()
     {
@@ -387,9 +380,9 @@
     }
 
     
-    private void Volver()
+        private void Volver()
     {
-        Nav.NavigateTo("/tipoobrasocial");
+        Nav.NavigateTo("/socio");
     }
 
 }
