@@ -8,29 +8,29 @@
 @using System.Globalization
 
 @inject IHttpServicio Http
-@inject NavigationManager Nav
 
 <div class="gastos-page">
-    <div class="page-header">
-        <div>
-            <button type="button"
-                    class="back-button"
-                    @onclick="Volver">
-                <i class="bi bi-arrow-left"></i>
-                <span>Volver</span>
-            </button>
+    @if (!string.IsNullOrEmpty(calendarioActivo))
+    {
+        <button type="button"
+                class="periodo-cierre-fondo"
+                aria-label="Cerrar calendario"
+                @onclick="CerrarCalendarioPeriodo">
+        </button>
+    }
 
-            <h1>Gastos</h1>
-            <p>Consultá los gastos y los aportes de cada socio.</p>
-        </div>
-
+    <header class="gastos-header">
         <button type="button"
                 class="new-button"
                 @onclick="AbrirCrear">
             <i class="bi bi-plus-lg"></i>
             <span>Nuevo gasto</span>
         </button>
-    </div>
+
+        <h1>Gastos</h1>
+
+        <span class="header-period">@NombrePeriodo</span>
+    </header>
 
     @if (!string.IsNullOrWhiteSpace(mensajeExito))
     {
@@ -48,16 +48,6 @@
         </div>
     }
 
-    <div class="search-box">
-        <i class="bi bi-search"></i>
-
-        <input type="search"
-               aria-label="Buscar gastos"
-               placeholder="Buscar por tipo, descripción o socio..."
-               @bind="busqueda"
-               @bind:event="oninput" />
-    </div>
-
     @if (cargando)
     {
         <div class="state-card" role="status">
@@ -67,10 +57,6 @@
     else if (!string.IsNullOrWhiteSpace(mensajeError))
     {
         <div class="state-card">
-            <div class="state-icon">
-                <i class="bi bi-exclamation-circle"></i>
-            </div>
-
             <h2>No se pudo actualizar el listado</h2>
             <p role="alert">@mensajeError</p>
 
@@ -82,122 +68,437 @@
             </button>
         </div>
     }
-    else if (lista.Count == 0)
-    {
-        <div class="state-card">
-            <div class="state-icon">
-                <i class="bi bi-receipt"></i>
-            </div>
-
-            <h2>No hay gastos registrados</h2>
-            <p>Creá el primero desde Nuevo gasto.</p>
-        </div>
-    }
-    else if (!GastosFiltrados.Any())
-    {
-        <div class="state-card">
-            <div class="state-icon">
-                <i class="bi bi-search"></i>
-            </div>
-
-            <h2>Sin resultados</h2>
-            <p>Probá con otro tipo, descripción o nombre de socio.</p>
-        </div>
-    }
     else
     {
-        <div class="list-card">
-            <div class="table-container">
-                <table class="gastos-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Fecha</th>
-                            <th scope="col">Tipo de gasto</th>
-                            <th scope="col">Descripción</th>
-                            <th scope="col">Aportes por socio</th>
-                            <th scope="col" class="amount-column">
-                                Monto total
-                            </th>
-                            <th scope="col" class="actions-column">
-                                Acción
-                            </th>
-                        </tr>
-                    </thead>
+        var resultados = GastosFiltrados;
+        var aportes = ObtenerResumenAportes(resultados);
+        var total = resultados.Sum(gasto => gasto.Monto);
 
-                    <tbody>
-                        @foreach (var gasto in GastosFiltrados)
+        <div class="gastos-layout">
+            <section class="list-card">
+                <div class="gastos-filters">
+                    <div class="filter-field">
+                        <label for="filtroTipoGasto">Tipo de gasto</label>
+
+                        <select id="filtroTipoGasto"
+                                @bind="tipoSeleccionadoId">
+                            <option value="0">Todos los tipos</option>
+
+                            @foreach (var tipo in TiposDisponibles)
+                            {
+                                <option value="@tipo.Id">@tipo.Nombre</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="filter-field">
+                        <label for="filtroSocioGasto">Pagado por</label>
+
+                        <select id="filtroSocioGasto"
+                                @bind="socioSeleccionadoId">
+                            <option value="0">Todos los socios</option>
+
+                            @foreach (var socio in SociosDisponibles)
+                            {
+                                <option value="@socio.SocioId">
+                                    @socio.Profesional
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="@ClaseCampoFecha("desde")">
+                        <label id="labelFechaDesde">Desde</label>
+
+                        <button type="button"
+                                class="periodo-fecha-selector"
+                                aria-labelledby="labelFechaDesde textoFechaDesde"
+                                aria-expanded="@(calendarioActivo == "desde")"
+                                aria-controls="calendarioDesde"
+                                @onclick="AbrirCalendarioDesde">
+                            <span id="textoFechaDesde">
+                                @(fechaDesde?.ToString("dd/MM/yyyy") ?? "Sin límite")
+                            </span>
+
+                            <i class="bi bi-calendar3"></i>
+                        </button>
+
+                        @if (calendarioActivo == "desde")
                         {
-                            <tr @key="gasto.Id"
-                                class="gasto-row"
-                                @onclick="() => AbrirDetalle(gasto.Id)">
+                            <section id="calendarioDesde"
+                                     class="periodo-calendario"
+                                     aria-label="Calendario Desde">
+                                <div class="periodo-calendario-header">
+                                    <button type="button"
+                                            class="periodo-calendario-nav"
+                                            aria-label="Mes anterior"
+                                            disabled="@EsPrimerMes"
+                                            @onclick="MesAnteriorPeriodo">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
 
-                                <td class="date-cell">
-                                    @gasto.Fecha.ToString("dd/MM/yyyy")
-                                </td>
+                                    <strong>@TituloMesCalendarioPeriodo</strong>
 
-                                <td class="type-cell">
-                                    @gasto.TipoGasto
-                                </td>
+                                    <button type="button"
+                                            class="periodo-calendario-nav"
+                                            aria-label="Mes siguiente"
+                                            disabled="@EsUltimoMes"
+                                            @onclick="MesSiguientePeriodo">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </div>
 
-                                <td class="description-cell">
-                                    @gasto.Descripcion
-                                </td>
+                                <div class="periodo-calendario-semana">
+                                    <span>Lu</span>
+                                    <span>Ma</span>
+                                    <span>Mi</span>
+                                    <span>Ju</span>
+                                    <span>Vi</span>
+                                    <span>Sá</span>
+                                    <span>Do</span>
+                                </div>
 
-                                <td>
-                                    <div class="socios-list">
-                                        @foreach (var aporte in gasto.GastoSocios)
-                                        {
-                                            <div class="socio-aporte"
-                                                 @key="aporte.SocioId">
-                                                <span class="socio-name">
-                                                    @aporte.Profesional
-                                                </span>
+                                <div class="periodo-calendario-dias">
+                                    @for (var espacio = 0; espacio < EspaciosCalendarioPeriodo; espacio++)
+                                    {
+                                        <span aria-hidden="true"></span>
+                                    }
 
-                                                <span class="socio-amount">
-                                                    @aporte.Monto.ToString("C2", cultura)
-                                                </span>
-                                            </div>
-                                        }
-                                    </div>
-                                </td>
-
-                                <td class="amount-column total-cell">
-                                    @gasto.Monto.ToString("C2", cultura)
-                                </td>
-
-                                <td class="actions-column">
-                                    <div class="gasto-actions"
-                                         @onclick:stopPropagation="true">
-
+                                    @foreach (var dia in DiasCalendarioPeriodo)
+                                    {
                                         <button type="button"
-                                                class="edit-button"
-                                                title="Editar gasto"
-                                                aria-label="@($"Editar gasto del {gasto.Fecha:dd/MM/yyyy}: {gasto.Descripcion}")"
-                                                @onclick="() => AbrirEditar(gasto.Id)">
-                                            <i class="bi bi-pencil"></i>
+                                                class="@ClaseDiaPeriodo(dia)"
+                                                aria-label="@dia.ToString("D", cultura)"
+                                                aria-pressed="@(FechaCalendarioPeriodo?.Date == dia.Date)"
+                                                @onclick="() => SeleccionarFechaPeriodo(dia)">
+                                            @dia.Day
                                         </button>
+                                    }
+                                </div>
 
-                                        @if (gasto.TieneHistorial)
-                                        {
-                                            <button type="button"
-                                                    class="edit-button"
-                                                    title="Ver historial"
-                                                    aria-label="@($"Ver historial del gasto del {gasto.Fecha:dd/MM/yyyy}: {gasto.Descripcion}")"
-                                                    @onclick="() => AbrirHistorial(gasto.Id)">
-                                                <i class="bi bi-clock-history"></i>
-                                            </button>
-                                        }
-                                    </div>
-                                </td>
-                            </tr>
+                                <div class="periodo-calendario-footer">
+                                    <button type="button"
+                                            @onclick="LimpiarFechaPeriodo">
+                                        Sin límite
+                                    </button>
+
+                                    <button type="button"
+                                            @onclick="SeleccionarHoyPeriodo">
+                                        Hoy
+                                    </button>
+
+                                    <button type="button"
+                                            @onclick="CerrarCalendarioPeriodo">
+                                        Cerrar
+                                    </button>
+                                </div>
+                            </section>
                         }
-                    </tbody>
-                </table>
-            </div>
+                    </div>
 
-            <div class="list-footer">
-                Mostrando @GastosFiltrados.Count() de @lista.Count gastos
-            </div>
+                    <div class="@ClaseCampoFecha("hasta")">
+                        <label id="labelFechaHasta">Hasta</label>
+
+                        <button type="button"
+                                class="periodo-fecha-selector"
+                                aria-labelledby="labelFechaHasta textoFechaHasta"
+                                aria-expanded="@(calendarioActivo == "hasta")"
+                                aria-controls="calendarioHasta"
+                                @onclick="AbrirCalendarioHasta">
+                            <span id="textoFechaHasta">
+                                @(fechaHasta?.ToString("dd/MM/yyyy") ?? "Sin límite")
+                            </span>
+
+                            <i class="bi bi-calendar3"></i>
+                        </button>
+
+                        @if (calendarioActivo == "hasta")
+                        {
+                            <section id="calendarioHasta"
+                                     class="periodo-calendario"
+                                     aria-label="Calendario Hasta">
+                                <div class="periodo-calendario-header">
+                                    <button type="button"
+                                            class="periodo-calendario-nav"
+                                            aria-label="Mes anterior"
+                                            disabled="@EsPrimerMes"
+                                            @onclick="MesAnteriorPeriodo">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+
+                                    <strong>@TituloMesCalendarioPeriodo</strong>
+
+                                    <button type="button"
+                                            class="periodo-calendario-nav"
+                                            aria-label="Mes siguiente"
+                                            disabled="@EsUltimoMes"
+                                            @onclick="MesSiguientePeriodo">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </div>
+
+                                <div class="periodo-calendario-semana">
+                                    <span>Lu</span>
+                                    <span>Ma</span>
+                                    <span>Mi</span>
+                                    <span>Ju</span>
+                                    <span>Vi</span>
+                                    <span>Sá</span>
+                                    <span>Do</span>
+                                </div>
+
+                                <div class="periodo-calendario-dias">
+                                    @for (var espacio = 0; espacio < EspaciosCalendarioPeriodo; espacio++)
+                                    {
+                                        <span aria-hidden="true"></span>
+                                    }
+
+                                    @foreach (var dia in DiasCalendarioPeriodo)
+                                    {
+                                        <button type="button"
+                                                class="@ClaseDiaPeriodo(dia)"
+                                                aria-label="@dia.ToString("D", cultura)"
+                                                aria-pressed="@(FechaCalendarioPeriodo?.Date == dia.Date)"
+                                                @onclick="() => SeleccionarFechaPeriodo(dia)">
+                                            @dia.Day
+                                        </button>
+                                    }
+                                </div>
+
+                                <div class="periodo-calendario-footer">
+                                    <button type="button"
+                                            @onclick="LimpiarFechaPeriodo">
+                                        Sin límite
+                                    </button>
+
+                                    <button type="button"
+                                            @onclick="SeleccionarHoyPeriodo">
+                                        Hoy
+                                    </button>
+
+                                    <button type="button"
+                                            @onclick="CerrarCalendarioPeriodo">
+                                        Cerrar
+                                    </button>
+                                </div>
+                            </section>
+                        }
+                    </div>
+
+                    <button type="button"
+                            class="filter-order-button"
+                            title="Cambiar orden por fecha"
+                            @onclick="CambiarOrden">
+                        <i class="bi bi-arrow-down-up"></i>
+                        @(ordenDescendente ? "Más recientes" : "Más antiguos")
+                    </button>
+
+                    <div class="filter-search">
+                        <i class="bi bi-search"></i>
+
+                        <input type="search"
+                               aria-label="Buscar gastos"
+                               placeholder="Buscar por tipo, descripción o socio..."
+                               @bind="busqueda"
+                               @bind:event="oninput" />
+                    </div>
+
+                    <button type="button"
+                            class="filter-reset-button"
+                            @onclick="RestaurarFiltros">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Restaurar filtros
+                    </button>
+                </div>
+
+                @if (PeriodoInvalido)
+                {
+                    <div class="state-card">
+                        <i class="bi bi-calendar3"></i>
+                        <h2>Revisá el período</h2>
+                        <p role="alert">
+                            La fecha Desde no puede ser posterior a Hasta.
+                        </p>
+                    </div>
+                }
+                else if (lista.Count == 0)
+                {
+                    <div class="state-card">
+                        <i class="bi bi-receipt"></i>
+                        <h2>No hay gastos registrados</h2>
+                        <p>Creá el primero desde Nuevo gasto.</p>
+                    </div>
+                }
+                else if (resultados.Count == 0)
+                {
+                    <div class="state-card">
+                        <i class="bi bi-search"></i>
+                        <h2>Sin resultados</h2>
+                        <p>No hay gastos que coincidan con los filtros.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-container">
+                        <table class="gastos-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Fecha</th>
+                                    <th scope="col">Tipo de gasto</th>
+                                    <th scope="col">Pagado por</th>
+                                    <th scope="col">Descripción</th>
+
+                                    <th scope="col" class="amount-column">
+                                        Monto total
+                                    </th>
+
+                                    <th scope="col" class="actions-column">
+                                        Acciones
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var gasto in resultados)
+                                {
+                                    <tr @key="gasto.Id"
+                                        class="gasto-row"
+                                        @onclick="() => AbrirDetalle(gasto.Id)">
+                                        <td class="date-cell">
+                                            @gasto.Fecha.ToString("dd/MM/yyyy")
+                                        </td>
+
+                                        <td class="type-cell">
+                                            @gasto.TipoGasto
+                                        </td>
+
+                                        <td>
+                                            <div class="socios-list">
+                                                @foreach (var aporte in gasto.GastoSocios)
+                                                {
+                                                    <div class="socio-aporte"
+                                                         @key="aporte.SocioId">
+                                                        <span class="socio-name">
+                                                            @aporte.Profesional
+                                                        </span>
+
+                                                        <span class="socio-amount">
+                                                            @Moneda(aporte.Monto)
+                                                        </span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </td>
+
+                                        <td class="description-cell">
+                                            <button type="button"
+                                                    class="gasto-detail-link"
+                                                    aria-label="@($"Ver detalle: {gasto.Descripcion}")"
+                                                    @onclick:stopPropagation="true"
+                                                    @onclick="() => AbrirDetalle(gasto.Id)">
+                                                @gasto.Descripcion
+                                            </button>
+                                        </td>
+
+                                        <td class="amount-column total-cell">
+                                            @Moneda(gasto.Monto)
+                                        </td>
+
+                                        <td class="actions-column">
+                                            <div class="gasto-actions"
+                                                 @onclick:stopPropagation="true">
+                                                <button type="button"
+                                                        class="edit-button"
+                                                        title="Editar gasto"
+                                                        aria-label="@($"Editar: {gasto.Descripcion}")"
+                                                        @onclick="() => AbrirEditar(gasto.Id)">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+
+                                                @if (gasto.TieneHistorial)
+                                                {
+                                                    <button type="button"
+                                                            class="edit-button"
+                                                            title="Ver historial"
+                                                            aria-label="@($"Ver historial: {gasto.Descripcion}")"
+                                                            @onclick="() => AbrirHistorial(gasto.Id)">
+                                                        <i class="bi bi-clock-history"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+
+                            <tfoot>
+                                <tr>
+                                    <th scope="row" colspan="4">
+                                        Total de gastos mostrados
+                                    </th>
+
+                                    <td class="amount-column">
+                                        @Moneda(total)
+                                    </td>
+
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+
+                <div class="list-footer">
+                    Mostrando @resultados.Count de @lista.Count gastos
+                </div>
+            </section>
+
+            <aside class="gastos-summary">
+                <section class="monthly-total-card">
+                    <span>Gasto total del período</span>
+
+                    <strong>
+                        @(PeriodoInvalido ? "—" : Moneda(total))
+                    </strong>
+
+                    <small>@NombrePeriodo</small>
+                </section>
+
+                <section class="monthly-detail-card">
+                    <h2>Aportes por socio</h2>
+
+                    @if (PeriodoInvalido)
+                    {
+                        <p>Corregí el período para consultar los aportes.</p>
+                    }
+                    else if (aportes.Count == 0)
+                    {
+                        <p>No hay aportes para los filtros seleccionados.</p>
+                    }
+                    else
+                    {
+                        @foreach (var aporte in aportes)
+                        {
+                            <div class="monthly-socio-row"
+                                 @key="aporte.SocioId">
+                                <span class="monthly-socio-icon">
+                                    <i class="bi bi-person"></i>
+                                </span>
+
+                                <span class="monthly-socio-name">
+                                    @aporte.Profesional
+                                </span>
+
+                                <strong>@Moneda(aporte.Monto)</strong>
+                            </div>
+                        }
+                    }
+
+                    <p class="summary-help">
+                        Resumen de los gastos mostrados.
+                    </p>
+                </section>
+            </aside>
         </div>
     }
 
@@ -245,39 +546,294 @@
     private bool mostrarHistorial;
     private bool mostrarDetalle;
     private bool volverAlDetalle;
-
-
+    private bool ordenDescendente = true;
 
     private int gastoEditarId;
     private int gastoHistorialId;
     private int gastoDetalleId;
     private int versionMensaje;
+    private int tipoSeleccionadoId;
+    private int socioSeleccionadoId;
 
+    private DateTime? fechaDesde =
+        new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    private DateTime? fechaHasta =
+        new DateTime(
+            DateTime.Today.Year,
+            DateTime.Today.Month,
+            DateTime.DaysInMonth(
+                DateTime.Today.Year,
+                DateTime.Today.Month));
+
+    private DateTime mesCalendarioPeriodo =
+        new(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    private string calendarioActivo = string.Empty;
     private string busqueda = string.Empty;
     private string mensajeExito = string.Empty;
     private string mensajeError = string.Empty;
 
-    private IEnumerable<GastoListadoDTO> GastosFiltrados
+    private bool PeriodoInvalido =>
+        fechaDesde.HasValue &&
+        fechaHasta.HasValue &&
+        fechaDesde.Value.Date > fechaHasta.Value.Date;
+
+    private bool EsPrimerMes =>
+        mesCalendarioPeriodo.Year == 1 &&
+        mesCalendarioPeriodo.Month == 1;
+
+    private bool EsUltimoMes =>
+        mesCalendarioPeriodo.Year == 9999 &&
+        mesCalendarioPeriodo.Month == 12;
+
+    private DateTime? FechaCalendarioPeriodo =>
+        calendarioActivo == "desde" ? fechaDesde : fechaHasta;
+
+    private string TituloMesCalendarioPeriodo =>
+        cultura.TextInfo.ToTitleCase(
+            mesCalendarioPeriodo.ToString("MMMM yyyy", cultura));
+
+    private int EspaciosCalendarioPeriodo =>
+        ((int)mesCalendarioPeriodo.DayOfWeek + 6) % 7;
+
+    private IEnumerable<DateTime> DiasCalendarioPeriodo =>
+        Enumerable.Range(
+                1,
+                DateTime.DaysInMonth(
+                    mesCalendarioPeriodo.Year,
+                    mesCalendarioPeriodo.Month))
+            .Select(dia => new DateTime(
+                mesCalendarioPeriodo.Year,
+                mesCalendarioPeriodo.Month,
+                dia));
+
+    private IEnumerable<(int Id, string Nombre)> TiposDisponibles =>
+        lista
+            .GroupBy(gasto => gasto.TipoGastoId)
+            .Select(grupo => (
+                Id: grupo.Key,
+                Nombre: grupo.First().TipoGasto))
+            .OrderBy(tipo => tipo.Nombre);
+
+    private IEnumerable<GastoSocioListadoDTO> SociosDisponibles =>
+        lista
+            .SelectMany(gasto => gasto.GastoSocios)
+            .GroupBy(aporte => aporte.SocioId)
+            .Select(grupo => grupo.First())
+            .OrderBy(aporte => aporte.Profesional);
+
+    private string NombrePeriodo
     {
         get
         {
+            if (PeriodoInvalido)
+                return "Período inválido";
+
+            if (fechaDesde.HasValue && fechaHasta.HasValue)
+            {
+                return $"{fechaDesde.Value:dd/MM/yyyy} al " +
+                       $"{fechaHasta.Value:dd/MM/yyyy}";
+            }
+
+            if (fechaDesde.HasValue)
+                return $"Desde {fechaDesde.Value:dd/MM/yyyy}";
+
+            if (fechaHasta.HasValue)
+                return $"Hasta {fechaHasta.Value:dd/MM/yyyy}";
+
+            return "Todos los períodos";
+        }
+    }
+
+    private List<GastoListadoDTO> GastosFiltrados
+    {
+        get
+        {
+            if (PeriodoInvalido)
+                return new();
+
             var texto = busqueda.Trim();
 
-            if (string.IsNullOrWhiteSpace(texto))
-                return lista;
+            var gastos = lista.Where(gasto =>
+                (tipoSeleccionadoId == 0 ||
+                 gasto.TipoGastoId == tipoSeleccionadoId) &&
+                (socioSeleccionadoId == 0 ||
+                 gasto.GastoSocios.Any(aporte =>
+                     aporte.SocioId == socioSeleccionadoId)) &&
+                (!fechaDesde.HasValue ||
+                 gasto.Fecha.Date >= fechaDesde.Value.Date) &&
+                (!fechaHasta.HasValue ||
+                 gasto.Fecha.Date <= fechaHasta.Value.Date) &&
+                (string.IsNullOrWhiteSpace(texto) ||
+                 gasto.TipoGasto.Contains(
+                     texto,
+                     StringComparison.OrdinalIgnoreCase) ||
+                 gasto.Descripcion.Contains(
+                     texto,
+                     StringComparison.OrdinalIgnoreCase) ||
+                 gasto.GastoSocios.Any(aporte =>
+                     aporte.Profesional.Contains(
+                         texto,
+                         StringComparison.OrdinalIgnoreCase))));
 
-            return lista.Where(gasto =>
-                gasto.TipoGasto.Contains(
-                    texto,
-                    StringComparison.OrdinalIgnoreCase) ||
-                gasto.Descripcion.Contains(
-                    texto,
-                    StringComparison.OrdinalIgnoreCase) ||
-                gasto.GastoSocios.Any(aporte =>
-                    aporte.Profesional.Contains(
-                        texto,
-                        StringComparison.OrdinalIgnoreCase)));
+            return ordenDescendente
+                ? gastos
+                    .OrderByDescending(gasto => gasto.Fecha)
+                    .ThenByDescending(gasto => gasto.Id)
+                    .ToList()
+                : gastos
+                    .OrderBy(gasto => gasto.Fecha)
+                    .ThenBy(gasto => gasto.Id)
+                    .ToList();
         }
+    }
+
+    private static List<GastoSocioListadoDTO> ObtenerResumenAportes(
+        IEnumerable<GastoListadoDTO> gastos)
+    {
+        return gastos
+            .SelectMany(gasto => gasto.GastoSocios)
+            .GroupBy(aporte => aporte.SocioId)
+            .Select(grupo => new GastoSocioListadoDTO
+            {
+                SocioId = grupo.Key,
+                Profesional = grupo.First().Profesional,
+                Monto = grupo.Sum(aporte => aporte.Monto)
+            })
+            .OrderBy(aporte => aporte.Profesional)
+            .ToList();
+    }
+
+    private string Moneda(decimal monto)
+    {
+        return monto.ToString("C2", cultura);
+    }
+
+    private void CambiarOrden()
+    {
+        ordenDescendente = !ordenDescendente;
+    }
+
+    private void RestaurarFiltros()
+    {
+        tipoSeleccionadoId = 0;
+        socioSeleccionadoId = 0;
+
+        fechaDesde = new DateTime(
+            DateTime.Today.Year,
+            DateTime.Today.Month,
+            1);
+
+        fechaHasta = new DateTime(
+            DateTime.Today.Year,
+            DateTime.Today.Month,
+            DateTime.DaysInMonth(
+                DateTime.Today.Year,
+                DateTime.Today.Month));
+
+        busqueda = string.Empty;
+        ordenDescendente = true;
+
+        CerrarCalendarioPeriodo();
+    }
+
+    private string ClaseCampoFecha(string campo)
+    {
+        return calendarioActivo == campo
+            ? "filter-field periodo-campo calendario-abierto"
+            : "filter-field periodo-campo";
+    }
+
+    private void AbrirCalendarioDesde()
+    {
+        AbrirCalendarioPeriodo("desde");
+    }
+
+    private void AbrirCalendarioHasta()
+    {
+        AbrirCalendarioPeriodo("hasta");
+    }
+
+    private void AbrirCalendarioPeriodo(string campo)
+    {
+        if (calendarioActivo == campo)
+        {
+            CerrarCalendarioPeriodo();
+            return;
+        }
+
+        calendarioActivo = campo;
+
+        var fecha = FechaCalendarioPeriodo ?? DateTime.Today;
+
+        mesCalendarioPeriodo = new DateTime(
+            fecha.Year,
+            fecha.Month,
+            1);
+    }
+
+    private void CerrarCalendarioPeriodo()
+    {
+        calendarioActivo = string.Empty;
+    }
+
+    private void MesAnteriorPeriodo()
+    {
+        if (!EsPrimerMes)
+            mesCalendarioPeriodo = mesCalendarioPeriodo.AddMonths(-1);
+    }
+
+    private void MesSiguientePeriodo()
+    {
+        if (!EsUltimoMes)
+            mesCalendarioPeriodo = mesCalendarioPeriodo.AddMonths(1);
+    }
+
+    private string ClaseDiaPeriodo(DateTime dia)
+    {
+        var clase = "periodo-calendario-dia";
+
+        if (dia.Date == DateTime.Today)
+            clase += " hoy";
+
+        if (FechaCalendarioPeriodo?.Date == dia.Date)
+            clase += " seleccionado";
+
+        return clase;
+    }
+
+    private void SeleccionarFechaPeriodo(DateTime fecha)
+    {
+        if (calendarioActivo == "desde")
+        {
+            fechaDesde = fecha.Date;
+        }
+        else if (calendarioActivo == "hasta")
+        {
+            fechaHasta = fecha.Date;
+        }
+
+        CerrarCalendarioPeriodo();
+    }
+
+    private void SeleccionarHoyPeriodo()
+    {
+        SeleccionarFechaPeriodo(DateTime.Today);
+    }
+
+    private void LimpiarFechaPeriodo()
+    {
+        if (calendarioActivo == "desde")
+        {
+            fechaDesde = null;
+        }
+        else if (calendarioActivo == "hasta")
+        {
+            fechaHasta = null;
+        }
+
+        CerrarCalendarioPeriodo();
     }
 
     protected override async Task OnInitializedAsync()
@@ -306,7 +862,8 @@
 
                 if (string.IsNullOrWhiteSpace(mensajeError))
                 {
-                    mensajeError = "No se pudieron consultar los gastos.";
+                    mensajeError =
+                        "No se pudieron consultar los gastos.";
                 }
 
                 return;
@@ -333,6 +890,8 @@
 
     private void AbrirCrear()
     {
+        volverAlDetalle = false;
+
         CerrarMensaje();
         CerrarModales();
 
@@ -400,6 +959,7 @@
     private void CerrarDetalle()
     {
         mostrarDetalle = false;
+        volverAlDetalle = false;
     }
 
     private void CerrarModales()
@@ -408,12 +968,13 @@
         mostrarEditar = false;
         mostrarHistorial = false;
         mostrarDetalle = false;
+
+        CerrarCalendarioPeriodo();
     }
 
     private async Task GastoGuardado()
     {
         CerrarModales();
-        busqueda = string.Empty;
 
         await ConfirmarCambio("Gasto registrado correctamente.");
     }
@@ -426,9 +987,7 @@
         CerrarModales();
 
         if (regresarAlDetalle)
-        {
             AbrirDetalle(gastoEditarId);
-        }
 
         await ConfirmarCambio("Gasto actualizado correctamente.");
     }
@@ -440,25 +999,17 @@
         var versionActual = ++versionMensaje;
 
         await CargarGastos();
-
         StateHasChanged();
 
         await Task.Delay(4000);
 
         if (versionActual == versionMensaje)
-        {
             mensajeExito = string.Empty;
-        }
     }
 
     private void CerrarMensaje()
     {
         versionMensaje++;
         mensajeExito = string.Empty;
-    }
-
-    private void Volver()
-    {
-        Nav.NavigateTo("/admin");
     }
 }
