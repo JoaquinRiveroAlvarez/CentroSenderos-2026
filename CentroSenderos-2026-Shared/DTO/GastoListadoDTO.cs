@@ -21,5 +21,7 @@ namespace CentroSenderos_2026_Shared.DTO
         public bool TieneHistorial { get; set; }
 
         public List<GastoSocioListadoDTO> GastoSocios { get; set; } = new();
+        public List<GastoRepartoListadoDTO> GastoRepartos { get; set; } = new();
+
     }
 }

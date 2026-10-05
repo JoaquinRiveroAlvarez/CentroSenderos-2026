@@ -12,6 +12,7 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         public Profesional? Profesionales { get; set; }
 
         public List<GastoSocio> GastoSocios { get; set; } = new();
+        public List<GastoReparto> GastoRepartos { get; set; } = new();
 
     }
 }

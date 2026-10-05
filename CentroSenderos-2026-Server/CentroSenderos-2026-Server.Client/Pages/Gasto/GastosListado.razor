@@ -28,8 +28,6 @@
         </button>
 
         <h1>Gastos</h1>
-
-        <span class="header-period">@NombrePeriodo</span>
     </header>
 
     @if (!string.IsNullOrWhiteSpace(mensajeExito))
@@ -73,6 +71,9 @@
         var resultados = GastosFiltrados;
         var aportes = ObtenerResumenAportes(resultados);
         var total = resultados.Sum(gasto => gasto.Monto);
+        var gastosSinReparto = resultados.Count(gasto =>
+            gasto.GastoRepartos.Count == 0);
+        var saldos = ObtenerResumenSaldos(resultados);
 
         <div class="gastos-layout">
             <section class="list-card">
@@ -86,7 +87,9 @@
 
                             @foreach (var tipo in TiposDisponibles)
                             {
-                                <option value="@tipo.Id">@tipo.Nombre</option>
+                                <option value="@tipo.Id">
+                                    @tipo.Nombre
+                                </option>
                             }
                         </select>
                     </div>
@@ -311,11 +314,27 @@
                     </button>
                 </div>
 
+                @if (soloSinReparto)
+                {
+                    <div class="pending-filter-bar" role="status">
+                        <span>
+                            <i class="bi bi-info-circle"></i>
+                            Mostrando solo gastos sin reparto
+                        </span>
+
+                        <button type="button"
+                                @onclick="QuitarFiltroSinReparto">
+                            Quitar este filtro
+                        </button>
+                    </div>
+                }
+
                 @if (PeriodoInvalido)
                 {
                     <div class="state-card">
                         <i class="bi bi-calendar3"></i>
                         <h2>Revisá el período</h2>
+
                         <p role="alert">
                             La fecha Desde no puede ser posterior a Hasta.
                         </p>
@@ -498,6 +517,70 @@
                         Resumen de los gastos mostrados.
                     </p>
                 </section>
+
+                <section class="monthly-detail-card">
+                    <h2>Saldos del período</h2>
+
+                    @if (PeriodoInvalido)
+                    {
+                        <p>Corregí el período para consultar los saldos.</p>
+                    }
+                    else if (resultados.Count == 0)
+                    {
+                        <p>No hay gastos para los filtros seleccionados.</p>
+                    }
+                    else if (gastosSinReparto > 0)
+                    {
+                        <div class="saldo-pendiente" role="status">
+                            <i class="bi bi-info-circle"></i>
+
+                            <p>
+                                Hay @gastosSinReparto
+                                @(gastosSinReparto == 1
+                                    ? "gasto sin reparto registrado."
+                                    : "gastos sin reparto registrado.")
+                                Completá sus repartos para calcular los saldos.
+                            </p>
+                        </div>
+
+                        @if (!soloSinReparto)
+                        {
+                            <button type="button"
+                                    class="pending-action-button"
+                                    @onclick="VerGastosSinReparto">
+                                <i class="bi bi-funnel"></i>
+                                Ver gastos sin reparto
+                            </button>
+                        }
+                    }
+                    else
+                    {
+                        @foreach (var socio in saldos)
+                        {
+                            <div class="monthly-socio-row"
+                                 @key="socio.SocioId">
+                                <span class="monthly-socio-icon">
+                                    <i class="bi bi-person"></i>
+                                </span>
+
+                                <span class="monthly-socio-name">
+                                    @socio.Profesional
+                                </span>
+
+                                <strong class="@ClaseSaldoPeriodo(socio.Saldo)">
+                                    @TextoSaldoPeriodo(socio.Saldo)
+                                </strong>
+                            </div>
+                        }
+
+                        <p class="summary-help">
+                            Positivo: tiene a favor.
+                            Negativo: le corresponde aportar.
+                            Calculado sobre los gastos mostrados,
+                            sin descontar reintegros entre socios.
+                        </p>
+                    }
+                </section>
             </aside>
         </div>
     }
@@ -547,6 +630,7 @@
     private bool mostrarDetalle;
     private bool volverAlDetalle;
     private bool ordenDescendente = true;
+    private bool soloSinReparto;
 
     private int gastoEditarId;
     private int gastoHistorialId;
@@ -656,6 +740,8 @@
             var texto = busqueda.Trim();
 
             var gastos = lista.Where(gasto =>
+                (!soloSinReparto ||
+                 gasto.GastoRepartos.Count == 0) &&
                 (tipoSeleccionadoId == 0 ||
                  gasto.TipoGastoId == tipoSeleccionadoId) &&
                 (socioSeleccionadoId == 0 ||
@@ -705,9 +791,97 @@
             .ToList();
     }
 
+    private static List<(
+        int SocioId,
+        string Profesional,
+        decimal Saldo)> ObtenerResumenSaldos(
+            IEnumerable<GastoListadoDTO> gastos)
+    {
+        var listaGastos = gastos.ToList();
+
+        if (listaGastos.Any(gasto =>
+            gasto.GastoRepartos.Count == 0))
+        {
+            return new();
+        }
+
+        var pagos = listaGastos
+            .SelectMany(gasto => gasto.GastoSocios)
+            .GroupBy(aporte => aporte.SocioId)
+            .ToDictionary(
+                grupo => grupo.Key,
+                grupo => grupo.Sum(aporte => aporte.Monto));
+
+        var partes = listaGastos
+            .SelectMany(gasto => gasto.GastoRepartos)
+            .GroupBy(reparto => reparto.SocioId)
+            .ToDictionary(
+                grupo => grupo.Key,
+                grupo => grupo.Sum(reparto => reparto.Monto));
+
+        var nombres = listaGastos
+            .SelectMany(gasto => gasto.GastoRepartos)
+            .Select(reparto => (
+                SocioId: reparto.SocioId,
+                Profesional: reparto.Profesional))
+            .Concat(
+                listaGastos
+                    .SelectMany(gasto => gasto.GastoSocios)
+                    .Select(aporte => (
+                        SocioId: aporte.SocioId,
+                        Profesional: aporte.Profesional)))
+            .GroupBy(socio => socio.SocioId)
+            .ToDictionary(
+                grupo => grupo.Key,
+                grupo => grupo
+                    .Select(socio => socio.Profesional)
+                    .FirstOrDefault(nombre =>
+                        !string.IsNullOrWhiteSpace(nombre))
+                    ?? "Socio");
+
+        return pagos.Keys
+            .Union(partes.Keys)
+            .Select(socioId => (
+                SocioId: socioId,
+                Profesional: nombres[socioId],
+                Saldo: pagos.GetValueOrDefault(socioId) -
+                       partes.GetValueOrDefault(socioId)))
+            .OrderBy(socio => socio.Profesional)
+            .ToList();
+    }
+
     private string Moneda(decimal monto)
     {
         return monto.ToString("C2", cultura);
+    }
+
+    private string TextoSaldoPeriodo(decimal saldo)
+    {
+        return saldo > 0
+            ? $"+{Moneda(saldo)}"
+            : Moneda(saldo);
+    }
+
+    private static string ClaseSaldoPeriodo(decimal saldo)
+    {
+        if (saldo > 0)
+            return "saldo-periodo positivo";
+
+        if (saldo < 0)
+            return "saldo-periodo negativo";
+
+        return "saldo-periodo neutro";
+    }
+
+    private void VerGastosSinReparto()
+    {
+        soloSinReparto = true;
+        CerrarCalendarioPeriodo();
+    }
+
+    private void QuitarFiltroSinReparto()
+    {
+        soloSinReparto = false;
     }
 
     private void CambiarOrden()
@@ -719,6 +893,7 @@
     {
         tipoSeleccionadoId = 0;
         socioSeleccionadoId = 0;
+        soloSinReparto = false;
 
         fechaDesde = new DateTime(
             DateTime.Today.Year,

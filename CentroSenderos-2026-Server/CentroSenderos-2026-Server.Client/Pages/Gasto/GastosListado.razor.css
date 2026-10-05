@@ -41,7 +41,10 @@
         font-weight: 600;
         line-height: 1.2;
     }
-
+    /* Conserva el título centrado sin el texto del período */
+    .gastos-header::after {
+        content: "";
+    }
 .header-period {
     justify-self: end;
     color: #647b5b;
@@ -822,7 +825,113 @@
 
         /* #endregion */
 
-        /* #region Accesibilidad */
+/* #region Saldos del período */
+
+/* Diferencia entre pagos realizados y partes asignadas */
+.monthly-socio-row > strong.saldo-periodo.positivo {
+    color: #407238;
+}
+
+.monthly-socio-row > strong.saldo-periodo.negativo {
+    color: #c44848;
+}
+
+.monthly-socio-row > strong.saldo-periodo.neutro {
+    color: #777d70;
+}
+
+/* Aviso de gastos pendientes de reparto */
+.saldo-pendiente {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 12px;
+    border: 1px solid #e7dfcb;
+    border-radius: 10px;
+    background: #faf6eb;
+    color: #806b3d;
+}
+
+    .saldo-pendiente > i {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .saldo-pendiente p {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+/* #endregion */
+
+/* #region Acceso a gastos sin reparto */
+
+/* Acción del aviso de saldos */
+.pending-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 38px;
+    margin-top: 12px;
+    padding: 9px 12px;
+    border: 1px solid #cbd5c8;
+    border-radius: 10px;
+    background: #eef3ec;
+    color: #556f4f;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+    .pending-action-button:hover {
+        background: #dfe5dc;
+    }
+
+/* Indicador del filtro aplicado */
+.pending-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e7e3dc;
+    background: #faf6eb;
+    color: #806b3d;
+    font-size: 13px;
+}
+
+    .pending-filter-bar > span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pending-filter-bar button {
+        padding: 6px 10px;
+        border: 1px solid #ded4bc;
+        border-radius: 8px;
+        background: #fff;
+        color: #806b3d;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+        .pending-filter-bar button:hover {
+            background: #f3ecdc;
+        }
+
+        .pending-action-button:focus-visible,
+        .pending-filter-bar button:focus-visible {
+            outline: 2px solid #647b5b;
+            outline-offset: 3px;
+        }
+
+/* #endregion */
+
+/* #region Accesibilidad */
 
         /* Foco visible */
         .new-button:focus-visible,

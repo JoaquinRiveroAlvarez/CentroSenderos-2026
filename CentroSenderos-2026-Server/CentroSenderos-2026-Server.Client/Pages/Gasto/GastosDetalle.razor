@@ -14,7 +14,7 @@
         <header class="modal-header">
             <div>
                 <h2 id="tituloDetalleGasto">Detalle del gasto</h2>
-                <p>Información del gasto y aportes de los socios.</p>
+                <p>Información del gasto, pagos y reparto entre socios.</p>
             </div>
 
             <button type="button"
@@ -71,12 +71,12 @@
             </section>
 
             <section class="detail-section">
-                <h3>Aportes de los socios</h3>
+                <h3>Pagos realizados</h3>
 
                 @if (gasto.GastoSocios.Count == 0)
                 {
                     <p class="empty-aportes">
-                        No hay aportes registrados para este gasto.
+                        No hay pagos registrados para este gasto.
                     </p>
                 }
                 else
@@ -91,7 +91,7 @@
                                 </div>
 
                                 <strong class="aporte-amount">
-                                    @aporte.Monto.ToString("C2", cultura)
+                                    @Moneda(aporte.Monto)
                                 </strong>
                             </div>
                         }
@@ -100,12 +100,88 @@
 
                 <div class="total-box">
                     <span>Monto total</span>
-                    <strong>@gasto.Monto.ToString("C2", cultura)</strong>
+                    <strong>@Moneda(gasto.Monto)</strong>
                 </div>
+            </section>
+
+            <section class="detail-section">
+                <h3>Reparto entre socios</h3>
+
+                @if (gasto.GastoRepartos.Count == 0)
+                {
+                    <div class="reparto-pendiente" role="status">
+                        <i class="bi bi-info-circle"></i>
+                        <p>
+                            Este gasto todavía no tiene un reparto registrado.
+                            Sus pagos se conservan, pero no se puede calcular
+                            el saldo de cada socio.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <div class="reparto-table-container">
+                        <table class="reparto-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Socio</th>
+                                    <th scope="col" class="reparto-importe">
+                                        Pagó
+                                    </th>
+                                    <th scope="col" class="reparto-importe">
+                                        Le corresponde
+                                    </th>
+                                    <th scope="col" class="reparto-importe">
+                                        Saldo
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var socioId in SocioIdsDetalle)
+                                {
+                                    var reparto = gasto.GastoRepartos
+                                        .FirstOrDefault(item =>
+                                            item.SocioId == socioId);
+
+                                    var pago = PagoSocio(socioId);
+                                    var parte = reparto?.Monto ?? 0m;
+                                    var saldo = pago - parte;
+
+                                    <tr @key="socioId">
+                                        <th scope="row">
+                                            @NombreSocio(socioId)
+                                        </th>
+
+                                        <td class="reparto-importe">
+                                            @Moneda(pago)
+                                        </td>
+
+                                        <td class="reparto-importe">
+                                            @Moneda(parte)
+                                        </td>
+
+                                        <td class="reparto-importe">
+                                            <span class="@ClaseSaldo(saldo)">
+                                                @TextoSaldo(saldo)
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p class="reparto-help">
+                        Saldo positivo: tiene a favor.
+                        Saldo negativo: le corresponde aportar.
+                        Estos saldos corresponden únicamente a este gasto.
+                    </p>
+                }
             </section>
         }
 
-                <footer class="modal-actions">
+        <footer class="modal-actions">
             @if (gasto != null &&
                  !cargando &&
                  string.IsNullOrWhiteSpace(mensajeError))
@@ -143,11 +219,12 @@
 
     [Parameter]
     public EventCallback OnCerrar { get; set; }
+
     [Parameter]
     public EventCallback<int> OnEditar { get; set; }
+
     [Parameter]
     public EventCallback<int> OnHistorial { get; set; }
-
 
     private readonly CultureInfo cultura =
         CultureInfo.GetCultureInfo("es-AR");
@@ -158,6 +235,15 @@
     private bool cargaEnCurso;
 
     private string mensajeError = string.Empty;
+
+    private IEnumerable<int> SocioIdsDetalle =>
+        gasto == null
+            ? Enumerable.Empty<int>()
+            : gasto.GastoRepartos
+                .Select(reparto => reparto.SocioId)
+                .Union(
+                    gasto.GastoSocios.Select(aporte => aporte.SocioId))
+                .OrderBy(id => id);
 
     protected override async Task OnInitializedAsync()
     {
@@ -217,7 +303,48 @@
         }
     }
 
-        private async Task AbrirEditar()
+    private decimal PagoSocio(int socioId)
+    {
+        return gasto?.GastoSocios
+            .Where(aporte => aporte.SocioId == socioId)
+            .Sum(aporte => aporte.Monto) ?? 0m;
+    }
+
+    private string NombreSocio(int socioId)
+    {
+        return gasto?.GastoRepartos
+            .FirstOrDefault(reparto =>
+                reparto.SocioId == socioId)?.Profesional
+            ?? gasto?.GastoSocios
+                .FirstOrDefault(aporte =>
+                    aporte.SocioId == socioId)?.Profesional
+            ?? "Socio";
+    }
+
+    private string Moneda(decimal monto)
+    {
+        return monto.ToString("C2", cultura);
+    }
+
+    private string TextoSaldo(decimal saldo)
+    {
+        return saldo > 0
+            ? $"+{Moneda(saldo)}"
+            : Moneda(saldo);
+    }
+
+    private static string ClaseSaldo(decimal saldo)
+    {
+        if (saldo > 0)
+            return "reparto-saldo positivo";
+
+        if (saldo < 0)
+            return "reparto-saldo negativo";
+
+        return "reparto-saldo neutro";
+    }
+
+    private async Task AbrirEditar()
     {
         if (gasto == null)
             return;
@@ -232,7 +359,6 @@
 
         await OnHistorial.InvokeAsync(GastoId);
     }
-
 
     private async Task Cerrar()
     {

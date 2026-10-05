@@ -315,6 +315,114 @@ button:disabled,
 
 /* #endregion */
 
+/* #region Completar reparto pendiente */
+
+/* Explicación y confirmación */
+.reparto-instruccion {
+    margin: 0 0 14px;
+    color: #777d70;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.reparto-confirmacion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    color: #556f4f;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .reparto-confirmacion ::deep input[type="checkbox"],
+    .reparto-socio-opcion input[type="checkbox"] {
+        flex-shrink: 0;
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        accent-color: #556f4f;
+    }
+
+/* Socios disponibles para el reparto histórico */
+.reparto-socios {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.reparto-socio-opcion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #e7e3dc;
+    border-radius: 10px;
+    background: #faf8f5;
+    color: #444;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+    .reparto-socio-opcion > span {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .reparto-socio-opcion small {
+        color: #858b7e;
+        font-size: 11px;
+    }
+
+/* Vista previa de las partes */
+.reparto-preview {
+    margin-top: 16px;
+    padding: 16px;
+    border: 1px solid #cfd9cc;
+    border-radius: 12px;
+    background: #eef3ec;
+}
+
+    .reparto-preview h4 {
+        margin: 0 0 12px;
+        color: #556f4f;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+.reparto-preview-fila {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 0;
+    color: #444;
+    font-size: 13px;
+}
+
+    .reparto-preview-fila > span {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .reparto-preview-fila > strong {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+.reparto-preview p {
+    margin: 12px 0 0;
+    padding-top: 12px;
+    border-top: 1px solid #cfd9cc;
+    color: #777d70;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* #endregion */
+
 /* #region Responsive */
 
 /* Distribuye los campos y aportes en una columna en pantallas pequeñas. */

@@ -112,6 +112,24 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             await context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<List<SocioListadoDTO>> SelectListaSociosParaReparto()
+        {
+            return await context.Socios
+                .AsNoTracking()
+                .OrderBy(socio => socio.Profesionales!.Nombre)
+                .ThenBy(socio => socio.Id)
+                .Select(socio => new SocioListadoDTO
+                {
+                    Id = socio.Id,
+                    ProfesionalId = socio.ProfesionalId,
+                    Profesional = socio.Profesionales != null
+                        ? socio.Profesionales.Nombre
+                        : "Socio",
+                    Observacion = socio.Observacion
+                })
+                .ToListAsync();
+        }
     }
 }
 

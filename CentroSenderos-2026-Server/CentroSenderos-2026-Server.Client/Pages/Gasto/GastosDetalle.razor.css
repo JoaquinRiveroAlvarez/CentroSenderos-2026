@@ -244,6 +244,110 @@ button:focus-visible {
 
 /* #endregion */
 
+/* #region Reparto entre socios */
+
+/* Tabla de pagos, partes y saldos */
+.reparto-table-container {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e7e3dc;
+    border-radius: 12px;
+}
+
+.reparto-table {
+    width: 100%;
+    min-width: 480px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+    .reparto-table thead {
+        background: #f0eeea;
+    }
+
+        .reparto-table thead th {
+            padding: 12px 14px;
+            color: #62685d;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: left;
+        }
+
+    .reparto-table tbody th,
+    .reparto-table tbody td {
+        padding: 14px;
+        border-top: 1px solid #e7e3dc;
+        color: #444;
+        text-align: left;
+    }
+
+    .reparto-table tbody th {
+        font-weight: 500;
+    }
+
+    .reparto-table .reparto-importe {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+/* Colores de los saldos */
+.reparto-saldo {
+    font-weight: 600;
+}
+
+    .reparto-saldo.positivo {
+        color: #407238;
+    }
+
+    .reparto-saldo.negativo {
+        color: #c44848;
+    }
+
+    .reparto-saldo.neutro {
+        color: #777d70;
+    }
+
+/* Explicación del saldo */
+.reparto-help {
+    margin: 12px 0 0;
+    color: #777d70;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* Gastos anteriores sin reparto */
+.reparto-pendiente {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid #e7dfcb;
+    border-radius: 10px;
+    background: #faf6eb;
+    color: #806b3d;
+}
+
+    .reparto-pendiente > i {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .reparto-pendiente p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+/* Separación de las acciones del modal */
+.modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* #endregion */
+
 /* #region Responsive */
 
 @media (max-width: 600px) {

@@ -12,5 +12,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         Task<int> InsertarSocio(SocioDTO dto);
         Task<bool> DeleteSocio(int id);
         Task<bool> ActualizarSocio(int id, SocioDTO dto);
+        Task<List<SocioListadoDTO>> SelectListaSociosParaReparto();
     }
 }

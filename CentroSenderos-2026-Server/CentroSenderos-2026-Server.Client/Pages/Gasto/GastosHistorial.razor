@@ -172,6 +172,70 @@
                             </table>
                         </div>
 
+                                                <h3>Reparto entre socios</h3>
+
+                        @if (!SocioIdsReparto(cambio).Any())
+                        {
+                            <p class="comparison-help">
+                                Esta modificación no contiene información
+                                del reparto. Los registros anteriores a la
+                                incorporación de esta función no guardaban
+                                esos datos.
+                            </p>
+                        }
+                        else
+                        {
+                            <div class="table-container">
+                                <table class="comparison-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Socio</th>
+                                            <th scope="col">Antes</th>
+                                            <th scope="col">Después</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        @foreach (var socioId in SocioIdsReparto(cambio))
+                                        {
+                                            var anterior = ParteReparto(
+                                                cambio.DatosAnteriores,
+                                                socioId);
+
+                                            var nuevo = ParteReparto(
+                                                cambio.DatosNuevos,
+                                                socioId);
+
+                                            <tr class="@(anterior?.Monto != nuevo?.Monto || anterior?.Profesional != nuevo?.Profesional ? "changed-row" : null)"
+                                                @key="socioId">
+                                                <th scope="row">
+                                                    @(nuevo?.Profesional ??
+                                                      anterior?.Profesional)
+                                                </th>
+
+                                                <td class="amount-cell">
+                                                    @(anterior == null
+                                                        ? "Sin parte registrada"
+                                                        : Moneda(anterior.Monto))
+                                                </td>
+
+                                                <td class="amount-cell">
+                                                    @(nuevo == null
+                                                        ? "Sin parte registrada"
+                                                        : Moneda(nuevo.Monto))
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <p class="comparison-help">
+                                Los importes indican cuánto le corresponde
+                                pagar a cada socio.
+                            </p>
+                        }
+
                         <p class="comparison-help">
                             Las filas resaltadas indican cambios.
                         </p>
@@ -297,6 +361,33 @@
         return version.GastoSocios.FirstOrDefault(
             aporte => aporte.SocioId == socioId);
     }
+
+        private static IEnumerable<int> SocioIdsReparto(
+        GastoHistorialDTO cambio)
+    {
+        var anteriores = cambio.DatosAnteriores.GastoRepartos
+            ?? new List<GastoRepartoListadoDTO>();
+
+        var nuevos = cambio.DatosNuevos.GastoRepartos
+            ?? new List<GastoRepartoListadoDTO>();
+
+        return anteriores
+            .Select(reparto => reparto.SocioId)
+            .Union(
+                nuevos.Select(reparto => reparto.SocioId))
+            .OrderBy(id => id);
+    }
+
+    private static GastoRepartoListadoDTO? ParteReparto(
+        GastoListadoDTO version,
+        int socioId)
+    {
+        return version.GastoRepartos?
+            .FirstOrDefault(reparto =>
+                reparto.SocioId == socioId);
+    }
+
+
 
     private async Task Cerrar()
     {

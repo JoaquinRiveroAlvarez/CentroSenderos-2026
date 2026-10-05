@@ -31,7 +31,7 @@ namespace CentroSenderos_2026_BD
         public DbSet<Gasto> Gastos { get; set; }
         public DbSet<GastoHistorial> GastoHistoriales { get; set; }
         public DbSet<Documento> Documentos { get; set; }
-       
+        public DbSet<GastoReparto> GastoRepartos { get; set; }
 
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {
@@ -166,7 +166,29 @@ namespace CentroSenderos_2026_BD
                     historial.FechaCambio
                 });
 
+            modelBuilder.Entity<GastoReparto>()
+                .Property(reparto => reparto.Monto)
+                .HasPrecision(18, 2);
 
+            modelBuilder.Entity<GastoReparto>()
+                .HasIndex(reparto => new
+                {
+                    reparto.GastoId,
+                    reparto.SocioId
+                })
+                .IsUnique();
+
+            modelBuilder.Entity<GastoReparto>()
+                .HasOne(reparto => reparto.Gastos)
+                .WithMany(gasto => gasto.GastoRepartos)
+                .HasForeignKey(reparto => reparto.GastoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<GastoReparto>()
+                .HasOne(reparto => reparto.Socios)
+                .WithMany(socio => socio.GastoRepartos)
+                .HasForeignKey(reparto => reparto.SocioId)
+                .OnDelete(DeleteBehavior.Restrict);
 
         }
     }

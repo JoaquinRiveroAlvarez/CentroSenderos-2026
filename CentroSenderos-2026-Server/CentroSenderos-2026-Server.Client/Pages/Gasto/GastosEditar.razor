@@ -130,7 +130,6 @@
                                 {
                                     <div class="aporte-row"
                                          @key="aporte.SocioId">
-
                                         <div class="aporte-name">
                                             <i class="bi bi-person"></i>
                                             <span>
@@ -194,6 +193,105 @@
                                 For="@(() => modelo.Descripcion)" />
                         </div>
                     </section>
+
+                    @if (repartoPendiente)
+                    {
+                        <section class="form-section">
+                            <h3>Reparto pendiente</h3>
+
+                            <p class="reparto-instruccion">
+                                Este gasto todavía no tiene reparto.
+                                Seleccioná todos los socios que integraban
+                                el centro cuando ocurrió, hayan pagado o no.
+                            </p>
+
+                            <label class="reparto-confirmacion">
+                                <InputCheckbox
+                                    @bind-Value="modelo.CompletarReparto"
+                                    @bind-Value:after="LimpiarErrorReparto" />
+
+                                <span>Completar el reparto de este gasto</span>
+                            </label>
+
+                            @if (modelo.CompletarReparto)
+                            {
+                                <p class="reparto-instruccion">
+                                    Se proponen los socios activos actuales.
+                                    Revisá la selección antes de guardar.
+                                </p>
+
+                                <div class="reparto-socios">
+                                    @foreach (var socio in sociosReparto)
+                                    {
+                                        <label class="reparto-socio-opcion"
+                                               @key="socio.Id">
+                                            <input type="checkbox"
+                                                   checked="@modelo.SocioRepartoIds.Contains(socio.Id)"
+                                                   @onchange="evento => CambiarSocioReparto(socio.Id, evento)" />
+
+                                            <span>
+                                                @socio.Profesional
+
+                                                @if (!sociosActivosReparto.Contains(socio.Id))
+                                                {
+                                                    <small>
+                                                        Actualmente dado de baja
+                                                    </small>
+                                                }
+                                            </span>
+                                        </label>
+                                    }
+                                </div>
+
+                                @if (sociosReparto.Count == 0)
+                                {
+                                    <p class="reparto-instruccion">
+                                        No hay socios registrados para seleccionar.
+                                    </p>
+                                }
+
+                                <ValidationMessage
+                                    For="@(() => modelo.SocioRepartoIds)" />
+
+                                @if (modelo.SocioRepartoIds.Count > 0)
+                                {
+                                    @if (ImportesValidosParaVistaPrevia)
+                                    {
+                                        <div class="reparto-preview">
+                                            <h4>
+                                                Le corresponde pagar a cada socio
+                                            </h4>
+
+                                            @foreach (var parte in VistaPreviaReparto)
+                                            {
+                                                <div class="reparto-preview-fila"
+                                                     @key="parte.SocioId">
+                                                    <span>@parte.Profesional</span>
+
+                                                    <strong>
+                                                        @parte.Monto.ToString("C2", cultura)
+                                                    </strong>
+                                                </div>
+                                            }
+
+                                            <p>
+                                                El reparto se guarda al confirmar
+                                                los cambios. Completarlo no modifica
+                                                los pagos que cargaste.
+                                            </p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="reparto-instruccion">
+                                            Revisá los importes de los aportes
+                                            para ver la distribución.
+                                        </p>
+                                    }
+                                }
+                            }
+                        </section>
+                    }
 
                     <section class="form-section">
                         <h3>Motivo de la modificación</h3>
@@ -271,6 +369,9 @@
 
     private List<TipoListadoDTO> tiposGasto = new();
     private List<SocioListadoDTO> socios = new();
+    private List<SocioListadoDTO> sociosReparto = new();
+
+    private HashSet<int> sociosActivosReparto = new();
 
     private EditContext contexto = default!;
     private ValidationMessageStore erroresAportes = default!;
@@ -278,6 +379,7 @@
     private bool cargando = true;
     private bool datosCargados;
     private bool guardando;
+    private bool repartoPendiente;
 
     private int socioSeleccionadoId;
 
@@ -289,6 +391,71 @@
             !modelo.GastoSocios.Any(aporte =>
                 aporte.SocioId == socio.Id));
 
+    private bool ImportesValidosParaVistaPrevia
+    {
+        get
+        {
+            if (modelo.GastoSocios.Count == 0 ||
+                modelo.GastoSocios.Any(aporte =>
+                    aporte.Monto <= 0 ||
+                    aporte.Monto > 9999999999999999.99m ||
+                    decimal.Round(aporte.Monto, 2) != aporte.Monto))
+            {
+                return false;
+            }
+
+            try
+            {
+                return modelo.Monto <= 9999999999999999.99m;
+            }
+            catch (OverflowException)
+            {
+                return false;
+            }
+        }
+    }
+
+    private List<(
+        int SocioId,
+        string Profesional,
+        decimal Monto)> VistaPreviaReparto
+    {
+        get
+        {
+            if (!modelo.CompletarReparto ||
+                modelo.SocioRepartoIds.Count == 0 ||
+                !ImportesValidosParaVistaPrevia)
+            {
+                return new();
+            }
+
+            var ids = modelo.SocioRepartoIds
+                .Distinct()
+                .OrderBy(id => id)
+                .ToList();
+
+            var totalCentavos = modelo.Monto * 100m;
+
+            var centavosPorSocio = decimal.Floor(
+                totalCentavos / ids.Count);
+
+            var restantes = (int)(
+                totalCentavos - centavosPorSocio * ids.Count);
+
+            return ids
+                .Select((id, posicion) => (
+                    SocioId: id,
+                    Profesional: sociosReparto
+                        .FirstOrDefault(socio => socio.Id == id)
+                        ?.Profesional ?? "Socio",
+                    Monto: (
+                        centavosPorSocio +
+                        (posicion < restantes ? 1m : 0m)
+                    ) / 100m))
+                .ToList();
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await CargarDatos();
@@ -296,11 +463,17 @@
 
     private async Task CargarDatos()
     {
+        if (guardando)
+            return;
+
         cargando = true;
         datosCargados = false;
+        repartoPendiente = false;
         mensajeCarga = string.Empty;
         mensaje = string.Empty;
         socioSeleccionadoId = 0;
+        sociosReparto = new();
+        sociosActivosReparto = new();
 
         try
         {
@@ -311,6 +484,10 @@
             if (respuestaGasto.Error)
             {
                 mensajeCarga = respuestaGasto.ObtenerError();
+
+                if (string.IsNullOrWhiteSpace(mensajeCarga))
+                    mensajeCarga = "No se pudo consultar el gasto.";
+
                 return;
             }
 
@@ -329,6 +506,10 @@
             if (respuestaTipos.Error)
             {
                 mensajeCarga = respuestaTipos.ObtenerError();
+
+                if (string.IsNullOrWhiteSpace(mensajeCarga))
+                    mensajeCarga = "No se pudieron cargar los tipos de gasto.";
+
                 return;
             }
 
@@ -339,11 +520,19 @@
             if (respuestaSocios.Error)
             {
                 mensajeCarga = respuestaSocios.ObtenerError();
+
+                if (string.IsNullOrWhiteSpace(mensajeCarga))
+                    mensajeCarga = "No se pudieron cargar los socios.";
+
                 return;
             }
 
             tiposGasto = respuestaTipos.Respuesta ?? new();
             socios = respuestaSocios.Respuesta ?? new();
+
+            sociosActivosReparto = socios
+                .Select(socio => socio.Id)
+                .ToHashSet();
 
             if (!tiposGasto.Any(tipo => tipo.Id == gasto.TipoGastoId))
             {
@@ -354,6 +543,13 @@
                 if (respuestaTipo.Error)
                 {
                     mensajeCarga = respuestaTipo.ObtenerError();
+
+                    if (string.IsNullOrWhiteSpace(mensajeCarga))
+                    {
+                        mensajeCarga =
+                            "No se pudo cargar el tipo de gasto original.";
+                    }
+
                     return;
                 }
 
@@ -383,6 +579,13 @@
                 if (respuestaSocio.Error)
                 {
                     mensajeCarga = respuestaSocio.ObtenerError();
+
+                    if (string.IsNullOrWhiteSpace(mensajeCarga))
+                    {
+                        mensajeCarga =
+                            "No se pudo cargar uno de los socios originales.";
+                    }
+
                     return;
                 }
 
@@ -396,12 +599,75 @@
                 socios.Add(respuestaSocio.Respuesta);
             }
 
+            var respuestaDetalle =
+                await Http.Get<GastoListadoDTO>(
+                    $"api/gasto/{GastoId}/detalle");
+
+            if (respuestaDetalle.Error)
+            {
+                mensajeCarga = respuestaDetalle.ObtenerError();
+
+                if (string.IsNullOrWhiteSpace(mensajeCarga))
+                {
+                    mensajeCarga =
+                        "No se pudo consultar el reparto del gasto.";
+                }
+
+                return;
+            }
+
+            if (respuestaDetalle.Respuesta == null)
+            {
+                mensajeCarga =
+                    "No se encontraron los datos del reparto.";
+                return;
+            }
+
+            repartoPendiente =
+                respuestaDetalle.Respuesta.GastoRepartos.Count == 0;
+
+            if (repartoPendiente)
+            {
+                var respuestaSociosReparto =
+                    await Http.Get<List<SocioListadoDTO>>(
+                        "api/socio/ListaSociosParaReparto");
+
+                if (respuestaSociosReparto.Error)
+                {
+                    mensajeCarga =
+                        respuestaSociosReparto.ObtenerError();
+
+                    if (string.IsNullOrWhiteSpace(mensajeCarga))
+                    {
+                        mensajeCarga =
+                            "No se pudieron consultar los socios del reparto.";
+                    }
+
+                    return;
+                }
+
+                sociosReparto = (respuestaSociosReparto.Respuesta
+                    ?? new List<SocioListadoDTO>())
+                    .OrderBy(socio => socio.Profesional)
+                    .ThenBy(socio => socio.Id)
+                    .ToList();
+            }
+
             modelo = new GastoEditarDTO
             {
                 Fecha = gasto.Fecha,
                 TipoGastoId = gasto.TipoGastoId,
                 Descripcion = gasto.Descripcion,
                 Motivo = string.Empty,
+                CompletarReparto = false,
+                SocioRepartoIds = repartoPendiente
+                    ? sociosReparto
+                        .Where(socio =>
+                            sociosActivosReparto.Contains(socio.Id))
+                        .Select(socio => socio.Id)
+                        .OrderBy(id => id)
+                        .ToList()
+                    : new List<int>(),
                 GastoSocios = gasto.GastoSocios
                     .Select(aporte => new GastoSocioDTO
                     {
@@ -472,6 +738,41 @@
             socio.Id == socioId)?.Profesional ?? "Socio";
     }
 
+    private void CambiarSocioReparto(
+        int socioId,
+        ChangeEventArgs evento)
+    {
+        if (guardando)
+            return;
+
+        var seleccionado = evento.Value is bool valor && valor;
+
+        if (seleccionado)
+        {
+            if (!modelo.SocioRepartoIds.Contains(socioId))
+                modelo.SocioRepartoIds.Add(socioId);
+        }
+        else
+        {
+            modelo.SocioRepartoIds.Remove(socioId);
+        }
+
+        LimpiarErrorReparto();
+    }
+
+    private void LimpiarErrorReparto()
+    {
+        var campo = new FieldIdentifier(
+            modelo,
+            nameof(modelo.SocioRepartoIds));
+
+        erroresAportes.Clear(campo);
+        contexto.NotifyFieldChanged(campo);
+        contexto.NotifyValidationStateChanged();
+
+        mensaje = string.Empty;
+    }
+
     private bool ValidarFormulario()
     {
         erroresAportes.Clear();
@@ -499,12 +800,48 @@
                     campo,
                     "Ingresá un monto mayor a cero.");
             }
+            else if (aporte.Monto > 9999999999999999.99m)
+            {
+                erroresAportes.Add(
+                    campo,
+                    "El monto supera el importe permitido.");
+            }
             else if (decimal.Round(aporte.Monto, 2) != aporte.Monto)
             {
                 erroresAportes.Add(
                     campo,
                     "El monto puede tener como máximo dos decimales.");
             }
+        }
+
+        try
+        {
+            if (modelo.Monto > 9999999999999999.99m)
+            {
+                erroresAportes.Add(
+                    new FieldIdentifier(
+                        modelo,
+                        nameof(modelo.GastoSocios)),
+                    "El monto total supera el importe permitido.");
+            }
+        }
+        catch (OverflowException)
+        {
+            erroresAportes.Add(
+                new FieldIdentifier(
+                    modelo,
+                    nameof(modelo.GastoSocios)),
+                "El monto total supera el importe permitido.");
+        }
+
+        if (modelo.CompletarReparto &&
+            modelo.SocioRepartoIds.Count == 0)
+        {
+            erroresAportes.Add(
+                new FieldIdentifier(
+                    modelo,
+                    nameof(modelo.SocioRepartoIds)),
+                "Seleccioná al menos un socio para completar el reparto.");
         }
 
         contexto.NotifyValidationStateChanged();
@@ -549,6 +886,13 @@
             if (respuesta.Error)
             {
                 mensaje = respuesta.ObtenerError();
+
+                if (string.IsNullOrWhiteSpace(mensaje))
+                {
+                    mensaje =
+                        "No se pudo guardar la modificación del gasto.";
+                }
+
                 return;
             }
 

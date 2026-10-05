@@ -4,17 +4,16 @@ using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
 using Microsoft.EntityFrameworkCore;
 using Modelado2025_1Repositorio.Repositorios;
+using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Text.Json;
-using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace CentroSenderos_2026_Repositorio.Repositorios
 {
-    public class GastoRepositorio
-        : Repositorio<Gasto>, IGastoRepositorio
+    public class GastoRepositorio : Repositorio<Gasto>, IGastoRepositorio
     {
         private readonly ApplicationDbContext context;
 
@@ -60,10 +59,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "Hay un aporte sin datos.");
             }
 
-            if (dto.GastoSocios.Any(aporte => aporte.Monto <= 0))
+            if (dto.GastoSocios.Any(aporte =>
+                aporte.SocioId <= 0 || aporte.Monto <= 0))
             {
                 throw new ApplicationException(
-                    "El importe de cada socio debe ser mayor que cero.");
+                    "Seleccioná socios válidos e importes mayores que cero.");
             }
 
             if (dto.GastoSocios.Any(aporte =>
@@ -73,8 +73,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "Los importes pueden tener como máximo dos decimales.");
             }
 
+            const decimal montoMaximo = 9999999999999999.99m;
+
             if (dto.GastoSocios.Any(aporte =>
-                aporte.Monto > 9999999999999999.99m))
+                aporte.Monto > montoMaximo))
             {
                 throw new ApplicationException(
                     "Uno de los aportes supera el importe permitido.");
@@ -90,6 +92,28 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "No se puede agregar el mismo socio más de una vez.");
             }
 
+            decimal montoTotal;
+
+            try
+            {
+                montoTotal = dto.GastoSocios.Sum(aporte => aporte.Monto);
+            }
+            catch (OverflowException)
+            {
+                throw new ApplicationException(
+                    "El monto total supera el importe permitido.");
+            }
+
+            if (montoTotal > montoMaximo)
+            {
+                throw new ApplicationException(
+                    "El monto total supera el importe permitido.");
+            }
+
+            await using var transaccion =
+                await context.Database.BeginTransactionAsync(
+                    IsolationLevel.Serializable);
+
             var tipoGastoExiste = await context.TipoGastos
                 .AnyAsync(tipo =>
                     tipo.Id == dto.TipoGastoId &&
@@ -98,7 +122,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (!tipoGastoExiste)
             {
                 throw new ApplicationException(
-                    "El concepto seleccionado no existe o está inactivo.");
+                    "El tipo de gasto seleccionado no existe o está inactivo.");
             }
 
             var cantidadSociosValidos = await context.Socios
@@ -115,11 +139,47 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "Uno de los socios seleccionados no existe o está inactivo.");
             }
 
+            var sociosRepartoIds = await context.Socios
+                .AsNoTracking()
+                .Where(socio =>
+                    socio.EstadoRegistro == EnumEstadoRegistro.activo)
+                .OrderBy(socio => socio.Id)
+                .Select(socio => socio.Id)
+                .ToListAsync();
+
+            if (sociosRepartoIds.Count == 0)
+            {
+                throw new ApplicationException(
+                    "No hay socios activos para repartir el gasto.");
+            }
+
             var aportes = dto.GastoSocios
                 .Select(aporte => new GastoSocio
                 {
                     SocioId = aporte.SocioId,
                     Monto = aporte.Monto,
+                    EstadoRegistro = EnumEstadoRegistro.activo
+                })
+                .ToList();
+
+            var totalCentavos = montoTotal * 100m;
+
+            var centavosPorSocio = decimal.Floor(
+                totalCentavos / sociosRepartoIds.Count);
+
+            var centavosRestantes = (int)(
+                totalCentavos -
+                centavosPorSocio * sociosRepartoIds.Count);
+
+            var repartos = sociosRepartoIds
+                .Select((socioId, posicion) => new GastoReparto
+                {
+                    SocioId = socioId,
+                    Monto = (
+                        centavosPorSocio +
+                        (posicion < centavosRestantes ? 1m : 0m)
+                    ) / 100m,
+                    Observacion = string.Empty,
                     EstadoRegistro = EnumEstadoRegistro.activo
                 })
                 .ToList();
@@ -131,13 +191,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     DateTimeKind.Utc),
                 Descripcion = descripcion,
                 TipoGastoId = dto.TipoGastoId,
-                Monto = aportes.Sum(aporte => aporte.Monto),
+                Monto = montoTotal,
                 GastoSocios = aportes,
+                GastoRepartos = repartos,
                 EstadoRegistro = EnumEstadoRegistro.activo
             };
 
             context.Gastos.Add(gasto);
+
             await context.SaveChangesAsync();
+            await transaccion.CommitAsync();
 
             return gasto.Id;
         }
@@ -211,8 +274,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "Los importes pueden tener como máximo dos decimales.");
             }
 
+            const decimal montoMaximo = 9999999999999999.99m;
+
             if (dto.GastoSocios.Any(aporte =>
-                aporte.Monto > 9999999999999999.99m))
+                aporte.Monto > montoMaximo))
             {
                 throw new ApplicationException(
                     "Uno de los aportes supera el importe permitido.");
@@ -240,6 +305,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "El monto total supera el importe permitido.");
             }
 
+            if (montoTotal > montoMaximo)
+            {
+                throw new ApplicationException(
+                    "El monto total supera el importe permitido.");
+            }
+
             await using var transaccion =
                 await context.Database.BeginTransactionAsync(
                     IsolationLevel.Serializable);
@@ -257,6 +328,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             var gasto = await context.Gastos
                 .Include(gasto => gasto.TipoGastos)
+                .Include(gasto => gasto.GastoRepartos)
+                    .ThenInclude(reparto => reparto.Socios)
+                        .ThenInclude(socio => socio!.Profesionales)
                 .Include(gasto => gasto.GastoSocios)
                     .ThenInclude(aporte => aporte.Socios)
                         .ThenInclude(socio => socio!.Profesionales)
@@ -312,6 +386,57 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "No se pueden agregar socios o profesionales inactivos.");
             }
 
+            var repartosOriginales = gasto.GastoRepartos
+                .Where(reparto =>
+                    reparto.EstadoRegistro == EnumEstadoRegistro.activo)
+                .OrderBy(reparto => reparto.SocioId)
+                .ToList();
+
+            var sociosParaCompletar = new List<Socio>();
+
+            if (dto.CompletarReparto)
+            {
+                if (repartosOriginales.Count > 0)
+                {
+                    throw new ApplicationException(
+                        "Este gasto ya tiene un reparto registrado.");
+                }
+
+                if (gasto.GastoRepartos.Count > 0)
+                {
+                    throw new ApplicationException(
+                        "Este gasto tiene un reparto previo que debe revisarse.");
+                }
+
+                if (dto.SocioRepartoIds == null ||
+                    dto.SocioRepartoIds.Count == 0)
+                {
+                    throw new ApplicationException(
+                        "Seleccioná los socios entre quienes se reparte el gasto.");
+                }
+
+                if (dto.SocioRepartoIds.Any(socioId => socioId <= 0) ||
+                    dto.SocioRepartoIds.Distinct().Count() !=
+                        dto.SocioRepartoIds.Count)
+                {
+                    throw new ApplicationException(
+                        "La selección de socios del reparto no es válida.");
+                }
+
+                sociosParaCompletar = await context.Socios
+                    .Include(socio => socio.Profesionales)
+                    .Where(socio =>
+                        dto.SocioRepartoIds.Contains(socio.Id))
+                    .OrderBy(socio => socio.Id)
+                    .ToListAsync();
+
+                if (sociosParaCompletar.Count != dto.SocioRepartoIds.Count)
+                {
+                    throw new ApplicationException(
+                        "Uno de los socios del reparto no existe.");
+                }
+            }
+
             var datosAnteriores = JsonSerializer.Serialize(
                 ObtenerVersionGasto(gasto));
 
@@ -319,7 +444,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             {
                 if (!socioIds.Contains(aporteActual.SocioId))
                 {
-                    aporteActual.EstadoRegistro = EnumEstadoRegistro.borrado;
+                    aporteActual.EstadoRegistro =
+                        EnumEstadoRegistro.borrado;
                 }
             }
 
@@ -336,7 +462,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 else
                 {
                     var socio = sociosSeleccionados
-                        .First(socio => socio.Id == aporteNuevo.SocioId);
+                        .First(socio =>
+                            socio.Id == aporteNuevo.SocioId);
 
                     gasto.GastoSocios.Add(new GastoSocio
                     {
@@ -357,6 +484,47 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             gasto.TipoGastos = tipoGasto;
             gasto.Descripcion = descripcion;
             gasto.Monto = montoTotal;
+
+            if (dto.CompletarReparto)
+            {
+                foreach (var socio in sociosParaCompletar)
+                {
+                    var reparto = new GastoReparto
+                    {
+                        GastoId = gasto.Id,
+                        SocioId = socio.Id,
+                        Socios = socio,
+                        Monto = 0m,
+                        Observacion = string.Empty,
+                        EstadoRegistro = EnumEstadoRegistro.activo
+                    };
+
+                    gasto.GastoRepartos.Add(reparto);
+                    repartosOriginales.Add(reparto);
+                }
+            }
+
+            if (repartosOriginales.Count > 0)
+            {
+                var totalCentavos = montoTotal * 100m;
+
+                var centavosPorSocio = decimal.Floor(
+                    totalCentavos / repartosOriginales.Count);
+
+                var centavosRestantes = (int)(
+                    totalCentavos -
+                    centavosPorSocio * repartosOriginales.Count);
+
+                for (var posicion = 0;
+                     posicion < repartosOriginales.Count;
+                     posicion++)
+                {
+                    repartosOriginales[posicion].Monto = (
+                        centavosPorSocio +
+                        (posicion < centavosRestantes ? 1m : 0m)
+                    ) / 100m;
+                }
+            }
 
             var datosNuevos = JsonSerializer.Serialize(
                 ObtenerVersionGasto(gasto));
@@ -396,6 +564,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 TipoGasto = gasto.TipoGastos?.Tipo ?? string.Empty,
                 Descripcion = gasto.Descripcion,
                 Monto = gasto.Monto,
+
                 GastoSocios = gasto.GastoSocios
                     .Where(aporte =>
                         aporte.EstadoRegistro == EnumEstadoRegistro.activo)
@@ -404,8 +573,23 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     {
                         SocioId = aporte.SocioId,
                         Profesional =
-                            aporte.Socios?.Profesionales?.Nombre ?? string.Empty,
+                            aporte.Socios?.Profesionales?.Nombre
+                            ?? string.Empty,
                         Monto = aporte.Monto
+                    })
+                    .ToList(),
+
+                GastoRepartos = gasto.GastoRepartos
+                    .Where(reparto =>
+                        reparto.EstadoRegistro == EnumEstadoRegistro.activo)
+                    .OrderBy(reparto => reparto.SocioId)
+                    .Select(reparto => new GastoRepartoListadoDTO
+                    {
+                        SocioId = reparto.SocioId,
+                        Profesional =
+                            reparto.Socios?.Profesionales?.Nombre
+                            ?? string.Empty,
+                        Monto = reparto.Monto
                     })
                     .ToList()
             };
@@ -429,10 +613,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         : string.Empty,
                     Descripcion = gasto.Descripcion,
                     Monto = gasto.Monto,
-                    TieneHistorial = context.GastoHistoriales.Any(historial => historial.GastoId == gasto.Id),
+                    TieneHistorial = context.GastoHistoriales
+                        .Any(historial =>
+                            historial.GastoId == gasto.Id),
+
                     GastoSocios = gasto.GastoSocios
                         .Where(aporte =>
-                            aporte.EstadoRegistro == EnumEstadoRegistro.activo)
+                            aporte.EstadoRegistro ==
+                                EnumEstadoRegistro.activo)
                         .OrderBy(aporte => aporte.SocioId)
                         .Select(aporte => new GastoSocioListadoDTO
                         {
@@ -443,10 +631,25 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                                 : string.Empty,
                             Monto = aporte.Monto
                         })
+                        .ToList(),
+
+                    GastoRepartos = gasto.GastoRepartos
+                        .Where(reparto =>
+                            reparto.EstadoRegistro ==
+                                EnumEstadoRegistro.activo)
+                        .OrderBy(reparto => reparto.SocioId)
+                        .Select(reparto => new GastoRepartoListadoDTO
+                        {
+                            SocioId = reparto.SocioId,
+                            Profesional = reparto.Socios != null &&
+                                          reparto.Socios.Profesionales != null
+                                ? reparto.Socios.Profesionales.Nombre
+                                : string.Empty,
+                            Monto = reparto.Monto
+                        })
                         .ToList()
                 })
                 .ToListAsync();
-    
         }
 
         public async Task<GastoCrearDTO?> SelectGastoPorId(int id)
@@ -461,9 +664,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Fecha = gasto.Fecha,
                     TipoGastoId = gasto.TipoGastoId,
                     Descripcion = gasto.Descripcion,
+
                     GastoSocios = gasto.GastoSocios
                         .Where(aporte =>
-                            aporte.EstadoRegistro == EnumEstadoRegistro.activo)
+                            aporte.EstadoRegistro ==
+                                EnumEstadoRegistro.activo)
                         .OrderBy(aporte => aporte.SocioId)
                         .Select(aporte => new GastoSocioDTO
                         {
@@ -509,11 +714,13 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     NombreUsuario = registro.NombreUsuario,
                     FechaCambio = registro.FechaCambio,
                     Motivo = registro.Motivo,
+
                     DatosAnteriores =
                         JsonSerializer.Deserialize<GastoListadoDTO>(
                             registro.DatosAnteriores)
                         ?? throw new InvalidOperationException(
                             "No se pudo interpretar la versión anterior del gasto."),
+
                     DatosNuevos =
                         JsonSerializer.Deserialize<GastoListadoDTO>(
                             registro.DatosNuevos)
@@ -541,10 +748,13 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Descripcion = gasto.Descripcion,
                     Monto = gasto.Monto,
                     TieneHistorial = context.GastoHistoriales
-                        .Any(historial => historial.GastoId == gasto.Id),
+                        .Any(historial =>
+                            historial.GastoId == gasto.Id),
+
                     GastoSocios = gasto.GastoSocios
                         .Where(aporte =>
-                            aporte.EstadoRegistro == EnumEstadoRegistro.activo)
+                            aporte.EstadoRegistro ==
+                                EnumEstadoRegistro.activo)
                         .OrderBy(aporte => aporte.SocioId)
                         .Select(aporte => new GastoSocioListadoDTO
                         {
@@ -555,14 +765,25 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                                 : string.Empty,
                             Monto = aporte.Monto
                         })
+                        .ToList(),
+
+                    GastoRepartos = gasto.GastoRepartos
+                        .Where(reparto =>
+                            reparto.EstadoRegistro ==
+                                EnumEstadoRegistro.activo)
+                        .OrderBy(reparto => reparto.SocioId)
+                        .Select(reparto => new GastoRepartoListadoDTO
+                        {
+                            SocioId = reparto.SocioId,
+                            Profesional = reparto.Socios != null &&
+                                          reparto.Socios.Profesionales != null
+                                ? reparto.Socios.Profesionales.Nombre
+                                : string.Empty,
+                            Monto = reparto.Monto
+                        })
                         .ToList()
                 })
                 .FirstOrDefaultAsync();
         }
-
-
-
-
-
     }
 }

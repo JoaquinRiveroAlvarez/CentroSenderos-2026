@@ -16,6 +16,15 @@ namespace CentroSenderos_2026_Server.Controllers
             this.repositorio = repositorio;
         }
 
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [HttpGet("ListaSociosParaReparto")]
+        public async Task<ActionResult<List<SocioListadoDTO>>>GetListaSociosParaReparto()
+        {
+            var lista = await repositorio.SelectListaSociosParaReparto();
+
+            return Ok(lista);
+        }
+
         [HttpGet("ListaSocio")]
         public async Task<ActionResult<List<SocioListadoDTO>>> GetListaSocio()
         {
