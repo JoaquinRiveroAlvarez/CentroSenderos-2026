@@ -55,6 +55,15 @@
 
                 <DataAnnotationsValidator />
 
+                @if (tieneReintegros)
+                {
+                    <p class="reparto-instruccion" role="status">
+                        Este gasto tiene reintegros registrados. Podés modificar
+                        la descripción y el tipo de gasto. La fecha, el monto,
+                        los socios, los aportes y el reparto están protegidos.
+                    </p>
+                }
+
                 <fieldset class="form-fields" disabled="@guardando">
                     <section class="form-section">
                         <h3>Detalles del gasto</h3>
@@ -87,7 +96,8 @@
 
                                 <InputDate id="editarFechaGasto"
                                            class="form-input"
-                                           @bind-Value="modelo.Fecha" />
+                                           @bind-Value="modelo.Fecha"
+                                           disabled="@tieneReintegros" />
 
                                 <ValidationMessage
                                     For="@(() => modelo.Fecha)" />
@@ -105,7 +115,7 @@
                                     class="form-input"
                                     @bind="socioSeleccionadoId"
                                     @bind:after="AgregarSocio"
-                                    disabled="@(!SociosDisponibles.Any())">
+                                    disabled="@(tieneReintegros || !SociosDisponibles.Any())">
                                 <option value="0">Seleccionar socio</option>
 
                                 @foreach (var socio in SociosDisponibles)
@@ -147,7 +157,8 @@
                                                 class="form-input"
                                                 @bind-Value="aporte.Monto"
                                                 min="0.01"
-                                                step="0.01" />
+                                                step="0.01"
+                                                disabled="@tieneReintegros" />
 
                                             <ValidationMessage
                                                 For="@(() => aporte.Monto)" />
@@ -155,6 +166,7 @@
 
                                         <button type="button"
                                                 class="remove-button"
+                                                disabled="@tieneReintegros"
                                                 aria-label="@($"Quitar a {NombreSocio(aporte.SocioId)}")"
                                                 @onclick="() => QuitarSocio(aporte)">
                                             <i class="bi bi-trash"></i>
@@ -380,6 +392,7 @@
     private bool datosCargados;
     private bool guardando;
     private bool repartoPendiente;
+    private bool tieneReintegros;
 
     private int socioSeleccionadoId;
 
@@ -469,6 +482,7 @@
         cargando = true;
         datosCargados = false;
         repartoPendiente = false;
+        tieneReintegros = false;
         mensajeCarga = string.Empty;
         mensaje = string.Empty;
         socioSeleccionadoId = 0;
@@ -623,7 +637,10 @@
                 return;
             }
 
-            repartoPendiente =
+            tieneReintegros =
+                respuestaDetalle.Respuesta.GastoReintegros.Count > 0;
+
+            repartoPendiente = !tieneReintegros &&
                 respuestaDetalle.Respuesta.GastoRepartos.Count == 0;
 
             if (repartoPendiente)
@@ -704,7 +721,7 @@
         var socioId = socioSeleccionadoId;
         socioSeleccionadoId = 0;
 
-        if (guardando || socioId <= 0)
+        if (guardando || tieneReintegros || socioId <= 0)
             return;
 
         if (!socios.Any(socio => socio.Id == socioId))
@@ -725,7 +742,7 @@
 
     private void QuitarSocio(GastoSocioDTO aporte)
     {
-        if (guardando)
+        if (guardando || tieneReintegros)
             return;
 
         modelo.GastoSocios.Remove(aporte);
@@ -742,7 +759,7 @@
         int socioId,
         ChangeEventArgs evento)
     {
-        if (guardando)
+        if (guardando || tieneReintegros)
             return;
 
         var seleccionado = evento.Value is bool valor && valor;

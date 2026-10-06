@@ -25,6 +25,7 @@
             </button>
         </header>
 
+        <div class="detalle-contenido">
         @if (cargando)
         {
             <div class="state-card" role="status">
@@ -132,7 +133,7 @@
                                         Le corresponde
                                     </th>
                                     <th scope="col" class="reparto-importe">
-                                        Saldo
+                                        Pendiente actual
                                     </th>
                                 </tr>
                             </thead>
@@ -146,7 +147,7 @@
 
                                     var pago = PagoSocio(socioId);
                                     var parte = reparto?.Monto ?? 0m;
-                                    var saldo = pago - parte;
+                                    var saldo = gasto.SaldoSocio(socioId);
 
                                     <tr @key="socioId">
                                         <th scope="row">
@@ -173,19 +174,55 @@
                     </div>
 
                     <p class="reparto-help">
-                        Saldo positivo: tiene a favor.
-                        Saldo negativo: le corresponde aportar.
-                        Estos saldos corresponden únicamente a este gasto.
+                        El pendiente actual incluye los reintegros registrados.
+                        Si varias personas deben devolver dinero, registrá
+                        un reintegro por cada pagador y destinatario.
                     </p>
                 }
             </section>
         }
+
+        @if (gasto != null && !cargando && string.IsNullOrWhiteSpace(mensajeError) && gasto.GastoReintegros.Count > 0)
+        {
+            <section class="detail-section">
+                <h3>Reintegros registrados</h3>
+                <div class="aportes-list">
+                    @foreach (var reintegro in gasto.GastoReintegros.OrderByDescending(item => item.Fecha).ThenByDescending(item => item.ReintegroSocioId))
+                    {
+                        <div class="aporte-row" @key="reintegro.ReintegroSocioId">
+                            <div class="aporte-name">
+                                <i class="bi bi-arrow-left-right"></i>
+                                <span>
+                                    @reintegro.Fecha.ToString("dd/MM/yyyy"):
+                                    @NombreSocio(reintegro.SocioPagadorId)
+                                    → @NombreSocio(reintegro.SocioReceptorId)
+                                </span>
+                            </div>
+                            <strong class="aporte-amount">@Moneda(reintegro.Monto)</strong>
+                        </div>
+                    }
+                </div>
+                <p class="reparto-help">Importes aplicados a este gasto. Una transferencia puede incluir otros gastos.</p>
+            </section>
+        }
+
+        </div>
 
         <footer class="modal-actions">
             @if (gasto != null &&
                  !cargando &&
                  string.IsNullOrWhiteSpace(mensajeError))
             {
+                @if (PuedeReintegrar)
+                {
+                    <button type="button"
+                            class="secondary-button"
+                            @onclick="AbrirReintegro">
+                        <i class="bi bi-arrow-left-right"></i>
+                        Registrar reintegro
+                    </button>
+                }
+
                 @if (gasto.TieneHistorial)
                 {
                     <button type="button"
@@ -198,10 +235,18 @@
 
                 <button type="button"
                         class="secondary-button"
+                        title="@(gasto.GastoReintegros.Count > 0 ? "Editar descripción y tipo de gasto" : "Editar gasto")"
                         @onclick="AbrirEditar">
                     <i class="bi bi-pencil"></i>
                     Editar
                 </button>
+
+                @if (gasto.GastoReintegros.Count > 0)
+                {
+                    <p class="acciones-ayuda" role="status">
+                        Este gasto tiene reintegros: solo se pueden editar la descripción y el tipo de gasto.
+                    </p>
+                }
             }
 
             <button type="button"
@@ -225,6 +270,22 @@
 
     [Parameter]
     public EventCallback<int> OnHistorial { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnReintegro { get; set; }
+
+    private bool PuedeReintegrar => gasto != null &&
+        gasto.GastoRepartos.Count > 0 &&
+        gasto.GastoRepartos.Sum(parte => parte.Monto) == gasto.Monto &&
+        gasto.GastoSocios.Sum(aporte => aporte.Monto) == gasto.Monto &&
+        SocioIdsDetalle.Any(socioId => gasto.SaldoSocio(socioId) < 0) &&
+        SocioIdsDetalle.Any(socioId => gasto.SaldoSocio(socioId) > 0);
+
+    private async Task AbrirReintegro()
+    {
+        if (PuedeReintegrar)
+            await OnReintegro.InvokeAsync(GastoId);
+    }
 
     private readonly CultureInfo cultura =
         CultureInfo.GetCultureInfo("es-AR");
@@ -328,9 +389,13 @@
 
     private string TextoSaldo(decimal saldo)
     {
-        return saldo > 0
-            ? $"+{Moneda(saldo)}"
-            : Moneda(saldo);
+        if (saldo < 0)
+            return $"Debe {Moneda(-saldo)}";
+
+        if (saldo > 0)
+            return $"Tiene {Moneda(saldo)} a favor";
+
+        return "Saldado";
     }
 
     private static string ClaseSaldo(decimal saldo)

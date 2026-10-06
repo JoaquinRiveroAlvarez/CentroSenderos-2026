@@ -122,11 +122,15 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     .AnyAsync(reparto =>
                         reparto.SocioId == id);
 
-                if (tienePagos || tieneRepartos)
+                var tieneReintegros = await context.ReintegrosSocios.AnyAsync(reintegro =>
+                         reintegro.SocioPagadorId == id ||
+                         reintegro.SocioReceptorId == id);
+
+                if (tienePagos || tieneRepartos || tieneReintegros)
                 {
                     throw new ApplicationException(
                         "No se puede cambiar el profesional de un socio " +
-                        "que tiene pagos o repartos registrados. " +
+                        "que tiene pagos, repartos o reintegros registrados. " +
                         "Podés modificar su observación.");
                 }
 

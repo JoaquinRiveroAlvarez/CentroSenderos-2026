@@ -205,7 +205,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return gasto.Id;
         }
 
-        public async Task<bool> ActualizarGasto(int id,GastoEditarDTO dto,string usuarioId)
+        public async Task<bool> ActualizarGasto(int id, GastoEditarDTO dto, string usuarioId)
         {
             if (string.IsNullOrWhiteSpace(usuarioId))
             {
@@ -341,6 +341,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (gasto == null)
                 return false;
 
+            var tieneReintegros = await context.ReintegrosSociosDetalles.AnyAsync(detalle =>
+                detalle.GastoId == id &&
+                detalle.EstadoRegistro == EnumEstadoRegistro.activo &&
+                detalle.ReintegroSocio != null &&
+                detalle.ReintegroSocio.EstadoRegistro == EnumEstadoRegistro.activo);
+
             var tipoGasto = await context.TipoGastos
                 .FirstOrDefaultAsync(tipo =>
                     tipo.Id == dto.TipoGastoId);
@@ -357,6 +363,58 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .Where(aporte =>
                     aporte.EstadoRegistro == EnumEstadoRegistro.activo)
                 .ToList();
+
+            if (tieneReintegros)
+            {
+                var aportesSinCambios =
+                    aportesActuales.Count == dto.GastoSocios.Count &&
+                    aportesActuales.All(actual => dto.GastoSocios.Any(nuevo =>
+                        nuevo.SocioId == actual.SocioId &&
+                        nuevo.Monto == actual.Monto));
+
+                if (dto.Fecha.Value.Date != gasto.Fecha.Date ||
+                    montoTotal != gasto.Monto ||
+                    !aportesSinCambios ||
+                    dto.CompletarReparto ||
+                    (dto.SocioRepartoIds != null && dto.SocioRepartoIds.Count > 0))
+                {
+                    throw new ApplicationException(
+                        "Este gasto tiene reintegros registrados. Solo se pueden " +
+                        "modificar la descripción y el tipo de gasto; la fecha, " +
+                        "el monto, los socios, los aportes y el reparto están protegidos.");
+                }
+
+                var versionAnterior = JsonSerializer.Serialize(
+                    ObtenerVersionGasto(gasto));
+
+                gasto.Descripcion = descripcion;
+                gasto.TipoGastoId = tipoGasto.Id;
+                gasto.TipoGastos = tipoGasto;
+
+                var versionNueva = JsonSerializer.Serialize(
+                    ObtenerVersionGasto(gasto));
+
+                if (versionAnterior == versionNueva)
+                {
+                    throw new ApplicationException(
+                        "No hay cambios en el gasto para guardar.");
+                }
+
+                context.GastoHistoriales.Add(new GastoHistorial
+                {
+                    GastoId = gasto.Id,
+                    UsuarioId = usuario.Id,
+                    NombreUsuario = usuario.UserName ?? usuario.Id,
+                    FechaCambio = DateTime.UtcNow,
+                    Motivo = motivo,
+                    DatosAnteriores = versionAnterior,
+                    DatosNuevos = versionNueva
+                });
+
+                await context.SaveChangesAsync();
+                await transaccion.CommitAsync();
+                return true;
+            }
 
             var socioIdsActuales = aportesActuales
                 .Select(aporte => aporte.SocioId)
@@ -613,6 +671,24 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         : string.Empty,
                     Descripcion = gasto.Descripcion,
                     Monto = gasto.Monto,
+                    GastoReintegros = gasto.ReintegroSocioDetalles
+                        .Where(detalle =>
+                            detalle.EstadoRegistro ==
+                                EnumEstadoRegistro.activo &&
+                            detalle.ReintegroSocio != null &&
+                            detalle.ReintegroSocio.EstadoRegistro ==
+                                EnumEstadoRegistro.activo)
+                        .Select(detalle => new GastoReintegroListadoDTO
+                        {
+                            ReintegroSocioId = detalle.ReintegroSocioId,
+                            Fecha = detalle.ReintegroSocio!.Fecha,
+                            SocioPagadorId =
+                                detalle.ReintegroSocio!.SocioPagadorId,
+                            SocioReceptorId =
+                                detalle.ReintegroSocio!.SocioReceptorId,
+                            Monto = detalle.Monto
+                        })
+                        .ToList(),
                     TieneHistorial = context.GastoHistoriales
                         .Any(historial =>
                             historial.GastoId == gasto.Id),
@@ -747,6 +823,24 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         : string.Empty,
                     Descripcion = gasto.Descripcion,
                     Monto = gasto.Monto,
+                    GastoReintegros = gasto.ReintegroSocioDetalles
+                        .Where(detalle =>
+                            detalle.EstadoRegistro ==
+                                EnumEstadoRegistro.activo &&
+                            detalle.ReintegroSocio != null &&
+                            detalle.ReintegroSocio.EstadoRegistro ==
+                                EnumEstadoRegistro.activo)
+                        .Select(detalle => new GastoReintegroListadoDTO
+                        {
+                            ReintegroSocioId = detalle.ReintegroSocioId,
+                            Fecha = detalle.ReintegroSocio!.Fecha,
+                            SocioPagadorId =
+                                detalle.ReintegroSocio!.SocioPagadorId,
+                            SocioReceptorId =
+                                detalle.ReintegroSocio!.SocioReceptorId,
+                            Monto = detalle.Monto
+                        })
+                        .ToList(),
                     TieneHistorial = context.GastoHistoriales
                         .Any(historial =>
                             historial.GastoId == gasto.Id),

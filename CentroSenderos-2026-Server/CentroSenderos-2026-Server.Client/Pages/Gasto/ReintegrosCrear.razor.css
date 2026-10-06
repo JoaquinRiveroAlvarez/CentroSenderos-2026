@@ -1,0 +1,346 @@
+/* #region Modal y encabezado */
+.reintegro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(32, 39, 30, .4);
+}
+
+.reintegro-modal {
+    width: min(900px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #faf8f5;
+    border: 1px solid #e7e3dc;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .18);
+    color: #343b31;
+}
+
+.reintegro-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+    .reintegro-header h2 {
+        font-size: 28px;
+        margin: 12px 0 8px;
+    }
+
+    .reintegro-header p, .reintegro-help {
+        color: #71766c;
+        font-size: 14px;
+    }
+
+.reintegro-back, .reintegro-close {
+    background: transparent;
+    border: 0;
+    color: #556f4f;
+    cursor: pointer;
+}
+
+.reintegro-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reintegro-close {
+    align-self: flex-start;
+    padding: 8px;
+}
+/* #endregion */
+
+/* #region Formulario */
+.reintegro-fields {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+}
+
+.reintegro-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.reintegro-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+    .reintegro-field label {
+        color: #647b5b;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .reintegro-field ::deep input, .reintegro-field ::deep select, .reintegro-field ::deep textarea,
+    .reintegro-table ::deep input[type="number"] {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border: 1px solid #e7e3dc;
+        border-radius: 9px;
+        background: white;
+        color: #343b31;
+        font-size: 14px;
+    }
+
+    .reintegro-field ::deep textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+.reintegro-fields h3 {
+    font-size: 18px;
+    margin: 12px 0;
+}
+
+.reintegro-field ::deep .validation-message {
+    color: #b83c3c;
+    font-size: 13px;
+}
+/* #endregion */
+
+/* #region Gastos e importes */
+.reintegro-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #e7e3dc;
+    border-radius: 10px;
+}
+
+.reintegro-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+    .reintegro-table th {
+        padding: 12px;
+        background: #dfe5dc;
+        color: #556f4f;
+        text-align: left;
+    }
+
+    .reintegro-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e7e3dc;
+    }
+
+        .reintegro-table td:last-child {
+            min-width: 150px;
+        }
+
+    .reintegro-table small {
+        display: block;
+        color: #71766c;
+        margin-top: 5px;
+    }
+
+    .reintegro-table ::deep input[type="checkbox"] {
+        accent-color: #556f4f;
+        width: 18px;
+        height: 18px;
+    }
+
+.reintegro-total {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    background: #dfe5dc;
+    border-radius: 10px;
+    padding: 16px;
+    margin: 18px 0;
+}
+/* #endregion */
+
+/* #region Mensajes y acciones */
+.reintegro-state {
+    padding: 20px;
+    background: #f5f3ef;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.reintegro-error {
+    color: #b83c3c;
+    background: #fff0ed;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.reintegro-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.reintegro-primary, .reintegro-secondary {
+    padding: 11px 18px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.reintegro-primary {
+    background: #556f4f;
+    color: white;
+    border: 1px solid #556f4f;
+}
+
+.reintegro-secondary {
+    background: white;
+    color: #556f4f;
+    border: 1px solid #e7e3dc;
+}
+
+button:disabled {
+    opacity: .6;
+    cursor: default;
+}
+
+button:focus-visible, .reintegro-field ::deep input:focus-visible,
+.reintegro-field ::deep select:focus-visible, .reintegro-field ::deep textarea:focus-visible,
+.reintegro-table ::deep input:focus-visible {
+    outline: 2px solid #647b5b;
+    outline-offset: 3px;
+}
+/* #endregion */
+
+/* #region Adaptación a pantallas pequeñas */
+@media (max-width: 640px) {
+    .reintegro-overlay {
+        padding: 12px;
+    }
+
+    .reintegro-modal {
+        padding: 18px;
+        max-height: 94vh;
+    }
+
+    .reintegro-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .reintegro-header h2 {
+        font-size: 24px;
+    }
+
+    .reintegro-actions {
+        flex-wrap: wrap;
+    }
+}
+/* #endregion */
+
+/* #region Gasto principal y selección de otros gastos */
+.reintegro-principal {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    background: #dfe5dc;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 22px;
+}
+
+    .reintegro-principal > span {
+        color: #556f4f;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .reintegro-principal > small {
+        color: #71766c;
+    }
+
+.reintegro-principal-label {
+    font-size: 12px;
+    color: #556f4f;
+    font-weight: 600;
+}
+
+.reintegro-otros {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+    margin: 16px 0;
+    font-size: 14px;
+}
+
+    .reintegro-otros ::deep input {
+        accent-color: #556f4f;
+    }
+/* #endregion */
+
+/* #region Saldos y ayuda para registrar la transferencia */
+.reintegro-resumen {
+    margin-bottom: 12px;
+}
+
+    .reintegro-resumen tbody th {
+        background: transparent;
+        color: #343b31;
+        font-weight: 600;
+        border-bottom: 1px solid #e7e3dc;
+    }
+
+.reintegro-estado {
+    display: inline-block;
+    border-radius: 8px;
+    padding: 6px 9px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+    .reintegro-estado.deuda {
+        color: #a23d32;
+        background: #fff0ed;
+    }
+
+    .reintegro-estado.favor {
+        color: #407238;
+        background: #e7eee3;
+    }
+
+    .reintegro-estado.saldado {
+        color: #71766c;
+        background: #efede8;
+    }
+
+.reintegro-transferencia {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    background: #dfe5dc;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.reintegro-completar {
+    display: block;
+    margin-top: 8px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: #556f4f;
+    text-decoration: underline;
+    font-size: 12px;
+    cursor: pointer;
+}
+/* #endregion */

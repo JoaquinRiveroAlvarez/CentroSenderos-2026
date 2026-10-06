@@ -1,6 +1,5 @@
-/* #region Fondo y modal */
-
-/* Mantiene el detalle sobre el listado y limita su altura. */
+/* #region Fondo y estructura del modal */
+/* El contenido se desplaza; encabezado y acciones permanecen visibles. */
 .detalle-overlay {
     position: fixed;
     inset: 0;
@@ -9,32 +8,45 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(30, 37, 28, 0.42);
+    background: rgba(30, 37, 28, .42);
 }
 
 .detalle-modal {
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    max-width: 620px;
+    max-width: 760px;
     max-height: calc(100dvh - 48px);
-    overflow-y: auto;
-    padding: 26px;
+    overflow: hidden;
+    padding: 0;
     border: 1px solid #e7e3dc;
     border-radius: 20px;
     background: #faf8f5;
     color: #333a31;
-    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 18px 60px rgba(0, 0, 0, .16);
 }
 
+    .detalle-modal, .detalle-modal * {
+        box-sizing: border-box;
+    }
+
+.detalle-contenido {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 26px;
+    overscroll-behavior: contain;
+}
 /* #endregion */
 
 /* #region Encabezado */
-
 .modal-header {
     display: flex;
+    flex-shrink: 0;
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
-    padding: 0 0 20px;
+    padding: 24px 26px 20px;
     border-bottom: 1px solid #e7e3dc;
 }
 
@@ -62,11 +74,9 @@
     color: #687160;
     cursor: pointer;
 }
-
 /* #endregion */
 
 /* #region Información del gasto */
-
 .detail-section {
     padding: 20px 0;
     border-bottom: 1px solid #e7e3dc;
@@ -110,11 +120,9 @@
     line-height: 1.6;
     white-space: pre-wrap;
 }
-
 /* #endregion */
 
-/* #region Aportes por socio */
-
+/* #region Pagos y reintegros por socio */
 .aportes-list {
     display: flex;
     flex-direction: column;
@@ -159,11 +167,9 @@
     color: #73796f;
     font-size: 14px;
 }
-
 /* #endregion */
 
 /* #region Monto total */
-
 .total-box {
     display: flex;
     align-items: center;
@@ -184,11 +190,9 @@
         font-size: 22px;
         overflow-wrap: anywhere;
     }
-
 /* #endregion */
 
-/* #region Estados y botones */
-
+/* #region Estados de carga y error */
 .state-card {
     padding: 36px 16px;
     text-align: center;
@@ -209,12 +213,20 @@
     color: #73796f;
     font-size: 14px;
 }
+/* #endregion */
 
+/* #region Acciones visibles al pie */
+/* El pie queda fuera del contenedor que se desplaza. */
 .modal-actions {
     display: flex;
+    flex-shrink: 0;
+    align-items: center;
     justify-content: flex-end;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
+    padding: 18px 26px;
+    border-top: 1px solid #e7e3dc;
+    background: #faf8f5;
 }
 
 .secondary-button {
@@ -223,7 +235,7 @@
     justify-content: center;
     gap: 8px;
     min-height: 42px;
-    padding: 10px 18px;
+    padding: 10px 15px;
     border: 1px solid #deded3;
     border-radius: 9px;
     background: transparent;
@@ -233,20 +245,32 @@
     cursor: pointer;
 }
 
-    .secondary-button:hover {
+    .secondary-button:hover:not(:disabled) {
         background: #eeeee7;
     }
+
+    .secondary-button:disabled {
+        opacity: .55;
+        cursor: not-allowed;
+    }
+
+.acciones-ayuda {
+    flex-basis: 100%;
+    order: 1;
+    margin: 0;
+    color: #777d70;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: right;
+}
 
 button:focus-visible {
     outline: 2px solid #556f4f;
     outline-offset: 2px;
 }
-
 /* #endregion */
 
 /* #region Reparto entre socios */
-
-/* Tabla de pagos, partes y saldos */
 .reparto-table-container {
     width: 100%;
     overflow-x: auto;
@@ -273,8 +297,7 @@ button:focus-visible {
             text-align: left;
         }
 
-    .reparto-table tbody th,
-    .reparto-table tbody td {
+    .reparto-table tbody th, .reparto-table tbody td {
         padding: 14px;
         border-top: 1px solid #e7e3dc;
         color: #444;
@@ -290,7 +313,6 @@ button:focus-visible {
         white-space: nowrap;
     }
 
-/* Colores de los saldos */
 .reparto-saldo {
     font-weight: 600;
 }
@@ -307,7 +329,6 @@ button:focus-visible {
         color: #777d70;
     }
 
-/* Explicación del saldo */
 .reparto-help {
     margin: 12px 0 0;
     color: #777d70;
@@ -315,7 +336,6 @@ button:focus-visible {
     line-height: 1.6;
 }
 
-/* Gastos anteriores sin reparto */
 .reparto-pendiente {
     display: flex;
     align-items: flex-start;
@@ -337,19 +357,9 @@ button:focus-visible {
         font-size: 13px;
         line-height: 1.6;
     }
-
-/* Separación de las acciones del modal */
-.modal-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 12px;
-}
-
 /* #endregion */
 
 /* #region Responsive */
-
 @media (max-width: 600px) {
     .detalle-overlay {
         padding: 12px;
@@ -357,7 +367,23 @@ button:focus-visible {
 
     .detalle-modal {
         max-height: calc(100dvh - 24px);
+    }
+
+    .modal-header {
         padding: 20px;
+    }
+
+    .detalle-contenido {
+        padding: 0 20px;
+    }
+
+    .modal-actions {
+        padding: 14px 20px;
+    }
+
+    .secondary-button {
+        padding: 9px 12px;
+        font-size: 13px;
     }
 
     .detail-grid {
@@ -369,4 +395,19 @@ button:focus-visible {
     }
 }
 
+@media (max-height: 480px) {
+    .modal-header {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+        .modal-header p {
+            display: none;
+        }
+
+    .modal-actions {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+}
 /* #endregion */

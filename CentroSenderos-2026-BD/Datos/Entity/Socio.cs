@@ -13,6 +13,8 @@ namespace CentroSenderos_2026_BD.Datos.Entity
 
         public List<GastoSocio> GastoSocios { get; set; } = new();
         public List<GastoReparto> GastoRepartos { get; set; } = new();
+        public List<ReintegroSocio> ReintegrosPagados { get; set; } = new();
+        public List<ReintegroSocio> ReintegrosRecibidos { get; set; } = new();
 
     }
 }

@@ -931,6 +931,165 @@
 
 /* #endregion */
 
+/* #region Filas con reintegros pendientes */
+/* Mantiene el amarillo en filas pares y al pasar el cursor */
+.gastos-table tbody .gasto-row.reintegro-pendiente,
+.gastos-table tbody .gasto-row.reintegro-pendiente:nth-child(even) {
+    background: #fff6d8;
+}
+
+    .gastos-table tbody .gasto-row.reintegro-pendiente:hover,
+    .gastos-table tbody .gasto-row.reintegro-pendiente:focus-within {
+        background: #ffedb0;
+    }
+
+    .gastos-table tbody .gasto-row.reintegro-pendiente td:first-child {
+        box-shadow: inset 4px 0 #dfb744;
+    }
+
+.gasto-pendiente-badge, .gasto-reparto-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    margin-top: 7px;
+    padding: 4px 7px;
+    border-radius: 7px;
+    font-size: 11px;
+}
+
+.gasto-pendiente-badge {
+    color: #80621b;
+    background: #ffedb0;
+}
+
+.gasto-reparto-badge {
+    color: #777d70;
+    background: #efede8;
+}
+/* #endregion */
+
+/* #region Panel de pendientes con acciones */
+.pendientes-importe {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 14px;
+    border-radius: 12px;
+    background: #fff6d8;
+    color: #80621b;
+}
+
+    .pendientes-importe > span {
+        font-size: 12px;
+    }
+
+    .pendientes-importe > strong {
+        font-size: 23px;
+        overflow-wrap: anywhere;
+    }
+
+    .pendientes-importe > small {
+        font-size: 12px;
+    }
+
+.pendientes-filtros {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.pendientes-filtro {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 10px;
+    border: 1px solid #e7e3dc;
+    border-radius: 10px;
+    background: white;
+    color: #556f4f;
+    text-align: left;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+    .pendientes-filtro span {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .pendientes-filtro strong {
+        padding: 3px 7px;
+        border-radius: 7px;
+        background: #eef2ea;
+    }
+
+    .pendientes-filtro:hover, .pendientes-filtro.activo {
+        border-color: #b4c3ae;
+        background: #eaf0e6;
+    }
+
+.pendientes-card .pendientes-saldados {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 14px;
+    color: #556f4f;
+    font-size: 12px;
+}
+
+.pendientes-subtitulo {
+    margin: 18px 0 8px;
+    font-size: 12px;
+    color: #647b5b;
+}
+
+.pendiente-gasto-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px 0;
+    border: 0;
+    border-bottom: 1px solid #e7e3dc;
+    background: transparent;
+    color: #3f443d;
+    text-align: left;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+    .pendiente-gasto-link > span {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .pendiente-gasto-link small {
+        display: block;
+        margin-top: 4px;
+        color: #858b7e;
+    }
+
+    .pendiente-gasto-link strong {
+        color: #80621b;
+        font-size: 12px;
+    }
+
+    .pendiente-gasto-link:hover {
+        color: #556f4f;
+        background: #f5f3ef;
+    }
+
+    .pendientes-filtro:focus-visible, .pendiente-gasto-link:focus-visible {
+        outline: 2px solid #647b5b;
+        outline-offset: 3px;
+    }
+/* #endregion */
+
 /* #region Accesibilidad */
 
         /* Foco visible */

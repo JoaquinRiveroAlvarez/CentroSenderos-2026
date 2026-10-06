@@ -58,7 +58,7 @@ builder.Services.AddScoped<ITipoGastoRepositorio, TipoGastoRepositorio>();
 builder.Services.AddScoped<IGastoRepositorio, GastoRepositorio>();
 builder.Services.AddSingleton<SupabaseStorageService>();
 builder.Services.AddScoped<IDocumentoRepositorio, DocumentoRepositorio>();
-
+builder.Services.AddScoped<IReintegroSocioRepositorio,ReintegroSocioRepositorio>();
 
 
 // Razor Components + Auth

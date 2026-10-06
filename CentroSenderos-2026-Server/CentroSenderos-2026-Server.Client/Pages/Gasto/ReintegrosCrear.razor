@@ -1,0 +1,405 @@
+﻿@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Servicio.ServiciosHttp
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Globalization
+@using System.Text.Json
+@inject IHttpServicio Http
+
+<div class="reintegro-overlay">
+    <section class="reintegro-modal" role="dialog" aria-modal="true" aria-labelledby="tituloReintegro">
+        <header class="reintegro-header">
+            <div>
+                <button type="button" class="reintegro-back" disabled="@guardando" @onclick="Cerrar">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </button>
+                <h2 id="tituloReintegro">Registrar reintegro</h2>
+                <p>Registrá una transferencia y cuánto corresponde a cada gasto.</p>
+            </div>
+            <button type="button" class="reintegro-close" aria-label="Cerrar" disabled="@guardando" @onclick="Cerrar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </header>
+
+        @if (cargando)
+        {
+            <p class="reintegro-state" role="status">Cargando socios y gastos...</p>
+        }
+        else if (!datosCargados)
+        {
+            <div class="reintegro-state">
+                <p role="alert">@mensaje</p>
+                <button type="button" class="reintegro-secondary" @onclick="CargarDatos">Reintentar</button>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@modelo" OnSubmit="Grabar" FormName="RegistrarReintegro">
+                @if (gastoPrincipal != null)
+                {
+                    <div class="reintegro-principal">
+                        <span>GASTO PRINCIPAL</span>
+                        <strong>@gastoPrincipal.Descripcion</strong>
+                        <small>@gastoPrincipal.Fecha.ToString("dd/MM/yyyy") · @gastoPrincipal.TipoGasto</small>
+                    </div>
+                    <h3>Situación actual del gasto</h3>
+                    <div class="reintegro-table-wrap reintegro-resumen">
+                        <table class="reintegro-table">
+                            <thead>
+                                <tr><th>Socio</th><th>Pagó originalmente</th><th>Le corresponde</th><th>Pendiente actual</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var socioId in SocioIdsPrincipal)
+                                {
+                                    var saldo = gastoPrincipal.SaldoSocio(socioId);
+                                    <tr @key="socioId">
+                                        <th scope="row">@NombrePrincipal(socioId)</th>
+                                        <td>@Moneda(gastoPrincipal.GastoSocios.Where(aporte => aporte.SocioId == socioId).Sum(aporte => aporte.Monto))</td>
+                                        <td>@Moneda(gastoPrincipal.GastoRepartos.Where(parte => parte.SocioId == socioId).Sum(parte => parte.Monto))</td>
+                                        <td><span class="@ClaseEstado(saldo)">@EstadoSaldo(saldo)</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="reintegro-help">El pendiente actual incluye los reintegros ya registrados. Cada registro corresponde a una transferencia de una persona a otra.</p>
+                }
+                <DataAnnotationsValidator />
+                <ValidationSummary class="reintegro-error" />
+                <fieldset disabled="@(guardando || guardado || resultadoIncierto)" class="reintegro-fields">
+                    <div class="reintegro-grid">
+                        <div class="reintegro-field">
+                            <label for="reintegroPagador">QUIÉN DEVUELVE EL DINERO</label>
+                            <InputSelect id="reintegroPagador" @bind-Value="modelo.SocioPagadorId" @bind-Value:after="ActualizarGastos">
+                                <option value="0">Seleccione un socio</option>
+                                @foreach (var socio in PagadoresDisponibles)
+                                {
+                                    <option value="@socio.Id">@socio.Profesional — @EstadoSaldo(gastoPrincipal!.SaldoSocio(socio.Id))</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => modelo.SocioPagadorId)" />
+                        </div>
+                        <div class="reintegro-field">
+                            <label for="reintegroReceptor">QUIÉN RECIBE EL DINERO</label>
+                            <InputSelect id="reintegroReceptor" @bind-Value="modelo.SocioReceptorId" @bind-Value:after="ActualizarGastos">
+                                <option value="0">Seleccione un socio</option>
+                                @foreach (var socio in ReceptoresDisponibles)
+                                {
+                                    <option value="@socio.Id">@socio.Profesional — @EstadoSaldo(gastoPrincipal!.SaldoSocio(socio.Id))</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => modelo.SocioReceptorId)" />
+                        </div>
+                        <div class="reintegro-field">
+                            <label for="reintegroFecha">FECHA</label>
+                            <InputDate id="reintegroFecha" @bind-Value="modelo.Fecha" @bind-Value:after="ActualizarGastos" />
+                            <ValidationMessage For="@(() => modelo.Fecha)" />
+                        </div>
+                    </div>
+                    @if (modelo.SocioPagadorId > 0 && modelo.SocioReceptorId > 0)
+                    {
+                        <div class="reintegro-transferencia" role="status">
+                            <i class="bi bi-arrow-left-right"></i>
+                            <span><strong>@NombrePrincipal(modelo.SocioPagadorId)</strong> le reintegra a <strong>@NombrePrincipal(modelo.SocioReceptorId)</strong>.</span>
+                        </div>
+                    }
+                    <h3>Importe a reintegrar</h3>
+                    <p class="reintegro-help">El gasto principal queda seleccionado. Podés incluir otros gastos pendientes entre los mismos socios.</p>
+                    @if (modelo.SocioPagadorId == 0 || modelo.SocioReceptorId == 0)
+                    {
+                        <p class="reintegro-state">Seleccioná quién paga y quién recibe.</p>
+                    }
+                    else if (!filas.Any(fila => fila.Gasto.Id == GastoId))
+                    {
+                        <p class="reintegro-state">El gasto principal no tiene un importe pendiente disponible para estos socios y esta fecha.</p>
+                    }
+                    else
+                    {
+                        <label class="reintegro-otros">
+                            <InputCheckbox @bind-Value="incluirOtros" @bind-Value:after="CambiarOtros" />
+                            Incluir otros gastos pendientes
+                        </label>
+                        <div class="reintegro-table-wrap">
+                            <table class="reintegro-table">
+                                <thead><tr><th>Aplicar</th><th>Gasto</th><th>Máximo a reintegrar</th><th>Importe a devolver</th></tr></thead>
+                                <tbody>
+                                    @foreach (var fila in filas.Where(fila => fila.Gasto.Id == GastoId || incluirOtros))
+                                    {
+                                        <tr @key="fila.Gasto.Id">
+                                            <td>
+                                                @if (fila.Gasto.Id == GastoId)
+                                                {
+                                                    <span class="reintegro-principal-label">Principal</span>
+                                                }
+                                                else
+                                                {
+                                                    <InputCheckbox @bind-Value="fila.Seleccionado" aria-label="@($"Aplicar a {fila.Gasto.Descripcion}")" />
+                                                }
+                                            </td>
+                                            <td><strong>@fila.Gasto.Descripcion</strong><small>@fila.Gasto.Fecha.ToString("dd/MM/yyyy") · @fila.Gasto.TipoGasto</small></td>
+                                            <td>@Moneda(fila.Disponible)</td>
+                                            <td>
+                                                <InputNumber @bind-Value="fila.Monto" disabled="@(!fila.Seleccionado)" min="0.01" max="@fila.Disponible.ToString(CultureInfo.InvariantCulture)" step="0.01" aria-label="@($"Importe para {fila.Gasto.Descripcion}")" />
+                                                <button type="button" class="reintegro-completar" disabled="@(!fila.Seleccionado)" @onclick="() => CompletarImporte(fila)">Usar máximo disponible</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    <div class="reintegro-total"><span>Total del reintegro</span><strong>@Moneda(TotalAplicado)</strong></div>
+                    <p class="reintegro-help">Podés devolver una parte o todo lo pendiente. Para otro pagador o destinatario, registrá otro reintegro desde este mismo gasto.</p>
+                    <div class="reintegro-field">
+                        <label for="reintegroObservacion">OBSERVACIÓN (OPCIONAL)</label>
+                        <InputTextArea id="reintegroObservacion" @bind-Value="modelo.Observacion" placeholder="Detalle de la transferencia" />
+                    </div>
+                </fieldset>
+                @if (!string.IsNullOrWhiteSpace(mensaje))
+                {
+                    <p class="reintegro-error" role="alert">@mensaje</p>
+                }
+                <footer class="reintegro-actions">
+                    <button type="button" class="reintegro-secondary" disabled="@guardando" @onclick="Cerrar">@(guardado || resultadoIncierto ? "Cerrar" : "Cancelar")</button>
+                    <button type="submit" class="reintegro-primary" disabled="@(guardando || guardado || resultadoIncierto || filas.Count == 0)">@(guardando ? "Guardando..." : "Registrar reintegro")</button>
+                </footer>
+            </EditForm>
+        }
+    </section>
+</div>
+
+@code {
+    [Parameter] public int GastoId { get; set; }
+    [Parameter] public EventCallback OnCerrar { get; set; }
+    [Parameter] public EventCallback OnGuardado { get; set; }
+
+    private ReintegroSocioDTO modelo = new() { Fecha = DateTime.Today };
+    private List<SocioListadoDTO> socios = new();
+    private List<GastoListadoDTO> gastos = new();
+    private List<FilaGasto> filas = new();
+    private GastoListadoDTO? gastoPrincipal;
+    private bool incluirOtros;
+    private IEnumerable<int> SocioIdsPrincipal => gastoPrincipal == null
+        ? Enumerable.Empty<int>()
+        : gastoPrincipal.GastoSocios.Select(aporte => aporte.SocioId)
+            .Union(gastoPrincipal.GastoRepartos.Select(parte => parte.SocioId))
+            .OrderBy(socioId => NombrePrincipal(socioId));
+
+    private string NombrePrincipal(int socioId) =>
+        gastoPrincipal?.GastoRepartos.FirstOrDefault(parte => parte.SocioId == socioId)?.Profesional
+        ?? gastoPrincipal?.GastoSocios.FirstOrDefault(aporte => aporte.SocioId == socioId)?.Profesional
+        ?? socios.FirstOrDefault(socio => socio.Id == socioId)?.Profesional
+        ?? "Socio";
+
+    private string EstadoSaldo(decimal saldo) => saldo < 0
+        ? $"Debe {Moneda(-saldo)}"
+        : saldo > 0 ? $"Tiene {Moneda(saldo)} a favor" : "Saldado";
+
+    private static string ClaseEstado(decimal saldo) => saldo < 0
+        ? "reintegro-estado deuda"
+        : saldo > 0 ? "reintegro-estado favor" : "reintegro-estado saldado";
+
+    private void CompletarImporte(FilaGasto fila)
+    {
+        if (guardando || guardado || resultadoIncierto || !fila.Seleccionado) return;
+        fila.Monto = fila.Disponible;
+        mensaje = string.Empty;
+    }
+    private IEnumerable<SocioListadoDTO> PagadoresDisponibles => socios.Where(socio =>
+        gastoPrincipal != null && gastoPrincipal.SaldoSocio(socio.Id) < 0);
+    private IEnumerable<SocioListadoDTO> ReceptoresDisponibles => socios.Where(socio =>
+        gastoPrincipal != null && gastoPrincipal.SaldoSocio(socio.Id) > 0);
+    private bool cargando;
+    private bool datosCargados;
+    private bool guardando;
+    private bool guardado;
+    private bool resultadoIncierto;
+    private string mensaje = string.Empty;
+    private decimal TotalAplicado => filas.Where(fila => fila.Seleccionado).Sum(fila => fila.Monto);
+
+    protected override async Task OnInitializedAsync() => await CargarDatos();
+
+    private async Task CargarDatos()
+    {
+        if (cargando) return;
+        cargando = true;
+        datosCargados = false;
+        mensaje = string.Empty;
+        try
+        {
+            var respuestaSocios = await Http.Get<List<SocioListadoDTO>>("api/socio/ListaSocio");
+            if (respuestaSocios.Error)
+            {
+                mensaje = respuestaSocios.ObtenerError();
+                return;
+            }
+            var respuestaGastos = await Http.Get<List<GastoListadoDTO>>("api/gasto/ListaGastos");
+            if (respuestaGastos.Error)
+            {
+                mensaje = respuestaGastos.ObtenerError();
+                return;
+            }
+            socios = (respuestaSocios.Respuesta ?? new()).OrderBy(socio => socio.Profesional).ToList();
+            gastos = respuestaGastos.Respuesta ?? new();
+            gastoPrincipal = gastos.FirstOrDefault(gasto => gasto.Id == GastoId);
+            if (gastoPrincipal == null)
+            {
+                mensaje = "El gasto principal no existe o está dado de baja.";
+                return;
+            }
+            if (gastoPrincipal.GastoRepartos.Count == 0 ||
+                gastoPrincipal.GastoRepartos.Sum(parte => parte.Monto) != gastoPrincipal.Monto ||
+                gastoPrincipal.GastoSocios.Sum(aporte => aporte.Monto) != gastoPrincipal.Monto)
+            {
+                mensaje = "Revisá los pagos y completá el reparto del gasto antes de registrar un reintegro.";
+                return;
+            }
+            if (PagadoresDisponibles.Count() == 1)
+                modelo.SocioPagadorId = PagadoresDisponibles.Single().Id;
+            if (ReceptoresDisponibles.Count() == 1)
+                modelo.SocioReceptorId = ReceptoresDisponibles.Single().Id;
+            ActualizarGastos();
+            datosCargados = true;
+        }
+        catch (Exception)
+        {
+            mensaje = "No se pudieron cargar los datos. Verificá la conexión y reintentá.";
+        }
+        finally { cargando = false; }
+    }
+
+    private void ActualizarGastos()
+    {
+        mensaje = string.Empty;
+        if (modelo.SocioPagadorId == modelo.SocioReceptorId)
+            modelo.SocioReceptorId = 0;
+
+        incluirOtros = false;
+        filas = gastos
+            .Where(gasto => gasto.Fecha.Date <= modelo.Fecha.Date &&
+                gasto.GastoRepartos.Count > 0 &&
+                gasto.GastoRepartos.Sum(parte => parte.Monto) == gasto.Monto &&
+                gasto.GastoSocios.Sum(aporte => aporte.Monto) == gasto.Monto &&
+                gasto.SaldoSocio(modelo.SocioPagadorId) < 0 &&
+                gasto.SaldoSocio(modelo.SocioReceptorId) > 0)
+            .OrderByDescending(gasto => gasto.Id == GastoId)
+            .ThenBy(gasto => gasto.Fecha).ThenBy(gasto => gasto.Id)
+            .Select(gasto => new FilaGasto
+            {
+                Gasto = gasto,
+                Seleccionado = gasto.Id == GastoId,
+                Disponible = Math.Min(-gasto.SaldoSocio(modelo.SocioPagadorId), gasto.SaldoSocio(modelo.SocioReceptorId))
+            }).ToList();
+    }
+
+    private void CambiarOtros()
+    {
+        if (!incluirOtros)
+        {
+            foreach (var fila in filas.Where(fila => fila.Gasto.Id != GastoId))
+            {
+                fila.Seleccionado = false;
+                fila.Monto = 0;
+            }
+        }
+        mensaje = string.Empty;
+    }
+
+    private async Task Grabar(EditContext formulario)
+    {
+        if (guardando || guardado || resultadoIncierto) return;
+        mensaje = string.Empty;
+        var seleccionadas = filas.Where(fila => fila.Seleccionado).ToList();
+        modelo.Detalles = seleccionadas.Select(fila => new ReintegroSocioDetalleDTO
+        {
+            GastoId = fila.Gasto.Id,
+            Monto = fila.Monto
+        }).ToList();
+        if (!seleccionadas.Any(fila => fila.Gasto.Id == GastoId))
+        {
+            mensaje = "El reintegro debe incluir el gasto desde el que lo abriste.";
+            return;
+        }
+        modelo.Monto = TotalAplicado;
+        if (!formulario.Validate()) return;
+        if (modelo.Fecha.Date == DateTime.MinValue.Date || modelo.SocioPagadorId <= 0 ||
+            modelo.SocioReceptorId <= 0 || modelo.SocioPagadorId == modelo.SocioReceptorId)
+        {
+            mensaje = "Revisá la fecha y seleccioná dos socios diferentes.";
+            return;
+        }
+        if (modelo.Monto <= 0 || modelo.Monto > 9999999999999999.99m || decimal.Round(modelo.Monto, 2) != modelo.Monto)
+        {
+            mensaje = "El monto transferido debe ser positivo y tener hasta dos decimales.";
+            return;
+        }
+        if (seleccionadas.Count == 0)
+        {
+            mensaje = "Seleccioná al menos un gasto.";
+            return;
+        }
+        if (seleccionadas.Any(fila => fila.Monto <= 0 || fila.Monto > fila.Disponible || decimal.Round(fila.Monto, 2) != fila.Monto))
+        {
+            mensaje = "Cada importe debe ser positivo, tener hasta dos decimales y no superar lo disponible.";
+            return;
+        }
+        modelo.Detalles = seleccionadas.Select(fila => new ReintegroSocioDetalleDTO
+        {
+            GastoId = fila.Gasto.Id,
+            Monto = fila.Monto
+        }).ToList();
+        guardando = true;
+        try
+        {
+            var respuesta = await Http.Post<ReintegroSocioDTO, int>("api/reintegrosocio/insertar", modelo);
+            if (respuesta.Error)
+            {
+                if ((int)respuesta.HttpResponseMessage.StatusCode >= 500)
+                {
+                    resultadoIncierto = true;
+                    mensaje = "No se pudo confirmar el registro. Cerrá y verificá los saldos antes de volver a intentarlo.";
+                    return;
+                }
+                mensaje = respuesta.ObtenerError();
+                var contenido = await respuesta.HttpResponseMessage.Content.ReadAsStringAsync();
+                try
+                {
+                    using var documento = JsonDocument.Parse(contenido);
+                    if (documento.RootElement.ValueKind == JsonValueKind.Object &&
+                        documento.RootElement.TryGetProperty("mensaje", out var detalle) &&
+                        detalle.ValueKind == JsonValueKind.String &&
+                        !string.IsNullOrWhiteSpace(detalle.GetString()))
+                        mensaje = detalle.GetString()!;
+                }
+                catch (JsonException) { }
+                return;
+            }
+            guardado = true;
+            await OnGuardado.InvokeAsync();
+        }
+        catch (Exception)
+        {
+            if (guardado)
+                mensaje = "El reintegro se registró. Cerrá y recargá el listado para actualizar los saldos.";
+            else
+            {
+                resultadoIncierto = true;
+                mensaje = "No se pudo confirmar el registro. Cerrá y verificá los saldos antes de volver a intentarlo.";
+            }
+        }
+        finally { guardando = false; }
+    }
+
+    private string Moneda(decimal monto) => monto.ToString("C2", CultureInfo.GetCultureInfo("es-AR"));
+    private async Task Cerrar()
+    {
+        if (!guardando) await OnCerrar.InvokeAsync();
+    }
+
+    private class FilaGasto
+    {
+        public GastoListadoDTO Gasto { get; set; } = new();
+        public decimal Disponible { get; set; }
+        public bool Seleccionado { get; set; }
+        public decimal Monto { get; set; }
+    }
+}

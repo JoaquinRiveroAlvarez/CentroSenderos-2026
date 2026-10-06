@@ -32,6 +32,8 @@ namespace CentroSenderos_2026_BD
         public DbSet<GastoHistorial> GastoHistoriales { get; set; }
         public DbSet<Documento> Documentos { get; set; }
         public DbSet<GastoReparto> GastoRepartos { get; set; }
+        public DbSet<ReintegroSocio> ReintegrosSocios { get; set; }
+        public DbSet<ReintegroSocioDetalle> ReintegrosSociosDetalles { get; set; }
 
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {
@@ -190,6 +192,46 @@ namespace CentroSenderos_2026_BD
                 .HasForeignKey(reparto => reparto.SocioId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+
+            modelBuilder.Entity<ReintegroSocio>()
+    .Property(reintegro => reintegro.Monto)
+    .HasPrecision(18, 2);
+
+            modelBuilder.Entity<ReintegroSocio>()
+                .HasOne(reintegro => reintegro.SocioPagador)
+                .WithMany(socio => socio.ReintegrosPagados)
+                .HasForeignKey(reintegro => reintegro.SocioPagadorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ReintegroSocio>()
+                .HasOne(reintegro => reintegro.SocioReceptor)
+                .WithMany(socio => socio.ReintegrosRecibidos)
+                .HasForeignKey(reintegro => reintegro.SocioReceptorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ReintegroSocioDetalle>()
+                .Property(detalle => detalle.Monto)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<ReintegroSocioDetalle>()
+                .HasOne(detalle => detalle.ReintegroSocio)
+                .WithMany(reintegro => reintegro.Detalles)
+                .HasForeignKey(detalle => detalle.ReintegroSocioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ReintegroSocioDetalle>()
+                .HasOne(detalle => detalle.Gasto)
+                .WithMany(gasto => gasto.ReintegroSocioDetalles)
+                .HasForeignKey(detalle => detalle.GastoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ReintegroSocioDetalle>()
+                .HasIndex(detalle => new
+                {
+                    detalle.ReintegroSocioId,
+                    detalle.GastoId
+                })
+                .IsUnique();
         }
     }
 }

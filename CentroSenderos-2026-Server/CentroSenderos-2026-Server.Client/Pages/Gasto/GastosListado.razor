@@ -71,9 +71,11 @@
         var resultados = GastosFiltrados;
         var aportes = ObtenerResumenAportes(resultados);
         var total = resultados.Sum(gasto => gasto.Monto);
-        var gastosSinReparto = resultados.Count(gasto =>
-            gasto.GastoRepartos.Count == 0);
-        var saldos = ObtenerResumenSaldos(resultados);
+        var gastosPanel = GastosFiltradosBase;
+        var pendientes = gastosPanel.Where(TieneReintegroPendiente).ToList();
+        var sinReparto = gastosPanel.Count(gasto => !TieneRepartoCompleto(gasto));
+        var saldados = gastosPanel.Count(gasto => TieneRepartoCompleto(gasto) && !TieneReintegroPendiente(gasto));
+        var importePendiente = pendientes.Sum(ImportePendiente);
 
         <div class="gastos-layout">
             <section class="list-card">
@@ -314,16 +316,16 @@
                     </button>
                 </div>
 
-                @if (soloSinReparto)
+                @if (soloSinReparto || soloConReintegros)
                 {
                     <div class="pending-filter-bar" role="status">
                         <span>
                             <i class="bi bi-info-circle"></i>
-                            Mostrando solo gastos sin reparto
+                            @(soloConReintegros ? "Mostrando gastos con reintegros pendientes" : "Mostrando gastos con reparto por revisar")
                         </span>
 
                         <button type="button"
-                                @onclick="QuitarFiltroSinReparto">
+                                @onclick="QuitarFiltroPendientes">
                             Quitar este filtro
                         </button>
                     </div>
@@ -381,7 +383,7 @@
                                 @foreach (var gasto in resultados)
                                 {
                                     <tr @key="gasto.Id"
-                                        class="gasto-row"
+                                        class="@(TieneReintegroPendiente(gasto) ? "gasto-row reintegro-pendiente" : "gasto-row")"
                                         @onclick="() => AbrirDetalle(gasto.Id)">
                                         <td class="date-cell">
                                             @gasto.Fecha.ToString("dd/MM/yyyy")
@@ -417,6 +419,14 @@
                                                     @onclick="() => AbrirDetalle(gasto.Id)">
                                                 @gasto.Descripcion
                                             </button>
+                                            @if (TieneReintegroPendiente(gasto))
+                                            {
+                                                <span class="gasto-pendiente-badge"><i class="bi bi-arrow-left-right"></i> Pendiente: @Moneda(ImportePendiente(gasto))</span>
+                                            }
+                                            else if (!TieneRepartoCompleto(gasto))
+                                            {
+                                                <span class="gasto-reparto-badge">Reparto por revisar</span>
+                                            }
                                         </td>
 
                                         <td class="amount-column total-cell">
@@ -518,71 +528,65 @@
                     </p>
                 </section>
 
-                <section class="monthly-detail-card">
-                    <h2>Saldos del período</h2>
-
+                <section class="monthly-detail-card pendientes-card">
+                    <h2>Pendientes de gastos</h2>
                     @if (PeriodoInvalido)
                     {
-                        <p>Corregí el período para consultar los saldos.</p>
-                    }
-                    else if (resultados.Count == 0)
-                    {
-                        <p>No hay gastos para los filtros seleccionados.</p>
-                    }
-                    else if (gastosSinReparto > 0)
-                    {
-                        <div class="saldo-pendiente" role="status">
-                            <i class="bi bi-info-circle"></i>
-
-                            <p>
-                                Hay @gastosSinReparto
-                                @(gastosSinReparto == 1
-                                    ? "gasto sin reparto registrado."
-                                    : "gastos sin reparto registrado.")
-                                Completá sus repartos para calcular los saldos.
-                            </p>
-                        </div>
-
-                        @if (!soloSinReparto)
-                        {
-                            <button type="button"
-                                    class="pending-action-button"
-                                    @onclick="VerGastosSinReparto">
-                                <i class="bi bi-funnel"></i>
-                                Ver gastos sin reparto
-                            </button>
-                        }
+                        <p>Corregí el período para consultar los pendientes.</p>
                     }
                     else
                     {
-                        @foreach (var socio in saldos)
+                        <div class="pendientes-importe">
+                            <span>Por reintegrar</span>
+                            <strong>@Moneda(importePendiente)</strong>
+                            <small>En @pendientes.Count @(pendientes.Count == 1 ? "gasto" : "gastos")</small>
+                        </div>
+                        <div class="pendientes-filtros">
+                            <button type="button" class="@(soloConReintegros ? "pendientes-filtro activo" : "pendientes-filtro")" aria-pressed="@soloConReintegros" @onclick="VerGastosConReintegros">
+                                <span><i class="bi bi-arrow-left-right"></i> Con reintegros pendientes</span><strong>@pendientes.Count</strong>
+                            </button>
+                            <button type="button" class="@(soloSinReparto ? "pendientes-filtro activo" : "pendientes-filtro")" aria-pressed="@soloSinReparto" @onclick="VerGastosSinReparto">
+                                <span><i class="bi bi-diagram-3"></i> Reparto por revisar</span><strong>@sinReparto</strong>
+                            </button>
+                        </div>
+                        <p class="pendientes-saldados"><i class="bi bi-check-circle"></i> @saldados @(saldados == 1 ? "gasto saldado" : "gastos saldados")</p>
+                        @if (soloSinReparto || soloConReintegros)
                         {
-                            <div class="monthly-socio-row"
-                                 @key="socio.SocioId">
-                                <span class="monthly-socio-icon">
-                                    <i class="bi bi-person"></i>
-                                </span>
-
-                                <span class="monthly-socio-name">
-                                    @socio.Profesional
-                                </span>
-
-                                <strong class="@ClaseSaldoPeriodo(socio.Saldo)">
-                                    @TextoSaldoPeriodo(socio.Saldo)
-                                </strong>
-                            </div>
+                            <button type="button" class="pending-action-button" @onclick="QuitarFiltroPendientes">Ver todos los estados</button>
                         }
-
-                        <p class="summary-help">
-                            Positivo: tiene a favor.
-                            Negativo: le corresponde aportar.
-                            Calculado sobre los gastos mostrados,
-                            sin descontar reintegros entre socios.
-                        </p>
+                        @if (sinReparto > 0)
+                        {
+                            <p class="summary-help">El importe pendiente excluye @sinReparto @(sinReparto == 1 ? "gasto cuyo reparto necesita revisión." : "gastos cuyos repartos necesitan revisión.")</p>
+                        }
+                        @if (pendientes.Count > 0)
+                        {
+                            <h3 class="pendientes-subtitulo">Abrir gasto pendiente</h3>
+                            @foreach (var pendiente in pendientes.OrderByDescending(ImportePendiente).Take(3))
+                            {
+                                <button type="button" class="pendiente-gasto-link" @key="pendiente.Id" @onclick="() => AbrirDetalle(pendiente.Id)">
+                                    <span>@pendiente.Descripcion<small>@pendiente.Fecha.ToString("dd/MM/yyyy")</small></span>
+                                    <strong>@Moneda(ImportePendiente(pendiente))</strong>
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            }
+                        }
+                        else if (sinReparto == 0 && gastosPanel.Count > 0)
+                        {
+                            <p class="summary-help">Todos los gastos de esta selección están saldados.</p>
+                        }
+                        <p class="summary-help">Según fecha, tipo, pagador y búsqueda. Abrí un gasto para registrar el reintegro.</p>
                     }
                 </section>
             </aside>
         </div>
+    }
+
+    @if (mostrarReintegro)
+    {
+        <ReintegrosCrear @key="gastoReintegroId"
+                         GastoId="gastoReintegroId"
+                         OnCerrar="CerrarReintegro"
+                         OnGuardado="ReintegroGuardado" />
     }
 
     @if (mostrarCrear)
@@ -612,7 +616,8 @@
                        GastoId="gastoDetalleId"
                        OnCerrar="CerrarDetalle"
                        OnEditar="AbrirEditar"
-                       OnHistorial="AbrirHistorial" />
+                       OnHistorial="AbrirHistorial"
+                       OnReintegro="AbrirReintegro" />
     }
 </div>
 
@@ -625,13 +630,16 @@
     private bool cargando = true;
     private bool cargaEnCurso;
     private bool mostrarCrear;
+    private bool mostrarReintegro;
     private bool mostrarEditar;
     private bool mostrarHistorial;
     private bool mostrarDetalle;
     private bool volverAlDetalle;
     private bool ordenDescendente = true;
     private bool soloSinReparto;
+    private bool soloConReintegros;
 
+    private int gastoReintegroId;
     private int gastoEditarId;
     private int gastoHistorialId;
     private int gastoDetalleId;
@@ -730,7 +738,7 @@
         }
     }
 
-    private List<GastoListadoDTO> GastosFiltrados
+    private List<GastoListadoDTO> GastosFiltradosBase
     {
         get
         {
@@ -740,8 +748,6 @@
             var texto = busqueda.Trim();
 
             var gastos = lista.Where(gasto =>
-                (!soloSinReparto ||
-                 gasto.GastoRepartos.Count == 0) &&
                 (tipoSeleccionadoId == 0 ||
                  gasto.TipoGastoId == tipoSeleccionadoId) &&
                 (socioSeleccionadoId == 0 ||
@@ -775,6 +781,44 @@
         }
     }
 
+    private List<GastoListadoDTO> GastosFiltrados => GastosFiltradosBase
+        .Where(gasto =>
+            (!soloSinReparto || !TieneRepartoCompleto(gasto)) &&
+            (!soloConReintegros || TieneReintegroPendiente(gasto)))
+        .ToList();
+
+    private static bool TieneRepartoCompleto(GastoListadoDTO gasto) =>
+        gasto.GastoRepartos.Count > 0 &&
+        gasto.GastoRepartos.Sum(parte => parte.Monto) == gasto.Monto &&
+        gasto.GastoSocios.Sum(aporte => aporte.Monto) == gasto.Monto;
+
+    private static IEnumerable<int> SocioIdsGasto(GastoListadoDTO gasto) =>
+        gasto.GastoRepartos.Select(parte => parte.SocioId)
+            .Union(gasto.GastoSocios.Select(aporte => aporte.SocioId))
+            .Union(gasto.GastoReintegros.Select(reintegro => reintegro.SocioPagadorId))
+            .Union(gasto.GastoReintegros.Select(reintegro => reintegro.SocioReceptorId));
+
+    private static decimal ImportePendiente(GastoListadoDTO gasto) =>
+        TieneRepartoCompleto(gasto)
+            ? SocioIdsGasto(gasto).Sum(socioId => Math.Max(0m, -gasto.SaldoSocio(socioId)))
+            : 0m;
+
+    private static bool TieneReintegroPendiente(GastoListadoDTO gasto) =>
+        ImportePendiente(gasto) > 0m;
+
+    private void VerGastosConReintegros()
+    {
+        soloSinReparto = false;
+        soloConReintegros = true;
+        CerrarCalendarioPeriodo();
+    }
+
+    private void QuitarFiltroPendientes()
+    {
+        soloSinReparto = false;
+        soloConReintegros = false;
+    }
+
     private static List<GastoSocioListadoDTO> ObtenerResumenAportes(
         IEnumerable<GastoListadoDTO> gastos)
     {
@@ -805,21 +849,7 @@
             return new();
         }
 
-        var pagos = listaGastos
-            .SelectMany(gasto => gasto.GastoSocios)
-            .GroupBy(aporte => aporte.SocioId)
-            .ToDictionary(
-                grupo => grupo.Key,
-                grupo => grupo.Sum(aporte => aporte.Monto));
-
-        var partes = listaGastos
-            .SelectMany(gasto => gasto.GastoRepartos)
-            .GroupBy(reparto => reparto.SocioId)
-            .ToDictionary(
-                grupo => grupo.Key,
-                grupo => grupo.Sum(reparto => reparto.Monto));
-
-        var nombres = listaGastos
+        var socios = listaGastos
             .SelectMany(gasto => gasto.GastoRepartos)
             .Select(reparto => (
                 SocioId: reparto.SocioId,
@@ -830,22 +860,17 @@
                     .Select(aporte => (
                         SocioId: aporte.SocioId,
                         Profesional: aporte.Profesional)))
-            .GroupBy(socio => socio.SocioId)
-            .ToDictionary(
-                grupo => grupo.Key,
-                grupo => grupo
+            .GroupBy(socio => socio.SocioId);
+
+        return socios
+            .Select(grupo => (
+                SocioId: grupo.Key,
+                Profesional: grupo
                     .Select(socio => socio.Profesional)
                     .FirstOrDefault(nombre =>
-                        !string.IsNullOrWhiteSpace(nombre))
-                    ?? "Socio");
-
-        return pagos.Keys
-            .Union(partes.Keys)
-            .Select(socioId => (
-                SocioId: socioId,
-                Profesional: nombres[socioId],
-                Saldo: pagos.GetValueOrDefault(socioId) -
-                       partes.GetValueOrDefault(socioId)))
+                        !string.IsNullOrWhiteSpace(nombre)) ?? "Socio",
+                Saldo: listaGastos.Sum(gasto =>
+                    gasto.SaldoSocio(grupo.Key))))
             .OrderBy(socio => socio.Profesional)
             .ToList();
     }
@@ -876,12 +901,8 @@
     private void VerGastosSinReparto()
     {
         soloSinReparto = true;
+        soloConReintegros = false;
         CerrarCalendarioPeriodo();
-    }
-
-    private void QuitarFiltroSinReparto()
-    {
-        soloSinReparto = false;
     }
 
     private void CambiarOrden()
@@ -894,6 +915,7 @@
         tipoSeleccionadoId = 0;
         socioSeleccionadoId = 0;
         soloSinReparto = false;
+        soloConReintegros = false;
 
         fechaDesde = new DateTime(
             DateTime.Today.Year,
@@ -1063,6 +1085,31 @@
         }
     }
 
+    private void AbrirReintegro(int id)
+    {
+        volverAlDetalle = true;
+        CerrarMensaje();
+        CerrarModales();
+        gastoReintegroId = id;
+        mostrarReintegro = true;
+    }
+
+    private async Task CerrarReintegro()
+    {
+        mostrarReintegro = false;
+        volverAlDetalle = false;
+        await CargarGastos();
+        AbrirDetalle(gastoReintegroId);
+    }
+
+    private async Task ReintegroGuardado()
+    {
+        volverAlDetalle = false;
+        CerrarModales();
+        AbrirDetalle(gastoReintegroId);
+        await ConfirmarCambio("Reintegro registrado correctamente.");
+    }
+
     private void AbrirCrear()
     {
         volverAlDetalle = false;
@@ -1139,6 +1186,7 @@
 
     private void CerrarModales()
     {
+        mostrarReintegro = false;
         mostrarCrear = false;
         mostrarEditar = false;
         mostrarHistorial = false;
