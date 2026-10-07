@@ -383,9 +383,9 @@
     }
 
     private string Moneda(decimal monto)
-    {
-        return monto.ToString("C2", cultura);
-    }
+        {
+            return "$ " + monto.ToString("N2", cultura);
+        }
 
     private string TextoSaldo(decimal saldo)
     {

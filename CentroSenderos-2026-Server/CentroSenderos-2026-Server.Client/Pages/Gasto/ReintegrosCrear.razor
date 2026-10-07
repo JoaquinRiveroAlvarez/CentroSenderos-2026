@@ -777,12 +777,10 @@
         return string.IsNullOrWhiteSpace(nombre) ? "Socio" : nombre;
     }
 
-    private static string Moneda(decimal monto)
-    {
-        return monto.ToString(
-            "C2",
-            CultureInfo.GetCultureInfo("es-AR"));
-    }
+   private static string Moneda(decimal monto)
+        {
+            return "$ " + monto.ToString("N2",CultureInfo.GetCultureInfo("es-AR"));
+        }
 
     private async Task Cerrar()
     {

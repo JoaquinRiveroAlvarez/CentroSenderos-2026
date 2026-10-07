@@ -182,7 +182,7 @@
                         <div class="total-box" aria-live="polite">
                             <span>Monto total</span>
                             <strong>
-                                @modelo.Monto.ToString("C2", cultura)
+                                @("$ " + modelo.Monto.ToString("N2", cultura))
                             </strong>
                         </div>
                     </section>
@@ -281,7 +281,7 @@
                                                     <span>@parte.Profesional</span>
 
                                                     <strong>
-                                                        @parte.Monto.ToString("C2", cultura)
+                                                        @("$ " + parte.Monto.ToString("N2", cultura))
                                                     </strong>
                                                 </div>
                                             }

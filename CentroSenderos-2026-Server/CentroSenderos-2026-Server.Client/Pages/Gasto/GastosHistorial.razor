@@ -339,9 +339,9 @@
             .ToString("dd/MM/yyyy HH:mm:ss", cultura);
     }
 
-    private string Moneda(decimal monto)
+   private string Moneda(decimal monto)
     {
-        return monto.ToString("C2", cultura);
+        return "$ " + monto.ToString("N2", cultura);
     }
 
     private static IEnumerable<int> SocioIds(GastoHistorialDTO cambio)
