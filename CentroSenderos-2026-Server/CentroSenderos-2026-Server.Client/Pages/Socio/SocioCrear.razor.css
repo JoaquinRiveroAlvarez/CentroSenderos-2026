@@ -1,29 +1,32 @@
-/* CSS for SocioCrear component */
+/* #region Página */
+
 .socio-form-page {
     width: 100%;
     padding: 34px 36px 40px;
+    box-sizing: border-box;
 }
 
+/* #endregion */
 
-/* =====================================================
-   CARD
-===================================================== */
+
+/* #region Tarjeta */
 
 .socio-card {
     width: 100%;
     max-width: 620px;
     margin: 0 auto;
     padding: 28px 30px 26px;
+    box-sizing: border-box;
     background: #fffdf9;
     border: 1px solid #e9e5df;
     border-radius: 18px;
     box-shadow: 0 8px 28px rgba(56, 53, 47, .06);
 }
 
+/* #endregion */
 
-/* =====================================================
-   HEADER
-===================================================== */
+
+/* #region Encabezado */
 
 .card-header {
     display: flex;
@@ -33,7 +36,6 @@
     margin-bottom: 28px;
 }
 
-
     .card-header h1 {
         margin: 0;
         color: #556f4f;
@@ -42,17 +44,46 @@
         line-height: 1.2;
     }
 
-
     .card-header p {
         margin: 7px 0 0;
         color: #92948f;
         font-size: 14px;
+        line-height: 1.5;
     }
 
+/* #endregion */
 
-/* =====================================================
-   CERRAR
-===================================================== */
+
+/* #region Navegación */
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #6f786a;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color .2s ease;
+}
+
+    .back-button i {
+        font-size: 16px;
+        transition: transform .2s ease;
+    }
+
+    .back-button:hover {
+        color: #556f4f;
+    }
+
+        .back-button:hover i {
+            transform: translateX(-3px);
+        }
 
 .close-button {
     width: 36px;
@@ -71,49 +102,119 @@
     transition: background .2s ease, color .2s ease;
 }
 
-
     .close-button:hover {
         background: #f1efeb;
         color: #2f332e;
     }
 
+/* #endregion */
 
-/* =====================================================
-   FORM
-===================================================== */
+
+/* #region Formulario y campos */
 
 .socio-form {
     width: 100%;
 }
 
-
-/* =====================================================
-   CAMPOS
-===================================================== */
-
 .field-group {
     display: flex;
     flex-direction: column;
+    gap: 7px;
     margin-bottom: 22px;
 }
 
-
-    .field-group label {
-        margin-bottom: 7px;
+    .field-group > label {
+        margin: 0;
         color: #656860;
         font-size: 13px;
         font-weight: 500;
         letter-spacing: .03em;
     }
 
+    .field-group > span {
+        color: #41453f;
+        font-size: 14px;
+    }
 
-/* =====================================================
-   SELECT
-===================================================== */
+    /* #endregion */
 
-.senderos-select {
+
+/* #region Opción Caja Senderos */
+
+    .field-group > .caja-opcion {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        background: #f3f5f0;
+        border: 1px solid #dfe5dc;
+        border-radius: 10px;
+        letter-spacing: normal;
+        cursor: pointer;
+        transition: border-color .2s ease, background .2s ease;
+    }
+
+.caja-opcion:hover {
+    background: #edf1e9;
+    border-color: #82947a;
+}
+
+.caja-opcion:focus-within {
+    border-color: #82947a;
+    box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
+}
+
+/* InputCheckbox genera un input dentro del componente Blazor. */
+.caja-opcion ::deep .caja-checkbox {
+    display: block;
+    position: static;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    margin: 0;
+    padding: 0;
+    appearance: auto;
+    opacity: 1;
+    visibility: visible;
+    accent-color: #647b5b;
+    cursor: pointer;
+}
+
+    .caja-opcion ::deep .caja-checkbox:disabled {
+        cursor: default;
+        opacity: .65;
+    }
+
+.caja-textos {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.caja-titulo {
+    color: #556f4f;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.caja-descripcion {
+    color: #747970;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+/* #endregion */
+
+
+/* #region Selector */
+
+/* ::deep permite aplicar el estilo al HTML de InputSelect. */
+.field-group ::deep .senderos-select {
     width: 100%;
     height: 44px;
+    box-sizing: border-box;
     padding: 0 40px 0 14px;
     background: #fffefa;
     color: #41453f;
@@ -126,21 +227,26 @@
     transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
 }
 
-
-    .senderos-select:focus {
+    .field-group ::deep .senderos-select:focus {
         background: white;
         border-color: #82947a;
         box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
     }
 
+    .field-group ::deep .senderos-select:disabled {
+        opacity: .65;
+        cursor: default;
+    }
 
-/* =====================================================
-   TEXTAREA
-===================================================== */
+/* #endregion */
 
-.senderos-textarea {
+
+/* #region Observación */
+
+.field-group ::deep .senderos-textarea {
     width: 100%;
     min-height: 120px;
+    box-sizing: border-box;
     resize: vertical;
     padding: 12px 14px;
     background: #fffefa;
@@ -154,24 +260,22 @@
     transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
 }
 
-
-    .senderos-textarea::placeholder {
+    .field-group ::deep .senderos-textarea::placeholder {
         color: #aaa9a4;
     }
 
-
-    .senderos-textarea:focus {
+    .field-group ::deep .senderos-textarea:focus {
         background: white;
         border-color: #82947a;
         box-shadow: 0 0 0 3px rgba(100, 123, 91, .10);
     }
 
+/* #endregion */
 
-/* =====================================================
-   VALIDACIONES
-===================================================== */
 
-.validation-summary {
+/* #region Validaciones */
+
+.socio-card ::deep .validation-summary {
     margin-bottom: 20px;
     padding: 12px 15px;
     background: #fff1ee;
@@ -181,21 +285,25 @@
     font-size: 13px;
 }
 
+    .socio-card ::deep .validation-summary ul {
+        margin: 0;
+        padding-left: 18px;
+    }
 
-.validation-message {
-    margin-top: 5px;
+.field-group ::deep .validation-message {
     color: #d34848;
     font-size: 12px;
+    line-height: 1.4;
 }
 
+/* #endregion */
 
-/* =====================================================
-   MENSAJE API
-===================================================== */
+
+/* #region Mensaje API */
 
 .form-message {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     margin-bottom: 18px;
     padding: 12px 15px;
@@ -204,12 +312,21 @@
     border: 1px solid #f0d3cf;
     border-radius: 10px;
     font-size: 14px;
+    line-height: 1.5;
 }
 
+    .form-message i {
+        flex-shrink: 0;
+    }
 
-/* =====================================================
-   BOTONES
-===================================================== */
+    .form-message span {
+        overflow-wrap: anywhere;
+    }
+
+/* #endregion */
+
+
+/* #region Botones */
 
 .form-actions {
     display: flex;
@@ -218,7 +335,6 @@
     gap: 12px;
     margin-top: 30px;
 }
-
 
 .btn-cancelar {
     min-width: 110px;
@@ -235,11 +351,9 @@
     transition: background .2s ease;
 }
 
-
     .btn-cancelar:hover {
         background: #e6e3df;
     }
-
 
 .btn-guardar {
     min-width: 145px;
@@ -260,26 +374,31 @@
     transition: background .2s ease, transform .15s ease, opacity .2s ease;
 }
 
-
     .btn-guardar:hover:not(:disabled) {
         background: #556f4f;
     }
 
-
     .btn-guardar:active:not(:disabled) {
         transform: scale(.98);
     }
-
 
     .btn-guardar:disabled {
         opacity: .65;
         cursor: default;
     }
 
+    .back-button:focus-visible,
+    .close-button:focus-visible,
+    .btn-cancelar:focus-visible,
+    .btn-guardar:focus-visible {
+        outline: 2px solid #647b5b;
+        outline-offset: 3px;
+    }
 
-/* =====================================================
-   CARGANDO
-===================================================== */
+/* #endregion */
+
+
+/* #region Cargando */
 
 .loading-state {
     min-height: 240px;
@@ -292,77 +411,39 @@
     font-size: 14px;
 }
 
-
     .loading-state .spinner-border {
         width: 28px;
         height: 28px;
         color: #647b5b;
     }
 
-/* =====================================================
-   VOLVER
-===================================================== */
-
-.back-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 14px;
-    padding: 0;
-    background: transparent;
-    border: none;
-    color: #6f786a;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-    .back-button i {
-        font-size: 16px;
-        transition: transform 0.2s ease;
-    }
-
-    .back-button:hover {
-        color: #556f4f;
-    }
-
-        .back-button:hover i {
-            transform: translateX(-3px);
-        }
+/* #endregion */
 
 
-
-/* =====================================================
-   RESPONSIVE
-===================================================== */
+/* #region Responsive */
 
 @media (max-width: 650px) {
-
     .socio-form-page {
         padding: 22px 15px 30px;
     }
-
 
     .socio-card {
         padding: 23px 19px;
     }
 
-
     .card-header h1 {
         font-size: 23px;
     }
-
 
     .form-actions {
         flex-direction: column-reverse;
         align-items: stretch;
     }
 
-
     .btn-cancelar,
     .btn-guardar {
         width: 100%;
     }
 }
+
+/* #endregion */

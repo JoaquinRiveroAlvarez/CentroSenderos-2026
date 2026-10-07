@@ -25,6 +25,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
         public async Task<int> InsertarGasto(GastoCrearDTO dto)
         {
+            if (dto == null)
+            {
+                throw new ApplicationException(
+                    "No se recibieron los datos del gasto.");
+            }
+
             if (dto.Fecha == null ||
                 dto.Fecha.Value.Date == DateTime.MinValue.Date)
             {
@@ -46,24 +52,23 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "La descripción no puede exceder los 100 caracteres.");
             }
 
-            if (dto.GastoSocios == null ||
-                dto.GastoSocios.Count == 0)
+            if (dto.GastoSocios == null || dto.GastoSocios.Count == 0)
             {
                 throw new ApplicationException(
-                    "Seleccioná al menos un socio.");
+                    "Seleccioná quién pagó el gasto: Caja Senderos o un socio.");
             }
 
             if (dto.GastoSocios.Any(aporte => aporte == null))
             {
                 throw new ApplicationException(
-                    "Hay un aporte sin datos.");
+                    "Hay un pago sin datos.");
             }
 
             if (dto.GastoSocios.Any(aporte =>
                 aporte.SocioId <= 0 || aporte.Monto <= 0))
             {
                 throw new ApplicationException(
-                    "Seleccioná socios válidos e importes mayores que cero.");
+                    "Seleccioná pagadores válidos e importes mayores que cero.");
             }
 
             if (dto.GastoSocios.Any(aporte =>
@@ -75,11 +80,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             const decimal montoMaximo = 9999999999999999.99m;
 
-            if (dto.GastoSocios.Any(aporte =>
-                aporte.Monto > montoMaximo))
+            if (dto.GastoSocios.Any(aporte => aporte.Monto > montoMaximo))
             {
                 throw new ApplicationException(
-                    "Uno de los aportes supera el importe permitido.");
+                    "Uno de los pagos supera el importe permitido.");
             }
 
             var socioIds = dto.GastoSocios
@@ -89,7 +93,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (socioIds.Distinct().Count() != socioIds.Count)
             {
                 throw new ApplicationException(
-                    "No se puede agregar el mismo socio más de una vez.");
+                    "No se puede agregar el mismo pagador más de una vez.");
             }
 
             decimal montoTotal;
@@ -125,32 +129,33 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "El tipo de gasto seleccionado no existe o está inactivo.");
             }
 
-            var cantidadSociosValidos = await context.Socios
+            var caja = await context.Socios
+                .SingleOrDefaultAsync(socio =>
+                    socio.EsCaja &&
+                    socio.EstadoRegistro == EnumEstadoRegistro.activo);
+
+            if (caja == null)
+            {
+                throw new ApplicationException(
+                    "Caja Senderos debe estar registrada y activa para crear gastos.");
+            }
+
+            var cantidadPagadoresValidos = await context.Socios
                 .CountAsync(socio =>
                     socioIds.Contains(socio.Id) &&
                     socio.EstadoRegistro == EnumEstadoRegistro.activo &&
-                    socio.Profesionales != null &&
-                    socio.Profesionales.EstadoRegistro ==
-                        EnumEstadoRegistro.activo);
+                    (
+                        (socio.EsCaja && socio.ProfesionalId == null) ||
+                        (!socio.EsCaja &&
+                         socio.Profesionales != null &&
+                         socio.Profesionales.EstadoRegistro ==
+                            EnumEstadoRegistro.activo)
+                    ));
 
-            if (cantidadSociosValidos != socioIds.Count)
+            if (cantidadPagadoresValidos != socioIds.Count)
             {
                 throw new ApplicationException(
-                    "Uno de los socios seleccionados no existe o está inactivo.");
-            }
-
-            var sociosRepartoIds = await context.Socios
-                .AsNoTracking()
-                .Where(socio =>
-                    socio.EstadoRegistro == EnumEstadoRegistro.activo)
-                .OrderBy(socio => socio.Id)
-                .Select(socio => socio.Id)
-                .ToListAsync();
-
-            if (sociosRepartoIds.Count == 0)
-            {
-                throw new ApplicationException(
-                    "No hay socios activos para repartir el gasto.");
+                    "Uno de los pagadores seleccionados no existe o está inactivo.");
             }
 
             var aportes = dto.GastoSocios
@@ -162,27 +167,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 })
                 .ToList();
 
-            var totalCentavos = montoTotal * 100m;
-
-            var centavosPorSocio = decimal.Floor(
-                totalCentavos / sociosRepartoIds.Count);
-
-            var centavosRestantes = (int)(
-                totalCentavos -
-                centavosPorSocio * sociosRepartoIds.Count);
-
-            var repartos = sociosRepartoIds
-                .Select((socioId, posicion) => new GastoReparto
+            var repartos = new List<GastoReparto>
+            {
+                new GastoReparto
                 {
-                    SocioId = socioId,
-                    Monto = (
-                        centavosPorSocio +
-                        (posicion < centavosRestantes ? 1m : 0m)
-                    ) / 100m,
+                    SocioId = caja.Id,
+                    Monto = montoTotal,
                     Observacion = string.Empty,
                     EstadoRegistro = EnumEstadoRegistro.activo
-                })
-                .ToList();
+                }
+            };
 
             var gasto = new Gasto
             {
@@ -205,8 +199,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return gasto.Id;
         }
 
-        public async Task<bool> ActualizarGasto(int id, GastoEditarDTO dto, string usuarioId)
+        public async Task<bool> ActualizarGasto(int id,GastoEditarDTO dto,string usuarioId)
         {
+            if (dto == null)
+            {
+                throw new ApplicationException(
+                    "No se recibieron los datos del gasto.");
+            }
+
             if (string.IsNullOrWhiteSpace(usuarioId))
             {
                 throw new ApplicationException(
@@ -247,24 +247,23 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "El motivo no puede exceder los 500 caracteres.");
             }
 
-            if (dto.GastoSocios == null ||
-                dto.GastoSocios.Count == 0)
+            if (dto.GastoSocios == null || dto.GastoSocios.Count == 0)
             {
                 throw new ApplicationException(
-                    "Seleccioná al menos un socio.");
+                    "Seleccioná quién pagó el gasto: Caja Senderos o un socio.");
             }
 
             if (dto.GastoSocios.Any(aporte => aporte == null))
             {
                 throw new ApplicationException(
-                    "Hay un aporte sin datos.");
+                    "Hay un pago sin datos.");
             }
 
             if (dto.GastoSocios.Any(aporte =>
                 aporte.SocioId <= 0 || aporte.Monto <= 0))
             {
                 throw new ApplicationException(
-                    "Seleccioná socios válidos e importes mayores que cero.");
+                    "Seleccioná pagadores válidos e importes mayores que cero.");
             }
 
             if (dto.GastoSocios.Any(aporte =>
@@ -276,11 +275,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             const decimal montoMaximo = 9999999999999999.99m;
 
-            if (dto.GastoSocios.Any(aporte =>
-                aporte.Monto > montoMaximo))
+            if (dto.GastoSocios.Any(aporte => aporte.Monto > montoMaximo))
             {
                 throw new ApplicationException(
-                    "Uno de los aportes supera el importe permitido.");
+                    "Uno de los pagos supera el importe permitido.");
             }
 
             var socioIds = dto.GastoSocios
@@ -290,7 +288,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (socioIds.Distinct().Count() != socioIds.Count)
             {
                 throw new ApplicationException(
-                    "No se puede agregar el mismo socio más de una vez.");
+                    "No se puede agregar el mismo pagador más de una vez.");
             }
 
             decimal montoTotal;
@@ -317,8 +315,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             var usuario = await context.Users
                 .AsNoTracking()
-                .FirstOrDefaultAsync(usuario =>
-                    usuario.Id == usuarioId);
+                .FirstOrDefaultAsync(u => u.Id == usuarioId);
 
             if (usuario == null)
             {
@@ -327,29 +324,30 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
 
             var gasto = await context.Gastos
-                .Include(gasto => gasto.TipoGastos)
-                .Include(gasto => gasto.GastoRepartos)
+                .Include(g => g.TipoGastos)
+                .Include(g => g.GastoRepartos)
                     .ThenInclude(reparto => reparto.Socios)
                         .ThenInclude(socio => socio!.Profesionales)
-                .Include(gasto => gasto.GastoSocios)
+                .Include(g => g.GastoSocios)
                     .ThenInclude(aporte => aporte.Socios)
                         .ThenInclude(socio => socio!.Profesionales)
-                .FirstOrDefaultAsync(gasto =>
-                    gasto.Id == id &&
-                    gasto.EstadoRegistro == EnumEstadoRegistro.activo);
+                .FirstOrDefaultAsync(g =>
+                    g.Id == id &&
+                    g.EstadoRegistro == EnumEstadoRegistro.activo);
 
             if (gasto == null)
                 return false;
 
-            var tieneReintegros = await context.ReintegrosSociosDetalles.AnyAsync(detalle =>
-                detalle.GastoId == id &&
-                detalle.EstadoRegistro == EnumEstadoRegistro.activo &&
-                detalle.ReintegroSocio != null &&
-                detalle.ReintegroSocio.EstadoRegistro == EnumEstadoRegistro.activo);
+            var tieneReintegros = await context.ReintegrosSociosDetalles
+                .AnyAsync(detalle =>
+                    detalle.GastoId == id &&
+                    detalle.EstadoRegistro == EnumEstadoRegistro.activo &&
+                    detalle.ReintegroSocio != null &&
+                    detalle.ReintegroSocio.EstadoRegistro ==
+                        EnumEstadoRegistro.activo);
 
             var tipoGasto = await context.TipoGastos
-                .FirstOrDefaultAsync(tipo =>
-                    tipo.Id == dto.TipoGastoId);
+                .FirstOrDefaultAsync(tipo => tipo.Id == dto.TipoGastoId);
 
             if (tipoGasto == null ||
                 (tipoGasto.EstadoRegistro != EnumEstadoRegistro.activo &&
@@ -368,20 +366,22 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             {
                 var aportesSinCambios =
                     aportesActuales.Count == dto.GastoSocios.Count &&
-                    aportesActuales.All(actual => dto.GastoSocios.Any(nuevo =>
-                        nuevo.SocioId == actual.SocioId &&
-                        nuevo.Monto == actual.Monto));
+                    aportesActuales.All(actual =>
+                        dto.GastoSocios.Any(nuevo =>
+                            nuevo.SocioId == actual.SocioId &&
+                            nuevo.Monto == actual.Monto));
 
                 if (dto.Fecha.Value.Date != gasto.Fecha.Date ||
                     montoTotal != gasto.Monto ||
                     !aportesSinCambios ||
                     dto.CompletarReparto ||
-                    (dto.SocioRepartoIds != null && dto.SocioRepartoIds.Count > 0))
+                    (dto.SocioRepartoIds != null &&
+                     dto.SocioRepartoIds.Count > 0))
                 {
                     throw new ApplicationException(
                         "Este gasto tiene reintegros registrados. Solo se pueden " +
                         "modificar la descripción y el tipo de gasto; la fecha, " +
-                        "el monto, los socios, los aportes y el reparto están protegidos.");
+                        "el monto, los pagos y el reparto están protegidos.");
                 }
 
                 var versionAnterior = JsonSerializer.Serialize(
@@ -413,6 +413,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
                 await context.SaveChangesAsync();
                 await transaccion.CommitAsync();
+
                 return true;
             }
 
@@ -428,71 +429,58 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (sociosSeleccionados.Count != socioIds.Count)
             {
                 throw new ApplicationException(
-                    "Uno de los socios seleccionados no existe.");
+                    "Uno de los pagadores seleccionados no existe.");
             }
 
             var nuevoSocioInvalido = sociosSeleccionados.Any(socio =>
                 !socioIdsActuales.Contains(socio.Id) &&
-                (socio.EstadoRegistro != EnumEstadoRegistro.activo ||
-                 socio.Profesionales == null ||
-                 socio.Profesionales.EstadoRegistro !=
-                     EnumEstadoRegistro.activo));
+                (
+                    socio.EstadoRegistro != EnumEstadoRegistro.activo ||
+                    (socio.EsCaja
+                        ? socio.ProfesionalId != null
+                        : socio.Profesionales == null ||
+                          socio.Profesionales.EstadoRegistro !=
+                              EnumEstadoRegistro.activo)
+                ));
 
             if (nuevoSocioInvalido)
             {
                 throw new ApplicationException(
-                    "No se pueden agregar socios o profesionales inactivos.");
+                    "Uno de los nuevos pagadores no existe o está inactivo.");
+            }
+
+            var caja = await context.Socios
+                .SingleOrDefaultAsync(socio =>
+                    socio.EsCaja &&
+                    socio.EstadoRegistro == EnumEstadoRegistro.activo);
+
+            if (caja == null)
+            {
+                throw new ApplicationException(
+                    "Caja Senderos debe estar registrada y activa.");
             }
 
             var repartosOriginales = gasto.GastoRepartos
                 .Where(reparto =>
                     reparto.EstadoRegistro == EnumEstadoRegistro.activo)
-                .OrderBy(reparto => reparto.SocioId)
                 .ToList();
 
-            var sociosParaCompletar = new List<Socio>();
-
-            if (dto.CompletarReparto)
+            if (repartosOriginales.Count != 1 ||
+                repartosOriginales[0].SocioId != caja.Id ||
+                repartosOriginales[0].Monto != gasto.Monto)
             {
-                if (repartosOriginales.Count > 0)
-                {
-                    throw new ApplicationException(
-                        "Este gasto ya tiene un reparto registrado.");
-                }
+                throw new ApplicationException(
+                    "Este gasto tiene un reparto anterior o incompleto. " +
+                    "Debe revisarse antes de modificar sus pagos o importes.");
+            }
 
-                if (gasto.GastoRepartos.Count > 0)
-                {
-                    throw new ApplicationException(
-                        "Este gasto tiene un reparto previo que debe revisarse.");
-                }
-
-                if (dto.SocioRepartoIds == null ||
-                    dto.SocioRepartoIds.Count == 0)
-                {
-                    throw new ApplicationException(
-                        "Seleccioná los socios entre quienes se reparte el gasto.");
-                }
-
-                if (dto.SocioRepartoIds.Any(socioId => socioId <= 0) ||
-                    dto.SocioRepartoIds.Distinct().Count() !=
-                        dto.SocioRepartoIds.Count)
-                {
-                    throw new ApplicationException(
-                        "La selección de socios del reparto no es válida.");
-                }
-
-                sociosParaCompletar = await context.Socios
-                    .Include(socio => socio.Profesionales)
-                    .Where(socio =>
-                        dto.SocioRepartoIds.Contains(socio.Id))
-                    .OrderBy(socio => socio.Id)
-                    .ToListAsync();
-
-                if (sociosParaCompletar.Count != dto.SocioRepartoIds.Count)
-                {
-                    throw new ApplicationException(
-                        "Uno de los socios del reparto no existe.");
-                }
+            if (dto.CompletarReparto ||
+                (dto.SocioRepartoIds != null &&
+                 dto.SocioRepartoIds.Count > 0))
+            {
+                throw new ApplicationException(
+                    "El gasto está a cargo de Caja Senderos. " +
+                    "No corresponde seleccionar socios para repartirlo.");
             }
 
             var datosAnteriores = JsonSerializer.Serialize(
@@ -520,8 +508,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 else
                 {
                     var socio = sociosSeleccionados
-                        .First(socio =>
-                            socio.Id == aporteNuevo.SocioId);
+                        .First(s => s.Id == aporteNuevo.SocioId);
 
                     gasto.GastoSocios.Add(new GastoSocio
                     {
@@ -543,46 +530,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             gasto.Descripcion = descripcion;
             gasto.Monto = montoTotal;
 
-            if (dto.CompletarReparto)
-            {
-                foreach (var socio in sociosParaCompletar)
-                {
-                    var reparto = new GastoReparto
-                    {
-                        GastoId = gasto.Id,
-                        SocioId = socio.Id,
-                        Socios = socio,
-                        Monto = 0m,
-                        Observacion = string.Empty,
-                        EstadoRegistro = EnumEstadoRegistro.activo
-                    };
-
-                    gasto.GastoRepartos.Add(reparto);
-                    repartosOriginales.Add(reparto);
-                }
-            }
-
-            if (repartosOriginales.Count > 0)
-            {
-                var totalCentavos = montoTotal * 100m;
-
-                var centavosPorSocio = decimal.Floor(
-                    totalCentavos / repartosOriginales.Count);
-
-                var centavosRestantes = (int)(
-                    totalCentavos -
-                    centavosPorSocio * repartosOriginales.Count);
-
-                for (var posicion = 0;
-                     posicion < repartosOriginales.Count;
-                     posicion++)
-                {
-                    repartosOriginales[posicion].Monto = (
-                        centavosPorSocio +
-                        (posicion < centavosRestantes ? 1m : 0m)
-                    ) / 100m;
-                }
-            }
+            repartosOriginales[0].Monto = montoTotal;
 
             var datosNuevos = JsonSerializer.Serialize(
                 ObtenerVersionGasto(gasto));
@@ -593,7 +541,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "No hay cambios en el gasto para guardar.");
             }
 
-            var historial = new GastoHistorial
+            context.GastoHistoriales.Add(new GastoHistorial
             {
                 GastoId = gasto.Id,
                 UsuarioId = usuario.Id,
@@ -602,9 +550,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 Motivo = motivo,
                 DatosAnteriores = datosAnteriores,
                 DatosNuevos = datosNuevos
-            };
-
-            context.GastoHistoriales.Add(historial);
+            });
 
             await context.SaveChangesAsync();
             await transaccion.CommitAsync();
@@ -630,9 +576,13 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     .Select(aporte => new GastoSocioListadoDTO
                     {
                         SocioId = aporte.SocioId,
-                        Profesional =
-                            aporte.Socios?.Profesionales?.Nombre
-                            ?? string.Empty,
+                        Profesional = aporte.Socios != null
+                            ? aporte.Socios.EsCaja
+                                ? "Caja Senderos"
+                                : aporte.Socios.Profesionales != null
+                                    ? aporte.Socios.Profesionales.Nombre
+                                    : string.Empty
+                            : string.Empty,
                         Monto = aporte.Monto
                     })
                     .ToList(),
@@ -644,9 +594,13 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     .Select(reparto => new GastoRepartoListadoDTO
                     {
                         SocioId = reparto.SocioId,
-                        Profesional =
-                            reparto.Socios?.Profesionales?.Nombre
-                            ?? string.Empty,
+                        Profesional = reparto.Socios != null
+                            ? reparto.Socios.EsCaja
+                                ? "Caja Senderos"
+                                : reparto.Socios.Profesionales != null
+                                    ? reparto.Socios.Profesionales.Nombre
+                                    : string.Empty
+                            : string.Empty,
                         Monto = reparto.Monto
                     })
                     .ToList()
@@ -671,6 +625,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         : string.Empty,
                     Descripcion = gasto.Descripcion,
                     Monto = gasto.Monto,
+
                     GastoReintegros = gasto.ReintegroSocioDetalles
                         .Where(detalle =>
                             detalle.EstadoRegistro ==
@@ -689,9 +644,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                             Monto = detalle.Monto
                         })
                         .ToList(),
+
                     TieneHistorial = context.GastoHistoriales
-                        .Any(historial =>
-                            historial.GastoId == gasto.Id),
+                        .Any(historial => historial.GastoId == gasto.Id),
 
                     GastoSocios = gasto.GastoSocios
                         .Where(aporte =>
@@ -701,9 +656,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .Select(aporte => new GastoSocioListadoDTO
                         {
                             SocioId = aporte.SocioId,
-                            Profesional = aporte.Socios != null &&
-                                          aporte.Socios.Profesionales != null
-                                ? aporte.Socios.Profesionales.Nombre
+                            Profesional = aporte.Socios != null
+                                ? aporte.Socios.EsCaja
+                                    ? "Caja Senderos"
+                                    : aporte.Socios.Profesionales != null
+                                        ? aporte.Socios.Profesionales.Nombre
+                                        : string.Empty
                                 : string.Empty,
                             Monto = aporte.Monto
                         })
@@ -717,9 +675,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .Select(reparto => new GastoRepartoListadoDTO
                         {
                             SocioId = reparto.SocioId,
-                            Profesional = reparto.Socios != null &&
-                                          reparto.Socios.Profesionales != null
-                                ? reparto.Socios.Profesionales.Nombre
+                            Profesional = reparto.Socios != null
+                                ? reparto.Socios.EsCaja
+                                    ? "Caja Senderos"
+                                    : reparto.Socios.Profesionales != null
+                                        ? reparto.Socios.Profesionales.Nombre
+                                        : string.Empty
                                 : string.Empty,
                             Monto = reparto.Monto
                         })
@@ -823,6 +784,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         : string.Empty,
                     Descripcion = gasto.Descripcion,
                     Monto = gasto.Monto,
+
                     GastoReintegros = gasto.ReintegroSocioDetalles
                         .Where(detalle =>
                             detalle.EstadoRegistro ==
@@ -841,9 +803,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                             Monto = detalle.Monto
                         })
                         .ToList(),
+
                     TieneHistorial = context.GastoHistoriales
-                        .Any(historial =>
-                            historial.GastoId == gasto.Id),
+                        .Any(historial => historial.GastoId == gasto.Id),
 
                     GastoSocios = gasto.GastoSocios
                         .Where(aporte =>
@@ -853,9 +815,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .Select(aporte => new GastoSocioListadoDTO
                         {
                             SocioId = aporte.SocioId,
-                            Profesional = aporte.Socios != null &&
-                                          aporte.Socios.Profesionales != null
-                                ? aporte.Socios.Profesionales.Nombre
+                            Profesional = aporte.Socios != null
+                                ? aporte.Socios.EsCaja
+                                    ? "Caja Senderos"
+                                    : aporte.Socios.Profesionales != null
+                                        ? aporte.Socios.Profesionales.Nombre
+                                        : string.Empty
                                 : string.Empty,
                             Monto = aporte.Monto
                         })
@@ -869,9 +834,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .Select(reparto => new GastoRepartoListadoDTO
                         {
                             SocioId = reparto.SocioId,
-                            Profesional = reparto.Socios != null &&
-                                          reparto.Socios.Profesionales != null
-                                ? reparto.Socios.Profesionales.Nombre
+                            Profesional = reparto.Socios != null
+                                ? reparto.Socios.EsCaja
+                                    ? "Caja Senderos"
+                                    : reparto.Socios.Profesionales != null
+                                        ? reparto.Socios.Profesionales.Nombre
+                                        : string.Empty
                                 : string.Empty,
                             Monto = reparto.Monto
                         })

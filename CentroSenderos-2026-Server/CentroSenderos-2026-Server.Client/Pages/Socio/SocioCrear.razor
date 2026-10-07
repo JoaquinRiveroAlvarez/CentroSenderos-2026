@@ -2,48 +2,46 @@
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Enum
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
 <div class="socio-form-page">
-
     <div class="socio-card">
 
         <div class="card-header">
-
             <div>
                 <button type="button"
                         class="back-button"
+                        disabled="@guardando"
                         @onclick="Volver">
                     <i class="bi bi-arrow-left"></i>
                     <span>Volver</span>
                 </button>
-                <h1>Nuevo Socio</h1>
-                <p>Seleccione el profesional y complete la observación.</p>
+
+                <h1>Nuevo socio</h1>
+                <p>Seleccione un profesional o registre Caja Senderos.</p>
             </div>
 
             <button type="button"
                     class="close-button"
                     title="Cerrar"
+                    aria-label="Cerrar formulario"
+                    disabled="@guardando"
                     @onclick="Cancelar">
                 <i class="bi bi-x-lg"></i>
             </button>
-
         </div>
-
 
         @if (cargando)
         {
             <div class="loading-state">
-
-                <div class="spinner-border"
-                     role="status">
+                <div class="spinner-border" role="status">
                     <span class="visually-hidden">Cargando...</span>
                 </div>
 
-                <span>Cargando profesionales...</span>
-
+                <span>Cargando datos...</span>
             </div>
         }
         else
@@ -54,102 +52,131 @@
                       class="socio-form">
 
                 <DataAnnotationsValidator />
-
                 <ValidationSummary class="validation-summary" />
 
-
                 <div class="field-group">
+                    <label class="caja-opcion">
+                        <InputCheckbox class="caja-checkbox"
+                                       @bind-Value="modelo.EsCaja"
+                                       @bind-Value:after="CambiarTipoSocio"
+                                       disabled="@(guardando || cajaExiste || !sociosCargados)" />
 
-                    <label>PROFESIONAL</label>
+                        <span class="caja-textos">
+                            <span class="caja-titulo">Caja Senderos</span>
 
-                    <InputSelect class="senderos-select"
-                                 @bind-Value="modelo.ProfesionalId">
-
-                        <option value="0">
-                            Seleccione un profesional
-                        </option>
-
-                        @foreach (var prof in profesionales)
-                        {
-                            <option value="@prof.Id">
-                                @prof.Nombre (@prof.Area)
-                            </option>
-                        }
-
-                    </InputSelect>
-
-                    <ValidationMessage For="@(() => modelo.ProfesionalId)" />
-
+                            <span class="caja-descripcion">
+                                @if (!sociosCargados)
+                                {
+                                    <span>No se pudo verificar si Caja Senderos ya existe.</span>
+                                }
+                                else if (cajaExiste)
+                                {
+                                    <span>Caja Senderos ya está registrada.</span>
+                                }
+                                else
+                                {
+                                    <span>Registrar la caja del centro sin asociar un profesional.</span>
+                                }
+                            </span>
+                        </span>
+                    </label>
                 </div>
 
-
-                <div class="field-group">
-
-                    <label>OBSERVACIÓN</label>
-
-                    <InputTextArea class="senderos-textarea"
-                                   @bind-Value="modelo.Observacion"
-                                   placeholder="Ingrese una observación" />
-
-                    <ValidationMessage For="@(() => modelo.Observacion)" />
-
-                </div>
-
-
-                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                @if (modelo.EsCaja)
                 {
-                    <div class="form-message">
+                    <div class="field-group">
+                        <label>NOMBRE</label>
+                        <span>Caja Senderos</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="field-group">
+                        <label for="socio-profesional">PROFESIONAL</label>
 
-                        <i class="bi bi-exclamation-circle"></i>
+                        <InputSelect id="socio-profesional"
+                                     class="senderos-select"
+                                     @bind-Value="modelo.ProfesionalId"
+                                     disabled="@(guardando || !profesionalesCargados)">
 
-                        <span>@Mensaje</span>
+                            <option value="">Seleccione un profesional</option>
 
+                            @foreach (var profesional in profesionales)
+                            {
+                                <option value="@profesional.Id">
+                                    @profesional.Nombre (@profesional.Area)
+                                </option>
+                            }
+
+                        </InputSelect>
+
+                        <ValidationMessage For="@(() => modelo.ProfesionalId)" />
                     </div>
                 }
 
+                <div class="field-group">
+                    <label for="socio-observacion">OBSERVACIÓN</label>
+
+                    <InputTextArea id="socio-observacion"
+                                   class="senderos-textarea"
+                                   @bind-Value="modelo.Observacion"
+                                   placeholder="Ingrese una observación"
+                                   disabled="@guardando" />
+
+                    <ValidationMessage For="@(() => modelo.Observacion)" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(errorCarga))
+                {
+                    <div class="form-message" role="alert">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>@errorCarga</span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(mensaje))
+                {
+                    <div class="form-message" role="alert">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>@mensaje</span>
+                    </div>
+                }
 
                 <div class="form-actions">
-
                     <button type="button"
                             class="btn-cancelar"
+                            disabled="@guardando"
                             @onclick="Cancelar">
-
                         Cancelar
-
                     </button>
-
 
                     <button type="submit"
                             class="btn-guardar"
-                            disabled="@guardando">
-
+                            disabled="@(guardando || !PuedeGuardar)">
                         @if (guardando)
                         {
-                            <span class="spinner-border spinner-border-sm"></span>
+                            <span class="spinner-border spinner-border-sm"
+                                  aria-hidden="true"></span>
                             <span>Guardando...</span>
                         }
                         else
                         {
-                            <span>Guardar Socio</span>
+                            <span>@(modelo.EsCaja ? "Guardar Caja" : "Guardar socio")</span>
                         }
-
                     </button>
-
                 </div>
 
             </EditForm>
         }
 
     </div>
-
 </div>
 
-
 @code {
-
     private SocioDTO modelo = new()
     {
-        ProfesionalId = 0,
+        ProfesionalId = null,
+        EsCaja = false,
         Observacion = string.Empty,
         EstadoRegistro = EnumEstadoRegistro.EnGrabacion
     };
@@ -157,81 +184,187 @@
     private List<ProfesionalListadoDTO> profesionales = new();
 
     private bool cargando = true;
+    private bool guardando;
+    private bool cajaExiste;
+    private bool sociosCargados;
+    private bool profesionalesCargados;
 
-    private bool guardando = false;
+    private string errorCarga = string.Empty;
+    private string mensaje = string.Empty;
 
-    private string Mensaje = string.Empty;
-
+    private bool PuedeGuardar => modelo.EsCaja
+        ? sociosCargados && !cajaExiste
+        : profesionalesCargados;
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarProfesionales();
+        try
+        {
+            await CargarSocios();
+            await CargarProfesionales();
+        }
+        finally
+        {
+            cargando = false;
+        }
     }
 
+    private async Task CargarSocios()
+    {
+        try
+        {
+            var respuesta = await Http.Get<List<SocioListadoDTO>>(
+                "api/socio/ListaSocio");
+
+            if (respuesta.Error)
+            {
+                AgregarErrorCarga(
+                    "No se pudo consultar el listado de socios. " +
+                    respuesta.ObtenerError());
+
+                return;
+            }
+
+            var socios = respuesta.Respuesta;
+
+            if (socios == null)
+            {
+                AgregarErrorCarga(
+                    "No se pudo obtener el listado de socios.");
+
+                return;
+            }
+
+            cajaExiste = socios.Any(socio => socio.EsCaja);
+            sociosCargados = true;
+        }
+        catch (Exception)
+        {
+            AgregarErrorCarga(
+                "No se pudo conectar para consultar los socios.");
+        }
+    }
 
     private async Task CargarProfesionales()
     {
-        cargando = true;
-        Mensaje = string.Empty;
-
-        var respProf =
-            await Http.Get<List<ProfesionalListadoDTO>>(
-                "api/profesional/ListaProfesional"
-            );
-
-        if (!respProf.Error)
+        try
         {
-            profesionales =
-                respProf.Respuesta ?? new();
+            var respuesta = await Http.Get<List<ProfesionalListadoDTO>>(
+                "api/profesional/ListaProfesional");
+
+            if (respuesta.Error)
+            {
+                AgregarErrorCarga(
+                    "No se pudieron cargar los profesionales. " +
+                    respuesta.ObtenerError());
+
+                return;
+            }
+
+            if (respuesta.Respuesta == null)
+            {
+                AgregarErrorCarga(
+                    "No se pudo obtener el listado de profesionales.");
+
+                return;
+            }
+
+            profesionales = respuesta.Respuesta;
+            profesionalesCargados = true;
         }
-        else
+        catch (Exception)
         {
-            profesionales = new();
-
-            Mensaje =
-                respProf.ObtenerError();
+            AgregarErrorCarga(
+                "No se pudo conectar para consultar los profesionales.");
         }
-
-        cargando = false;
     }
 
+    private void AgregarErrorCarga(string texto)
+    {
+        errorCarga = string.IsNullOrWhiteSpace(errorCarga)
+            ? texto
+            : $"{errorCarga} {texto}";
+    }
+
+    private void CambiarTipoSocio()
+    {
+        modelo.ProfesionalId = null;
+        mensaje = string.Empty;
+    }
 
     private async Task Grabar()
     {
-        guardando = true;
-        Mensaje = string.Empty;
+        if (guardando)
+            return;
 
-        var resp =
-            await Http.Post<SocioDTO, int>(
-                "api/socio/insertar",
-                modelo
-            );
+        mensaje = string.Empty;
 
-        guardando = false;
-
-        if (!resp.Error)
+        if (modelo.EsCaja)
         {
-            Nav.NavigateTo(
-                "/socio",
-                forceLoad: true
-            );
+            if (!sociosCargados || cajaExiste)
+            {
+                mensaje = cajaExiste
+                    ? "Caja Senderos ya está registrada."
+                    : "No se pudo verificar si Caja Senderos ya existe.";
+
+                return;
+            }
+
+            modelo.ProfesionalId = null;
         }
         else
         {
-            Mensaje = resp.ObtenerError();
+            if (!profesionalesCargados)
+            {
+                mensaje = "No se pudieron cargar los profesionales.";
+                return;
+            }
+
+            if (!modelo.ProfesionalId.HasValue ||
+                modelo.ProfesionalId.Value <= 0)
+            {
+                mensaje = "Seleccioná un profesional para el socio.";
+                return;
+            }
+        }
+
+        guardando = true;
+
+        try
+        {
+            var respuesta = await Http.Post<SocioDTO, int>(
+                "api/socio/insertar",
+                modelo);
+
+            if (respuesta.Error)
+            {
+                mensaje = respuesta.ObtenerError();
+                return;
+            }
+
+            Nav.NavigateTo("/socio", forceLoad: true);
+        }
+        catch (Exception)
+        {
+            mensaje =
+                "No se pudo confirmar el guardado. " +
+                "Revisá el listado antes de volver a intentar.";
+        }
+        finally
+        {
+            guardando = false;
         }
     }
 
-
     private void Cancelar()
     {
-        Nav.NavigateTo("/socio");
+        if (!guardando)
+            Nav.NavigateTo("/socio");
     }
 
     private void Volver()
     {
-        Nav.NavigateTo("/socio");
+        if (!guardando)
+            Nav.NavigateTo("/socio");
     }
-
-
 }

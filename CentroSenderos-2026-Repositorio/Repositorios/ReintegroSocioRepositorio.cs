@@ -22,8 +22,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             this.context = context;
         }
 
-        public async Task<int> InsertarReintegroSocio(
-            ReintegroSocioDTO dto)
+        public async Task<int> InsertarReintegroSocio(ReintegroSocioDTO dto)
         {
             if (dto == null)
             {
@@ -37,17 +36,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "La fecha es obligatoria.");
             }
 
-            if (dto.SocioPagadorId <= 0 ||
-                dto.SocioReceptorId <= 0)
+            if (dto.SocioPagadorId <= 0 || dto.SocioReceptorId <= 0)
             {
                 throw new ApplicationException(
-                    "Seleccioná el socio que paga y el que recibe.");
+                    "Debe indicarse Caja Senderos y el socio que recibe.");
             }
 
             if (dto.SocioPagadorId == dto.SocioReceptorId)
             {
                 throw new ApplicationException(
-                    "El socio que paga y el que recibe deben ser diferentes.");
+                    "Caja Senderos no puede reintegrarse dinero a sí misma.");
             }
 
             const decimal montoMaximo = 9999999999999999.99m;
@@ -125,24 +123,38 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 await context.Database.BeginTransactionAsync(
                     IsolationLevel.Serializable);
 
-            var socioIds = new[]
-            {
-                dto.SocioPagadorId,
-                dto.SocioReceptorId
-            };
+            var caja = await context.Socios
+                .AsNoTracking()
+                .SingleOrDefaultAsync(socio =>
+                    socio.EsCaja &&
+                    socio.EstadoRegistro == EnumEstadoRegistro.activo);
 
-            var cantidadSociosValidos = await context.Socios
-                .CountAsync(socio =>
-                    socioIds.Contains(socio.Id) &&
+            if (caja == null)
+            {
+                throw new ApplicationException(
+                    "Caja Senderos debe estar registrada y activa.");
+            }
+
+            if (dto.SocioPagadorId != caja.Id)
+            {
+                throw new ApplicationException(
+                    "Únicamente Caja Senderos puede realizar reintegros.");
+            }
+
+            var receptorValido = await context.Socios
+                .AnyAsync(socio =>
+                    socio.Id == dto.SocioReceptorId &&
+                    !socio.EsCaja &&
                     socio.EstadoRegistro == EnumEstadoRegistro.activo &&
                     socio.Profesionales != null &&
                     socio.Profesionales.EstadoRegistro ==
                         EnumEstadoRegistro.activo);
 
-            if (cantidadSociosValidos != 2)
+            if (!receptorValido)
             {
                 throw new ApplicationException(
-                    "Uno de los socios o profesionales no existe o está inactivo.");
+                    "El socio que recibe no existe o su registro " +
+                    "o profesional está inactivo.");
             }
 
             var gastos = await context.Gastos
@@ -179,8 +191,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             foreach (var detalle in dto.Detalles)
             {
-                var gasto = gastos.First(gasto =>
-                    gasto.Id == detalle.GastoId);
+                var gasto = gastos.First(g =>
+                    g.Id == detalle.GastoId);
 
                 if (dto.Fecha.Date < gasto.Fecha.Date)
                 {
@@ -194,12 +206,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         reparto.EstadoRegistro == EnumEstadoRegistro.activo)
                     .ToList();
 
-                if (repartos.Count == 0 ||
-                    repartos.Sum(reparto => reparto.Monto) != gasto.Monto)
+                if (repartos.Count != 1 ||
+                    repartos[0].SocioId != caja.Id ||
+                    repartos[0].Monto != gasto.Monto)
                 {
                     throw new ApplicationException(
-                        $"El gasto «{gasto.Descripcion}» " +
-                        "no tiene un reparto completo.");
+                        $"El gasto «{gasto.Descripcion}» tiene un reparto " +
+                        "anterior o incompleto. Debe revisarse para que " +
+                        "quede completamente a cargo de Caja Senderos.");
                 }
 
                 var aportes = gasto.GastoSocios
@@ -207,67 +221,68 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         aporte.EstadoRegistro == EnumEstadoRegistro.activo)
                     .ToList();
 
-                if (aportes.Sum(aporte => aporte.Monto) != gasto.Monto)
+                if (aportes.Any(aporte => aporte.Monto <= 0) ||
+                    aportes.Sum(aporte => aporte.Monto) != gasto.Monto)
                 {
                     throw new ApplicationException(
                         $"Los pagos del gasto «{gasto.Descripcion}» " +
-                        "no coinciden con su monto.");
+                        "no coinciden con su monto o contienen importes inválidos.");
                 }
 
-                decimal SaldoSocio(int socioId)
-                {
-                    var pagado = aportes
-                        .Where(aporte => aporte.SocioId == socioId)
-                        .Sum(aporte => aporte.Monto);
+                var reintegrosDelGasto = reintegrosAnteriores
+                    .Where(reintegro => reintegro.GastoId == gasto.Id)
+                    .ToList();
 
-                    var parte = repartos
-                        .Where(reparto => reparto.SocioId == socioId)
-                        .Sum(reparto => reparto.Monto);
-
-                    var reintegrado = reintegrosAnteriores
-                        .Where(reintegro =>
-                            reintegro.GastoId == gasto.Id &&
-                            reintegro.SocioPagadorId == socioId)
-                        .Sum(reintegro => reintegro.Monto);
-
-                    var recibido = reintegrosAnteriores
-                        .Where(reintegro =>
-                            reintegro.GastoId == gasto.Id &&
-                            reintegro.SocioReceptorId == socioId)
-                        .Sum(reintegro => reintegro.Monto);
-
-                    return pagado - parte + reintegrado - recibido;
-                }
-
-                var saldoPagador = SaldoSocio(dto.SocioPagadorId);
-                var saldoReceptor = SaldoSocio(dto.SocioReceptorId);
-
-                if (saldoPagador >= 0)
+                if (reintegrosDelGasto.Any(reintegro =>
+                    reintegro.SocioPagadorId != caja.Id ||
+                    reintegro.SocioReceptorId == caja.Id))
                 {
                     throw new ApplicationException(
-                        $"El socio que paga no tiene deuda pendiente " +
+                        $"El gasto «{gasto.Descripcion}» tiene reintegros " +
+                        "del esquema anterior que deben revisarse.");
+                }
+
+                var adelantado = aportes
+                    .Where(aporte =>
+                        aporte.SocioId == dto.SocioReceptorId)
+                    .Sum(aporte => aporte.Monto);
+
+                var recibido = reintegrosDelGasto
+                    .Where(reintegro =>
+                        reintegro.SocioReceptorId == dto.SocioReceptorId)
+                    .Sum(reintegro => reintegro.Monto);
+
+                var saldoPendienteSocio = adelantado - recibido;
+
+                if (saldoPendienteSocio <= 0)
+                {
+                    throw new ApplicationException(
+                        $"El socio no tiene un reintegro pendiente " +
                         $"en el gasto «{gasto.Descripcion}».");
                 }
 
-                if (saldoReceptor <= 0)
-                {
-                    throw new ApplicationException(
-                        $"El socio que recibe no tiene saldo a favor " +
-                        $"en el gasto «{gasto.Descripcion}».");
-                }
-
-                if (detalle.Monto > -saldoPagador)
+                if (detalle.Monto > saldoPendienteSocio)
                 {
                     throw new ApplicationException(
                         $"El importe aplicado al gasto «{gasto.Descripcion}» " +
-                        "supera la deuda pendiente del socio que paga.");
+                        "supera el reintegro pendiente del socio.");
                 }
 
-                if (detalle.Monto > saldoReceptor)
+                var pagadoPorCaja = aportes
+                    .Where(aporte => aporte.SocioId == caja.Id)
+                    .Sum(aporte => aporte.Monto);
+
+                var totalReintegrado = reintegrosDelGasto
+                    .Sum(reintegro => reintegro.Monto);
+
+                var saldoPendienteCaja =
+                    gasto.Monto - pagadoPorCaja - totalReintegrado;
+
+                if (detalle.Monto > saldoPendienteCaja)
                 {
                     throw new ApplicationException(
                         $"El importe aplicado al gasto «{gasto.Descripcion}» " +
-                        "supera el saldo a favor del socio que recibe.");
+                        "supera el total pendiente de reintegrar por Caja Senderos.");
                 }
             }
 
@@ -276,7 +291,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 Fecha = DateTime.SpecifyKind(
                     dto.Fecha.Date,
                     DateTimeKind.Utc),
-                SocioPagadorId = dto.SocioPagadorId,
+                SocioPagadorId = caja.Id,
                 SocioReceptorId = dto.SocioReceptorId,
                 Monto = dto.Monto,
                 Observacion = dto.Observacion?.Trim() ?? string.Empty,

@@ -45,13 +45,36 @@ namespace CentroSenderos_2026_BD
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            // Caja no tiene profesional; los socios habituales sí.
+            modelBuilder.Entity<Socio>()
+                .HasOne(socio => socio.Profesionales)
+                .WithMany(profesional => profesional.Socios)
+                .HasForeignKey(socio => socio.ProfesionalId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // El índice solo incluye Caja, permitiendo varios socios habituales.
+            modelBuilder.Entity<Socio>()
+                .HasIndex(socio => socio.EsCaja)
+                .HasDatabaseName("Socio_Caja_Unica")
+                .IsUnique()
+                .HasFilter("\"EsCaja\" = TRUE");
+
+            // Impide combinaciones inválidas entre EsCaja y ProfesionalId.
+            modelBuilder.Entity<Socio>()
+                .ToTable(tabla => tabla.HasCheckConstraint(
+                    "CK_Socio_Caja_Profesional",
+                    "(\"EsCaja\" = TRUE AND \"ProfesionalId\" IS NULL) OR " +
+                    "(\"EsCaja\" = FALSE AND \"ProfesionalId\" IS NOT NULL)"
+                ));
+
             modelBuilder.Entity<ProfesionalTipoPrestacion>()
-    .HasIndex(x => new
-    {
-        x.ProfesionalId,
-        x.TipoPrestacionId
-    })
-    .IsUnique();
+                .HasIndex(x => new
+                {
+                    x.ProfesionalId,
+                    x.TipoPrestacionId
+                })
+                .IsUnique();
 
             modelBuilder.Entity<ProfesionalTipoPrestacion>()
                 .HasOne(x => x.Profesional)

@@ -45,6 +45,7 @@
     .gastos-header::after {
         content: "";
     }
+
 .header-period {
     justify-self: end;
     color: #647b5b;
@@ -823,7 +824,7 @@
             background: #dfe8dc;
         }
 
-        /* #endregion */
+/* #endregion */
 
 /* #region Saldos del período */
 
@@ -1092,22 +1093,22 @@
 
 /* #region Accesibilidad */
 
-        /* Foco visible */
-        .new-button:focus-visible,
-        .success-message > button:focus-visible,
-        .filter-field select:focus-visible,
-        .periodo-fecha-selector:focus-visible,
-        .filter-order-button:focus-visible,
-        .filter-reset-button:focus-visible,
-        .gasto-detail-link:focus-visible,
-        .edit-button:focus-visible,
-        .retry-button:focus-visible,
-        .periodo-calendario-nav:focus-visible,
-        .periodo-calendario-dia:focus-visible,
-        .periodo-calendario-footer button:focus-visible {
-            outline: 2px solid #647b5b;
-            outline-offset: 3px;
-        }
+/* Foco visible */
+.new-button:focus-visible,
+.success-message > button:focus-visible,
+.filter-field select:focus-visible,
+.periodo-fecha-selector:focus-visible,
+.filter-order-button:focus-visible,
+.filter-reset-button:focus-visible,
+.gasto-detail-link:focus-visible,
+.edit-button:focus-visible,
+.retry-button:focus-visible,
+.periodo-calendario-nav:focus-visible,
+.periodo-calendario-dia:focus-visible,
+.periodo-calendario-footer button:focus-visible {
+    outline: 2px solid #647b5b;
+    outline-offset: 3px;
+}
 
 .filter-search:focus-within {
     outline: 2px solid #647b5b;
@@ -1239,6 +1240,380 @@
         right: auto;
         left: 0;
         width: 100%;
+    }
+}
+
+/* #endregion */
+
+
+/* #region Panel de Caja Senderos */
+
+/* Caja ocupa el primer nivel; los socios usan una presentación más discreta. */
+.gastos-layout {
+    grid-template-columns: minmax(0, 1fr) 330px;
+    gap: 24px;
+}
+
+.caja-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.caja-principal {
+    padding: 24px;
+    border: 1px solid #dce4d6;
+    border-radius: 20px;
+    background: linear-gradient(145deg, #eef2e9, #f8faf5);
+}
+
+.caja-encabezado {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.caja-icono {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    background: #dfe7d9;
+    color: #556f4f;
+    font-size: 21px;
+    flex-shrink: 0;
+}
+
+.panel-eyebrow {
+    font-size: 10px;
+    letter-spacing: .12em;
+    color: #74836b;
+    font-weight: 600;
+}
+
+.caja-encabezado h2 {
+    margin: 3px 0 0;
+    color: #40553b;
+    font-size: 21px;
+    font-weight: 600;
+}
+
+.caja-periodo {
+    display: block;
+    margin-top: 15px;
+    color: #7a8273;
+    font-size: 12px;
+}
+
+.caja-deuda {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 23px 0;
+}
+
+    .caja-deuda > span:first-child {
+        color: #616f58;
+        font-size: 13px;
+    }
+
+    .caja-deuda > strong {
+        max-width: 100%;
+        color: #40553b;
+        font-size: 31px;
+        font-weight: 600;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+        font-variant-numeric: tabular-nums;
+    }
+
+.caja-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 9px;
+    border-radius: 7px;
+    font-size: 11px;
+}
+
+    .caja-estado.pendiente {
+        color: #94623e;
+        background: #f1e7d8;
+    }
+
+    .caja-estado.al-dia {
+        color: #556f4f;
+        background: #e0e9da;
+    }
+
+.caja-metricas {
+    border-top: 1px solid #dce3d5;
+    padding-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+}
+
+    .caja-metricas > div {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+    }
+
+    .caja-metricas span {
+        color: #71786b;
+        font-size: 12px;
+    }
+
+    .caja-metricas strong {
+        color: #465540;
+        font-size: 14px;
+        text-align: right;
+        overflow-wrap: anywhere;
+        min-width: 0;
+    }
+
+.panel-card {
+    padding: 21px;
+    border: 1px solid #e7e3dc;
+    border-radius: 18px;
+    background: #fffdf9;
+}
+
+.panel-titulo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+    .panel-titulo h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: #53634b;
+    }
+
+    .panel-titulo > span, .panel-titulo > i {
+        color: #7c8a72;
+        font-size: 12px;
+    }
+
+.panel-nota, .panel-alcance {
+    margin: 13px 0 0;
+    font-size: 11px;
+    line-height: 1.65;
+    color: #85887e;
+}
+
+.panel-alcance {
+    padding: 0 6px;
+    margin: 0;
+}
+
+.caja-progreso {
+    margin-top: 18px;
+    height: 6px;
+    background: #eceee7;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+    .caja-progreso span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: #839776;
+        transition: width .25s ease;
+    }
+
+.panel-estados {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 17px;
+}
+
+.panel-filtro {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: #f6f5f1;
+    color: #73766c;
+    padding: 10px 11px;
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+}
+
+button.panel-filtro {
+    cursor: pointer;
+}
+
+.panel-filtro span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-filtro strong {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+button.panel-filtro:hover, .panel-filtro.activo {
+    border-color: #d7e0d0;
+    background: #edf1e7;
+    color: #556f4f;
+}
+
+.panel-filtro.saldados {
+    background: transparent;
+}
+
+.panel-aviso {
+    margin: 13px 0 0;
+    padding: 10px 12px;
+    border-radius: 9px;
+    background: #faf2e7;
+    color: #96774c;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.panel-enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 13px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: #647b5b;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.panel-socio {
+    padding: 15px 0;
+    border-bottom: 1px solid #eeeae3;
+}
+
+    .panel-socio:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+.panel-socio-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+    .panel-socio-header > span {
+        color: #62685d;
+        font-size: 13px;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .panel-socio-header strong {
+        font-size: 13px;
+        font-weight: 500;
+        text-align: right;
+        overflow-wrap: anywhere;
+        min-width: 0;
+    }
+
+.socio-pendiente {
+    color: #98744e;
+}
+
+.socio-saldado {
+    color: #71816a;
+}
+
+.panel-socio > small {
+    display: block;
+    margin-top: 5px;
+    color: #9a9b91;
+    font-size: 10px;
+}
+
+.panel-socio-detalle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin-top: 9px;
+    color: #989a90;
+    font-size: 10px;
+}
+
+    .panel-socio-detalle b {
+        font-weight: 400;
+        color: #7b8174;
+    }
+
+.panel-vacio {
+    color: #94988c;
+    font-size: 12px;
+    margin: 18px 0 0;
+}
+
+.panel-card .pendiente-gasto-link {
+    font-size: 12px;
+}
+
+    .panel-card .pendiente-gasto-link strong {
+        font-size: 12px;
+    }
+
+.panel-filtro:focus-visible, .panel-enlace:focus-visible {
+    outline: 2px solid #647b5b;
+    outline-offset: 3px;
+}
+
+/* La columna pasa debajo de la tabla cuando no hay espacio suficiente. */
+@media (max-width: 1200px) {
+    .gastos-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .gastos-summary.caja-panel {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
+
+    .panel-alcance {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 650px) {
+    .gastos-summary.caja-panel {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .caja-principal, .panel-card {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 20px;
+    }
+
+    .caja-deuda > strong {
+        font-size: 28px;
     }
 }
 

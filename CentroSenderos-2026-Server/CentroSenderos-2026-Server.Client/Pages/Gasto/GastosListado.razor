@@ -69,13 +69,18 @@
     else
     {
         var resultados = GastosFiltrados;
-        var aportes = ObtenerResumenAportes(resultados);
         var total = resultados.Sum(gasto => gasto.Monto);
         var gastosPanel = GastosFiltradosBase;
-        var pendientes = gastosPanel.Where(TieneReintegroPendiente).ToList();
-        var sinReparto = gastosPanel.Count(gasto => !TieneRepartoCompleto(gasto));
-        var saldados = gastosPanel.Count(gasto => TieneRepartoCompleto(gasto) && !TieneReintegroPendiente(gasto));
+        var validos = gastosPanel.Where(TieneRepartoCompleto).ToList();
+        var pendientes = validos.Where(TieneReintegroPendiente).ToList();
+        var sinReparto = gastosPanel.Count - validos.Count;
+        var saldados = validos.Count - pendientes.Count;
         var importePendiente = pendientes.Sum(ImportePendiente);
+        var pagadoCaja = validos.Sum(g => g.GastoSocios.Where(a => a.SocioId == cajaId).Sum(a => a.Monto));
+        var adelantado = validos.Sum(g => g.GastoSocios.Where(a => a.SocioId != cajaId).Sum(a => a.Monto));
+        var reintegrado = validos.Sum(g => g.GastoReintegros.Sum(r => r.Monto));
+        var porcentaje = adelantado > 0 ? Math.Clamp(reintegrado / adelantado * 100m, 0m, 100m) : 0m;
+        var resumenSocios = ResumenSocios(validos);
 
         <div class="gastos-layout">
             <section class="list-card">
@@ -101,7 +106,7 @@
 
                         <select id="filtroSocioGasto"
                                 @bind="socioSeleccionadoId">
-                            <option value="0">Todos los socios</option>
+                            <option value="0">Todos los pagadores</option>
 
                             @foreach (var socio in SociosDisponibles)
                             {
@@ -321,7 +326,7 @@
                     <div class="pending-filter-bar" role="status">
                         <span>
                             <i class="bi bi-info-circle"></i>
-                            @(soloConReintegros ? "Mostrando gastos con reintegros pendientes" : "Mostrando gastos con reparto por revisar")
+                            @(soloConReintegros ? "Mostrando gastos con reintegros pendientes" : "Mostrando gastos con datos por revisar")
                         </span>
 
                         <button type="button"
@@ -425,7 +430,7 @@
                                             }
                                             else if (!TieneRepartoCompleto(gasto))
                                             {
-                                                <span class="gasto-reparto-badge">Reparto por revisar</span>
+                                                <span class="gasto-reparto-badge">Datos por revisar</span>
                                             }
                                         </td>
 
@@ -482,101 +487,81 @@
                 </div>
             </section>
 
-            <aside class="gastos-summary">
-                <section class="monthly-total-card">
-                    <span>Gasto total del período</span>
-
-                    <strong>
-                        @(PeriodoInvalido ? "—" : Moneda(total))
-                    </strong>
-
-                    <small>@NombrePeriodo</small>
+            <aside class="gastos-summary caja-panel" aria-label="Estado de gastos de Caja Senderos">
+                <section class="caja-principal">
+                    <div class="caja-encabezado">
+                        <span class="caja-icono"><i class="bi bi-wallet2"></i></span>
+                        <div><span class="panel-eyebrow">ESTADO DE GASTOS</span><h2>Caja Senderos</h2></div>
+                    </div>
+                    <span class="caja-periodo">@NombrePeriodo</span>
+                    <div class="caja-deuda">
+                        <span>Pendiente de reintegrar</span>
+                        <strong>@(PeriodoInvalido ? "—" : Moneda(importePendiente))</strong>
+                        <span class="@(importePendiente > 0 ? "caja-estado pendiente" : "caja-estado al-dia")">
+                            <i class="@(importePendiente > 0 ? "bi bi-clock" : "bi bi-check-circle")"></i>
+                            @(PeriodoInvalido ? "Revisá las fechas" : validos.Count == 0 ? "Sin gastos evaluables" : importePendiente > 0 ? "Con reintegros pendientes" : "Sin reintegros pendientes")
+                        </span>
+                    </div>
+                    <div class="caja-metricas">
+                        <div><span>Gastos de la selección</span><strong>@Moneda(gastosPanel.Sum(g => g.Monto))</strong></div>
+                        <div><span>Pagado por Caja</span><strong>@Moneda(pagadoCaja)</strong></div>
+                        <div><span>Devuelto a socios</span><strong>@Moneda(reintegrado)</strong></div>
+                    </div>
+                    <p class="panel-nota">Estado actual de los gastos seleccionados. El saldo del centro se incorporará cuando haya ingresos.</p>
                 </section>
 
-                <section class="monthly-detail-card">
-                    <h2>Aportes por socio</h2>
-
-                    @if (PeriodoInvalido)
+                <section class="panel-card">
+                    <div class="panel-titulo"><h2>Avance de reintegros</h2><span>@porcentaje.ToString("0", cultura)%</span></div>
+                    <div class="caja-progreso" role="progressbar" aria-label="Porcentaje reintegrado de los adelantos" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@porcentaje.ToString(CultureInfo.InvariantCulture)">
+                        <span style="@($"width: {porcentaje.ToString(CultureInfo.InvariantCulture)}%")"></span>
+                    </div>
+                    <p class="panel-nota">@Moneda(reintegrado) devueltos de @Moneda(adelantado) adelantados por socios.</p>
+                    <div class="panel-estados">
+                        <button type="button" class="@(soloConReintegros ? "panel-filtro activo" : "panel-filtro")" aria-pressed="@soloConReintegros" @onclick="VerGastosConReintegros"><span><i class="bi bi-arrow-left-right"></i> Pendientes</span><strong>@pendientes.Count</strong></button>
+                        <div class="panel-filtro saldados"><span><i class="bi bi-check-circle"></i> Saldados</span><strong>@saldados</strong></div>
+                        <button type="button" class="@(soloSinReparto ? "panel-filtro activo" : "panel-filtro")" aria-pressed="@soloSinReparto" @onclick="VerGastosSinReparto"><span><i class="bi bi-exclamation-circle"></i> Por revisar</span><strong>@sinReparto</strong></button>
+                    </div>
+                    @if (sinReparto > 0)
                     {
-                        <p>Corregí el período para consultar los aportes.</p>
+                        <p class="panel-aviso">@sinReparto @(sinReparto == 1 ? "gasto excluido" : "gastos excluidos") de los saldos y reintegros por datos anteriores o inconsistentes.</p>
                     }
-                    else if (aportes.Count == 0)
+                    @if (soloSinReparto || soloConReintegros)
                     {
-                        <p>No hay aportes para los filtros seleccionados.</p>
+                        <button type="button" class="panel-enlace" @onclick="QuitarFiltroPendientes">Ver todos los estados <i class="bi bi-arrow-right"></i></button>
                     }
-                    else
-                    {
-                        @foreach (var aporte in aportes)
-                        {
-                            <div class="monthly-socio-row"
-                                 @key="aporte.SocioId">
-                                <span class="monthly-socio-icon">
-                                    <i class="bi bi-person"></i>
-                                </span>
-
-                                <span class="monthly-socio-name">
-                                    @aporte.Profesional
-                                </span>
-
-                                <strong>@Moneda(aporte.Monto)</strong>
-                            </div>
-                        }
-                    }
-
-                    <p class="summary-help">
-                        Resumen de los gastos mostrados.
-                    </p>
                 </section>
 
-                <section class="monthly-detail-card pendientes-card">
-                    <h2>Pendientes de gastos</h2>
-                    @if (PeriodoInvalido)
+                <section class="panel-card panel-socios">
+                    <div class="panel-titulo"><h2>Socios</h2><span>@resumenSocios.Count</span></div>
+                    <p class="panel-nota">Adelantos y devoluciones de esta selección.</p>
+                    @if (resumenSocios.Count == 0)
                     {
-                        <p>Corregí el período para consultar los pendientes.</p>
+                        <p class="panel-vacio">Sin adelantos de socios para mostrar.</p>
                     }
-                    else
+                    @foreach (var socio in resumenSocios)
                     {
-                        <div class="pendientes-importe">
-                            <span>Por reintegrar</span>
-                            <strong>@Moneda(importePendiente)</strong>
-                            <small>En @pendientes.Count @(pendientes.Count == 1 ? "gasto" : "gastos")</small>
+                        <div class="panel-socio" @key="socio.Id">
+                            <div class="panel-socio-header"><span>@socio.Nombre</span><strong class="@(socio.Pendiente > 0 ? "socio-pendiente" : "socio-saldado")">@(socio.Pendiente > 0 ? Moneda(socio.Pendiente) : "Al día")</strong></div>
+                            <small>@(socio.Pendiente > 0 ? "Pendiente de recibir" : "Sin devolución pendiente")</small>
+                            <div class="panel-socio-detalle"><span>Adelantó <b>@Moneda(socio.Adelantado)</b></span><span>Recibió <b>@Moneda(socio.Recibido)</b></span></div>
                         </div>
-                        <div class="pendientes-filtros">
-                            <button type="button" class="@(soloConReintegros ? "pendientes-filtro activo" : "pendientes-filtro")" aria-pressed="@soloConReintegros" @onclick="VerGastosConReintegros">
-                                <span><i class="bi bi-arrow-left-right"></i> Con reintegros pendientes</span><strong>@pendientes.Count</strong>
-                            </button>
-                            <button type="button" class="@(soloSinReparto ? "pendientes-filtro activo" : "pendientes-filtro")" aria-pressed="@soloSinReparto" @onclick="VerGastosSinReparto">
-                                <span><i class="bi bi-diagram-3"></i> Reparto por revisar</span><strong>@sinReparto</strong>
-                            </button>
-                        </div>
-                        <p class="pendientes-saldados"><i class="bi bi-check-circle"></i> @saldados @(saldados == 1 ? "gasto saldado" : "gastos saldados")</p>
-                        @if (soloSinReparto || soloConReintegros)
-                        {
-                            <button type="button" class="pending-action-button" @onclick="QuitarFiltroPendientes">Ver todos los estados</button>
-                        }
-                        @if (sinReparto > 0)
-                        {
-                            <p class="summary-help">El importe pendiente excluye @sinReparto @(sinReparto == 1 ? "gasto cuyo reparto necesita revisión." : "gastos cuyos repartos necesitan revisión.")</p>
-                        }
-                        @if (pendientes.Count > 0)
-                        {
-                            <h3 class="pendientes-subtitulo">Abrir gasto pendiente</h3>
-                            @foreach (var pendiente in pendientes.OrderByDescending(ImportePendiente).Take(3))
-                            {
-                                <button type="button" class="pendiente-gasto-link" @key="pendiente.Id" @onclick="() => AbrirDetalle(pendiente.Id)">
-                                    <span>@pendiente.Descripcion<small>@pendiente.Fecha.ToString("dd/MM/yyyy")</small></span>
-                                    <strong>@Moneda(ImportePendiente(pendiente))</strong>
-                                    <i class="bi bi-chevron-right"></i>
-                                </button>
-                            }
-                        }
-                        else if (sinReparto == 0 && gastosPanel.Count > 0)
-                        {
-                            <p class="summary-help">Todos los gastos de esta selección están saldados.</p>
-                        }
-                        <p class="summary-help">Según fecha, tipo, pagador y búsqueda. Abrí un gasto para registrar el reintegro.</p>
                     }
                 </section>
+
+                @if (pendientes.Count > 0)
+                {
+                    <section class="panel-card">
+                        <div class="panel-titulo"><h2>Para resolver</h2><i class="bi bi-arrow-up-right"></i></div>
+                        @foreach (var pendiente in pendientes.OrderByDescending(ImportePendiente).Take(3))
+                        {
+                            <button type="button" class="pendiente-gasto-link" @key="pendiente.Id" @onclick="() => AbrirDetalle(pendiente.Id)">
+                                <span>@pendiente.Descripcion<small>@pendiente.Fecha.ToString("dd/MM/yyyy")</small></span>
+                                <strong>@Moneda(ImportePendiente(pendiente))</strong><i class="bi bi-chevron-right"></i>
+                            </button>
+                        }
+                    </section>
+                }
+                <p class="panel-alcance">Según fecha, tipo, pagador y búsqueda. Los reintegros incluyen todas las devoluciones de esos gastos, aunque se hayan realizado después del período.</p>
             </aside>
         </div>
     }
@@ -787,24 +772,57 @@
             (!soloConReintegros || TieneReintegroPendiente(gasto)))
         .ToList();
 
-    private static bool TieneRepartoCompleto(GastoListadoDTO gasto) =>
-        gasto.GastoRepartos.Count > 0 &&
-        gasto.GastoRepartos.Sum(parte => parte.Monto) == gasto.Monto &&
-        gasto.GastoSocios.Sum(aporte => aporte.Monto) == gasto.Monto;
+    private int cajaId;
 
-    private static IEnumerable<int> SocioIdsGasto(GastoListadoDTO gasto) =>
-        gasto.GastoRepartos.Select(parte => parte.SocioId)
-            .Union(gasto.GastoSocios.Select(aporte => aporte.SocioId))
-            .Union(gasto.GastoReintegros.Select(reintegro => reintegro.SocioPagadorId))
-            .Union(gasto.GastoReintegros.Select(reintegro => reintegro.SocioReceptorId));
+    private bool TieneRepartoCompleto(GastoListadoDTO gasto)
+    {
+        if (cajaId <= 0 || gasto.Monto <= 0 ||
+            gasto.GastoRepartos.Count != 1 ||
+            gasto.GastoRepartos[0].SocioId != cajaId ||
+            gasto.GastoRepartos[0].Monto != gasto.Monto ||
+            gasto.GastoSocios.Any(a => a.Monto <= 0) ||
+            gasto.GastoSocios.Sum(a => a.Monto) != gasto.Monto ||
+            gasto.GastoReintegros.Any(r => r.Monto <= 0 || r.SocioPagadorId != cajaId || r.SocioReceptorId == cajaId))
+            return false;
 
-    private static decimal ImportePendiente(GastoListadoDTO gasto) =>
+        return gasto.GastoReintegros.GroupBy(r => r.SocioReceptorId)
+            .All(grupo => grupo.Sum(r => r.Monto) <= gasto.GastoSocios
+                .Where(a => a.SocioId == grupo.Key).Sum(a => a.Monto));
+    }
+
+    private decimal ImportePendiente(GastoListadoDTO gasto) =>
         TieneRepartoCompleto(gasto)
-            ? SocioIdsGasto(gasto).Sum(socioId => Math.Max(0m, -gasto.SaldoSocio(socioId)))
+            ? gasto.GastoSocios.Where(a => a.SocioId != cajaId).Sum(a => a.Monto)
+                - gasto.GastoReintegros.Sum(r => r.Monto)
             : 0m;
 
-    private static bool TieneReintegroPendiente(GastoListadoDTO gasto) =>
+    private bool TieneReintegroPendiente(GastoListadoDTO gasto) =>
         ImportePendiente(gasto) > 0m;
+
+    private List<ResumenSocioPanel> ResumenSocios(List<GastoListadoDTO> gastos)
+    {
+        return gastos.SelectMany(g => g.GastoSocios)
+            .Where(a => a.SocioId != cajaId)
+            .GroupBy(a => a.SocioId)
+            .Select(grupo => new ResumenSocioPanel
+            {
+                Id = grupo.Key,
+                Nombre = grupo.Select(a => a.Profesional).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n)) ?? "Socio",
+                Adelantado = grupo.Sum(a => a.Monto),
+                Recibido = gastos.SelectMany(g => g.GastoReintegros)
+                    .Where(r => r.SocioReceptorId == grupo.Key).Sum(r => r.Monto)
+            })
+            .OrderByDescending(s => s.Pendiente).ThenBy(s => s.Nombre).ToList();
+    }
+
+    private class ResumenSocioPanel
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public decimal Adelantado { get; set; }
+        public decimal Recibido { get; set; }
+        public decimal Pendiente => Adelantado - Recibido;
+    }
 
     private void VerGastosConReintegros()
     {
@@ -1049,6 +1067,20 @@
 
         try
         {
+            var respuestaSocios = await Http.Get<List<SocioListadoDTO>>("api/socio/ListaSocio");
+            if (respuestaSocios.Error)
+            {
+                mensajeError = respuestaSocios.ObtenerError();
+                return;
+            }
+            var caja = respuestaSocios.Respuesta?.SingleOrDefault(s => s.EsCaja);
+            if (caja == null)
+            {
+                mensajeError = "No se pudo identificar Caja Senderos activa.";
+                return;
+            }
+            cajaId = caja.Id;
+
             var respuesta =
                 await Http.Get<List<GastoListadoDTO>>(
                     "api/gasto/ListaGastos");
