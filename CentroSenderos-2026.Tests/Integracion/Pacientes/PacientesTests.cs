@@ -161,6 +161,95 @@ public class PacientesTests
         });
     }
 
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Edicion_RechazaDniONumeroAfiliadoDeOtroPaciente(bool duplicarDni)
+    {
+        await EnTransaccion(async (contexto, repo, datos) =>
+        {
+            var primeroId = await repo.InsertarPaciente(datos);
+            var primero = await repo.SelectPorId(primeroId);
+            Assert.NotNull(primero);
+            string otroDni;
+            do { otroDni = Random.Shared.Next(10000000, 100000000).ToString(); }
+            while (await contexto.Pacientes.AnyAsync(p => p.DNI == otroDni));
+            datos.DNI = otroDni;
+            var segundoId = await repo.InsertarPaciente(datos);
+            var segundo = await repo.SelectPorId(segundoId);
+            Assert.NotNull(segundo);
+            var afiliadoOriginal = segundo.NumeroAfiliado;
+            if (duplicarDni) segundo.DNI = primero.DNI;
+            else segundo.NumeroAfiliado = primero.NumeroAfiliado;
+
+            var error = await Assert.ThrowsAsync<ApplicationException>(
+                async () => { await repo.ActualizarPaciente(segundoId, segundo); });
+            Assert.Contains(duplicarDni ? "DNI" : "número de afiliado", error.Message);
+            contexto.ChangeTracker.Clear();
+            var guardado = await repo.SelectPorId(segundoId);
+            Assert.NotNull(guardado);
+            Assert.Equal(otroDni, guardado.DNI);
+            Assert.Equal(afiliadoOriginal, guardado.NumeroAfiliado);
+        });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Edicion_RechazaObraSocialODiagnosticoInexistente(bool obraSocial)
+    {
+        await EnTransaccion(async (contexto, repo, datos) =>
+        {
+            var id = await repo.InsertarPaciente(datos);
+            var editar = await repo.SelectPorId(id);
+            Assert.NotNull(editar);
+            if (obraSocial)
+            {
+                Assert.False(await contexto.TipoObrasSociales.AnyAsync(o => o.Id == -1));
+                editar.TipoObraSocialId = -1;
+            }
+            else
+            {
+                Assert.False(await contexto.TipoDiagnosticos.AnyAsync(d => d.Id == -1));
+                editar.TipoDiagnosticoId = -1;
+            }
+            var error = await Assert.ThrowsAsync<ApplicationException>(
+                async () => { await repo.ActualizarPaciente(id, editar); });
+            Assert.Equal(obraSocial ? "La obra social seleccionada no existe."
+                : "El diagnóstico seleccionado no existe.", error.Message);
+            contexto.ChangeTracker.Clear();
+            var guardado = await repo.SelectPorId(id);
+            Assert.NotNull(guardado);
+            Assert.Equal(datos.TipoObraSocialId, guardado.TipoObraSocialId);
+            Assert.Equal(datos.TipoDiagnosticoId, guardado.TipoDiagnosticoId);
+            Assert.Equal(2, guardado.Telefonos.Count);
+        });
+    }
+
+    [Fact]
+    public async Task Edicion_SinTelefonosRechazaYConservaLosAnteriores()
+    {
+        await EnTransaccion(async (contexto, repo, datos) =>
+        {
+            var id = await repo.InsertarPaciente(datos);
+            var editar = await repo.SelectPorId(id);
+            Assert.NotNull(editar);
+            editar.Telefono = "";
+            editar.Telefonos.Clear();
+            var error = await Assert.ThrowsAsync<ApplicationException>(
+                async () => { await repo.ActualizarPaciente(id, editar); });
+            Assert.Equal("Debe registrar al menos un teléfono.", error.Message);
+            contexto.ChangeTracker.Clear();
+            var guardado = await repo.SelectPorId(id);
+            Assert.NotNull(guardado);
+            Assert.Equal(2, guardado.Telefonos.Count);
+            foreach (var telefono in datos.Telefonos)
+                Assert.Contains(guardado.Telefonos, t =>
+                    t.Numero == telefono.Numero && t.Etiqueta == telefono.Etiqueta);
+        });
+    }
+
     // Las escrituras se limitan a la conexión validada por BaseDePruebas.
     // No se aplican migraciones ni se limpian tablas existentes.
     private static async Task EnTransaccion(
