@@ -174,6 +174,116 @@ public class ProfesionalesTests
         });
     }
 
+
+    [Fact]
+    public async Task Prestaciones_AltaRecuperaVariasSinDuplicar()
+    {
+        await EnTransaccion(async (contexto, repositorio, datos) =>
+        {
+            var prestaciones = await CrearPrestaciones(contexto);
+            datos.TipoPrestacionIds = new()
+            {
+                prestaciones[0].Id, prestaciones[1].Id, prestaciones[0].Id
+            };
+            var id = await repositorio.InsertarProfesional(datos);
+            contexto.ChangeTracker.Clear();
+            var guardado = await repositorio.SelectPorId(id);
+            Assert.NotNull(guardado);
+            Assert.Equal(prestaciones.Select(p => p.Id).OrderBy(x => x).ToArray(),
+                guardado.TipoPrestacionIds.OrderBy(x => x).ToArray());
+            Assert.Equal(prestaciones.Select(p => p.Tipo).OrderBy(x => x).ToArray(),
+                guardado.TipoPrestacionNombres.OrderBy(x => x).ToArray());
+            Assert.Equal(2, await contexto.ProfesionalTipoPrestaciones
+                .CountAsync(p => p.ProfesionalId == id));
+        });
+    }
+
+    [Fact]
+    public async Task Prestaciones_EdicionReemplazaAsociaciones()
+    {
+        await EnTransaccion(async (contexto, repositorio, datos) =>
+        {
+            var prestaciones = await CrearPrestaciones(contexto);
+            datos.TipoPrestacionIds = new() { prestaciones[0].Id };
+            var id = await repositorio.InsertarProfesional(datos);
+            datos.TipoPrestacionIds = new() { prestaciones[1].Id };
+            Assert.True(await repositorio.ActualizarProfesional(id, datos));
+            contexto.ChangeTracker.Clear();
+            var guardado = await repositorio.SelectPorId(id);
+            Assert.NotNull(guardado);
+            Assert.Equal(prestaciones[1].Id, Assert.Single(guardado.TipoPrestacionIds));
+            Assert.False(await contexto.ProfesionalTipoPrestaciones.AnyAsync(p =>
+                p.ProfesionalId == id && p.TipoPrestacionId == prestaciones[0].Id));
+            Assert.Equal(2, await contexto.TipoPrestaciones.CountAsync(p =>
+                p.Id == prestaciones[0].Id || p.Id == prestaciones[1].Id));
+        });
+    }
+
+    [Fact]
+    public async Task Prestaciones_EdicionPermiteConservarUnaYAgregarOtra()
+    {
+        await EnTransaccion(async (contexto, repositorio, datos) =>
+        {
+            var prestaciones = await CrearPrestaciones(contexto);
+            datos.TipoPrestacionIds = new() { prestaciones[0].Id };
+            var id = await repositorio.InsertarProfesional(datos);
+            datos.TipoPrestacionIds = new() { prestaciones[0].Id, prestaciones[1].Id };
+            Assert.True(await repositorio.ActualizarProfesional(id, datos));
+            contexto.ChangeTracker.Clear();
+            var guardado = await repositorio.SelectPorId(id);
+            Assert.NotNull(guardado);
+            Assert.Equal(prestaciones.Select(p => p.Id).OrderBy(x => x).ToArray(),
+                guardado.TipoPrestacionIds.OrderBy(x => x).ToArray());
+            Assert.Equal(2, await contexto.ProfesionalTipoPrestaciones
+                .CountAsync(p => p.ProfesionalId == id));
+        });
+    }
+
+    [Fact]
+    public async Task Prestaciones_ListadoConservaCorrespondenciaEntreIdsYNombres()
+    {
+        await EnTransaccion(async (contexto, repositorio, datos) =>
+        {
+            var prestaciones = await CrearPrestaciones(contexto);
+            datos.TipoPrestacionIds = prestaciones.Select(p => p.Id).ToList();
+            var id = await repositorio.InsertarProfesional(datos);
+            contexto.ChangeTracker.Clear();
+            var listado = await repositorio.SelectListaProfesional();
+            var profesional = Assert.Single(listado.Where(p => p.Id == id));
+            Assert.Equal(2, profesional.TipoPrestacionIds.Count);
+            Assert.Equal(2, profesional.TipoPrestacionNombres.Count);
+            for (var i = 0; i < profesional.TipoPrestacionIds.Count; i++)
+            {
+                var prestacion = prestaciones.Single(p =>
+                    p.Id == profesional.TipoPrestacionIds[i]);
+                Assert.Equal(prestacion.Tipo, profesional.TipoPrestacionNombres[i]);
+            }
+        });
+    }
+
+    private static async Task<TipoPrestacion[]> CrearPrestaciones(ApplicationDbContext contexto)
+    {
+        var sufijo = Guid.NewGuid().ToString("N")[..12];
+        var prestaciones = new[]
+        {
+            new TipoPrestacion
+            {
+                Tipo = $"Z Prueba {sufijo}", Cod = $"Z-{sufijo}",
+                Descripcion = "Prestación de testing", MontoSesion = 1000.50m,
+                EstadoRegistro = EnumEstadoRegistro.activo
+            },
+            new TipoPrestacion
+            {
+                Tipo = $"A Prueba {sufijo}", Cod = $"A-{sufijo}",
+                Descripcion = "Prestación de testing", MontoSesion = 2000.75m,
+                EstadoRegistro = EnumEstadoRegistro.activo
+            }
+        };
+        contexto.TipoPrestaciones.AddRange(prestaciones);
+        await contexto.SaveChangesAsync();
+        return prestaciones;
+    }
+
     // Preparar datos exclusivos y revertirlos incluso si una aserción falla.
     private static async Task EnTransaccion(
         Func<ApplicationDbContext, ProfesionalRepositorio, ProfesionalDTO, Task> prueba)
