@@ -15,11 +15,13 @@ public class ObrasSocialesTests
     {
         await EnTransaccion(async (db, repo, dto) =>
         {
+            var nombreEsperado = dto.Tipo;
+            dto.Tipo = "  " + dto.Tipo.ToUpperInvariant() + "  ";
             var id = await repo.InsertarTipoObraSocial(dto);
             db.ChangeTracker.Clear();
             var guardado = await repo.SelectPorId(id);
             Assert.NotNull(guardado);
-            Assert.Equal(dto.Tipo, guardado.Tipo);
+            Assert.Equal(nombreEsperado, guardado.Tipo);
             Assert.Equal(dto.Cuit, guardado.Cuit);
             Assert.Equal(dto.Descripcion, guardado.Descripcion);
             Assert.Contains(await repo.SelectListaTipoObrasocial(), o => o.Id == id);
@@ -93,7 +95,7 @@ public class ObrasSocialesTests
         {
             var dto = new TipoObraSocialDTO
             {
-                Tipo = $"Obra {Guid.NewGuid():N}", Cuit = await CuitDisponible(db),
+                Tipo = $"Obra {DateTime.UtcNow.Ticks}{Random.Shared.Next(1000, 10000)}", Cuit = await CuitDisponible(db),
                 Descripcion = "Datos de testing", EstadoRegistro = EnumEstadoRegistro.activo
             };
             await prueba(db, new TipoObraSocialRepositorio(db), dto);
