@@ -57,6 +57,9 @@ public class RegresionAutenticacionModulosTests
                 // Reintentar solo la apertura si la carga interactiva ignoró el primer clic.
                 for (var intento = 0; intento < 5; intento++)
                 {
+                    var fondo = pagina.Locator(".selector-cierre-fondo");
+                    if (await fondo.IsVisibleAsync())
+                        await fondo.ClickAsync();
                     await botones.First.ClickAsync();
                     try
                     {
@@ -68,7 +71,8 @@ public class RegresionAutenticacionModulosTests
                 }
                 await Assertions.Expect(pagina.Locator(".selector-desplegable-opcion")
                     .Filter(new() { HasText = profesional }).First).ToBeVisibleAsync();
-                await botones.First.ClickAsync();
+                await pagina.GetByRole(AriaRole.Button, new() { Name = "Cerrar selectores", Exact = true }).ClickAsync();
+                await Assertions.Expect(pagina.Locator(".selector-desplegable-menu")).ToHaveCountAsync(0);
                 await botones.Nth(1).ClickAsync();
                 await Assertions.Expect(pagina.Locator(".selector-desplegable-opcion")
                     .Filter(new() { HasText = paciente }).First).ToBeVisibleAsync();
