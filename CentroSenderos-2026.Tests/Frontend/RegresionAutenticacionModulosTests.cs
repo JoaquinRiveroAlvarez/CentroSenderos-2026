@@ -38,7 +38,8 @@ public class RegresionAutenticacionModulosTests
             // Verificar también que las mismas API aceptan una sesión de navegador válida.
             foreach (var api in new[] { "/api/paciente/ListaPaciente", "/api/profesional/ListaProfesional" })
             {
-                var respuesta = await pagina.APIRequest.GetAsync(api);
+                // Solo para este destino local validado en ConListado.
+                var respuesta = await pagina.APIRequest.GetAsync(api, new() { IgnoreHTTPSErrors = true });
                 Assert.Equal(200, respuesta.Status);
             }
 
