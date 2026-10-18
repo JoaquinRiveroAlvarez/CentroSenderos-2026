@@ -94,7 +94,8 @@ public class PacienteCircuitoCompletoTests
                 await Assertions.Expect(pagina).ToHaveURLAsync(
                     new Regex(@"/pacientes/detalle/" + creado.Id + @"(?:[/?#]|$)"), new() { Timeout = 30000 });
                 await Assertions.Expect(pagina).ToHaveURLAsync(detalleSinEstado, new() { Timeout = 30000 });
-                await pagina.ReloadAsync();
+                // La persistencia se comprueba abajo con una consulta sin seguimiento a la BD.
+                // Conservar el circuito interactivo para la siguiente navegación.
                 await Assertions.Expect(campoNombre).ToHaveTextAsync(editado, new() { Timeout = 30000 });
                 var actualizado = await db.Pacientes.AsNoTracking().SingleAsync(p => p.Id == creado.Id);
                 Assert.Equal(editado, actualizado.Nombre);
