@@ -33,8 +33,14 @@ public class ProfesionalesFormularioTests
     public Task EmailConFormatoInvalido_MuestraValidacion()
         => ConFormulario(async pagina =>
         {
-            await pagina.GetByPlaceholder("Ej: profesional@senderos.com", new() { Exact = true })
-                .FillAsync("correo-invalido");
+            // La validación visible confirma que el formulario ya atiende eventos.
+            await pagina.Locator(".profesional-form .save-button").ClickAsync();
+            await Assertions.Expect(pagina.Locator(".profesional-form")
+                .GetByText("Ingresá el email.", new() { Exact = true })).ToBeVisibleAsync();
+            var email = pagina.GetByPlaceholder("Ej: profesional@senderos.com", new() { Exact = true });
+            await email.FillAsync("correo-invalido");
+            await email.PressAsync("Tab");
+            await Assertions.Expect(email).ToHaveValueAsync("correo-invalido");
             // Los demás campos permanecen vacíos: no puede producirse un alta válida.
             await pagina.Locator(".profesional-form .save-button").ClickAsync();
             await Assertions.Expect(pagina.Locator(".profesional-form")
