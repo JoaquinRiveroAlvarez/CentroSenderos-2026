@@ -109,9 +109,15 @@ public class PacienteCircuitoCompletoTests
                 await Assertions.Expect(modal.Locator("strong")).ToHaveTextAsync(editado);
                 await modal.Locator(".confirm-delete-button").ClickAsync();
                 await Assertions.Expect(pagina).ToHaveURLAsync(
-                    new Regex(@"/pacientes(?:[/?#]|$)"), new() { Timeout = 30000 });
+                    new Regex(@"/pacientes(?:\\?[^#]*)?(?:#.*)?$"), new() { Timeout = 30000 });
+                await Assertions.Expect(pagina.Locator(".success-message")
+                    .GetByText("Paciente eliminado", new() { Exact = true }))
+                    .ToBeVisibleAsync(new() { Timeout = 30000 });
                 var borrado = await db.Pacientes.AsNoTracking().SingleAsync(p => p.Id == creado.Id);
                 Assert.Equal(EnumEstadoRegistro.borrado, borrado.EstadoRegistro);
+                // Esperar también la navegación que retira el mensaje de éxito.
+                var listadoSinEstado = new Uri(new Uri(pagina.Url), "/pacientes").AbsoluteUri;
+                await Assertions.Expect(pagina).ToHaveURLAsync(listadoSinEstado, new() { Timeout = 30000 });
                 var buscador = pagina.GetByPlaceholder("Buscar paciente...", new() { Exact = true });
                 await EscribirConsulta(buscador, dni);
                 await Assertions.Expect(pagina.Locator("table tbody tr")).ToHaveCountAsync(0);
