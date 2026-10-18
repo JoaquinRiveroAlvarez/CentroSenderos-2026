@@ -132,7 +132,12 @@ else
     app.UseHsts();
 }
 
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+// Conservar los estados HTTP de las API protegidas (401/403/404).
+// Reejecutar un POST/PUT/DELETE en una página Razor puede convertirlos en 400/405.
+app.UseWhen(context =>
+    !context.Request.Path.StartsWithSegments("/api/paciente", StringComparison.OrdinalIgnoreCase)
+    && !context.Request.Path.StartsWithSegments("/api/profesional", StringComparison.OrdinalIgnoreCase),
+    paginas => paginas.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
