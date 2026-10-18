@@ -80,6 +80,29 @@ public class PacientesFormularioTests
         await Assertions.Expect(pagina).ToHaveURLAsync(new Regex(@"/turnos(?:[/?#]|$)", RegexOptions.IgnoreCase), new() { Timeout = 30000 });
         await pagina.GotoAsync("/pacientes/crear");
         await Assertions.Expect(pagina.Locator(".paciente-form")).ToBeVisibleAsync(new() { Timeout = 30000 });
+        // La presencia del HTML no garantiza que Blazor ya procese eventos.
+        // Comprobarlo con un campo local, sin enviar ni guardar el formulario.
+        var nombre = pagina.GetByPlaceholder("Insertar nombre", new() { Exact = true });
+        var avisoNombre = pagina.Locator(".paciente-form")
+            .GetByText("El Nombre es obligatorio", new() { Exact = true });
+        for (var intento = 0; intento < 5; intento++)
+        {
+            await nombre.FillAsync("Preparación de prueba");
+            await nombre.PressAsync("Tab");
+            await nombre.FillAsync("");
+            await nombre.PressAsync("Tab");
+            try
+            {
+                await Assertions.Expect(avisoNombre).ToBeVisibleAsync(new() { Timeout = 2000 });
+                break;
+            }
+            catch (PlaywrightException) when (intento < 4)
+            {
+                // Reintentar solo la preparación mientras se completa la carga interactiva.
+            }
+        }
+        await Assertions.Expect(nombre).ToHaveValueAsync("");
+        // La acción y las comprobaciones específicas se ejecutan una sola vez.
         await comprobar(pagina);
     }
 }
