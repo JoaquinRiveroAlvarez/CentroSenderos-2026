@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+using CentroSenderos_2026_Server.Seguridad;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,9 +18,16 @@ var builder = WebApplication.CreateBuilder(args);
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
     ?? throw new InvalidOperationException("ApiBaseUrl no está configurado.");
 
-builder.Services.AddScoped(sp => new HttpClient
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped(sp =>
 {
-    BaseAddress = new Uri(apiBaseUrl)
+    var destino = new Uri(apiBaseUrl);
+    var handler = new SesionApiHandler(
+        sp.GetRequiredService<AuthenticationStateProvider>(),
+        sp.GetRequiredService<IHttpContextAccessor>(),
+        sp.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>(),
+        destino);
+    return new HttpClient(handler, disposeHandler: true) { BaseAddress = destino };
 });
 
 // Servicios generales
@@ -122,7 +132,12 @@ else
     app.UseHsts();
 }
 
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+// Conservar los estados HTTP de las API protegidas (401/403/404).
+// Reejecutar un POST/PUT/DELETE en una página Razor puede convertirlos en 400/405.
+app.UseWhen(context =>
+    !context.Request.Path.StartsWithSegments("/api/paciente", StringComparison.OrdinalIgnoreCase)
+    && !context.Request.Path.StartsWithSegments("/api/profesional", StringComparison.OrdinalIgnoreCase),
+    paginas => paginas.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

@@ -5,4 +5,5 @@
   <Project Path="CentroSenderos-2026-Server/CentroSenderos-2026-Server/CentroSenderos-2026-Server.csproj" />
   <Project Path="CentroSenderos-2026-Servicio/CentroSenderos-2026-Servicio.csproj" />
   <Project Path="CentroSenderos-2026-Shared/CentroSenderos-2026-Shared.csproj" />
+  <Project Path="CentroSenderos-2026.Tests/CentroSenderos-2026.Tests.csproj" Id="1e14f5d8-53ed-4891-b61f-7089bc7a5aff" />
 </Solution>

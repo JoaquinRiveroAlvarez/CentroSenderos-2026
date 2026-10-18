@@ -1,9 +1,11 @@
 ﻿using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/paciente")]
     public class PacienteController : ControllerBase
