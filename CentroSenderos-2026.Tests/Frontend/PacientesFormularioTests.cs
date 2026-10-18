@@ -33,7 +33,7 @@ public class PacientesFormularioTests
     public Task AgregarTelefono_ConNumeroVacio_MuestraAvisoYConservaUnaFila()
         => ConFormulario(async pagina =>
         {
-            await pagina.GetByRole(AriaRole.Button, new() { Name = "Agregar teléfono", Exact = true }).ClickAsync();
+            await pagina.Locator(".add-phone-button").ClickAsync();
             await Assertions.Expect(pagina.GetByText(
                 "Completá el teléfono actual antes de agregar otro.", new() { Exact = true })).ToBeVisibleAsync();
             await Assertions.Expect(pagina.Locator(".phone-row")).ToHaveCountAsync(1);
@@ -67,11 +67,17 @@ public class PacientesFormularioTests
         await using var contexto = await navegador.NewContextAsync(new() { BaseURL = url.GetLeftPart(UriPartial.Authority) });
         var pagina = await contexto.NewPageAsync();
         pagina.SetDefaultTimeout(20000);
-        await pagina.GotoAsync("/Account/Login");
+        await pagina.GotoAsync("/Account/Login", new() { WaitUntil = WaitUntilState.Load });
+        // Esperar el formulario SSR completo y su token antes de enviar credenciales.
+        var login = pagina.Locator("form").Filter(new() { Has = pagina.Locator("[id='Input.Email']") });
+        await Assertions.Expect(login.Locator("input[name='__RequestVerificationToken']"))
+            .ToHaveAttributeAsync("value", new Regex(".+"), new() { Timeout = 30000 });
         await pagina.Locator("[id='Input.Email']").FillAsync(email!);
         await pagina.Locator("[id='Input.Password']").FillAsync(password!);
-        await pagina.GetByRole(AriaRole.Button, new() { Name = "Iniciar sesión", Exact = true }).ClickAsync();
-        await Assertions.Expect(pagina).ToHaveURLAsync(new Regex(@"/turnos(?:[/?#]|$)", RegexOptions.IgnoreCase));
+        // Enviar el formulario HTML de Identity con sus campos ocultos y token.
+        // Evita que la navegación mejorada intercepte este POST de autenticación.
+        await login.EvaluateAsync("form => HTMLFormElement.prototype.submit.call(form)");
+        await Assertions.Expect(pagina).ToHaveURLAsync(new Regex(@"/turnos(?:[/?#]|$)", RegexOptions.IgnoreCase), new() { Timeout = 30000 });
         await pagina.GotoAsync("/pacientes/crear");
         await Assertions.Expect(pagina.Locator(".paciente-form")).ToBeVisibleAsync(new() { Timeout = 30000 });
         await comprobar(pagina);
