@@ -2,6 +2,9 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Xunit;
+using Microsoft.Playwright;
+using Microsoft.Extensions.Configuration;
+using System.Text.RegularExpressions;
 
 namespace CentroSenderos_2026.Tests;
 
@@ -31,11 +34,36 @@ public class ContratosHttpTests
     [InlineData("api/tipoprestacion")]
     public async Task AltaConObjetoVacio_Devuelve400ConErroresDeValidacion(string ruta)
     {
+        var config = new ConfigurationBuilder().AddUserSecrets<ContratosHttpTests>().Build();
+        var email = config["Frontend:Email"];
+        var password = config["Frontend:Password"];
+        Assert.False(string.IsNullOrWhiteSpace(email), "Falta Frontend:Email.");
+        Assert.False(string.IsNullOrWhiteSpace(password), "Falta Frontend:Password.");
+        // Reutilizar la validación de URL local sin enviar solicitudes desde este cliente.
         using var cliente = CrearCliente();
-        using var contenido = new StringContent("{}", Encoding.UTF8, "application/json");
-        using var respuesta = await cliente.PostAsync(ruta, contenido);
-        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
-        using var documento = JsonDocument.Parse(await respuesta.Content.ReadAsStringAsync());
+        using var playwright = await Microsoft.Playwright.Playwright.CreateAsync();
+        await using var navegador = await playwright.Chromium.LaunchAsync(new() { Headless = true });
+        await using var contexto = await navegador.NewContextAsync(new()
+        {
+            BaseURL = cliente.BaseAddress!.GetLeftPart(UriPartial.Authority)
+        });
+        var pagina = await contexto.NewPageAsync();
+        await pagina.GotoAsync("/Account/Login", new() { WaitUntil = WaitUntilState.Load });
+        var login = pagina.Locator("form").Filter(new() { Has = pagina.Locator("[id='Input.Email']") });
+        await Assertions.Expect(login.Locator("input[name='__RequestVerificationToken']"))
+            .ToHaveAttributeAsync("value", new Regex(".+"), new() { Timeout = 30000 });
+        await pagina.Locator("[id='Input.Email']").FillAsync(email!);
+        await pagina.Locator("[id='Input.Password']").FillAsync(password!);
+        await login.EvaluateAsync("form => HTMLFormElement.prototype.submit.call(form)");
+        await Assertions.Expect(pagina).ToHaveURLAsync(
+            new Regex(@"/turnos(?:[/?#]|$)"), new() { Timeout = 30000 });
+        var respuesta = await pagina.APIRequest.PostAsync("/" + ruta.TrimStart('/'), new()
+        {
+            DataObject = new { },
+            IgnoreHTTPSErrors = true
+        });
+        Assert.Equal(400, respuesta.Status);
+        using var documento = JsonDocument.Parse(await respuesta.TextAsync());
         Assert.True(documento.RootElement.TryGetProperty("errors", out var errores),
             "Se esperaba la colección errors de la validación automática de ASP.NET Core.");
         Assert.Equal(JsonValueKind.Object, errores.ValueKind);
