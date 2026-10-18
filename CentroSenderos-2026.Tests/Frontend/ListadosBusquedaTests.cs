@@ -25,7 +25,7 @@ public class ListadosBusquedaTests
                 .ToBeVisibleAsync(new() { Timeout = 20000 });
             await buscador.FillAsync(nombre.ToUpperInvariant());
             await Assertions.Expect(pagina.Locator(selectorNombre)
-                .Filter(new() { HasText = new Regex("^\\s*" + Regex.Escape(nombre) + "\\s*$") }).First)
+                .Filter(new() { HasTextRegex = new Regex("^\\s*" + Regex.Escape(nombre) + "\\s*$") }).First)
                 .ToBeVisibleAsync();
             var nombres = await pagina.Locator(selectorNombre).AllTextContentsAsync();
             Assert.All(nombres, actual => Assert.True(
