@@ -81,6 +81,10 @@ public class PacienteCircuitoCompletoTests
                 Assert.Equal(EnumEstadoRegistro.activo, creado.EstadoRegistro);
                 Assert.Equal("Domicilio ficticio de testing", creado.Domicilio);
                 var afiliado = creado.NumeroAfiliado;
+                // Esperar la navegación programada del detalle antes de abrir Editar.
+                // Evita que el temporizador pendiente nos saque del formulario.
+                var detalleSinEstado = new Uri(new Uri(pagina.Url), "/pacientes/detalle/" + creado.Id).AbsoluteUri;
+                await Assertions.Expect(pagina).ToHaveURLAsync(detalleSinEstado, new() { Timeout = 30000 });
 
                 await pagina.Locator(".detalle-paciente-page .edit-button").ClickAsync();
                 var editarNombre = pagina.GetByPlaceholder("Nombre completo", new() { Exact = true });
@@ -89,6 +93,7 @@ public class PacienteCircuitoCompletoTests
                 await pagina.Locator(".paciente-form .save-button").ClickAsync();
                 await Assertions.Expect(pagina).ToHaveURLAsync(
                     new Regex(@"/pacientes/detalle/" + creado.Id + @"(?:[/?#]|$)"), new() { Timeout = 30000 });
+                await Assertions.Expect(pagina).ToHaveURLAsync(detalleSinEstado, new() { Timeout = 30000 });
                 await pagina.ReloadAsync();
                 await Assertions.Expect(campoNombre).ToHaveTextAsync(editado, new() { Timeout = 30000 });
                 var actualizado = await db.Pacientes.AsNoTracking().SingleAsync(p => p.Id == creado.Id);
