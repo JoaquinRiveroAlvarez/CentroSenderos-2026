@@ -1,0 +1,130 @@
+﻿using System;
+using System.Collections.Generic;
+using CentroSenderos_2026_Shared.Enum;
+
+namespace CentroSenderos_2026_Shared.DTO
+{
+    // DTO para la grilla de la pantalla principal (Agrupada por Profesional y Rango de Fechas)
+    public class LiquidacionResumenDTO
+    {
+        public int Id { get; set; }
+        public string NumeroLiquidacion { get; set; } = string.Empty;
+        public int ProfesionalId { get; set; }
+        public string ProfesionalNombreCompleto { get; set; } = string.Empty;
+        public DateTime FechaDesde { get; set; }
+        public DateTime FechaHasta { get; set; }
+        public decimal TotalFacturacion { get; set; }
+        public decimal TotalRetencion { get; set; }
+        public decimal TotalSaldo { get; set; }
+        public EnumEstadoPagoLiquidacion EstadoPago { get; set; }
+        public int CantidadDetalles { get; set; }
+    }
+
+    // DTO completo de Cabecera + Detalles
+    public class LiquidacionDTO
+    {
+        public int Id { get; set; }
+        public string NumeroLiquidacion { get; set; } = string.Empty;
+        public DateTime FechaDesde { get; set; }
+        public DateTime FechaHasta { get; set; }
+        public int ProfesionalId { get; set; }
+        public string ProfesionalNombreCompleto { get; set; } = string.Empty;
+        public int SocioId { get; set; }
+        public string SocioNombre { get; set; } = string.Empty;
+        public EnumEstadoPagoLiquidacion EstadoPago { get; set; }
+        public decimal TotalFacturacion { get; set; }
+        public decimal TotalRetencion { get; set; }
+        public decimal TotalSaldo { get; set; }
+        public string? Observaciones { get; set; }
+
+        public List<DetalleLiquidacionDTO> Detalles { get; set; } = new();
+    }
+
+    // DTO para cada fila de detalle (Modalidad, Paciente/Taller, Montos y Retenciones)
+    public class DetalleLiquidacionDTO
+    {
+        public int Id { get; set; }
+        public int LiquidacionId { get; set; }
+        public int TipoModalidadId { get; set; }
+        public string TipoModalidadNombre { get; set; } = string.Empty;
+
+        public int? TipoPrestacionId { get; set; }
+        public string? TipoPrestacionNombre { get; set; }
+
+        public int? TipoObraSocialId { get; set; }
+        public string? TipoObraSocialNombre { get; set; }
+
+        public int? PacienteId { get; set; }
+        public string? PacienteNombreCompleto { get; set; }
+
+        public decimal MontoUnitario { get; set; }
+        public int Cantidad { get; set; }
+
+        public decimal? MontoModuloCompleto { get; set; }
+        public int? CantidadModuloCompleto { get; set; }
+        public decimal? MontoMedioModulo { get; set; }
+        public int? CantidadMedioModulo { get; set; }
+
+        public decimal MontoFacturacion { get; set; }
+        public decimal Porcentaje { get; set; }
+        public decimal Retencion { get; set; }
+        public decimal Saldo { get; set; }
+        public EnumEstadoPagoLiquidacion EstadoPago { get; set; }
+        public string? Observaciones { get; set; }
+
+        // Cantidad de turnos asignados a este detalle
+        public int CantidadTurnosAsignados { get; set; }
+    }
+
+    // DTO para el sub-detalle al tocar un registro (Muestra la lista de turnos correlativos del paciente o taller)
+    public class TurnoLiquidacionItemDTO
+    {
+        public int TurnoId { get; set; }
+        public int NumeroSesion { get; set; } // 1, 2, 3, etc. generado correlativamente
+        public DateTime Fecha { get; set; }
+        public TimeOnly HoraInicio { get; set; }
+        public TimeOnly HoraFin { get; set; }
+        public string ConsultorioNombre { get; set; } = string.Empty;
+        public string TipoTurnoNombre { get; set; } = string.Empty;
+        public EnumEstadoTurno EstadoTurno { get; set; }
+    }
+
+    // DTO para crear o actualizar Liquidación con sus detalles
+    public class GuardarLiquidacionDTO
+    {
+        public int Id { get; set; } // 0 para nuevo
+        public string? NumeroLiquidacion { get; set; }
+        public DateTime FechaDesde { get; set; }
+        public DateTime FechaHasta { get; set; }
+        public int ProfesionalId { get; set; }
+        public int SocioId { get; set; }
+        public EnumEstadoPagoLiquidacion EstadoPago { get; set; } = EnumEstadoPagoLiquidacion.Pendiente;
+        public string? Observaciones { get; set; }
+
+        public List<GuardarDetalleLiquidacionDTO> Detalles { get; set; } = new();
+    }
+
+    public class GuardarDetalleLiquidacionDTO
+    {
+        public int Id { get; set; }
+        public int TipoModalidadId { get; set; }
+        public int? TipoPrestacionId { get; set; }
+        public int? TipoObraSocialId { get; set; }
+        public int? PacienteId { get; set; }
+        public decimal MontoUnitario { get; set; }
+        public int Cantidad { get; set; }
+        public decimal? MontoModuloCompleto { get; set; }
+        public int? CantidadModuloCompleto { get; set; }
+        public decimal? MontoMedioModulo { get; set; }
+        public int? CantidadMedioModulo { get; set; }
+        public decimal MontoFacturacion { get; set; }
+        public decimal Porcentaje { get; set; }
+        public decimal Retencion { get; set; }
+        public decimal Saldo { get; set; }
+        public EnumEstadoPagoLiquidacion EstadoPago { get; set; }
+        public string? Observaciones { get; set; }
+
+        // IDs de los turnos que se asocian a este detalle
+        public List<int> TurnosIds { get; set; } = new();
+    }
+}

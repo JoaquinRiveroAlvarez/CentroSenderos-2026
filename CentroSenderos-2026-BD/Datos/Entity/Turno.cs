@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace CentroSenderos_2026_BD.Datos.Entity
 {
@@ -24,11 +23,14 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         public int TipoConsultorioId { get; set; }
         public TipoConsultorio? TipoConsultorios { get; set; }
 
-
-        // Es nullable porque un turno puede no ser recurrente.
         public int? SerieTurnoId { get; set; }
         public SerieTurno? SerieTurno { get; set; }
 
+        public int? LiquidacionId { get; set; }
+        public Liquidacion? Liquidacion { get; set; }
+
+        public int? DetalleLiquidacionId { get; set; }
+        public DetalleLiquidacion? DetalleLiquidacion { get; set; }
 
         public List<TurnoProfesional> TurnoProfesionales { get; set; } = new();
         public List<TurnoPaciente> TurnoPacientes { get; set; } = new();
