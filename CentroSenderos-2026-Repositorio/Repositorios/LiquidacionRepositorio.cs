@@ -179,12 +179,15 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     liquidacion = new Liquidacion
                     {
                         NumeroLiquidacion = numeroLiq,
-                        FechaDesde = dto.FechaDesde,
-                        FechaHasta = dto.FechaHasta,
+                        // Asegurar UTC para PostgreSQL / Neon:
+                        FechaDesde = DateTime.SpecifyKind(dto.FechaDesde, DateTimeKind.Utc),
+                        FechaHasta = DateTime.SpecifyKind(dto.FechaHasta, DateTimeKind.Utc),
                         ProfesionalId = dto.ProfesionalId,
                         SocioId = dto.SocioId,
                         EstadoPago = dto.EstadoPago,
-                        Observaciones = dto.Observaciones
+                        Observaciones = dto.Observaciones,
+                        Observacion = dto.Observaciones ?? string.Empty,
+                        EstadoRegistro = EnumEstadoRegistro.activo
                     };
                     context.Liquidaciones.Add(liquidacion);
                     await context.SaveChangesAsync();
@@ -196,8 +199,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .FirstOrDefaultAsync(l => l.Id == dto.Id)
                         ?? throw new ApplicationException("La liquidación a actualizar no existe.");
 
-                    liquidacion.FechaDesde = dto.FechaDesde;
-                    liquidacion.FechaHasta = dto.FechaHasta;
+                    liquidacion.FechaDesde = DateTime.SpecifyKind(dto.FechaDesde, DateTimeKind.Utc);
+                    liquidacion.FechaHasta = DateTime.SpecifyKind(dto.FechaHasta, DateTimeKind.Utc);
                     liquidacion.ProfesionalId = dto.ProfesionalId;
                     liquidacion.SocioId = dto.SocioId;
                     liquidacion.EstadoPago = dto.EstadoPago;

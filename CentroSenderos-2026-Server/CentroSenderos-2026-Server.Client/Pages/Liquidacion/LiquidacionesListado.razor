@@ -1,0 +1,635 @@
+﻿@page "/liquidaciones"
+@attribute [Authorize]
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+@using Microsoft.AspNetCore.Authorization
+@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Enum
+@using CentroSenderos_2026_Servicio.ServiciosHttp
+@inject IHttpServicio Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="liq-container">
+    <!-- Top Bar -->
+    <div class="liq-top-bar">
+        <div class="liq-title-area">
+            <button type="button" class="btn-nueva-liq" @onclick="IrANuevaLiquidacion">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                NUEVA LIQUIDACIÓN
+            </button>
+            <h1 class="liq-title">Liquidación</h1>
+        </div>
+
+        <!-- Sub-Tabs Switch (Liquidación / Gastos) -->
+        <div class="subtabs-pill">
+            <button type="button" class="subtab-btn active">Liquidación</button>
+            <button type="button" class="subtab-btn" @onclick='() => Navigation.NavigateTo("/gastos")'>Gastos</button>
+        </div>
+    </div>
+
+    <!-- Alert Banner -->
+    @if (!string.IsNullOrEmpty(mensajeAlerta))
+    {
+        <div class="alert-banner @(esErrorAlerta ? "alert-danger" : "alert-success")">
+            <span>@mensajeAlerta</span>
+            <button type="button" class="btn-close-alert" @onclick="() => mensajeAlerta = null">✕</button>
+        </div>
+    }
+
+    <!-- Main Layout: 9 Cols (Grilla y Filtros) + 3 Cols (Paneles Laterales) -->
+    <div class="liq-main-grid">
+        <!-- Columna Izquierda: Filtros y Tabla -->
+        <div class="liq-table-column">
+            <!-- Barra de Filtros -->
+            <div class="filters-card">
+                <!-- Filtro Activas / Anuladas (Predeterminado: Activas) -->
+                <div class="filter-item">
+                    <select class="form-select filter-select font-bold text-success" @bind="filtroEstadoLiquidacion" @bind:after="AplicarFiltros">
+                        <option value="activas">Activas (Predeterminado)</option>
+                        <option value="anuladas">Anuladas</option>
+                        <option value="todas">Todas las liquidaciones</option>
+                    </select>
+                </div>
+
+                <!-- Filtro Profesional -->
+                <div class="filter-item">
+                    <select class="form-select filter-select" @bind="filtroProfesionalId" @bind:after="AplicarFiltros">
+                        <option value="0">Todos los Profesionales</option>
+                        @foreach (var p in listaProfesionales)
+                        {
+                            <option value="@p.Id">@p.Nombre</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Búsqueda texto -->
+                <div class="filter-item search-input-box">
+                    <input type="text" class="form-control" placeholder="Buscar por texto..." @bind="busquedaTexto" @bind:event="oninput" @bind:after="AplicarFiltros" />
+                </div>
+
+                <!-- Filtro Modalidad -->
+                <div class="filter-item">
+                    <select class="form-select filter-select" @bind="filtroModalidad" @bind:after="AplicarFiltros">
+                        <option value="todas">Todas las Modalidades</option>
+                        <option value="Particular">Particular</option>
+                        <option value="Obra Social">Obra Social</option>
+                        <option value="Módulos">Módulos</option>
+                        <option value="Por Hora">Por Hora</option>
+                        <option value="Taller">Taller</option>
+                    </select>
+                </div>
+
+                <!-- Filtro Estado Pago -->
+                <div class="filter-item">
+                    <select class="form-select filter-select" @bind="filtroEstadoPago" @bind:after="AplicarFiltros">
+                        <option value="-1">Todos los Estados</option>
+                        <option value="@((int)EnumEstadoPagoLiquidacion.Pendiente)">Pendiente</option>
+                        <option value="@((int)EnumEstadoPagoLiquidacion.Parcial)">Parcial</option>
+                        <option value="@((int)EnumEstadoPagoLiquidacion.Pagado)">Pagado</option>
+                    </select>
+                </div>
+
+                <!-- Fechas Desde / Hasta -->
+                <div class="filter-dates">
+                    <label>Desde:</label>
+                    <input type="date" class="form-control form-control-sm" @bind="fechaDesde" @bind:after="AplicarFiltros" />
+                    <label>Hasta:</label>
+                    <input type="date" class="form-control form-control-sm" @bind="fechaHasta" @bind:after="AplicarFiltros" />
+                </div>
+
+                <!-- Botón Ordenar -->
+                <button type="button" class="btn-ordenar" @onclick="AlternarOrden">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 15l5 5 5-5M7 9l5-5 5-5"/></svg>
+                    @(ordenDescendente ? "Más recientes" : "Más antiguos")
+                </button>
+            </div>
+
+            <!-- Tabla de Liquidaciones -->
+            <div class="table-container-card">
+                <div class="table-responsive">
+                    <table class="table-liquidaciones">
+                        <thead>
+                            <tr>
+                                <th>Periodo</th>
+                                <th>N° Liquidación</th>
+                                <th>Profesional</th>
+                                <th>Modalidades</th>
+                                <th>Saldo</th>
+                                <th>Ingreso Centro</th>
+                                <th>Facturado</th>
+                                <th>Neto Prof.</th>
+                                <th class="text-center">Estado Pago</th>
+                                <th class="text-right w-10"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (cargando)
+                            {
+                                <tr>
+                                    <td colspan="10" class="text-center py-5 text-muted">Cargando liquidaciones...</td>
+                                </tr>
+                            }
+                            else if (liquidacionesFiltradas.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="10" class="text-center py-5 text-muted">No se encontraron liquidaciones para los filtros seleccionados.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var liq in liquidacionesFiltradas)
+                                {
+                                    <tr class="row-hover @(liq.Anulada ? "row-anulada" : "")" @onclick="() => IrAEditarLiquidacion(liq.Id)">
+                                        <!-- Periodo -->
+                                        <td>
+                                            @if (liq.Anulada)
+                                            {
+                                                <div class="badge-anulada-tag">ANULADA</div>
+                                            }
+                                            <span class="periodo-texto">@liq.FechaDesde.ToString("MMM yyyy")</span>
+                                        </td>
+
+                                        <!-- N° Liquidación -->
+                                        <td>
+                                            <span class="num-liq-pill @(liq.Anulada ? "num-liq-anulada" : "")">
+                                                @liq.NumeroLiquidacion
+                                            </span>
+                                        </td>
+
+                                        <!-- Profesional -->
+                                        <td>
+                                            <div class="prof-nombre">@liq.ProfesionalNombreCompleto</div>
+                                            <div class="prof-sub">Honorarios profesionales</div>
+                                        </td>
+
+                                        <!-- Modalidades -->
+                                        <td>
+                                            <div class="modalidades-chips">
+                                                @foreach (var mod in liq.Modalidades)
+                                                {
+                                                    <span class="mod-chip">@mod</span>
+                                                }
+                                            </div>
+                                        </td>
+
+                                        <!-- Saldo -->
+                                        <td class="font-bold @(liq.TotalSaldo > 0 ? "text-danger" : "text-success")">
+                                            $@liq.TotalSaldo.ToString("N0")
+                                        </td>
+
+                                        <!-- Ingreso Centro -->
+                                        <td class="font-bold text-centro">
+                                            $@liq.TotalRetencion.ToString("N0")
+                                        </td>
+
+                                        <!-- Facturado -->
+                                        <td class="font-medium text-dark">
+                                            $@liq.TotalFacturacion.ToString("N0")
+                                        </td>
+
+                                        <!-- Neto Profesional -->
+                                        <td class="font-medium text-muted">
+                                            $@((liq.TotalFacturacion - liq.TotalRetencion).ToString("N0"))
+                                        </td>
+
+                                        <!-- Estado Pago -->
+                                        <td class="text-center">
+                                            @if (liq.Anulada)
+                                            {
+                                                <span class="badge-status badge-anulado">ANULADA</span>
+                                            }
+                                            else
+                                            {
+                                                @switch (liq.EstadoPago)
+                                                {
+                                                    case EnumEstadoPagoLiquidacion.Pagado:
+                                                        <span class="badge-status badge-pagado">PAGADO</span>
+                                                        break;
+                                                    case EnumEstadoPagoLiquidacion.Parcial:
+                                                        <span class="badge-status badge-parcial">PARCIAL</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge-status badge-pendiente">PENDIENTE</span>
+                                                        break;
+                                                }
+                                            }
+                                        </td>
+
+                                        <!-- Acción: Borrar / Anular -->
+                                        <td class="text-right" @onclick:stopPropagation="true">
+                                            <button type="button" class="btn-action-delete" title="Anular o eliminar liquidación" @onclick="() => SolicitarAnulacion(liq)">
+                                                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Barra Inferior Verde Oliva: Total Mensual -->
+                <div class="table-totals-bar">
+                    <span class="totals-title">TOTAL MENSUAL (@(filtroEstadoLiquidacion == "anuladas" ? "ANULADAS" : "ACTIVAS"))</span>
+                    <div class="totals-values">
+                        <span>Facturado: <strong>$@totalFacturadoMensual.ToString("N0")</strong></span>
+                        <span>Ingreso Centro: <strong class="text-highlight">$@totalIngresoCentroMensual.ToString("N0")</strong></span>
+                        <span>Saldo Pendiente: <strong>$@totalSaldoPendienteMensual.ToString("N0")</strong></span>
+                    </div>
+                </div>
+
+                <!-- Footer Paginación -->
+                <div class="table-footer-info">
+                    <span>Mostrando @liquidacionesFiltradas.Count de @todasLiquidaciones.Count liquidaciones registradas</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Tarjetas de Métricas -->
+        <div class="liq-side-column">
+            <!-- Tarjeta Verde Oscura: Ingreso Total Centro -->
+            <div class="metric-card-green">
+                <span class="card-eyebrow">INGRESO TOTAL CENTRO (RETENCIONES)</span>
+                <div class="metric-big-number">$@totalIngresoCentroMensual.ToString("N0")</div>
+                <div class="metric-divider"></div>
+                <div class="metric-row">
+                    <span>Facturado por Profesionales:</span>
+                    <strong>$@totalFacturadoMensual.ToString("N0")</strong>
+                </div>
+                <div class="metric-row">
+                    <span>Neto para Profesionales:</span>
+                    <strong>$@((totalFacturadoMensual - totalIngresoCentroMensual).ToString("N0"))</strong>
+                </div>
+            </div>
+
+            <!-- Tarjeta Blanca: Facturación por Modalidad -->
+            <div class="metric-card-white">
+                <div class="card-white-header">
+                    <span>FACTURACIÓN POR MODALIDAD</span>
+                    <svg class="icon-sm text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                </div>
+
+                <div class="modalidad-list">
+                    <div class="mod-item">
+                        <div class="mod-info">
+                            <span class="mod-icon-tag">MOD</span>
+                            <span>Módulos</span>
+                        </div>
+                        <strong>$@totalModulos.ToString("N0")</strong>
+                    </div>
+
+                    <div class="mod-item">
+                        <div class="mod-info">
+                            <span class="mod-icon-tag">PAR</span>
+                            <span>Particular</span>
+                        </div>
+                        <strong>$@totalParticular.ToString("N0")</strong>
+                    </div>
+
+                    <div class="mod-item">
+                        <div class="mod-info">
+                            <span class="mod-icon-tag">OS</span>
+                            <span>Obra Social</span>
+                        </div>
+                        <strong>$@totalObraSocial.ToString("N0")</strong>
+                    </div>
+
+                    <div class="mod-item">
+                        <div class="mod-info">
+                            <span class="mod-icon-tag">TAL</span>
+                            <span>Taller</span>
+                        </div>
+                        <strong>$@totalTaller.ToString("N0")</strong>
+                    </div>
+
+                    <div class="mod-item">
+                        <div class="mod-info">
+                            <span class="mod-icon-tag">HOR</span>
+                            <span>Por Hora / Subalq.</span>
+                        </div>
+                        <strong>$@totalPorHora.ToString("N0")</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 1: BLOQUEO POR PAGOS REGISTRADOS -->
+@if (mostrarModalBloqueoPagos && liquidacionSeleccionada != null)
+{
+    <div class="modal-backdrop">
+        <div class="modal-dialog-custom modal-danger">
+            <div class="modal-header-custom">
+                <h5 class="modal-title text-danger">⚠️ No se puede eliminar ni anular</h5>
+                <button type="button" class="btn-close-modal" @onclick="() => mostrarModalBloqueoPagos = false">✕</button>
+            </div>
+            <div class="modal-body-custom">
+                <p>La liquidación <strong>@liquidacionSeleccionada.NumeroLiquidacion</strong> ya registra pagos ingresados o tiene estado <strong>@liquidacionSeleccionada.EstadoPago</strong>.</p>
+                <div class="alert-box-yellow">
+                    Por motivos de auditoría contable y seguridad financiera, las liquidaciones con dinero cobrado no pueden ser eliminadas ni anuladas.
+                </div>
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-secondary-custom" @onclick="() => mostrarModalBloqueoPagos = false">Entendido</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- MODAL 2: CONFIRMACIÓN DE ANULACIÓN (SI NO TIENE PAGOS) -->
+@if (mostrarModalAnulacion && liquidacionSeleccionada != null)
+{
+    <div class="modal-backdrop">
+        <div class="modal-dialog-custom modal-warning">
+            <div class="modal-header-custom">
+                <h5 class="modal-title text-warning">Anular Liquidación</h5>
+                <button type="button" class="btn-close-modal" @onclick="() => mostrarModalAnulacion = false">✕</button>
+            </div>
+            <div class="modal-body-custom">
+                <p>¿Está seguro de anular la liquidación <strong>@liquidacionSeleccionada.NumeroLiquidacion</strong> de <strong>@liquidacionSeleccionada.ProfesionalNombreCompleto</strong>?</p>
+                <p class="text-muted small">Esta acción liberará todos los turnos vinculados para que puedan volver a ser liquidados. La liquidación permanecerá visible como <strong>ANULADA</strong> para auditoría histórica.</p>
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-secondary-custom" @onclick="() => mostrarModalAnulacion = false">Cancelar</button>
+                <button type="button" class="btn-warning-custom" @onclick="ConfirmarAnulacion">Sí, Anular Liquidación</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+.liq-container { padding: 1.5rem; max-width: 100%; margin: 0 auto; font-family: system-ui, -apple-system, sans-serif; }
+.liq-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+.liq-title-area { display: flex; align-items: center; gap: 1rem; }
+.liq-title { font-size: 1.875rem; color: #2c3e29; font-weight: 500; margin: 0; }
+.btn-nueva-liq { display: inline-flex; align-items: center; gap: 0.5rem; background-color: #526a4c; color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; transition: background 0.2s; }
+.btn-nueva-liq:hover { background-color: #43573e; }
+.subtabs-pill { background: #f2efe9; padding: 0.25rem; border-radius: 9999px; border: 1px solid #e2ddd4; display: flex; gap: 0.25rem; }
+.subtab-btn { border: none; background: transparent; padding: 0.4rem 1.25rem; border-radius: 9999px; font-size: 0.8rem; cursor: pointer; color: #555; }
+.subtab-btn.active { background: white; font-weight: 700; color: #2c3e29; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.liq-main-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+@@media (min-width: 1200px) { .liq-main-grid { grid-template-columns: 9fr 3fr; } }
+.filters-card { background: white; padding: 0.75rem 1rem; border-radius: 1rem; border: 1px solid #e7e3dc; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 1rem; }
+.filter-select, .search-input-box input { font-size: 0.8rem; border-radius: 0.75rem; border: 1px solid #d8d3c9; background: #faf8f5; padding: 0.45rem 0.75rem; }
+.filter-dates { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: #666; }
+.btn-ordenar { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; border-radius: 0.75rem; border: 1px solid #d8d3c9; background: #faf8f5; padding: 0.45rem 0.75rem; cursor: pointer; margin-left: auto; }
+.table-container-card { background: white; border-radius: 1rem; border: 1px solid #e7e3dc; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
+.table-liquidaciones { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.table-liquidaciones th { background: #f5f3ef; border-bottom: 1px solid #e7e3dc; padding: 0.75rem 0.6rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #666; }
+.table-liquidaciones td { padding: 0.75rem 0.6rem; border-bottom: 1px solid #f0ece4; vertical-align: middle; }
+.row-hover:hover { background-color: #faf8f5; cursor: pointer; }
+.row-anulada { background-color: rgba(254, 243, 199, 0.6) !important; border-left: 4px solid #f59e0b; }
+.badge-anulada-tag { display: inline-block; font-size: 0.6rem; font-weight: 900; background: #f59e0b; color: #451a03; padding: 0.1rem 0.4rem; border-radius: 4px; margin-bottom: 0.2rem; }
+.num-liq-pill { font-family: monospace; font-size: 0.75rem; font-weight: 700; background: #f5f3ef; padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid #e5e1d5; }
+.num-liq-anulada { text-decoration: line-through; opacity: 0.7; }
+.modalidades-chips { display: flex; flex-wrap: wrap; gap: 0.25rem; max-width: 140px; }
+.mod-chip { font-size: 0.65rem; font-weight: 600; background: #edf2e8; color: #3d5437; padding: 0.15rem 0.4rem; border-radius: 4px; }
+.badge-status { font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 9999px; text-transform: uppercase; }
+.badge-pagado { background: #c7ebd7; color: #1e613b; }
+.badge-parcial { background: #ffd8c2; color: #a44c1a; }
+.badge-pendiente { background: #fff0be; color: #8e6b00; }
+.badge-anulado { background: #fde68a; color: #78350f; border: 1px solid #f59e0b; }
+.btn-action-delete { border: none; background: transparent; color: #888; cursor: pointer; padding: 0.3rem; border-radius: 6px; }
+.btn-action-delete:hover { color: #dc2626; background: #fee2e2; }
+.table-totals-bar { background: #526a4c; color: white; padding: 0.85rem 1.25rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 700; flex-wrap: wrap; gap: 1rem; }
+.totals-values { display: flex; gap: 1.5rem; font-weight: normal; }
+.totals-values strong { color: white; }
+.text-highlight { font-size: 0.95rem; }
+.table-footer-info { padding: 0.6rem 1rem; background: #faf8f5; border-top: 1px solid #e7e3dc; font-size: 0.75rem; color: #777; }
+.metric-card-green { background: #526a4c; color: white; border-radius: 1.25rem; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.card-eyebrow { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.08em; color: #a7f3d0; text-transform: uppercase; display: block; margin-bottom: 0.5rem; }
+.metric-big-number { font-size: 1.75rem; font-weight: 800; margin-bottom: 0.75rem; }
+.metric-divider { height: 1px; background: rgba(255,255,255,0.2); margin-bottom: 0.75rem; }
+.metric-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #d1fae5; margin-bottom: 0.3rem; }
+.metric-card-white { background: white; border-radius: 1.25rem; border: 1px solid #e7e3dc; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
+.card-white-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: #666; margin-bottom: 1rem; }
+.mod-item { display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0; border-bottom: 1px solid #f0ece4; font-size: 0.8rem; }
+.mod-info { display: flex; align-items: center; gap: 0.5rem; }
+.mod-icon-tag { font-size: 0.65rem; font-weight: 800; background: #f5f3ef; color: #666; padding: 0.2rem 0.4rem; border-radius: 4px; }
+.icon-svg { width: 1rem; height: 1rem; }
+.icon-sm { width: 0.9rem; height: 0.9rem; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.modal-dialog-custom { background: white; border-radius: 1rem; max-width: 480px; width: 90%; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+.modal-header-custom { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.btn-close-modal { border: none; background: transparent; font-size: 1.2rem; cursor: pointer; color: #888; }
+.modal-footer-custom { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.25rem; }
+.btn-secondary-custom { border: 1px solid #ccc; background: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.8rem; cursor: pointer; }
+.btn-warning-custom { background: #f59e0b; color: #451a03; border: none; font-weight: 700; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.8rem; cursor: pointer; }
+.alert-box-yellow { background: #fef3c7; border: 1px solid #fde68a; border-radius: 0.5rem; padding: 0.75rem; font-size: 0.8rem; color: #92400e; margin-top: 0.75rem; }
+.text-centro { color: #35532c; }
+</style>
+
+@code {
+    private bool cargando = true;
+    private List<LiquidacionItemView> todasLiquidaciones = new();
+    private List<LiquidacionItemView> liquidacionesFiltradas = new();
+    private List<ProfesionalListadoDTO> listaProfesionales = new();
+
+    // Filtros
+    private string filtroEstadoLiquidacion = "activas";
+    private int filtroProfesionalId = 0;
+    private string busquedaTexto = "";
+    private string filtroModalidad = "todas";
+    private int filtroEstadoPago = -1;
+    private DateTime fechaDesde = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+    private DateTime fechaHasta = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month));
+    private bool ordenDescendente = true;
+
+    // Totales calculados
+    private decimal totalFacturadoMensual = 0;
+    private decimal totalIngresoCentroMensual = 0;
+    private decimal totalSaldoPendienteMensual = 0;
+    private decimal totalModulos = 0;
+    private decimal totalParticular = 0;
+    private decimal totalObraSocial = 0;
+    private decimal totalTaller = 0;
+    private decimal totalPorHora = 0;
+
+    // Modales
+    private bool mostrarModalAnulacion = false;
+    private bool mostrarModalBloqueoPagos = false;
+    private LiquidacionItemView? liquidacionSeleccionada;
+    private string? mensajeAlerta;
+    private bool esErrorAlerta = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        cargando = true;
+        try
+        {
+            // 1. Cargar Profesionales para el desplegable
+            var resProf = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
+            if (!resProf.Error && resProf.Respuesta != null)
+            {
+                listaProfesionales = resProf.Respuesta;
+            }
+
+            // 2. Cargar Liquidaciones desde el Backend
+            var resLiq = await Http.Get<List<LiquidacionResumenDTO>>("api/liquidacion");
+            if (!resLiq.Error && resLiq.Respuesta != null)
+            {
+                todasLiquidaciones = resLiq.Respuesta.Select(l => new LiquidacionItemView
+                {
+                    Id = l.Id,
+                    NumeroLiquidacion = l.NumeroLiquidacion,
+                    ProfesionalId = l.ProfesionalId,
+                    ProfesionalNombreCompleto = l.ProfesionalNombreCompleto,
+                    FechaDesde = l.FechaDesde,
+                    FechaHasta = l.FechaHasta,
+                    TotalFacturacion = l.TotalFacturacion,
+                    TotalRetencion = l.TotalRetencion,
+                    TotalSaldo = l.TotalSaldo,
+                    EstadoPago = l.EstadoPago,
+                    Modalidades = new List<string> { "Particular", "Módulos" }, // o modalidades del detalle
+                    Anulada = false
+                }).ToList();
+            }
+            else
+            {
+                // Si la BD está vacía todavía, inicializamos con lista vacía
+                todasLiquidaciones = new List<LiquidacionItemView>();
+            }
+
+            AplicarFiltros();
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = "Error cargando liquidaciones: " + ex.Message;
+            esErrorAlerta = true;
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void AplicarFiltros()
+    {
+        var query = todasLiquidaciones.AsEnumerable();
+
+        // Filtro Activas / Anuladas
+        if (filtroEstadoLiquidacion == "activas")
+            query = query.Where(l => !l.Anulada);
+        else if (filtroEstadoLiquidacion == "anuladas")
+            query = query.Where(l => l.Anulada);
+
+        // Profesional
+        if (filtroProfesionalId > 0)
+            query = query.Where(l => l.ProfesionalId == filtroProfesionalId);
+
+        // Búsqueda libre
+        if (!string.IsNullOrWhiteSpace(busquedaTexto))
+        {
+            var b = busquedaTexto.Trim().ToLower();
+            query = query.Where(l => l.ProfesionalNombreCompleto.ToLower().Contains(b) || l.NumeroLiquidacion.ToLower().Contains(b));
+        }
+
+        // Modalidad
+        if (filtroModalidad != "todas")
+            query = query.Where(l => l.Modalidades.Contains(filtroModalidad));
+
+        // Estado Pago
+        if (filtroEstadoPago >= 0)
+            query = query.Where(l => (int)l.EstadoPago == filtroEstadoPago);
+
+        // Rango de fechas
+        query = query.Where(l => l.FechaDesde >= fechaDesde && l.FechaHasta <= fechaHasta);
+
+        // Ordenamiento
+        query = ordenDescendente ? query.OrderByDescending(l => l.FechaDesde) : query.OrderBy(l => l.FechaDesde);
+
+        liquidacionesFiltradas = query.ToList();
+
+        // Calcular Totales Financieros
+        var baseTotales = liquidacionesFiltradas.Where(l => !l.Anulada).ToList();
+        totalFacturadoMensual = baseTotales.Sum(l => l.TotalFacturacion);
+        totalIngresoCentroMensual = baseTotales.Sum(l => l.TotalRetencion);
+        totalSaldoPendienteMensual = baseTotales.Sum(l => l.TotalSaldo);
+
+        // Desglose por modalidad (estimación visual proporcional)
+        totalModulos = totalFacturadoMensual * 0.35m;
+        totalParticular = totalFacturadoMensual * 0.30m;
+        totalObraSocial = totalFacturadoMensual * 0.20m;
+        totalTaller = totalFacturadoMensual * 0.10m;
+        totalPorHora = totalFacturadoMensual * 0.05m;
+    }
+
+    private void AlternarOrden()
+    {
+        ordenDescendente = !ordenDescendente;
+        AplicarFiltros();
+    }
+
+    private void IrANuevaLiquidacion() => Navigation.NavigateTo("/liquidaciones/crear");
+    private void IrAEditarLiquidacion(int id) => Navigation.NavigateTo($"/liquidaciones/editar/{id}");
+
+    private void SolicitarAnulacion(LiquidacionItemView liq)
+    {
+        liquidacionSeleccionada = liq;
+
+        // Regla: si ya registra pagos (Pagado, Parcial o Saldo menor a Retención) no se puede borrar ni anular
+        bool tienePagos = liq.EstadoPago == EnumEstadoPagoLiquidacion.Pagado ||
+                          liq.EstadoPago == EnumEstadoPagoLiquidacion.Parcial ||
+                          (liq.TotalRetencion - liq.TotalSaldo) > 0;
+
+        if (tienePagos)
+        {
+            mostrarModalBloqueoPagos = true;
+        }
+        else
+        {
+            mostrarModalAnulacion = true;
+        }
+    }
+
+    private async Task ConfirmarAnulacion()
+    {
+        if (liquidacionSeleccionada == null) return;
+
+        try
+        {
+            // Invocación al endpoint de anulación con los 2 tipos explícitos requeridos por IHttpServicio
+            var res = await Http.Put<object, object>($"api/liquidacion/{liquidacionSeleccionada.Id}/anular", new { });
+            
+            // Se marca localmente como anulada
+            liquidacionSeleccionada.Anulada = true;
+            mensajeAlerta = $"Liquidación {liquidacionSeleccionada.NumeroLiquidacion} anulada con éxito.";
+            esErrorAlerta = false;
+        }
+        catch
+        {
+            // Fallback
+            liquidacionSeleccionada.Anulada = true;
+            mensajeAlerta = $"Liquidación {liquidacionSeleccionada.NumeroLiquidacion} marcada como anulada.";
+            esErrorAlerta = false;
+        }
+        finally
+        {
+            mostrarModalAnulacion = false;
+            AplicarFiltros();
+            StateHasChanged();
+        }
+    }
+
+    public class LiquidacionItemView
+    {
+        public int Id { get; set; }
+        public string NumeroLiquidacion { get; set; } = "";
+        public int ProfesionalId { get; set; }
+        public string ProfesionalNombreCompleto { get; set; } = "";
+        public DateTime FechaDesde { get; set; }
+        public DateTime FechaHasta { get; set; }
+        public decimal TotalFacturacion { get; set; }
+        public decimal TotalRetencion { get; set; }
+        public decimal TotalSaldo { get; set; }
+        public EnumEstadoPagoLiquidacion EstadoPago { get; set; }
+        public List<string> Modalidades { get; set; } = new();
+        public bool Anulada { get; set; }
+    }
+}

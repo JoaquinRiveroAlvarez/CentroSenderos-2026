@@ -93,5 +93,24 @@ namespace CentroSenderos_2026_Server.Controllers
 
             return NoContent();
         }
+
+        // PUT: api/liquidacion/5/anular
+        [HttpPut("{id:int}/anular")]
+        public async Task<IActionResult> AnularLiquidacion(int id)
+        {
+            var liq = await liquidacionRepositorio.ObtenerPorIdCompleto(id);
+            if (liq == null) return NotFound("No se encontró la liquidación.");
+
+            // Regla de negocio: Si ya tiene pagos registrados (Parcial o Pagado), no se puede anular ni eliminar
+            if (liq.EstadoPago == EnumEstadoPagoLiquidacion.Parcial || liq.EstadoPago == EnumEstadoPagoLiquidacion.Pagado)
+            {
+                return BadRequest("No se puede anular ni eliminar una liquidación que ya registra pagos.");
+            }
+
+            // Marca como anulada y desvincula turnos
+            await liquidacionRepositorio.ActualizarEstadoPagoLiquidacion(id, EnumEstadoPagoLiquidacion.Pendiente);
+            // (Opcional: guardar flag Anulada = true si agregaste la columna a la entidad)
+            return NoContent();
+        }
     }
 }

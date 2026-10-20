@@ -18,6 +18,8 @@ namespace CentroSenderos_2026_Shared.DTO
         public decimal TotalSaldo { get; set; }
         public EnumEstadoPagoLiquidacion EstadoPago { get; set; }
         public int CantidadDetalles { get; set; }
+        public List<string> Modalidades { get; set; } = new();
+        public bool Anulada { get; set; } = false;
     }
 
     // DTO completo de Cabecera + Detalles
@@ -36,7 +38,7 @@ namespace CentroSenderos_2026_Shared.DTO
         public decimal TotalRetencion { get; set; }
         public decimal TotalSaldo { get; set; }
         public string? Observaciones { get; set; }
-
+        public bool Anulada { get; set; } = false;
         public List<DetalleLiquidacionDTO> Detalles { get; set; } = new();
     }
 
@@ -56,6 +58,11 @@ namespace CentroSenderos_2026_Shared.DTO
 
         public int? PacienteId { get; set; }
         public string? PacienteNombreCompleto { get; set; }
+        public string? PacienteNombre
+        {
+            get => PacienteNombreCompleto;
+            set => PacienteNombreCompleto = value;
+        }
 
         public decimal MontoUnitario { get; set; }
         public int Cantidad { get; set; }
@@ -108,9 +115,22 @@ namespace CentroSenderos_2026_Shared.DTO
     {
         public int Id { get; set; }
         public int TipoModalidadId { get; set; }
+        public string TipoModalidadNombre { get; set; } = string.Empty;
+
         public int? TipoPrestacionId { get; set; }
+        public string? TipoPrestacionNombre { get; set; }
+
         public int? TipoObraSocialId { get; set; }
+        public string? TipoObraSocialNombre { get; set; }
+
         public int? PacienteId { get; set; }
+        public string? PacienteNombreCompleto { get; set; }
+        public string? PacienteNombre
+        {
+            get => PacienteNombreCompleto;
+            set => PacienteNombreCompleto = value;
+        }
+
         public decimal MontoUnitario { get; set; }
         public int Cantidad { get; set; }
         public decimal? MontoModuloCompleto { get; set; }
