@@ -30,10 +30,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .AsQueryable();
 
             if (fechaDesde.HasValue)
-                query = query.Where(l => l.FechaHasta >= fechaDesde.Value);
+            {
+                var fDesdeUtc = DateTime.SpecifyKind(fechaDesde.Value.Date, DateTimeKind.Utc);
+                query = query.Where(l => l.FechaHasta >= fDesdeUtc);
+            }
 
             if (fechaHasta.HasValue)
-                query = query.Where(l => l.FechaDesde <= fechaHasta.Value);
+            {
+                var fHastaUtc = DateTime.SpecifyKind(fechaHasta.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
+                query = query.Where(l => l.FechaDesde <= fHastaUtc);
+            }
 
             if (profesionalId.HasValue && profesionalId.Value > 0)
                 query = query.Where(l => l.ProfesionalId == profesionalId.Value);
@@ -142,6 +148,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var turnos = await context.Turnos
                 .Include(t => t.TipoConsultorios)
                 .Include(t => t.TipoTurnos)
+                .Include(t => t.TurnoProfesionales).ThenInclude(tp => tp.Profesionales)
+                .Include(t => t.TurnoPacientes).ThenInclude(tp => tp.Pacientes)
+                .Include(t => t.TurnoTipoPrestaciones).ThenInclude(tpr => tpr.TipoPrestaciones)
                 .Where(t => t.DetalleLiquidacionId == detalleLiquidacionId)
                 .OrderBy(t => t.FechaInicio)
                 .ToListAsync();
@@ -153,59 +162,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             {
                 var inicioLocal = t.FechaInicio.ToLocalTime();
                 var finLocal = t.FechaFin.ToLocalTime();
-
-                resultado.Add(new TurnoLiquidacionItemDTO
-                {
-                    TurnoId = t.Id,
-                    NumeroSesion = sesionNro++,
-                    Fecha = inicioLocal.Date,
-                    HoraInicio = TimeOnly.FromDateTime(inicioLocal),
-                    HoraFin = TimeOnly.FromDateTime(finLocal),
-                    ConsultorioNombre = t.TipoConsultorios?.Tipo ?? "Sin Consultorio",
-                    TipoTurnoNombre = t.TipoTurnos?.Tipo ?? "Normal",
-                    EstadoTurno = t.EstadoTurno
-                });
-            }
-
-            return resultado;
-        }
-
-        // NUEVO: Obtener turnos pendientes no liquidados del profesional en el rango de fechas
-        public async Task<List<TurnoLiquidacionItemDTO>> ObtenerTurnosPendientes(int profesionalId, DateTime fechaDesde, DateTime fechaHasta)
-        {
-            var fDesdeUtc = DateTime.SpecifyKind(fechaDesde.Date, DateTimeKind.Utc);
-            var fHastaUtc = DateTime.SpecifyKind(fechaHasta.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
-
-            var turnos = await context.Turnos
-                .Include(t => t.TipoConsultorios)
-                .Include(t => t.TipoTurnos)
-                .Include(t => t.TurnoProfesionales)
-                .Include(t => t.TurnoTipoPrestaciones)
-                    .ThenInclude(ttp => ttp.TipoPrestaciones)
-                .Include(t => t.TurnoPacientes)
-                    .ThenInclude(tp => tp.Pacientes)
-                .Include(t => t.TurnoPacientes)
-                    .ThenInclude(tp => tp.TipoObraSocial)
-                .Where(t => t.LiquidacionId == null
-                         && t.FechaInicio >= fDesdeUtc
-                         && t.FechaInicio <= fHastaUtc
-                         && t.TurnoProfesionales.Any(tp => tp.ProfesionalId == profesionalId))
-                .OrderBy(t => t.FechaInicio)
-                .ToListAsync();
-
-            var resultado = new List<TurnoLiquidacionItemDTO>();
-            int sesionNro = 1;
-
-            foreach (var t in turnos)
-            {
-                var inicioLocal = t.FechaInicio.ToLocalTime();
-                var finLocal = t.FechaFin.ToLocalTime();
-
+                var profRel = t.TurnoProfesionales.FirstOrDefault();
                 var pacRel = t.TurnoPacientes.FirstOrDefault();
-                var presRel = t.TurnoTipoPrestaciones.FirstOrDefault(tp => tp.ProfesionalId == profesionalId)
-                              ?? t.TurnoTipoPrestaciones.FirstOrDefault();
-
-                var prestacion = presRel?.TipoPrestaciones;
+                var prestRel = t.TurnoTipoPrestaciones.FirstOrDefault();
 
                 resultado.Add(new TurnoLiquidacionItemDTO
                 {
@@ -215,24 +174,105 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     HoraInicio = TimeOnly.FromDateTime(inicioLocal),
                     HoraFin = TimeOnly.FromDateTime(finLocal),
                     ConsultorioNombre = t.TipoConsultorios?.Tipo ?? "Sin Consultorio",
-                    TipoTurnoNombre = t.TipoTurnos?.Tipo ?? "Normal",
+                    TipoTurnoNombre = prestRel?.TipoPrestaciones?.Tipo ?? t.TipoTurnos?.Tipo ?? "Normal",
                     EstadoTurno = t.EstadoTurno,
+                    ProfesionalId = profRel?.ProfesionalId,
+                    ProfesionalNombre = profRel?.Profesionales?.Nombre ?? "",
                     PacienteId = pacRel?.PacienteId,
-                    PacienteNombre = pacRel?.Pacientes?.Nombre ?? "Sin Paciente",
-                    TipoPrestacionId = prestacion?.Id,
-                    TipoPrestacionNombre = prestacion?.Tipo ?? "Atención",
-                    TipoObraSocialId = pacRel?.TipoObraSocialId,
-                    TipoObraSocialNombre = pacRel?.NombreObraSocial ?? pacRel?.TipoObraSocial?.Tipo,
-                    MontoSugerido = prestacion?.MontoSesion ?? 15000,
-                    // Retención configurada en TipoPrestacion (ej: 20% común, 100% uso de consultorio)
-                    PorcentajeRetencion = prestacion?.PorcentajeRetencion ?? 20
+                    PacienteNombre = pacRel?.Pacientes?.Nombre ?? "",
+                    TipoPrestacionId = prestRel?.TipoPrestacionId,
+                    TipoPrestacionNombre = prestRel?.TipoPrestaciones?.Tipo ?? ""
                 });
             }
 
             return resultado;
         }
 
-        // Guardar o Actualizar liquidación completa (CON FIX UTC Y COMPATIBILIDAD CON ENTITYBASE)
+        // Obtener turnos pendientes sin liquidar
+        public async Task<List<TurnoLiquidacionItemDTO>> ObtenerTurnosPendientes(int? profesionalId, DateTime? fechaDesde, DateTime? fechaHasta)
+        {
+            try
+            {
+                // Fix UTC para PostgreSQL Neon
+                var desdeBase = (fechaDesde ?? new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1)).Date;
+                var hastaBase = (fechaHasta ?? desdeBase.AddMonths(1).AddDays(-1)).Date.AddDays(1).AddTicks(-1);
+
+                var desde = DateTime.SpecifyKind(desdeBase, DateTimeKind.Utc);
+                var hasta = DateTime.SpecifyKind(hastaBase, DateTimeKind.Utc);
+
+                var query = context.Turnos
+                    .AsNoTracking()
+                    .Include(t => t.TipoTurnos)
+                    .Include(t => t.TipoConsultorios)
+                    .Include(t => t.TurnoProfesionales).ThenInclude(tp => tp.Profesionales)
+                    .Include(t => t.TurnoPacientes).ThenInclude(tp => tp.Pacientes)
+                    .Include(t => t.TurnoTipoPrestaciones).ThenInclude(tpr => tpr.TipoPrestaciones)
+                    .Where(t => t.LiquidacionId == null) // Turnos aún no asignados a ninguna liquidación
+                    .Where(t => t.FechaInicio >= desde && t.FechaInicio <= hasta)
+                    .AsQueryable();
+
+                if (profesionalId.HasValue && profesionalId.Value > 0)
+                {
+                    query = query.Where(t => t.TurnoProfesionales.Any(tp => tp.ProfesionalId == profesionalId.Value));
+                }
+
+                var turnos = await query.OrderBy(t => t.FechaInicio).ToListAsync();
+
+                int sesionContador = 1;
+
+                var resultado = turnos.Select(t =>
+                {
+                    var profRel = t.TurnoProfesionales.FirstOrDefault();
+                    var pacRel = t.TurnoPacientes.FirstOrDefault();
+                    var prestRel = t.TurnoTipoPrestaciones.FirstOrDefault();
+
+                    int modalidad = (pacRel?.TipoObraSocialId.HasValue == true && pacRel.TipoObraSocialId.Value > 0) ? 2 : 1;
+                    decimal monto = prestRel?.TipoPrestaciones?.MontoSesion ?? 15000m;
+                    decimal retencion = prestRel?.TipoPrestaciones?.PorcentajeRetencion ?? 20m;
+
+                    return new TurnoLiquidacionItemDTO
+                    {
+                        TurnoId = t.Id,
+                        NumeroSesion = sesionContador++,
+                        Fecha = t.FechaInicio.Date,
+                        HoraInicio = TimeOnly.FromDateTime(t.FechaInicio),
+                        HoraFin = TimeOnly.FromDateTime(t.FechaFin),
+                        ConsultorioNombre = t.TipoConsultorios?.Tipo ?? "Consultorio",
+                        TipoTurnoNombre = prestRel?.TipoPrestaciones?.Tipo ?? t.TipoTurnos?.Tipo ?? "Sesión",
+                        EstadoTurno = t.EstadoTurno,
+
+                        // Profesional
+                        ProfesionalId = profRel?.ProfesionalId,
+                        ProfesionalNombre = profRel?.Profesionales?.Nombre ?? "Profesional",
+
+                        // Paciente
+                        PacienteId = pacRel?.PacienteId,
+                        PacienteNombre = pacRel?.Pacientes?.Nombre ?? "Sin Asignar",
+
+                        // Prestación
+                        TipoPrestacionId = prestRel?.TipoPrestacionId,
+                        TipoPrestacionNombre = prestRel?.TipoPrestaciones?.Tipo ?? "General",
+
+                        // Obra Social
+                        TipoObraSocialId = pacRel?.TipoObraSocialId,
+                        TipoObraSocialNombre = pacRel?.NombreObraSocial ?? (modalidad == 2 ? "Obra Social" : "Particular"),
+
+                        // Modalidad y Montos
+                        TipoModalidadId = modalidad,
+                        MontoSugerido = monto,
+                        PorcentajeRetencion = retencion
+                    };
+                }).ToList();
+
+                return resultado;
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException($"Error al consultar turnos pendientes en el repositorio: {ex.Message}", ex);
+            }
+        }
+
+        // Guardar o Actualizar liquidación completa con vinculación directa a los turnos
         public async Task<int> GuardarLiquidacionCompleta(GuardarLiquidacionDTO dto)
         {
             using var transaction = await context.Database.BeginTransactionAsync();
@@ -249,7 +289,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     liquidacion = new Liquidacion
                     {
                         NumeroLiquidacion = numeroLiq,
-                        // Fix UTC obligatorio para PostgreSQL
                         FechaDesde = DateTime.SpecifyKind(dto.FechaDesde, DateTimeKind.Utc),
                         FechaHasta = DateTime.SpecifyKind(dto.FechaHasta, DateTimeKind.Utc),
                         ProfesionalId = dto.ProfesionalId,
@@ -269,7 +308,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .FirstOrDefaultAsync(l => l.Id == dto.Id)
                         ?? throw new ApplicationException("La liquidación a actualizar no existe.");
 
-                    // Fix UTC obligatorio para PostgreSQL
                     liquidacion.FechaDesde = DateTime.SpecifyKind(dto.FechaDesde, DateTimeKind.Utc);
                     liquidacion.FechaHasta = DateTime.SpecifyKind(dto.FechaHasta, DateTimeKind.Utc);
                     liquidacion.ProfesionalId = dto.ProfesionalId;
@@ -278,7 +316,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     liquidacion.Observaciones = dto.Observaciones;
                     liquidacion.Observacion = dto.Observaciones ?? string.Empty;
 
-                    // Desvincular turnos anteriores
+                    // Desvincular turnos previos para reasignar limpiamente
                     var turnosPrevios = await context.Turnos.Where(t => t.LiquidacionId == liquidacion.Id).ToListAsync();
                     foreach (var t in turnosPrevios)
                     {
@@ -286,7 +324,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         t.DetalleLiquidacionId = null;
                     }
 
-                    // Remover detalles existentes para reescribir
                     context.DetalleLiquidaciones.RemoveRange(liquidacion.DetalleLiquidaciones);
                     await context.SaveChangesAsync();
                 }
@@ -327,7 +364,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     totalRetencion += detalle.Retencion;
                     totalSaldo += detalle.Saldo;
 
-                    // Vincular turnos seleccionados
+                    // Sincronizar turnos: asignar LiquidacionId y DetalleLiquidacionId
                     if (dDto.TurnosIds != null && dDto.TurnosIds.Count > 0)
                     {
                         var turnosAAsociar = await context.Turnos
@@ -357,7 +394,25 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 throw;
             }
         }
+        public async Task<bool> AnularLiquidacion(int id)
+        {
+            var liq = await context.Liquidaciones.FindAsync(id);
+            if (liq == null) return false;
 
+            // Marca como inactivo (anulada)
+            liq.EstadoRegistro = EnumEstadoRegistro.inactivo;
+
+            // Libera los turnos para que vuelvan a figurar como pendientes de liquidar en la agenda
+            var turnos = await context.Turnos.Where(t => t.LiquidacionId == id).ToListAsync();
+            foreach (var t in turnos)
+            {
+                t.LiquidacionId = null;
+                t.DetalleLiquidacionId = null;
+            }
+
+            await context.SaveChangesAsync();
+            return true;
+        }
         public async Task<bool> ActualizarEstadoPagoLiquidacion(int liquidacionId, EnumEstadoPagoLiquidacion nuevoEstado)
         {
             var liq = await context.Liquidaciones.FindAsync(liquidacionId);

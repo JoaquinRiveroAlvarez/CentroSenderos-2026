@@ -100,6 +100,15 @@ namespace CentroSenderos_2026_Shared.DTO
         public string TipoTurnoNombre { get; set; } = string.Empty;
         public EnumEstadoTurno EstadoTurno { get; set; }
 
+        // Profesional (AGREGADO PARA SOLUCIONAR CS1061)
+        public int? ProfesionalId { get; set; }
+        public string? ProfesionalNombre { get; set; }
+        public string? ProfesionalNombreCompleto
+        {
+            get => ProfesionalNombre;
+            set => ProfesionalNombre = value;
+        }
+
         // Paciente
         public int? PacienteId { get; set; }
         public string? PacienteNombre { get; set; }

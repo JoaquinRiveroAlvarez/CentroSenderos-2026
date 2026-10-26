@@ -19,7 +19,7 @@ namespace CentroSenderos_2026_Server.Controllers
             this.liquidacionRepositorio = liquidacionRepositorio;
         }
 
-        // GET: api/liquidaciones?fechaDesde=2026-10-01&fechaHasta=2026-10-31&profesionalId=5
+        // GET: api/liquidacion?fechaDesde=2026-10-01&fechaHasta=2026-10-31&profesionalId=5
         [HttpGet]
         public async Task<ActionResult<List<LiquidacionResumenDTO>>> ObtenerLiquidaciones(
             [FromQuery] DateTime? fechaDesde,
@@ -30,7 +30,7 @@ namespace CentroSenderos_2026_Server.Controllers
             return Ok(lista);
         }
 
-        // GET: api/liquidaciones/5
+        // GET: api/liquidacion/5
         [HttpGet("{id:int}")]
         public async Task<ActionResult<LiquidacionDTO>> ObtenerPorId(int id)
         {
@@ -41,7 +41,7 @@ namespace CentroSenderos_2026_Server.Controllers
             return Ok(liquidacion);
         }
 
-        // GET: api/liquidaciones/por-numero/LIQ-2718811
+        // GET: api/liquidacion/por-numero/LIQ-2718811
         [HttpGet("por-numero/{numeroLiquidacion}")]
         public async Task<ActionResult<LiquidacionDTO>> ObtenerPorNumero(string numeroLiquidacion)
         {
@@ -52,8 +52,8 @@ namespace CentroSenderos_2026_Server.Controllers
             return Ok(liquidacion);
         }
 
-        // GET: api/liquidaciones/detalle/{detalleId}/turnos
-        // Retorna los turnos de la fila del detalle (Sesión 1, Sesión 2, etc.)
+        // GET: api/liquidacion/detalle/{detalleId}/turnos
+        // Retorna los turnos de la fila del detalle (Modal de sesiones de la factura)
         [HttpGet("detalle/{detalleId:int}/turnos")]
         public async Task<ActionResult<List<TurnoLiquidacionItemDTO>>> ObtenerTurnosDeDetalle(int detalleId)
         {
@@ -61,7 +61,25 @@ namespace CentroSenderos_2026_Server.Controllers
             return Ok(turnos);
         }
 
-        // POST: api/liquidaciones
+        // GET: api/liquidacion/turnos-pendientes?profesionalId=5&fechaDesde=2026-10-01&fechaHasta=2026-10-31
+        [HttpGet("turnos-pendientes")]
+        public async Task<ActionResult<List<TurnoLiquidacionItemDTO>>> GetTurnosPendientes(
+            [FromQuery] int? profesionalId,
+            [FromQuery] DateTime? fechaDesde,
+            [FromQuery] DateTime? fechaHasta)
+        {
+            try
+            {
+                var lista = await liquidacionRepositorio.ObtenerTurnosPendientes(profesionalId, fechaDesde, fechaHasta);
+                return Ok(lista);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = ex.Message });
+            }
+        }
+
+        // POST: api/liquidacion
         [HttpPost]
         public async Task<ActionResult<int>> Guardar([FromBody] GuardarLiquidacionDTO dto)
         {
@@ -72,7 +90,7 @@ namespace CentroSenderos_2026_Server.Controllers
             return Ok(id);
         }
 
-        // PUT: api/liquidaciones/5/estado-pago?nuevoEstado=4
+        // PUT: api/liquidacion/5/estado-pago?nuevoEstado=4
         [HttpPut("{id:int}/estado-pago")]
         public async Task<IActionResult> ActualizarEstadoPagoLiquidacion(int id, [FromQuery] EnumEstadoPagoLiquidacion nuevoEstado)
         {
@@ -83,7 +101,7 @@ namespace CentroSenderos_2026_Server.Controllers
             return NoContent();
         }
 
-        // PUT: api/liquidaciones/detalle/12/estado-pago?nuevoEstado=3
+        // PUT: api/liquidacion/detalle/12/estado-pago?nuevoEstado=3
         [HttpPut("detalle/{detalleId:int}/estado-pago")]
         public async Task<IActionResult> ActualizarEstadoPagoDetalle(int detalleId, [FromQuery] EnumEstadoPagoLiquidacion nuevoEstado)
         {
@@ -94,17 +112,6 @@ namespace CentroSenderos_2026_Server.Controllers
             return NoContent();
         }
 
-        // GET: api/liquidacion/turnos-pendientes?profesionalId=49&fechaDesde=2026-09-01&fechaHasta=2026-10-31
-        [HttpGet("turnos-pendientes")]
-        public async Task<ActionResult<List<TurnoLiquidacionItemDTO>>> ObtenerTurnosPendientes(
-            [FromQuery] int profesionalId,
-            [FromQuery] DateTime fechaDesde,
-            [FromQuery] DateTime fechaHasta)
-        {
-            var turnos = await liquidacionRepositorio.ObtenerTurnosPendientes(profesionalId, fechaDesde, fechaHasta);
-            return Ok(turnos);
-        }
-
         // PUT: api/liquidacion/5/anular
         [HttpPut("{id:int}/anular")]
         public async Task<IActionResult> AnularLiquidacion(int id)
@@ -112,15 +119,15 @@ namespace CentroSenderos_2026_Server.Controllers
             var liq = await liquidacionRepositorio.ObtenerPorIdCompleto(id);
             if (liq == null) return NotFound("No se encontró la liquidación.");
 
-            // Regla de negocio: Si ya tiene pagos registrados (Parcial o Pagado), no se puede anular ni eliminar
+            // Regla de negocio: Si ya tiene pagos registrados (Parcial o Pagado), no se puede anular
             if (liq.EstadoPago == EnumEstadoPagoLiquidacion.Parcial || liq.EstadoPago == EnumEstadoPagoLiquidacion.Pagado)
             {
                 return BadRequest("No se puede anular ni eliminar una liquidación que ya registra pagos.");
             }
 
-            // Marca como anulada y desvincula turnos
-            await liquidacionRepositorio.ActualizarEstadoPagoLiquidacion(id, EnumEstadoPagoLiquidacion.Pendiente);
-            // (Opcional: guardar flag Anulada = true si agregaste la columna a la entidad)
+            var resultado = await liquidacionRepositorio.AnularLiquidacion(id);
+            if (!resultado) return BadRequest("No se pudo anular la liquidación.");
+
             return NoContent();
         }
     }

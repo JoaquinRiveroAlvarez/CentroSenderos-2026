@@ -14,9 +14,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         Task<LiquidacionDTO?> ObtenerPorIdCompleto(int id);
         Task<LiquidacionDTO?> ObtenerPorNumero(string numeroLiquidacion);
         Task<List<TurnoLiquidacionItemDTO>> ObtenerTurnosPorDetalleId(int detalleLiquidacionId);
-        Task<List<TurnoLiquidacionItemDTO>> ObtenerTurnosPendientes(int profesionalId, DateTime fechaDesde, DateTime fechaHasta);
+        Task<List<TurnoLiquidacionItemDTO>> ObtenerTurnosPendientes(int? profesionalId, DateTime? fechaDesde, DateTime? fechaHasta);
         Task<int> GuardarLiquidacionCompleta(GuardarLiquidacionDTO dto);
         Task<bool> ActualizarEstadoPagoLiquidacion(int liquidacionId, EnumEstadoPagoLiquidacion nuevoEstado);
         Task<bool> ActualizarEstadoPagoDetalle(int detalleId, EnumEstadoPagoLiquidacion nuevoEstado);
+        Task<bool> AnularLiquidacion(int id);
     }
 }
