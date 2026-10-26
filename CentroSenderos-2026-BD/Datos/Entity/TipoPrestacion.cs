@@ -16,6 +16,10 @@ namespace CentroSenderos_2026_BD.Datos.Entity
 
         [Required(ErrorMessage = "El Monto por Sesion es obligatorio")]
         public required decimal MontoSesion { get; set; } = 0;
+        
+        [Precision(18, 2)]
+        public decimal PorcentajeRetencion { get; set; } = 20;
+
         public List<ProfesionalTipoPrestacion> ProfesionalTipoPrestaciones { get; set; } = new();
         public List<TurnoTipoPrestacion> TurnoTipoPrestaciones { get; set; } = new();
     }

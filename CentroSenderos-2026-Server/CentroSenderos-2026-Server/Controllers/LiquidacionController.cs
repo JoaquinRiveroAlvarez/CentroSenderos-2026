@@ -94,6 +94,17 @@ namespace CentroSenderos_2026_Server.Controllers
             return NoContent();
         }
 
+        // GET: api/liquidacion/turnos-pendientes?profesionalId=49&fechaDesde=2026-09-01&fechaHasta=2026-10-31
+        [HttpGet("turnos-pendientes")]
+        public async Task<ActionResult<List<TurnoLiquidacionItemDTO>>> ObtenerTurnosPendientes(
+            [FromQuery] int profesionalId,
+            [FromQuery] DateTime fechaDesde,
+            [FromQuery] DateTime fechaHasta)
+        {
+            var turnos = await liquidacionRepositorio.ObtenerTurnosPendientes(profesionalId, fechaDesde, fechaHasta);
+            return Ok(turnos);
+        }
+
         // PUT: api/liquidacion/5/anular
         [HttpPut("{id:int}/anular")]
         public async Task<IActionResult> AnularLiquidacion(int id)

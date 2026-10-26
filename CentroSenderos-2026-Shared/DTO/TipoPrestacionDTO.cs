@@ -1,8 +1,5 @@
 ﻿using CentroSenderos_2026_Shared.Enum;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace CentroSenderos_2026_Shared.DTO
 {
@@ -14,7 +11,7 @@ namespace CentroSenderos_2026_Shared.DTO
         [MaxLength(50, ErrorMessage = "El Tipo no puede exceder los 50 caracteres")]
         public required string Tipo { get; set; } = string.Empty;
 
-        [MaxLength(50, ErrorMessage = "La Descripción no puede exceder los 50 caracteres")]
+        [MaxLength(200, ErrorMessage = "La Descripción no puede exceder los 200 caracteres")]
         public string Descripcion { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El Código es obligatorio")]
@@ -23,6 +20,10 @@ namespace CentroSenderos_2026_Shared.DTO
 
         [Required(ErrorMessage = "El Monto por Sesion es obligatorio")]
         public required decimal MontoSesion { get; set; } = 0;
-        public EnumEstadoRegistro EstadoRegistro { get; set; }
+
+        [Range(0, 100, ErrorMessage = "El porcentaje debe estar entre 0 y 100")]
+        public decimal PorcentajeRetencion { get; set; } = 20;
+
+        public EnumEstadoRegistro EstadoRegistro { get; set; } = EnumEstadoRegistro.activo;
     }
 }

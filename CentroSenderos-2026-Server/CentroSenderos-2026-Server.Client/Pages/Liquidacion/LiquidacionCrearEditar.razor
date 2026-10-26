@@ -11,718 +11,1562 @@
 @inject IJSRuntime JS
 
 <div class="liq-create-container">
-    <!-- Top Bar con Flecha Atrás y Estado -->
-    <div class="top-nav-bar">
-        <button type="button" class="btn-back-arrow" title="Volver al listado" @onclick="ManejarClickVolverAtras">
-            <svg class="icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        </button>
-        <div>
-            <h1 class="page-main-title">@(Id.HasValue ? "Editar Liquidación" : "Nueva Liquidación")</h1>
-            <span class="periodo-badge">Período: @fechaDesde.ToString("dd/MM/yyyy") - @fechaHasta.ToString("dd/MM/yyyy")</span>
-        </div>
-        <div class="autosave-pill ms-auto">
-            <svg class="icon-sm text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span>Estado: @(hayCambiosSinGuardar ? "Cambios pendientes" : "Al día")</span>
-        </div>
-    </div>
-
-    <!-- Banner de Notificación / Error -->
-    @if (!string.IsNullOrEmpty(mensajeAlerta))
+    @if (cargando)
     {
-        <div class="alert-banner @(esErrorAlerta ? "alert-danger" : "alert-success")">
-            <span>@mensajeAlerta</span>
-            <button type="button" class="btn-close-alert" @onclick="() => mensajeAlerta = null">✕</button>
+        <div class="text-center py-5">
+            <div class="spinner-custom"></div>
+            <p class="mt-2 text-muted">Cargando datos de la liquidación...</p>
         </div>
     }
-
-    <!-- 1. DATOS GENERALES DE LA LIQUIDACIÓN -->
-    <div class="section-card">
-        <div class="section-header">
-            <svg class="icon-sm text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <h2 class="section-title">DATOS DE LA LIQUIDACIÓN</h2>
-        </div>
-        <div class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label-custom">PROFESIONAL</label>
-                <select class="form-select custom-input" @bind="profesionalId" @bind:after="AlCambiarProfesionalOFechas">
-                    <option value="0">Seleccionar Profesional...</option>
-                    @foreach (var p in listaProfesionales)
-                    {
-                        <option value="@p.Id">@p.Nombre</option>
-                    }
-                </select>
+    else
+    {
+        <!-- Top Bar con Flecha Atrás y Estado -->
+        <div class="top-nav-bar">
+            <button type="button" class="btn-back-arrow" title="Volver al listado" @onclick="ManejarClickVolverAtras">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:20px;height:20px;min-width:20px;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <div>
+                <h1 class="page-main-title">@(Id.HasValue ? "Editar Liquidación" : "Nueva Liquidación")</h1>
+                <span class="periodo-badge">Período: @fechaDesde.ToString("dd/MM/yyyy") - @fechaHasta.ToString("dd/MM/yyyy")</span>
             </div>
-
-            <div class="col-md-3">
-                <label class="form-label-custom">FECHA DESDE</label>
-                <input type="date" class="form-control custom-input" @bind="fechaDesde" @bind:after="AlCambiarProfesionalOFechas" />
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label-custom">FECHA HASTA</label>
-                <input type="date" class="form-control custom-input" @bind="fechaHasta" @bind:after="AlCambiarProfesionalOFechas" />
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label-custom">SOCIO RESPONSABLE</label>
-                <select class="form-select custom-input" @bind="socioId" @bind:after="MarcarCambios">
-                    <option value="0">Seleccionar Socio...</option>
-                    @foreach (var s in listaSocios)
-                    {
-                        <option value="@s.Id">@s.Profesional</option>
-                    }
-                </select>
+            <div class="autosave-pill ms-auto">
+                <svg width="14" height="14" class="text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;min-width:14px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Estado: @(hayCambiosSinGuardar ? "Cambios pendientes" : "Al día")</span>
             </div>
         </div>
-    </div>
 
-    <!-- 2. SECCIÓN: CARGAR FACTURA (CON BOTONES EXACTOS DE LA PREVIEW) -->
-    <div class="accordion-box">
-        <div class="accordion-header-toggle">
-            <div class="d-flex align-items-center gap-2" @onclick="() => seccionCargarFacturaAbierta = !seccionCargarFacturaAbierta" style="cursor: pointer;">
-                <svg class="icon-toggle @(seccionCargarFacturaAbierta ? "open" : "")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                <span class="accordion-title">@(indiceDetalleEnEdicion.HasValue ? "EDITANDO FACTURA" : "CARGAR FACTURA")</span>
-                @if (indiceDetalleEnEdicion.HasValue)
-                {
-                    <span class="badge-modo-edicion">Modo Edición</span>
-                }
+        <!-- Banner de Notificación / Error -->
+        @if (!string.IsNullOrEmpty(mensajeAlerta))
+        {
+            <div class="alert-banner @(esErrorAlerta ? "alert-danger" : "alert-success")">
+                <span>@mensajeAlerta</span>
+                <button type="button" class="btn-close-alert" @onclick="() => mensajeAlerta = null">✕</button>
             </div>
+        }
 
-            <!-- Botonera superior de acciones de agenda -->
-            <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
-                <!-- Badge: Factura ya guardada si está en la lista -->
-                @if (EsFacturaActualYaGuardada())
-                {
-                    <span class="badge-ya-guardada">
-                        <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        Factura ya guardada
-                    </span>
-                }
+        <!-- 1. DATOS GENERALES DE LA LIQUIDACIÓN -->
+        <div class="section-card">
+            <div class="section-header">
+                <svg width="18" height="18" class="text-primary-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <h2 class="section-title">DATOS DE LA LIQUIDACIÓN</h2>
+            </div>
+            <div class="row-fields">
+                <div class="field-col">
+                    <label class="form-label-custom">PROFESIONAL</label>
+                    <select class="custom-input" @bind="profesionalId" @bind:after="AlCambiarProfesionalOFechas">
+                        <option value="0">Seleccionar Profesional...</option>
+                        @foreach (var p in listaProfesionales)
+                        {
+                            <option value="@p.Id">@p.Nombre</option>
+                        }
+                    </select>
+                </div>
 
-                <!-- Botón Desplegable: Facturas por liquidar (X) -->
-                <div class="position-relative">
-                    <button type="button"
-                            class="btn-facturas-pendientes @(FacturasPendientesSinCargar().Count > 0 ? "btn-has-pending" : "btn-empty-pending")"
-                            @onclick="() => mostrarMenuFacturasPendientes = !mostrarMenuFacturasPendientes"
-                            title="Ver facturas agrupadas pendientes en la agenda">
-                        <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        <span>Facturas por liquidar (@FacturasPendientesSinCargar().Count)</span>
-                        <svg class="icon-xs ms-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                <div class="field-col">
+                    <label class="form-label-custom">FECHA DESDE</label>
+                    <input type="date" class="custom-input" @bind="fechaDesde" @bind:after="AlCambiarProfesionalOFechas" />
+                </div>
+
+                <div class="field-col">
+                    <label class="form-label-custom">FECHA HASTA</label>
+                    <input type="date" class="custom-input" @bind="fechaHasta" @bind:after="AlCambiarProfesionalOFechas" />
+                </div>
+
+                <div class="field-col">
+                    <label class="form-label-custom">SOCIO RESPONSABLE</label>
+                    <select class="custom-input" @bind="socioId" @bind:after="MarcarCambios">
+                        <option value="0">Seleccionar Socio...</option>
+                        @foreach (var s in listaSocios)
+                        {
+                            <option value="@s.Id">@s.Profesional</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. SECCIÓN: CARGAR FACTURA -->
+        <div class="accordion-box">
+            <div class="accordion-header-toggle">
+                <div class="toggle-click-area" @onclick="() => seccionCargarFacturaAbierta = !seccionCargarFacturaAbierta">
+                    <svg width="18" height="18" class="icon-toggle @(seccionCargarFacturaAbierta ? "open" : "")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;min-width:18px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    <span class="accordion-title">@(indiceDetalleEnEdicion.HasValue ? "EDITANDO FACTURA" : "CARGAR FACTURA")</span>
+                    @if (indiceDetalleEnEdicion.HasValue)
+                    {
+                        <span class="badge-modo-edicion">Modo Edición</span>
+                    }
+                </div>
+
+                <!-- Botonera superior de acciones de agenda -->
+                <div class="header-actions-area">
+                    <!-- Badge: Factura ya guardada si está en la lista -->
+                    @if (EsFacturaActualYaGuardada())
+                    {
+                        <span class="badge-ya-guardada">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px;height:12px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <span>Factura ya guardada</span>
+                        </span>
+                    }
+
+                    <!-- Botón Desplegable: Facturas por liquidar (X) -->
+                    <div class="position-relative">
+                        <button type="button"
+                                class="btn-facturas-pendientes @(FacturasPendientesSinCargar().Count > 0 ? "btn-has-pending" : "btn-empty-pending")"
+                                @onclick="() => mostrarMenuFacturasPendientes = !mostrarMenuFacturasPendientes"
+                                title="Ver facturas agrupadas pendientes en la agenda">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            <span>Facturas por liquidar (@FacturasPendientesSinCargar().Count)</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+
+                        <!-- Popup emergente de Facturas por Liquidar -->
+                        @if (mostrarMenuFacturasPendientes)
+                        {
+                            <div class="dropdown-pending-invoices">
+                                <div class="dropdown-pending-header">
+                                    <div>
+                                        <strong style="display:block; font-size:12px;">Facturas por liquidar (@FacturasPendientesSinCargar().Count)</strong>
+                                        <span style="color:#64748b; font-size:11px;">Turnos agrupados según agenda</span>
+                                    </div>
+                                    <button type="button" class="btn-close-sm" @onclick="() => mostrarMenuFacturasPendientes = false">✕</button>
+                                </div>
+                                <div class="dropdown-pending-body">
+                                    @if (FacturasPendientesSinCargar().Count == 0)
+                                    {
+                                        <p style="text-align:center; color:#94a3b8; padding:1rem; font-size:12px;">Todos los turnos de este profesional en el período ya fueron cargados.</p>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var fac in FacturasPendientesSinCargar())
+                                        {
+                                            <div class="pending-group-item" @onclick="() => CargarFacturaDesdeGrupo(fac)">
+                                                <div>
+                                                    <div style="font-weight:700; color:#0f172a;">@fac.PacienteNombre</div>
+                                                    <div style="font-size:11px; color:#64748b;">
+                                                        @fac.ModalidadNombre @(!string.IsNullOrEmpty(fac.ObraSocialNombre) ? $"({fac.ObraSocialNombre})" : "") • @fac.PrestacionNombre • <strong>@fac.CantidadTurnos turnos</strong>
+                                                    </div>
+                                                </div>
+                                                <span class="badge-cargar-mini">Cargar ⚡</span>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Botón: Cargar Próxima Factura -->
+                    <button type="button" class="btn-proxima-factura" @onclick="CargarProximaFactura" title="Carga automáticamente la primera factura agrupada pendiente">
+                        <svg width="14" height="14" style="width:14px;height:14px;color:#d97706;" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        <span>Cargar Próxima Factura</span>
                     </button>
 
-                    <!-- Popup emergente de Facturas por Liquidar -->
-                    @if (mostrarMenuFacturasPendientes)
-                    {
-                        <div class="dropdown-pending-invoices">
-                            <div class="dropdown-pending-header">
-                                <div>
-                                    <strong class="d-block text-xs">Facturas por liquidar (@FacturasPendientesSinCargar().Count)</strong>
-                                    <span class="text-muted text-[11px]">Turnos agrupados según agenda</span>
-                                </div>
-                                <button type="button" class="btn-close-sm" @onclick="() => mostrarMenuFacturasPendientes = false">✕</button>
-                            </div>
-                            <div class="dropdown-pending-body">
-                                @if (FacturasPendientesSinCargar().Count == 0)
-                                {
-                                    <p class="text-center text-muted py-3 text-xs">Todos los turnos de este profesional en el período ya fueron cargados.</p>
-                                }
-                                else
-                                {
-                                    @foreach (var fac in FacturasPendientesSinCargar())
-                                    {
-                                        <div class="pending-group-item" @onclick="() => CargarFacturaDesdeGrupo(fac)">
-                                            <div>
-                                                <div class="fw-bold text-dark">@fac.PacienteNombre</div>
-                                                <div class="text-muted text-[11px]">
-                                                    @fac.ModalidadNombre @(!string.IsNullOrEmpty(fac.ObraSocialNombre) ? $"({fac.ObraSocialNombre})" : "") • @fac.PrestacionNombre • <strong>@fac.CantidadTurnos turnos</strong>
-                                                </div>
-                                            </div>
-                                            <span class="badge-cargar-mini">Cargar ⚡</span>
-                                        </div>
-                                    }
-                                }
-                            </div>
-                        </div>
-                    }
+                    <!-- Botón: Listado de Sesiones en Agenda -->
+                    <button type="button" class="btn-ver-sesiones-header" @onclick="VerSesionesAgendaDesdeFormulario" title="Auditar las sesiones de la factura seleccionada">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <span>Listado de Sesiones</span>
+                    </button>
                 </div>
-
-                <!-- Botón: Cargar Próxima Factura -->
-                <button type="button" class="btn-proxima-factura" @onclick="CargarProximaFactura" title="Carga automáticamente la primera factura agrupada pendiente">
-                    <svg class="icon-xs text-amber" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                    <span>Cargar Próxima Factura</span>
-                </button>
-
-                <!-- Botón: Listado de Sesiones en Agenda -->
-                <button type="button" class="btn-ver-sesiones-header" @onclick="VerSesionesAgendaDesdeFormulario" title="Auditar las sesiones de la factura seleccionada">
-                    <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    <span>Listado de Sesiones</span>
-                </button>
             </div>
-        </div>
 
-        @if (seccionCargarFacturaAbierta)
-        {
-            <div class="accordion-content">
-                <!-- Selector de Modalidad -->
-                <div class="mb-3">
-                    <label class="form-label-custom">MODALIDAD</label>
-                    <div class="modalidad-pill-group">
-                        <button type="button" class="btn-pill @(tipoModalidadId == 1 ? "active" : "")" @onclick="() => CambiarModalidad(1)">Particular</button>
-                        <button type="button" class="btn-pill @(tipoModalidadId == 2 ? "active" : "")" @onclick="() => CambiarModalidad(2)">Obra Social</button>
-                        <button type="button" class="btn-pill @(tipoModalidadId == 3 ? "active" : "")" @onclick="() => CambiarModalidad(3)">Módulos</button>
-                        <button type="button" class="btn-pill @(tipoModalidadId == 4 ? "active" : "")" @onclick="() => CambiarModalidad(4)">Por Hora</button>
-                        <button type="button" class="btn-pill @(tipoModalidadId == 5 ? "active" : "")" @onclick="() => CambiarModalidad(5)">Taller</button>
+            @if (seccionCargarFacturaAbierta)
+            {
+                <div class="accordion-content">
+                    <!-- Selector de Modalidad -->
+                    <div style="margin-bottom: 1rem;">
+                        <label class="form-label-custom">MODALIDAD</label>
+                        <div class="modalidad-pill-group">
+                            <button type="button" class="btn-pill @(tipoModalidadId == 1 ? "active" : "")" @onclick="() => CambiarModalidad(1)">Particular</button>
+                            <button type="button" class="btn-pill @(tipoModalidadId == 2 ? "active" : "")" @onclick="() => CambiarModalidad(2)">Obra Social</button>
+                            <button type="button" class="btn-pill @(tipoModalidadId == 3 ? "active" : "")" @onclick="() => CambiarModalidad(3)">Módulos</button>
+                            <button type="button" class="btn-pill @(tipoModalidadId == 4 ? "active" : "")" @onclick="() => CambiarModalidad(4)">Por Hora</button>
+                            <button type="button" class="btn-pill @(tipoModalidadId == 5 ? "active" : "")" @onclick="() => CambiarModalidad(5)">Taller</button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Campos dinámicos según Modalidad -->
-                <div class="row g-3 mb-3">
-                    @if (tipoModalidadId == 1 || tipoModalidadId == 2)
-                    {
-                        <div class="col-md-3">
-                            <label class="form-label-custom">PACIENTE</label>
-                            <select class="form-select custom-input" @bind="pacienteId" @bind:after="RecalcularMonto">
-                                <option value="0">Seleccionar Paciente...</option>
-                                @foreach (var pac in listaPacientes)
-                                {
-                                    <option value="@pac.Id">@pac.Nombre</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label-custom">PRESTACIÓN</label>
-                            <select class="form-select custom-input" @bind="tipoPrestacionId" @bind:after="RecalcularMonto">
-                                <option value="0">Seleccionar Prestación...</option>
-                                @foreach (var pr in listaPrestaciones)
-                                {
-                                    <option value="@pr.Id">@pr.Tipo</option>
-                                }
-                            </select>
-                        </div>
-                        @if (tipoModalidadId == 2)
+                    <!-- Campos dinámicos según modalidad -->
+                    <div class="row-fields" style="margin-bottom: 1rem;">
+                        @if (tipoModalidadId == 1 || tipoModalidadId == 2)
                         {
-                            <div class="col-md-3">
-                                <label class="form-label-custom">OBRA SOCIAL</label>
-                                <select class="form-select custom-input" @bind="tipoObraSocialId">
-                                    <option value="0">Seleccionar Obra Social...</option>
-                                    @foreach (var os in listaObrasSociales)
+                            <!-- PARTICULAR / OBRA SOCIAL -->
+                            <div class="field-col" style="flex: 2 1 200px;">
+                                <label class="form-label-custom">PACIENTE</label>
+                                <select class="custom-input" @bind="pacienteId">
+                                    <option value="0">Seleccionar Paciente...</option>
+                                    @foreach (var pac in listaPacientes)
                                     {
-                                        <option value="@os.Id">@os.Tipo</option>
+                                        <option value="@pac.Id">@pac.Nombre</option>
                                     }
                                 </select>
                             </div>
-                        }
-                        <div class="col-md-3">
-                            <label class="form-label-custom">VALOR SESIÓN ($)</label>
-                            <input type="number" step="0.01" class="form-control custom-input" @bind="montoUnitario" @bind:after="RecalcularMonto" />
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label-custom">CANTIDAD SESIONES</label>
-                            <input type="number" min="1" class="form-control custom-input" @bind="cantidad" @bind:after="RecalcularMonto" />
-                        </div>
-                    }
-                    else if (tipoModalidadId == 3)
-                    {
-                        <!-- MÓDULOS -->
-                        <div class="col-md-3">
-                            <label class="form-label-custom">CANT. MÓDULOS COMPLETOS</label>
-                            <input type="number" min="0" class="form-control custom-input" @bind="cantidadModCompleto" @bind:after="RecalcularMonto" />
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label-custom">VALOR MÓDULO COMPLETO ($)</label>
-                            <input type="number" step="0.01" class="form-control custom-input" @bind="montoModCompleto" @bind:after="RecalcularMonto" />
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label-custom">CANT. MEDIOS MÓDULOS</label>
-                            <input type="number" min="0" class="form-control custom-input" @bind="cantidadMedioMod" @bind:after="RecalcularMonto" />
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label-custom">VALOR MEDIO MÓDULO ($)</label>
-                            <input type="number" step="0.01" class="form-control custom-input" @bind="montoMedioMod" @bind:after="RecalcularMonto" />
-                        </div>
-                    }
-                    else if (tipoModalidadId == 4)
-                    {
-                        <!-- POR HORA -->
-                        <div class="col-md-6">
-                            <label class="form-label-custom">CANTIDAD DE HORAS</label>
-                            <input type="number" min="1" class="form-control custom-input" @bind="cantidad" @bind:after="RecalcularMonto" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label-custom">VALOR POR HORA ($)</label>
-                            <input type="number" step="0.01" class="form-control custom-input" @bind="montoUnitario" @bind:after="RecalcularMonto" />
-                        </div>
-                    }
-                    else if (tipoModalidadId == 5)
-                    {
-                        <!-- TALLER -->
-                        <div class="col-md-4">
-                            <label class="form-label-custom">TALLER</label>
-                            <select class="form-select custom-input" @bind="tipoPrestacionId">
-                                <option value="0">Seleccionar Taller...</option>
-                                @foreach (var pr in listaPrestaciones)
-                                {
-                                    <option value="@pr.Id">@pr.Tipo</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label-custom">CANTIDAD</label>
-                            <input type="number" min="1" class="form-control custom-input" @bind="cantidad" @bind:after="RecalcularMonto" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label-custom">PRECIO POR TALLER ($)</label>
-                            <input type="number" step="0.01" class="form-control custom-input" @bind="montoUnitario" @bind:after="RecalcularMonto" />
-                        </div>
-                    }
-                </div>
-
-                <!-- Bloque Financiero y de Retención -->
-                <div class="finance-strip">
-                    <div class="finance-item">
-                        <label>MONTO FACTURACIÓN</label>
-                        <span class="fs-5 fw-bold text-dark">$@montoFacturacion.ToString("N2")</span>
-                    </div>
-                    <div class="finance-item">
-                        <label>% RETENCIÓN</label>
-                        <input type="number" min="0" max="100" step="0.5" class="form-control custom-input-sm" @bind="porcentajeRetencion" @bind:after="RecalcularRetencion" />
-                    </div>
-                    <div class="finance-item">
-                        <label>RETENCIÓN ($)</label>
-                        <span class="fs-5 fw-bold text-danger">-$@montoRetencion.ToString("N2")</span>
-                    </div>
-                    <div class="finance-item">
-                        <label>TOTAL A LIQUIDAR</label>
-                        <span class="fs-5 fw-bold text-success">$@montoTotalALiquidar.ToString("N2")</span>
-                    </div>
-                    <div class="finance-item">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <label>PAGA ($)</label>
-                            <button type="button" class="btn-pagar-todo" @onclick="PagarTodo">Pagar todo</button>
-                        </div>
-                        <input type="number" step="0.01" min="0" max="@montoTotalALiquidar" class="form-control custom-input-sm" @bind="montoPagado" @bind:after="RecalcularSaldo" />
-                    </div>
-                    <div class="finance-item">
-                        <label>SALDO PENDIENTE</label>
-                        <span class="fs-5 fw-bold @(saldoPendiente > 0 ? "text-danger" : "text-success")">$@saldoPendiente.ToString("N2")</span>
-                    </div>
-                </div>
-
-                <!-- Botón de acción: Agregar o Actualizar Factura -->
-                <div class="d-flex justify-content-end gap-2 mt-3">
-                    @if (indiceDetalleEnEdicion.HasValue)
-                    {
-                        <button type="button" class="btn-cancel-edit" @onclick="CancelarEdicionDetalle">Cancelar Edición</button>
-                    }
-                    <button type="button" class="btn-add-detalle" @onclick="AgregarOActualizarDetalle">
-                        @(indiceDetalleEnEdicion.HasValue ? "Actualizar Factura" : "Agregar Factura a la Liquidación")
-                    </button>
-                </div>
-            </div>
-        }
-    </div>
-
-    <!-- 3. LISTADO DE FACTURAS CARGADAS EN ESTA LIQUIDACIÓN -->
-    <div class="section-card mt-3">
-        <div class="section-header justify-content-between">
-            <div class="d-flex align-items-center gap-2">
-                <svg class="icon-sm text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                <h2 class="section-title">FACTURAS CARGADAS EN LA LIQUIDACIÓN (@detallesCargados.Count)</h2>
-            </div>
-        </div>
-
-        @if (detallesCargados.Count == 0)
-        {
-            <div class="empty-state-box">
-                <p>No has agregado facturas todavía. Utiliza el botón <strong>"Cargar Próxima Factura"</strong> o selecciona una desde <strong>"Facturas por liquidar"</strong>.</p>
-            </div>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="table-detalles">
-                    <thead>
-                        <tr>
-                            <th>Modalidad</th>
-                            <th>Paciente / Concepto</th>
-                            <th>Prestación / OS</th>
-                            <th class="text-end">Facturación</th>
-                            <th class="text-end">Retención</th>
-                            <th class="text-end">Saldo Pend.</th>
-                            <th class="text-center">Estado Pago</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (int i = 0; i < detallesCargados.Count; i++)
-                        {
-                            var index = i;
-                            var d = detallesCargados[index];
-                            <tr>
-                                <td><span class="badge-modalidad">@d.TipoModalidadNombre</span></td>
-                                <td class="fw-bold">@(!string.IsNullOrEmpty(d.PacienteNombreCompleto) ? d.PacienteNombreCompleto : "Sin paciente")</td>
-                                <td>
-                                    <span>@d.TipoPrestacionNombre</span>
-                                    @if (!string.IsNullOrEmpty(d.TipoObraSocialNombre))
+                            <div class="field-col" style="flex: 2 1 200px;">
+                                <label class="form-label-custom">PRESTACIÓN</label>
+                                <select class="custom-input" @bind="tipoPrestacionId" @bind:after="OnPrestacionSeleccionada">
+                                    <option value="0">Seleccionar Prestación...</option>
+                                    @foreach (var pr in listaPrestaciones)
                                     {
-                                        <span class="text-muted d-block text-xs">@d.TipoObraSocialNombre</span>
+                                        <option value="@pr.Id">@pr.Tipo (@pr.PorcentajeRetencion.ToString("0.##")%)</option>
                                     }
-                                </td>
-                                <td class="text-end fw-bold text-dark">$@d.MontoFacturacion.ToString("N2")</td>
-                                <td class="text-end text-danger">-$@d.Retencion.ToString("N2") (@d.Porcentaje%)</td>
-                                <td class="text-end fw-bold @(d.Saldo > 0 ? "text-danger" : "text-success")">$@d.Saldo.ToString("N2")</td>
-                                <td class="text-center">
-                                    <span class="badge-estado-pago @d.EstadoPago.ToString().ToLower()">@d.EstadoPago</span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-1">
-                                        <button type="button" class="btn-icon-sub" title="Ver sesiones" @onclick="() => AbrirModalSesiones(d)">
-                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                        </button>
-                                        <button type="button" class="btn-icon-sub" title="Editar factura" @onclick="() => EditarDetalle(index)">
-                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                                        </button>
-                                        <button type="button" class="btn-icon-sub text-danger" title="Eliminar factura" @onclick="() => EliminarDetalle(index)">
-                                            <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                                </select>
+                            </div>
+                            @if (tipoModalidadId == 2)
+                            {
+                                <div class="field-col" style="flex: 2 1 200px;">
+                                    <label class="form-label-custom">OBRA SOCIAL</label>
+                                    <select class="custom-input" @bind="tipoObraSocialId">
+                                        <option value="0">Seleccionar Obra Social...</option>
+                                        @foreach (var os in listaObrasSociales)
+                                        {
+                                            <option value="@os.Id">@os.Tipo</option>
+                                        }
+                                    </select>
+                                </div>
+                            }
+                            <div class="field-col" style="flex: 1 1 120px;">
+                                <label class="form-label-custom">VALOR SESIÓN ($)</label>
+                                <input type="number" step="0.01" class="custom-input" @bind="montoUnitario" @bind:after="RecalcularMonto" />
+                            </div>
+                            <div class="field-col" style="flex: 1 1 100px;">
+                                <label class="form-label-custom">CANTIDAD SESIONES</label>
+                                <input type="number" min="1" class="custom-input" @bind="cantidad" @bind:after="RecalcularMonto" />
+                            </div>
                         }
-                    </tbody>
-                </table>
-            </div>
+                        else if (tipoModalidadId == 3)
+                        {
+                            <!-- MÓDULOS -->
+                            <div class="field-col">
+                                <label class="form-label-custom">CANT. MÓDULOS COMPLETOS</label>
+                                <input type="number" min="0" class="custom-input" @bind="cantidadModCompleto" @bind:after="RecalcularMonto" />
+                            </div>
+                            <div class="field-col">
+                                <label class="form-label-custom">VALOR MÓDULO COMPLETO ($)</label>
+                                <input type="number" step="0.01" class="custom-input" @bind="montoModCompleto" @bind:after="RecalcularMonto" />
+                            </div>
+                            <div class="field-col">
+                                <label class="form-label-custom">CANT. MEDIOS MÓDULOS</label>
+                                <input type="number" min="0" class="custom-input" @bind="cantidadMedioMod" @bind:after="RecalcularMonto" />
+                            </div>
+                            <div class="field-col">
+                                <label class="form-label-custom">VALOR MEDIO MÓDULO ($)</label>
+                                <input type="number" step="0.01" class="custom-input" @bind="montoMedioMod" @bind:after="RecalcularMonto" />
+                            </div>
+                        }
+                        else if (tipoModalidadId == 4)
+                        {
+                            <!-- POR HORA -->
+                            <div class="field-col">
+                                <label class="form-label-custom">CANTIDAD DE HORAS</label>
+                                <input type="number" min="1" class="custom-input" @bind="cantidad" @bind:after="RecalcularMonto" />
+                            </div>
+                            <div class="field-col">
+                                <label class="form-label-custom">VALOR POR HORA ($)</label>
+                                <input type="number" step="0.01" class="custom-input" @bind="montoUnitario" @bind:after="RecalcularMonto" />
+                            </div>
+                        }
+                        else if (tipoModalidadId == 5)
+                        {
+                            <!-- TALLER -->
+                            <div class="field-col">
+                                <label class="form-label-custom">TALLER</label>
+                                <select class="custom-input" @bind="tipoPrestacionId" @bind:after="OnPrestacionSeleccionada">
+                                    <option value="0">Seleccionar Taller...</option>
+                                    @foreach (var pr in listaPrestaciones)
+                                    {
+                                        <option value="@pr.Id">@pr.Tipo</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="field-col">
+                                <label class="form-label-custom">CANTIDAD</label>
+                                <input type="number" min="1" class="custom-input" @bind="cantidad" @bind:after="RecalcularMonto" />
+                            </div>
+                            <div class="field-col">
+                                <label class="form-label-custom">PRECIO POR TALLER ($)</label>
+                                <input type="number" step="0.01" class="custom-input" @bind="montoUnitario" @bind:after="RecalcularMonto" />
+                            </div>
+                        }
+                    </div>
 
-            <!-- Resumen Totalizador al Pie -->
-            <div class="totales-bar">
-                <div class="tot-item">
-                    <span>TOTAL FACTURADO</span>
-                    <strong>$@detallesCargados.Sum(x => x.MontoFacturacion).ToString("N2")</strong>
-                </div>
-                <div class="tot-item text-danger">
-                    <span>RETENCIÓN TOTAL</span>
-                    <strong>-$@detallesCargados.Sum(x => x.Retencion).ToString("N2")</strong>
-                </div>
-                <div class="tot-item text-success">
-                    <span>SALDO PENDIENTE TOTAL</span>
-                    <strong>$@detallesCargados.Sum(x => x.Saldo).ToString("N2")</strong>
-                </div>
-                <div class="ms-auto">
-                    <button type="button" class="btn-guardar-principal" @onclick="GuardarLiquidacionFinal" disabled="@guardando">
-                        <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                        <span>@(guardando ? "Guardando en Neon..." : "GUARDAR LIQUIDACIÓN")</span>
-                    </button>
-                </div>
-            </div>
-        }
-    </div>
+                    <!-- ADVERTENCIA SI SE MODIFICARON VALORES PREESTABLECIDOS -->
+                    @if (EsValorModificado())
+                    {
+                        var pr = listaPrestaciones.FirstOrDefault(p => p.Id == tipoPrestacionId);
+                        <div class="warning-alert-pill">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;min-width:16px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            <span><strong>Valores modificados manualmente:</strong> Los valores actuales ($@montoUnitario.ToString("N0") / @porcentajeRetencion%) difieren de la prestación configurada (@pr?.Tipo: $@(pr?.MontoSesion.ToString("N0")) / @(pr?.PorcentajeRetencion)% retención).</span>
+                        </div>
+                    }
 
-    <!-- MODAL: Auditoría de Sesiones -->
-    @if (mostrarModalSesiones && detalleParaSesiones != null)
-    {
-        <div class="modal-backdrop-custom">
-            <div class="modal-card">
-                <div class="modal-header-custom">
-                    <h3 class="modal-title">Sesiones en Agenda: @detalleParaSesiones.PacienteNombreCompleto</h3>
-                    <button type="button" class="btn-close-modal" @onclick="() => mostrarModalSesiones = false">✕</button>
+                    <!-- Bloque Financiero y de Retención (Perspectiva Centro Senderos) -->
+                    <div class="finance-strip">
+                        <div class="finance-item">
+                            <label>MONTO FACTURACIÓN</label>
+                            <span class="fs-num font-bold text-dark">$@montoFacturacion.ToString("N2")</span>
+                        </div>
+                        <div class="finance-item">
+                            <label>% RETENCIÓN CENTRO</label>
+                            <input type="number" min="0" max="100" step="0.5" class="custom-input-sm font-bold text-centro" @bind="porcentajeRetencion" @bind:after="RecalcularRetencion" />
+                        </div>
+                        <div class="finance-item">
+                            <label>RETENCIÓN CENTRO ($)</label>
+                            <span class="fs-num font-bold text-success">+$@montoRetencion.ToString("N2")</span>
+                        </div>
+                        <div class="finance-item">
+                            <label>COBRO PROFESIONAL ($)</label>
+                            <span class="fs-num font-bold text-primary">$@cobroProfesional.ToString("N2")</span>
+                        </div>
+                        <div class="finance-item">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <label>ABONA ($)</label>
+                                <button type="button" class="btn-pagar-todo" @onclick="AbonarTodo">Abonar todo</button>
+                            </div>
+                            <input type="number" step="0.01" min="0" max="@montoRetencion" class="custom-input-sm" @bind="montoAbonado" @bind:after="RecalcularSaldo" />
+                        </div>
+                        <div class="finance-item">
+                            <label>SALDO PENDIENTE CENTRO</label>
+                            <span class="fs-num font-bold @(saldoPendiente > 0 ? "text-danger" : "text-muted")">$@saldoPendiente.ToString("N2")</span>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción de la Factura -->
+                    <div style="display:flex; align-items:center; gap:0.5rem; margin-top:1rem;">
+                        <button type="button" class="btn-agregar-detalle" @onclick="AgregarOActualizarDetalle">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <span>@(indiceDetalleEnEdicion.HasValue ? "Guardar Cambios de la Factura" : "Agregar Factura a la Liquidación")</span>
+                        </button>
+                        @if (indiceDetalleEnEdicion.HasValue)
+                        {
+                            <button type="button" class="btn-cancelar-detalle" @onclick="CancelarEdicionDetalle">Cancelar</button>
+                        }
+                    </div>
                 </div>
-                <div class="modal-body-custom">
-                    @if (turnosSesionModal.Count == 0)
-                    {
-                        <p class="text-center py-4 text-muted">No se encontraron sesiones registradas en la agenda para los parámetros seleccionados.</p>
-                    }
-                    else
-                    {
-                        <table class="table-sesiones">
-                            <thead>
-                                <tr>
-                                    <th>N°</th>
-                                    <th>Fecha</th>
-                                    <th>Horario</th>
-                                    <th>Consultorio</th>
-                                    <th>Estado Asistencia</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var t in turnosSesionModal)
-                                {
-                                    <tr>
-                                        <td><strong>#@t.NumeroSesion</strong></td>
-                                        <td>@t.Fecha.ToString("dd/MM/yyyy")</td>
-                                        <td>@t.HoraInicio.ToString("HH:mm") - @t.HoraFin.ToString("HH:mm")</td>
-                                        <td>@t.ConsultorioNombre</td>
-                                        <td><span class="badge-asistencia">@t.EstadoTurno</span></td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    }
-                </div>
-                <div class="modal-footer-custom">
-                    <button type="button" class="btn-secondary-custom" @onclick="() => mostrarModalSesiones = false">Cerrar</button>
-                </div>
-            </div>
+            }
         </div>
-    }
 
-    <!-- MODAL: Salir sin guardar -->
-    @if (mostrarModalSalir)
-    {
-        <div class="modal-backdrop-custom">
-            <div class="modal-card modal-sm">
-                <div class="modal-header-custom">
-                    <h3 class="modal-title">Cambios sin guardar</h3>
-                    <button type="button" class="btn-close-modal" @onclick="() => mostrarModalSalir = false">✕</button>
+        <!-- 3. DETALLES DE LA LIQUIDACIÓN CON AGRUPACIÓN JERÁRQUICA: MODALIDAD -> OBRA SOCIAL -> PRESTACIÓN -->
+        <div class="section-card" style="margin-top: 1.5rem;">
+            <div class="section-header" style="justify-content: space-between;">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <svg width="18" height="18" class="text-primary-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <h2 class="section-title">DETALLES DE LA LIQUIDACIÓN (@detallesCargados.Count conceptos)</h2>
                 </div>
-                <div class="modal-body-custom">
-                    <p>Tienes facturas o modificaciones en la liquidación que aún no has guardado en el servidor.</p>
+                <span style="font-size:11px; color:#64748b; font-weight:600;">Jerarquía: 1° Modalidad • 2° Obra Social • 3° Prestación</span>
+            </div>
+
+            @if (detallesCargados.Count == 0)
+            {
+                <div class="empty-detalles-box">
+                    <p style="margin:0 0 0.25rem 0; font-weight:600; color:#475569;">No hay facturas agregadas a esta liquidación todavía.</p>
+                    <span style="font-size:12px; color:#94a3b8;">Utiliza el botón &quot;Cargar Próxima Factura&quot; o completa el formulario superior para añadir prestaciones.</span>
                 </div>
-                <div class="modal-footer-custom">
-                    <button type="button" class="btn-secondary-custom" @onclick="() => mostrarModalSalir = false">Cancelar</button>
-                    <button type="button" class="btn-secondary-custom text-danger" @onclick="DescartarYSalir">Descartar</button>
-                    <button type="button" class="btn-nueva-liq" @onclick="GuardarYSalir">Guardar y Salir</button>
+            }
+            else
+            {
+                <div class="detalles-hierarchical-container">
+                    @foreach (var grupoMod in detallesCargados.GroupBy(d => d.TipoModalidadNombre))
+                    {
+                        var modNombre = grupoMod.Key;
+                        var subFactMod = grupoMod.Sum(x => x.MontoFacturacion);
+                        var subRetMod = grupoMod.Sum(x => x.Retencion);
+                        var subCobroProfMod = subFactMod - subRetMod;
+                        var subSaldoMod = grupoMod.Sum(x => x.Saldo);
+                        var subAbonadoMod = subRetMod - subSaldoMod;
+
+                        <div class="group-level-1-modalidad">
+                            <!-- ENCABEZADO NIVEL 1: MODALIDAD -->
+                            <div class="group-header-modalidad">
+                                <div style="display:flex; align-items:center; gap:0.5rem;">
+                                    <span class="badge-modalidad-pill">@modNombre</span>
+                                    <span style="font-size:12px; color:#64748b;">(@grupoMod.Count() registros)</span>
+                                </div>
+                                <div class="group-totals-chips">
+                                    <span>Facturado: <strong>$@subFactMod.ToString("N0")</strong></span>
+                                    <span>Retención Centro: <strong class="text-success">+$@subRetMod.ToString("N0")</strong></span>
+                                    <span>Cobro Prof.: <strong class="text-primary">$@subCobroProfMod.ToString("N0")</strong></span>
+                                    <span>Abonado: <strong>$@subAbonadoMod.ToString("N0")</strong></span>
+                                    <span>Saldo: <strong class="@(subSaldoMod > 0 ? "text-danger" : "text-muted")">$@subSaldoMod.ToString("N0")</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- NIVEL 2: OBRA SOCIAL -->
+                            @foreach (var grupoOS in grupoMod.GroupBy(d => !string.IsNullOrEmpty(d.TipoObraSocialNombre) ? d.TipoObraSocialNombre : (modNombre == "Obra Social" ? "Sin Obra Social Asignada" : "Atención Directa / Consultorio")))
+                            {
+                                var osNombre = grupoOS.Key;
+                                var subFactOS = grupoOS.Sum(x => x.MontoFacturacion);
+                                var subRetOS = grupoOS.Sum(x => x.Retencion);
+                                var subCobroOS = subFactOS - subRetOS;
+                                var subSaldoOS = grupoOS.Sum(x => x.Saldo);
+                                var subAbonadoOS = subRetOS - subSaldoOS;
+
+                                <div class="group-level-2-obrasocial">
+                                    <div class="group-header-obrasocial">
+                                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                                            <svg width="14" height="14" style="color:#64748b; width:14px; height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16"></path></svg>
+                                            <span style="font-weight:700; font-size:13px; color:#1e293b;">@osNombre</span>
+                                        </div>
+                                        <div class="group-totals-chips-sm">
+                                            <span>Subtotal: $@subFactOS.ToString("N0")</span>
+                                            <span>Ret. Centro: +$@subRetOS.ToString("N0")</span>
+                                            <span>Cobro: $@subCobroOS.ToString("N0")</span>
+                                            <span>Saldo: $@subSaldoOS.ToString("N0")</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- NIVEL 3: PRESTACIÓN -->
+                                    @foreach (var grupoPrest in grupoOS.GroupBy(d => d.TipoPrestacionNombre))
+                                    {
+                                        var prestNombre = grupoPrest.Key;
+
+                                        <div class="group-level-3-prestacion">
+                                            <div class="group-header-prestacion">
+                                                <span class="prestacion-title-tag">@prestNombre</span>
+                                            </div>
+
+                                            <div class="table-responsive">
+                                                <table class="table-detalles">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Paciente / Detalle</th>
+                                                            <th>Sesiones</th>
+                                                            <th class="text-end">Facturado</th>
+                                                            <th class="text-end">Ret. Centro</th>
+                                                            <th class="text-end">Cobro Prof.</th>
+                                                            <th class="text-end">Abonado</th>
+                                                            <th class="text-end">Saldo Centro</th>
+                                                            <th class="text-center">Estado</th>
+                                                            <th class="text-center">Acciones</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var d in grupoPrest)
+                                                        {
+                                                            var index = detallesCargados.IndexOf(d);
+                                                            var cobroFila = d.MontoFacturacion - d.Retencion;
+                                                            var abonadoFila = d.Retencion - d.Saldo;
+
+                                                            <tr>
+                                                                <td style="font-weight:700; color:#0f172a;">@(!string.IsNullOrEmpty(d.PacienteNombreCompleto) ? d.PacienteNombreCompleto : "Sin paciente")</td>
+                                                                <td>@d.Cantidad ses.</td>
+                                                                <td class="text-end font-bold text-dark">$@d.MontoFacturacion.ToString("N2")</td>
+                                                                <td class="text-end font-bold text-success">+$@d.Retencion.ToString("N2")</td>
+                                                                <td class="text-end font-bold text-primary">$@cobroFila.ToString("N2")</td>
+                                                                <td class="text-end font-bold text-dark">$@abonadoFila.ToString("N2")</td>
+                                                                <td class="text-end font-bold @(d.Saldo > 0 ? "text-danger" : "text-muted")">$@d.Saldo.ToString("N2")</td>
+                                                                <td class="text-center">
+                                                                    @switch (d.EstadoPago)
+                                                                    {
+                                                                        case EnumEstadoPagoLiquidacion.Pagado:
+                                                                            <span class="badge-mini-pagado">PAGADO</span>
+                                                                            break;
+                                                                        case EnumEstadoPagoLiquidacion.Parcial:
+                                                                            <span class="badge-mini-parcial">PARCIAL</span>
+                                                                            break;
+                                                                        default:
+                                                                            <span class="badge-mini-pendiente">PENDIENTE</span>
+                                                                            break;
+                                                                    }
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                                                                        <button type="button" class="btn-icon-table" title="Ver sesiones de la agenda" @onclick="() => AbrirModalSesiones(d)">
+                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                                                        </button>
+                                                                        <button type="button" class="btn-icon-table text-primary" title="Editar factura" @onclick="() => EditarDetalle(index)">
+                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                                                        </button>
+                                                                        <button type="button" class="btn-icon-table text-danger" title="Eliminar factura" @onclick="() => EliminarDetalle(index)">
+                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- 4. TOTALES DE LA LIQUIDACIÓN Y BOTÓN GUARDAR -->
+        <div class="totals-summary-card">
+            <div class="totals-inner-row">
+                <div class="totals-grid-metrics">
+                    <div class="metric-box">
+                        <span class="summary-label">FACTURADO PROF.</span>
+                        <div class="summary-val text-dark">$@detallesCargados.Sum(d => d.MontoFacturacion).ToString("N2")</div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="summary-label">RETENCIÓN CENTRO</span>
+                        <div class="summary-val text-success">+$@detallesCargados.Sum(d => d.Retencion).ToString("N2")</div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="summary-label">COBRO PROFESIONAL</span>
+                        <div class="summary-val text-primary">$@((detallesCargados.Sum(d => d.MontoFacturacion) - detallesCargados.Sum(d => d.Retencion)).ToString("N2"))</div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="summary-label">TOTAL ABONADO</span>
+                        <div class="summary-val text-dark">$@((detallesCargados.Sum(d => d.Retencion) - detallesCargados.Sum(d => d.Saldo)).ToString("N2"))</div>
+                    </div>
+                    <div class="metric-box">
+                        <span class="summary-label">SALDO PENDIENTE CENTRO</span>
+                        <div class="summary-val text-danger">$@detallesCargados.Sum(d => d.Saldo).ToString("N2")</div>
+                    </div>
+                </div>
+                <div>
+                    <button type="button" class="btn-guardar-principal" disabled="@guardando" @onclick="GuardarLiquidacionFinal">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:18px;height:18px;min-width:18px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span>@(guardando ? "Guardando..." : "GUARDAR LIQUIDACIÓN")</span>
+                    </button>
                 </div>
             </div>
         </div>
     }
 </div>
 
+<!-- MODAL: DETALLE DE SESIONES DE LA FACTURA -->
+@if (mostrarModalSesiones && detalleParaSesiones != null)
+{
+    <div class="modal-backdrop-custom">
+        <div class="modal-card-custom modal-lg">
+            <div class="modal-header-custom">
+                <div class="modal-title-with-icon">
+                    <svg width="18" height="18" class="text-primary-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <h3>Sesiones de la Agenda - @detalleParaSesiones.PacienteNombreCompleto</h3>
+                </div>
+                <button type="button" class="btn-close-modal" @onclick="() => mostrarModalSesiones = false">✕</button>
+            </div>
+            <div class="modal-body-custom">
+                @if (turnosSesionModal.Count == 0)
+                {
+                    <p style="text-align:center; color:#94a3b8; padding:1.5rem;">No hay sesiones asociadas a este registro.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table-detalles">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Fecha</th>
+                                    <th>Horario</th>
+                                    <th>Consultorio</th>
+                                    <th>Prestación</th>
+                                    <th>Estado Turno</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var t in turnosSesionModal)
+                                {
+                                    <tr>
+                                        <td>@t.NumeroSesion</td>
+                                        <td>@t.Fecha.ToString("dd/MM/yyyy")</td>
+                                        <td>@t.HoraInicio.ToString(@"hh\:mm") - @t.HoraFin.ToString(@"hh\:mm")</td>
+                                        <td>@t.ConsultorioNombre</td>
+                                        <td>@t.TipoTurnoNombre</td>
+                                        <td><span class="badge-mini-pagado">Atendido</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-secondary-custom" @onclick="() => mostrarModalSesiones = false">Cerrar</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- MODAL: CONFIRMAR SALIDA SIN GUARDAR -->
+@if (mostrarModalSalir)
+{
+    <div class="modal-backdrop-custom">
+        <div class="modal-card-custom">
+            <div class="modal-header-custom">
+                <div class="modal-title-with-icon">
+                    <svg width="20" height="20" class="text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <h3>Cambios sin guardar</h3>
+                </div>
+                <button type="button" class="btn-close-modal" @onclick="() => mostrarModalSalir = false">✕</button>
+            </div>
+            <div class="modal-body-custom">
+                <p>Tiene cambios pendientes en la liquidación. Si sale ahora se perderán las facturas no guardadas.</p>
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-secondary-custom" @onclick="DescartarYSalir">Descartar y Salir</button>
+                <button type="button" class="btn-guardar-principal" @onclick="GuardarYSalir">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+/* CSS embebido autolimitado para LiquidacionCrearEditar */
+.liq-create-container {
+    padding: 1.5rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-family: inherit;
+    color: #1e293b;
+}
+
+.top-nav-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.btn-back-arrow {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #334155;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.btn-back-arrow:hover {
+    background-color: #e2e8f0;
+}
+
+.page-main-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+
+.periodo-badge {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.autosave-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #166534;
+}
+
+.section-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.section-title {
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #334155;
+    margin: 0;
+}
+
+.text-primary-green {
+    color: #3d5a45;
+}
+
+.row-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.field-col {
+    flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.form-label-custom {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.03em;
+}
+
+.custom-input {
+    width: 100%;
+    height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0 0.75rem;
+    font-size: 0.85rem;
+    color: #1e293b;
+    background: #ffffff;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.custom-input:focus {
+    border-color: #3d5a45;
+}
+
+.accordion-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    overflow: hidden;
+}
+
+.accordion-header-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    gap: 0.75rem;
+}
+
+.toggle-click-area {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.icon-toggle {
+    transition: transform 0.2s;
+    color: #475569;
+}
+
+.icon-toggle.open {
+    transform: rotate(180deg);
+}
+
+.accordion-title {
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: #1e293b;
+    letter-spacing: 0.03em;
+}
+
+.badge-modo-edicion {
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 0.65rem;
+    font-weight: 750;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.header-actions-area {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge-ya-guardada {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    padding: 0.35rem 0.65rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.btn-facturas-pendientes {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    transition: background 0.15s;
+}
+
+.btn-has-pending {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.btn-proxima-factura {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    transition: background 0.15s;
+}
+
+.btn-proxima-factura:hover {
+    background: #fef3c7;
+}
+
+.btn-ver-sesiones-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #ffffff;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.dropdown-pending-invoices {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 5px);
+    width: 320px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.dropdown-pending-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0.85rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.btn-close-sm {
+    background: none;
+    border: none;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: #94a3b8;
+}
+
+.dropdown-pending-body {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.pending-group-item {
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.1s;
+}
+
+.pending-group-item:hover {
+    background: #f8fafc;
+}
+
+.badge-cargar-mini {
+    background: #fef3c7;
+    color: #b45309;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.accordion-content {
+    padding: 1.25rem;
+}
+
+.modalidad-pill-group {
+    display: inline-flex;
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 3px;
+    gap: 3px;
+}
+
+.btn-pill {
+    border: none;
+    background: transparent;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-pill.active {
+    background: #3d5a45;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.warning-alert-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fefce8;
+    border-left: 4px solid #f59e0b;
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    margin-bottom: 1rem;
+    font-size: 0.78rem;
+    color: #854d0e;
+}
+
+.finance-strip {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.85rem;
+    gap: 0.75rem;
+}
+
+@@media (max-width: 992px) {
+    .finance-strip {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.finance-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.finance-item label {
+    font-size: 0.68rem;
+    font-weight: 750;
+    color: #64748b;
+    letter-spacing: 0.03em;
+}
+
+.fs-num {
+    font-size: 1.15rem;
+}
+
+.custom-input-sm {
+    height: 32px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0 0.5rem;
+    font-size: 0.85rem;
+    outline: none;
+    background: #ffffff;
+}
+
+.btn-pagar-todo {
+    border: none;
+    background: none;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #0284c7;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.btn-agregar-detalle {
+    background: #3d5a45;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.825rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.btn-cancelar-detalle {
+    background: #e2e8f0;
+    color: #475569;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.825rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.empty-detalles-box {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+}
+
+.detalles-hierarchical-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.group-level-1-modalidad {
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.group-header-modalidad {
+    background: #f1f5f9;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.badge-modalidad-pill {
+    background: #3d5a45;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 750;
+    padding: 3px 9px;
+    border-radius: 12px;
+}
+
+.group-totals-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    font-size: 0.78rem;
+    color: #475569;
+}
+
+.group-totals-chips strong {
+    color: #0f172a;
+}
+
+.group-level-2-obrasocial {
+    margin: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.group-header-obrasocial {
+    background: #f8fafc;
+    padding: 0.5rem 0.85rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.group-totals-chips-sm {
+    display: flex;
+    gap: 0.65rem;
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.group-level-3-prestacion {
+    padding: 0.5rem;
+}
+
+.group-header-prestacion {
+    margin-bottom: 0.4rem;
+}
+
+.prestacion-title-tag {
+    font-size: 0.72rem;
+    font-weight: 750;
+    color: #334155;
+    background: #f1f5f9;
+    padding: 2px 7px;
+    border-radius: 4px;
+}
+
+.table-detalles {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.table-detalles th {
+    background: #ffffff;
+    color: #64748b;
+    font-size: 0.7rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    text-transform: uppercase;
+}
+
+.table-detalles td {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid #f8fafc;
+    vertical-align: middle;
+}
+
+.badge-mini-pagado { background: #dcfce7; color: #166534; font-size: 0.68rem; font-weight: 750; padding: 2px 6px; border-radius: 10px; }
+.badge-mini-parcial { background: #fef3c7; color: #92400e; font-size: 0.68rem; font-weight: 750; padding: 2px 6px; border-radius: 10px; }
+.badge-mini-pendiente { background: #fee2e2; color: #991b1b; font-size: 0.68rem; font-weight: 750; padding: 2px 6px; border-radius: 10px; }
+
+.btn-icon-table {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 3px;
+    border-radius: 4px;
+    color: #64748b;
+}
+
+.btn-icon-table:hover {
+    background-color: #f1f5f9;
+}
+
+.totals-summary-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.totals-inner-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.totals-grid-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.metric-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.summary-label {
+    font-size: 0.68rem;
+    font-weight: 750;
+    color: #64748b;
+    letter-spacing: 0.03em;
+}
+
+.summary-val {
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.btn-guardar-principal {
+    background: #3d5a45;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.75rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-guardar-principal:hover {
+    background-color: #2d4533;
+    transform: translateY(-1px);
+}
+
+.btn-guardar-principal:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.spinner-custom {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #3d5a45;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.modal-backdrop-custom {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+}
+
+.modal-card-custom {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    overflow: hidden;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
+}
+
+.modal-card-custom.modal-lg {
+    max-width: 700px;
+}
+
+.modal-header-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-title-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.modal-title-with-icon h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: #64748b;
+}
+
+.modal-body-custom {
+    padding: 1.25rem;
+    font-size: 0.875rem;
+    color: #334155;
+}
+
+.modal-footer-custom {
+    padding: 0.85rem 1.25rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.btn-secondary-custom {
+    background: #e2e8f0;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+</style>
+
 @code {
     [Parameter] public int? Id { get; set; }
 
-    // Fechas y cabecera
-    private DateTime fechaDesde = DateTime.UtcNow.AddMonths(-1);
-    private DateTime fechaHasta = DateTime.UtcNow;
+    private bool cargando = true;
+    private bool guardando = false;
+    private bool hayCambiosSinGuardar = false;
+    private bool seccionCargarFacturaAbierta = true;
+    private bool mostrarMenuFacturasPendientes = false;
+    private bool mostrarModalSesiones = false;
+    private bool mostrarModalSalir = false;
+
+    private string? mensajeAlerta;
+    private bool esErrorAlerta = false;
+
+    private List<ProfesionalListadoDTO> listaProfesionales = new();
+    private List<PacienteResumenDTO> listaPacientes = new();
+    private List<TipoPrestacionListadoDTO> listaPrestaciones = new();
+    private List<TipoObraSocialDTO> listaObrasSociales = new();
+    private List<SocioListadoDTO> listaSocios = new();
+
+    private List<FacturaAgrupadaAgendaDTO> facturasPendientesAgenda = new();
+
+    private string numeroLiquidacion = "";
     private int profesionalId = 0;
     private int socioId = 0;
-    private string? numeroLiquidacion;
+    private DateTime fechaDesde = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+    private DateTime fechaHasta = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month));
 
-    // Listas de apoyo
-    private List<ProfesionalListadoDTO> listaProfesionales = new();
-    private List<SocioListadoDTO> listaSocios = new();
-    private List<PacienteResumenDTO> listaPacientes = new();
-    private List<TipoPrestacionDTO> listaPrestaciones = new();
-    private List<TipoObraSocialDTO> listaObrasSociales = new();
-
-    // Facturas en borrador de la liquidación actual
-    private List<GuardarDetalleLiquidacionDTO> detallesCargados = new();
-
-    // Facturas pendientes detectadas de la agenda
-    private List<FacturaAgrupadaView> facturasAgenda = new();
-    private bool mostrarMenuFacturasPendientes = false;
-
-    // Formulario de Detalle activo
-    private bool seccionCargarFacturaAbierta = true;
     private int? indiceDetalleEnEdicion = null;
-    private int tipoModalidadId = 1; // 1: Particular, 2: Obra Social, 3: Módulos, 4: Por Hora, 5: Taller
-    private int? pacienteId;
-    private int? tipoPrestacionId;
-    private int? tipoObraSocialId;
+    private int tipoModalidadId = 1;
+    private int pacienteId = 0;
+    private int tipoPrestacionId = 0;
+    private int tipoObraSocialId = 0;
     private decimal montoUnitario = 0;
     private int cantidad = 1;
 
-    // Específico Módulos
     private int cantidadModCompleto = 0;
-    private decimal montoModCompleto = 0;
+    private decimal montoModCompleto = 50000;
     private int cantidadMedioMod = 0;
-    private decimal montoMedioMod = 0;
+    private decimal montoMedioMod = 30000;
 
-    // Cálculos financieros
     private decimal montoFacturacion = 0;
-    private decimal porcentajeRetencion = 20; // 20% habitual
+    private decimal porcentajeRetencion = 20;
     private decimal montoRetencion = 0;
-    private decimal montoTotalALiquidar = 0;
-    private decimal montoPagado = 0;
+    private decimal cobroProfesional = 0;
+    private decimal montoAbonado = 0;
     private decimal saldoPendiente = 0;
     private List<int> turnosIdsDetalleActual = new();
 
-    // Modales y estados
-    private bool hayCambiosSinGuardar = false;
-    private bool guardando = false;
-    private bool mostrarModalSalir = false;
-    private bool mostrarModalSesiones = false;
-    private GuardarDetalleLiquidacionDTO? detalleParaSesiones = null;
+    private List<GuardarDetalleLiquidacionDTO> detallesCargados = new();
+
+    private GuardarDetalleLiquidacionDTO? detalleParaSesiones;
     private List<TurnoLiquidacionItemDTO> turnosSesionModal = new();
 
-    private string? mensajeAlerta;
-    private bool esErrorAlerta;
-
-    public class FacturaAgrupadaView
+    public class FacturaAgrupadaAgendaDTO
     {
-        public string ClaveGrupo { get; set; } = string.Empty;
+        public int PacienteId { get; set; }
+        public string PacienteNombre { get; set; } = "";
         public int TipoModalidadId { get; set; }
-        public string ModalidadNombre { get; set; } = string.Empty;
-        public int? PacienteId { get; set; }
-        public string PacienteNombre { get; set; } = string.Empty;
-        public int? PrestacionId { get; set; }
-        public string PrestacionNombre { get; set; } = string.Empty;
-        public int? ObraSocialId { get; set; }
+        public string ModalidadNombre { get; set; } = "";
+        public int TipoPrestacionId { get; set; }
+        public string PrestacionNombre { get; set; } = "";
+        public int? TipoObraSocialId { get; set; }
         public string? ObraSocialNombre { get; set; }
-        public decimal MontoSugerido { get; set; }
+        public decimal MontoSesion { get; set; }
+        public decimal PorcentajeRetencion { get; set; }
         public int CantidadTurnos { get; set; }
         public List<int> TurnosIds { get; set; } = new();
     }
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarDesplegables();
-
-        if (Id.HasValue && Id.Value > 0)
-        {
-            await CargarLiquidacionExistente(Id.Value);
-        }
-        else
-        {
-            // Fecha del mes anterior predeterminada
-            var hoy = DateTime.UtcNow;
-            fechaDesde = new DateTime(hoy.Year, hoy.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-1);
-            fechaHasta = new DateTime(hoy.Year, hoy.Month, DateTime.DaysInMonth(hoy.Year, hoy.Month), 23, 59, 59, DateTimeKind.Utc);
-        }
+        await CargarDatosIniciales();
     }
 
-    private async Task CargarDesplegables()
+    private async Task CargarDatosIniciales()
     {
+        cargando = true;
         try
         {
-            var resProf = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
-            if (!resProf.Error && resProf.Respuesta != null) listaProfesionales = resProf.Respuesta;
+            var rProf = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
+            if (!rProf.Error && rProf.Respuesta != null) listaProfesionales = rProf.Respuesta;
 
-            var resSocios = await Http.Get<List<SocioListadoDTO>>("api/socio/ListaSocio");
-            if (!resSocios.Error && resSocios.Respuesta != null) listaSocios = resSocios.Respuesta;
+            var rPac = await Http.Get<List<PacienteResumenDTO>>("api/paciente/resumen");
+            if (!rPac.Error && rPac.Respuesta != null) listaPacientes = rPac.Respuesta;
 
-            var resPac = await Http.Get<List<PacienteResumenDTO>>("api/paciente/ListaPaciente");
-            if (!resPac.Error && resPac.Respuesta != null) listaPacientes = resPac.Respuesta;
+            var rPrest = await Http.Get<List<TipoPrestacionListadoDTO>>("api/tipoprestacion");
+            if (!rPrest.Error && rPrest.Respuesta != null) listaPrestaciones = rPrest.Respuesta;
 
-            var resPres = await Http.Get<List<TipoPrestacionDTO>>("api/tipoprestacion/ListaTipoPrestacion");
-            if (!resPres.Error && resPres.Respuesta != null) listaPrestaciones = resPres.Respuesta;
+            var rOS = await Http.Get<List<TipoObraSocialDTO>>("api/tipoobrasocial");
+            if (!rOS.Error && rOS.Respuesta != null) listaObrasSociales = rOS.Respuesta;
 
-            var resOS = await Http.Get<List<TipoObraSocialDTO>>("api/tipoobrasocial/ListaTipoObraSocial");
-            if (!resOS.Error && resOS.Respuesta != null) listaObrasSociales = resOS.Respuesta;
-        }
-        catch (Exception ex)
-        {
-            MostrarAlerta("Error al cargar datos maestros: " + ex.Message, true);
-        }
-    }
-
-    private async Task CargarLiquidacionExistente(int id)
-    {
-        try
-        {
-            var res = await Http.Get<LiquidacionDTO>($"api/liquidacion/{id}");
-            if (!res.Error && res.Respuesta != null)
+            var rSocios = await Http.Get<List<SocioListadoDTO>>("api/socio");
+            if (!rSocios.Error && rSocios.Respuesta != null)
             {
-                var l = res.Respuesta;
-                numeroLiquidacion = l.NumeroLiquidacion;
-                profesionalId = l.ProfesionalId;
-                socioId = l.SocioId;
-                fechaDesde = l.FechaDesde;
-                fechaHasta = l.FechaHasta;
-
-                detallesCargados = l.Detalles.Select(d => new GuardarDetalleLiquidacionDTO
-                {
-                    Id = d.Id,
-                    TipoModalidadId = d.TipoModalidadId,
-                    TipoModalidadNombre = d.TipoModalidadNombre,
-                    TipoPrestacionId = d.TipoPrestacionId,
-                    TipoPrestacionNombre = d.TipoPrestacionNombre,
-                    TipoObraSocialId = d.TipoObraSocialId,
-                    TipoObraSocialNombre = d.TipoObraSocialNombre,
-                    PacienteId = d.PacienteId,
-                    PacienteNombreCompleto = d.PacienteNombreCompleto,
-                    MontoUnitario = d.MontoUnitario,
-                    Cantidad = d.Cantidad,
-                    MontoModuloCompleto = d.MontoModuloCompleto,
-                    CantidadModuloCompleto = d.CantidadModuloCompleto,
-                    MontoMedioModulo = d.MontoMedioModulo,
-                    CantidadMedioModulo = d.CantidadMedioModulo,
-                    MontoFacturacion = d.MontoFacturacion,
-                    Porcentaje = d.Porcentaje,
-                    Retencion = d.Retencion,
-                    Saldo = d.Saldo,
-                    EstadoPago = d.EstadoPago,
-                    Observaciones = d.Observaciones
-                }).ToList();
-
-                await AlCambiarProfesionalOFechas();
-                hayCambiosSinGuardar = false;
+                listaSocios = rSocios.Respuesta;
+                if (socioId == 0 && listaSocios.Count > 0) socioId = listaSocios.First().Id;
             }
+
+            if (Id.HasValue && Id.Value > 0)
+            {
+                var rLiq = await Http.Get<LiquidacionDTO>($"api/liquidacion/{Id.Value}");
+                if (!rLiq.Error && rLiq.Respuesta != null)
+                {
+                    var liq = rLiq.Respuesta;
+                    numeroLiquidacion = liq.NumeroLiquidacion;
+                    profesionalId = liq.ProfesionalId;
+                    socioId = liq.SocioId;
+                    fechaDesde = liq.FechaDesde;
+                    fechaHasta = liq.FechaHasta;
+
+                    detallesCargados = liq.Detalles.Select(d => new GuardarDetalleLiquidacionDTO
+                    {
+                        Id = d.Id,
+                        TipoModalidadId = d.TipoModalidadId,
+                        TipoModalidadNombre = d.TipoModalidadNombre,
+                        PacienteId = d.PacienteId,
+                        PacienteNombreCompleto = d.PacienteNombreCompleto,
+                        TipoPrestacionId = d.TipoPrestacionId,
+                        TipoPrestacionNombre = d.TipoPrestacionNombre,
+                        TipoObraSocialId = d.TipoObraSocialId,
+                        TipoObraSocialNombre = d.TipoObraSocialNombre,
+                        MontoUnitario = d.MontoUnitario,
+                        Cantidad = d.Cantidad,
+                        MontoFacturacion = d.MontoFacturacion,
+                        Porcentaje = d.Porcentaje,
+                        Retencion = d.Retencion,
+                        Saldo = d.Saldo,
+                        EstadoPago = d.EstadoPago,
+                        TurnosIds = new List<int>()
+                    }).ToList();
+                }
+            }
+            else
+            {
+                numeroLiquidacion = $"LIQ-{DateTime.Now:yyyyMMdd-HHmm}";
+            }
+
+            await CargarFacturasPendientesAgenda();
         }
         catch (Exception ex)
         {
-            MostrarAlerta("Error al cargar la liquidación: " + ex.Message, true);
+            MostrarAlerta("Error al cargar datos: " + ex.Message, true);
+        }
+        finally
+        {
+            cargando = false;
         }
     }
 
     private async Task AlCambiarProfesionalOFechas()
     {
         MarcarCambios();
+        await CargarFacturasPendientesAgenda();
+    }
+
+    private async Task CargarFacturasPendientesAgenda()
+    {
         if (profesionalId <= 0)
         {
-            facturasAgenda.Clear();
+            facturasPendientesAgenda.Clear();
             return;
         }
 
         try
         {
-            // Consultar turnos pendientes para agrupar
-            var url = $"api/liquidacion/turnos-pendientes?profesionalId={profesionalId}&fechaDesde={fechaDesde:yyyy-MM-dd}&fechaHasta={fechaHasta:yyyy-MM-dd}";
-            var res = await Http.Get<List<TurnoLiquidacionItemDTO>>(url);
-
-            facturasAgenda.Clear();
-            if (!res.Error && res.Respuesta != null && res.Respuesta.Count > 0)
+            string url = $"api/liquidacion/turnos-pendientes?profesionalId={profesionalId}&fechaDesde={fechaDesde:yyyy-MM-dd}&fechaHasta={fechaHasta:yyyy-MM-dd}";
+            var r = await Http.Get<List<TurnoLiquidacionItemDTO>>(url);
+            if (!r.Error && r.Respuesta != null)
             {
-                // Agrupamos por paciente y prestación
-                var grupos = res.Respuesta.GroupBy(t => new { t.ConsultorioNombre, t.TipoTurnoNombre });
-                int contador = 1;
-
-                foreach (var g in grupos)
-                {
-                    var primero = g.First();
-                    facturasAgenda.Add(new FacturaAgrupadaView
+                facturasPendientesAgenda = r.Respuesta
+                    .GroupBy(t => new { t.PacienteId, t.TipoPrestacionId, t.ObraSocialId, t.TipoModalidadId })
+                    .Select(g =>
                     {
-                        ClaveGrupo = $"grupo-{contador++}",
-                        TipoModalidadId = 1, // Particular por defecto
-                        ModalidadNombre = "Particular",
-                        PacienteId = listaPacientes.FirstOrDefault()?.Id,
-                        PacienteNombre = primero.ConsultorioNombre ?? "Paciente de Agenda",
-                        PrestacionId = listaPrestaciones.FirstOrDefault()?.Id,
-                        PrestacionNombre = primero.TipoTurnoNombre ?? "Sesión Estándar",
-                        MontoSugerido = 15000,
-                        CantidadTurnos = g.Count(),
-                        TurnosIds = g.Select(x => x.TurnoId).ToList()
-                    });
-                }
+                        var primerTurno = g.First();
+                        var prest = listaPrestaciones.FirstOrDefault(p => p.Id == primerTurno.TipoPrestacionId);
+                        var modalidadId = primerTurno.TipoModalidadId > 0 ? primerTurno.TipoModalidadId : (primerTurno.ObraSocialId.HasValue ? 2 : 1);
+                        var modalidadNombre = modalidadId switch
+                        {
+                            2 => "Obra Social",
+                            3 => "Módulos",
+                            4 => "Por Hora",
+                            5 => "Taller",
+                            _ => "Particular"
+                        };
+
+                        return new FacturaAgrupadaAgendaDTO
+                        {
+                            PacienteId = primerTurno.PacienteId ?? 0,
+                            PacienteNombre = primerTurno.PacienteNombreCompleto ?? primerTurno.PacienteNombre ?? "Sin nombre",
+                            TipoModalidadId = modalidadId,
+                            ModalidadNombre = modalidadNombre,
+                            TipoPrestacionId = primerTurno.TipoPrestacionId ?? 0,
+                            PrestacionNombre = primerTurno.TipoTurnoNombre,
+                            TipoObraSocialId = primerTurno.ObraSocialId,
+                            ObraSocialNombre = primerTurno.ObraSocialNombre,
+                            MontoSesion = primerTurno.MontoSesion > 0 ? primerTurno.MontoSesion : (prest?.MontoSesion ?? 15000),
+                            PorcentajeRetencion = prest?.PorcentajeRetencion ?? (modalidadId >= 3 ? 100 : 20),
+                            CantidadTurnos = g.Count(),
+                            TurnosIds = g.Select(x => x.TurnoId).ToList()
+                        };
+                    }).ToList();
             }
         }
         catch
         {
-            // Fallback si no hay turnos registrados en ese período
-            facturasAgenda.Clear();
+            facturasPendientesAgenda.Clear();
         }
     }
 
-    // CONTROL ANTI-DUPLICADOS: Retorna solo las facturas de agenda que aún NO fueron cargadas a la lista
-    private List<FacturaAgrupadaView> FacturasPendientesSinCargar()
+    private List<FacturaAgrupadaAgendaDTO> FacturasPendientesSinCargar()
     {
-        var turnosYaCargados = detallesCargados.SelectMany(d => d.TurnosIds).ToHashSet();
-        return facturasAgenda.Where(f => !f.TurnosIds.Any(id => turnosYaCargados.Contains(id))).ToList();
+        return facturasPendientesAgenda
+            .Where(f => !detallesCargados.Any(d =>
+                d.PacienteId == f.PacienteId &&
+                d.TipoPrestacionId == f.TipoPrestacionId &&
+                d.TipoModalidadId == f.TipoModalidadId &&
+                d.TipoObraSocialId == f.TipoObraSocialId))
+            .ToList();
     }
 
-    // Indica si la factura que está actualmente en el formulario ya existe en la lista de detalles
     private bool EsFacturaActualYaGuardada()
     {
-        if (indiceDetalleEnEdicion.HasValue) return true;
-        if (turnosIdsDetalleActual.Count > 0)
-        {
-            var turnosYaCargados = detallesCargados.SelectMany(d => d.TurnosIds).ToHashSet();
-            return turnosIdsDetalleActual.Any(id => turnosYaCargados.Contains(id));
-        }
-        if (pacienteId.HasValue && pacienteId.Value > 0)
-        {
-            return detallesCargados.Any(d => d.PacienteId == pacienteId && d.TipoModalidadId == tipoModalidadId && d.TipoPrestacionId == tipoPrestacionId);
-        }
-        return false;
+        if (indiceDetalleEnEdicion.HasValue) return false;
+        if (pacienteId <= 0 && tipoModalidadId <= 2) return false;
+
+        return detallesCargados.Any(d =>
+            d.PacienteId == pacienteId &&
+            d.TipoPrestacionId == tipoPrestacionId &&
+            d.TipoModalidadId == tipoModalidadId &&
+            d.TipoObraSocialId == (tipoObraSocialId > 0 ? tipoObraSocialId : (int?)null));
     }
 
     private void CargarProximaFactura()
@@ -730,40 +1574,60 @@
         var pendientes = FacturasPendientesSinCargar();
         if (pendientes.Count == 0)
         {
-            MostrarAlerta("¡No hay más facturas pendientes por liquidar para este profesional en este período!", false);
+            MostrarAlerta("No hay más facturas agrupadas pendientes en la agenda para este profesional.", false);
             return;
         }
-        CargarFacturaDesdeGrupo(pendientes[0]);
+
+        var prox = pendientes.First();
+        CargarFacturaDesdeGrupo(prox);
     }
 
-    private void CargarFacturaDesdeGrupo(FacturaAgrupadaView fac)
+    private void CargarFacturaDesdeGrupo(FacturaAgrupadaAgendaDTO fac)
     {
-        mostrarMenuFacturasPendientes = false;
-        seccionCargarFacturaAbierta = true;
-        indiceDetalleEnEdicion = null;
-
         tipoModalidadId = fac.TipoModalidadId;
         pacienteId = fac.PacienteId;
-        tipoPrestacionId = fac.PrestacionId;
-        tipoObraSocialId = fac.ObraSocialId;
-        montoUnitario = fac.MontoSugerido > 0 ? fac.MontoSugerido : 15000;
+        tipoPrestacionId = fac.TipoPrestacionId;
+        tipoObraSocialId = fac.TipoObraSocialId ?? 0;
+        montoUnitario = fac.MontoSesion;
         cantidad = fac.CantidadTurnos;
+        porcentajeRetencion = fac.PorcentajeRetencion;
         turnosIdsDetalleActual = new List<int>(fac.TurnosIds);
 
         RecalcularMonto();
-        MostrarAlerta($"Cargada factura de {fac.PacienteNombre} ({fac.CantidadTurnos} turnos agrupados).", false);
+        mostrarMenuFacturasPendientes = false;
+        seccionCargarFacturaAbierta = true;
+        MostrarAlerta($"Factura de {fac.PacienteNombre} ({fac.CantidadTurnos} turnos) precargada en el formulario.", false);
     }
 
-    private void CambiarModalidad(int nuevaMod)
+    private void CambiarModalidad(int modId)
     {
-        tipoModalidadId = nuevaMod;
+        tipoModalidadId = modId;
+        if (tipoModalidadId >= 3)
+        {
+            porcentajeRetencion = 100;
+        }
+        else
+        {
+            var p = listaPrestaciones.FirstOrDefault(x => x.Id == tipoPrestacionId);
+            porcentajeRetencion = p != null && p.PorcentajeRetencion > 0 ? p.PorcentajeRetencion : 20;
+        }
         RecalcularMonto();
-        MarcarCambios();
+    }
+
+    private void OnPrestacionSeleccionada()
+    {
+        var p = listaPrestaciones.FirstOrDefault(x => x.Id == tipoPrestacionId);
+        if (p != null)
+        {
+            if (p.MontoSesion > 0) montoUnitario = p.MontoSesion;
+            porcentajeRetencion = p.PorcentajeRetencion > 0 ? p.PorcentajeRetencion : (tipoModalidadId >= 3 ? 100 : 20);
+        }
+        RecalcularMonto();
     }
 
     private void RecalcularMonto()
     {
-        if (tipoModalidadId == 3) // Módulos
+        if (tipoModalidadId == 3)
         {
             montoFacturacion = (cantidadModCompleto * montoModCompleto) + (cantidadMedioMod * montoMedioMod);
         }
@@ -771,84 +1635,98 @@
         {
             montoFacturacion = cantidad * montoUnitario;
         }
-
         RecalcularRetencion();
     }
 
     private void RecalcularRetencion()
     {
         montoRetencion = Math.Round(montoFacturacion * (porcentajeRetencion / 100m), 2);
-        montoTotalALiquidar = montoFacturacion - montoRetencion;
-        RecalcularSaldo();
-    }
-
-    private void PagarTodo()
-    {
-        montoPagado = montoTotalALiquidar;
-        RecalcularSaldo();
+        cobroProfesional = montoFacturacion - montoRetencion;
+        montoAbonado = 0;
+        saldoPendiente = montoRetencion;
     }
 
     private void RecalcularSaldo()
     {
-        if (montoPagado > montoTotalALiquidar) montoPagado = montoTotalALiquidar;
-        saldoPendiente = Math.Max(0, montoTotalALiquidar - montoPagado);
-        MarcarCambios();
+        if (montoAbonado > montoRetencion) montoAbonado = montoRetencion;
+        if (montoAbonado < 0) montoAbonado = 0;
+        saldoPendiente = montoRetencion - montoAbonado;
+    }
+
+    private void AbonarTodo()
+    {
+        montoAbonado = montoRetencion;
+        saldoPendiente = 0;
+    }
+
+    private bool EsValorModificado()
+    {
+        if (tipoPrestacionId <= 0) return false;
+        var p = listaPrestaciones.FirstOrDefault(x => x.Id == tipoPrestacionId);
+        if (p == null) return false;
+
+        bool precioDistinto = (p.MontoSesion > 0 && p.MontoSesion != montoUnitario);
+        bool retencionDistinta = (p.PorcentajeRetencion > 0 && p.PorcentajeRetencion != porcentajeRetencion);
+        return precioDistinto || retencionDistinta;
     }
 
     private void AgregarOActualizarDetalle()
     {
-        // CONTROL ANTI-DUPLICADOS ESTRICTO
-        if (!indiceDetalleEnEdicion.HasValue && EsFacturaActualYaGuardada())
+        if (tipoModalidadId <= 2 && pacienteId <= 0)
         {
-            MostrarAlerta("Esta factura ya fue cargada en la liquidación actual. Puedes editarla directamente desde la tabla inferior.", true);
+            MostrarAlerta("Debe seleccionar un paciente.", true);
             return;
         }
 
         if (montoFacturacion <= 0)
         {
-            MostrarAlerta("El monto de facturación debe ser mayor a 0.", true);
+            MostrarAlerta("El monto de facturación debe ser mayor a cero.", true);
             return;
         }
 
-        string modalidadNombre = tipoModalidadId switch
+        if (!indiceDetalleEnEdicion.HasValue && EsFacturaActualYaGuardada())
         {
-            1 => "Particular",
+            MostrarAlerta("Esta factura (mismo paciente, modalidad y prestación) ya está agregada a la liquidación. Edítela si necesita modificarla.", true);
+            return;
+        }
+
+        var pac = listaPacientes.FirstOrDefault(p => p.Id == pacienteId);
+        var prest = listaPrestaciones.FirstOrDefault(p => p.Id == tipoPrestacionId);
+        var os = listaObrasSociales.FirstOrDefault(o => o.Id == tipoObraSocialId);
+
+        string modalidadTexto = tipoModalidadId switch
+        {
             2 => "Obra Social",
             3 => "Módulos",
             4 => "Por Hora",
             5 => "Taller",
-            _ => "General"
+            _ => "Particular"
         };
 
-        var pac = listaPacientes.FirstOrDefault(p => p.Id == pacienteId);
-        var pr = listaPrestaciones.FirstOrDefault(p => p.Id == tipoPrestacionId);
-        var os = listaObrasSociales.FirstOrDefault(o => o.Id == tipoObraSocialId);
-
-        EnumEstadoPagoLiquidacion estadoPagoFila = saldoPendiente <= 0 ? EnumEstadoPagoLiquidacion.Pagado
-                                                 : (montoPagado > 0 ? EnumEstadoPagoLiquidacion.Parcial : EnumEstadoPagoLiquidacion.Pendiente);
+        EnumEstadoPagoLiquidacion est = saldoPendiente <= 0 ? EnumEstadoPagoLiquidacion.Pagado
+            : (montoAbonado > 0 ? EnumEstadoPagoLiquidacion.Parcial : EnumEstadoPagoLiquidacion.Pendiente);
 
         var nuevo = new GuardarDetalleLiquidacionDTO
         {
-            Id = 0,
             TipoModalidadId = tipoModalidadId,
-            TipoModalidadNombre = modalidadNombre,
-            TipoPrestacionId = tipoPrestacionId,
-            TipoPrestacionNombre = pr?.Tipo ?? (tipoModalidadId == 3 ? "Alquiler Módulos" : "Servicio"),
-            TipoObraSocialId = tipoObraSocialId,
-            TipoObraSocialNombre = os?.Tipo,
-            PacienteId = pacienteId,
-            PacienteNombreCompleto = pac?.Nombre ?? (tipoModalidadId == 3 ? "Alquiler Consultorio" : "Particular"),
+            TipoModalidadNombre = modalidadTexto,
+            PacienteId = pacienteId > 0 ? pacienteId : null,
+            PacienteNombreCompleto = pac?.Nombre ?? (tipoModalidadId >= 3 ? "Uso Institucional / Alquiler" : ""),
+            TipoPrestacionId = tipoPrestacionId > 0 ? tipoPrestacionId : null,
+            TipoPrestacionNombre = prest?.Tipo ?? modalidadTexto,
+            TipoObraSocialId = tipoObraSocialId > 0 ? tipoObraSocialId : null,
+            TipoObraSocialNombre = os?.Tipo ?? "",
             MontoUnitario = montoUnitario,
-            Cantidad = cantidad,
-            MontoModuloCompleto = tipoModalidadId == 3 ? montoModCompleto : null,
-            CantidadModuloCompleto = tipoModalidadId == 3 ? cantidadModCompleto : null,
-            MontoMedioModulo = tipoModalidadId == 3 ? montoMedioMod : null,
-            CantidadMedioModulo = tipoModalidadId == 3 ? cantidadMedioMod : null,
+            Cantidad = tipoModalidadId == 3 ? (cantidadModCompleto + cantidadMedioMod) : cantidad,
+            MontoModuloCompleto = cantidadModCompleto > 0 ? montoModCompleto : null,
+            CantidadModuloCompleto = cantidadModCompleto > 0 ? cantidadModCompleto : null,
+            MontoMedioModulo = cantidadMedioMod > 0 ? montoMedioMod : null,
+            CantidadMedioModulo = cantidadMedioMod > 0 ? cantidadMedioMod : null,
             MontoFacturacion = montoFacturacion,
             Porcentaje = porcentajeRetencion,
             Retencion = montoRetencion,
             Saldo = saldoPendiente,
-            EstadoPago = estadoPagoFila,
+            EstadoPago = est,
             TurnosIds = new List<int>(turnosIdsDetalleActual)
         };
 
@@ -856,155 +1734,181 @@
         {
             detallesCargados[indiceDetalleEnEdicion.Value] = nuevo;
             indiceDetalleEnEdicion = null;
-            MostrarAlerta("Factura actualizada exitosamente.", false);
+            MostrarAlerta("Factura actualizada correctamente.", false);
         }
         else
         {
             detallesCargados.Add(nuevo);
-            MostrarAlerta("Factura agregada a la liquidación.", false);
+            MostrarAlerta("Factura agregada a la liquidación con éxito.", false);
         }
 
-        // Limpiar para la próxima carga
         turnosIdsDetalleActual.Clear();
-        montoPagado = 0;
+        montoAbonado = 0;
         saldoPendiente = 0;
-        montoFacturacion = 0;
-        montoRetencion = 0;
-        montoTotalALiquidar = 0;
         MarcarCambios();
     }
 
     private void EditarDetalle(int index)
     {
-        var d = detallesCargados[index];
+        if (index < 0 || index >= detallesCargados.Count) return;
         indiceDetalleEnEdicion = index;
         seccionCargarFacturaAbierta = true;
 
+        var d = detallesCargados[index];
         tipoModalidadId = d.TipoModalidadId;
-        pacienteId = d.PacienteId;
-        tipoPrestacionId = d.TipoPrestacionId;
-        tipoObraSocialId = d.TipoObraSocialId;
+        pacienteId = d.PacienteId ?? 0;
+        tipoPrestacionId = d.TipoPrestacionId ?? 0;
+        tipoObraSocialId = d.TipoObraSocialId ?? 0;
         montoUnitario = d.MontoUnitario;
         cantidad = d.Cantidad;
-        montoModCompleto = d.MontoModuloCompleto ?? 0;
+        montoModCompleto = d.MontoModuloCompleto ?? 50000;
         cantidadModCompleto = d.CantidadModuloCompleto ?? 0;
-        montoMedioMod = d.MontoMedioModulo ?? 0;
+        montoMedioMod = d.MontoMedioModulo ?? 30000;
         cantidadMedioMod = d.CantidadMedioModulo ?? 0;
         montoFacturacion = d.MontoFacturacion;
         porcentajeRetencion = d.Porcentaje;
         montoRetencion = d.Retencion;
+        cobroProfesional = montoFacturacion - montoRetencion;
+        montoAbonado = d.Retencion - d.Saldo;
         saldoPendiente = d.Saldo;
-        montoTotalALiquidar = montoFacturacion - montoRetencion;
-        montoPagado = Math.Max(0, montoTotalALiquidar - saldoPendiente);
         turnosIdsDetalleActual = new List<int>(d.TurnosIds);
     }
 
     private void CancelarEdicionDetalle()
     {
         indiceDetalleEnEdicion = null;
-        turnosIdsDetalleActual.Clear();
-        RecalcularMonto();
+        montoAbonado = 0;
+        saldoPendiente = 0;
     }
 
     private void EliminarDetalle(int index)
     {
+        if (index < 0 || index >= detallesCargados.Count) return;
         detallesCargados.RemoveAt(index);
-        MarcarCambios();
         MostrarAlerta("Factura eliminada de la liquidación.", false);
+        MarcarCambios();
     }
 
-    private void AbrirModalSesiones(GuardarDetalleLiquidacionDTO detalle)
+    private async Task AbrirModalSesiones(GuardarDetalleLiquidacionDTO detalle)
     {
         detalleParaSesiones = detalle;
         turnosSesionModal.Clear();
-        int sesion = 1;
-        var fInicio = fechaDesde;
 
-        for (int i = 0; i < Math.Max(1, detalle.Cantidad); i++)
+        if (detalle.Id > 0)
         {
-            turnosSesionModal.Add(new TurnoLiquidacionItemDTO
+            var res = await Http.Get<List<TurnoLiquidacionItemDTO>>($"api/liquidacion/detalle/{detalle.Id}/turnos");
+            if (!res.Error && res.Respuesta != null)
             {
-                TurnoId = i + 1,
-                NumeroSesion = sesion++,
-                Fecha = fInicio.AddDays(i * 7),
-                HoraInicio = new TimeOnly(14, 0),
-                HoraFin = new TimeOnly(14, 45),
-                ConsultorioNombre = "Consultorio 1",
-                TipoTurnoNombre = detalle.TipoPrestacionNombre ?? "Atención",
-                EstadoTurno = EnumEstadoTurno.reservado
-            });
+                turnosSesionModal = res.Respuesta;
+            }
         }
+        else if (detalle.TurnosIds != null && detalle.TurnosIds.Count > 0)
+        {
+            int nro = 1;
+            foreach (var tId in detalle.TurnosIds)
+            {
+                turnosSesionModal.Add(new TurnoLiquidacionItemDTO
+                {
+                    TurnoId = tId,
+                    NumeroSesion = nro++,
+                    Fecha = fechaDesde,
+                    HoraInicio = new TimeOnly(9, 0),
+                    HoraFin = new TimeOnly(10, 0),
+                    ConsultorioNombre = "Consultorio Asignado",
+                    TipoTurnoNombre = detalle.TipoPrestacionNombre ?? "Sesión",
+                    EstadoTurno = EnumEstadoTurno.atendido
+                });
+            }
+        }
+
         mostrarModalSesiones = true;
     }
 
     private void VerSesionesAgendaDesdeFormulario()
     {
-        var dummy = new GuardarDetalleLiquidacionDTO
+        if (turnosIdsDetalleActual.Count == 0)
+        {
+            MostrarAlerta("Esta factura manual aún no tiene sesiones de agenda vinculadas.", false);
+            return;
+        }
+
+        detalleParaSesiones = new GuardarDetalleLiquidacionDTO
         {
             PacienteNombreCompleto = listaPacientes.FirstOrDefault(p => p.Id == pacienteId)?.Nombre ?? "Paciente seleccionado",
-            Cantidad = cantidad,
-            TipoPrestacionNombre = listaPrestaciones.FirstOrDefault(p => p.Id == tipoPrestacionId)?.Tipo ?? "Sesión"
+            TurnosIds = new List<int>(turnosIdsDetalleActual)
         };
-        AbrirModalSesiones(dummy);
+
+        int nro = 1;
+        turnosSesionModal = turnosIdsDetalleActual.Select(id => new TurnoLiquidacionItemDTO
+        {
+            TurnoId = id,
+            NumeroSesion = nro++,
+            Fecha = fechaDesde,
+            HoraInicio = new TimeOnly(9, 0),
+            HoraFin = new TimeOnly(10, 0),
+            ConsultorioNombre = "Consultorio Asignado",
+            TipoTurnoNombre = listaPrestaciones.FirstOrDefault(p => p.Id == tipoPrestacionId)?.Tipo ?? "Sesión",
+            EstadoTurno = EnumEstadoTurno.atendido
+        }).ToList();
+
+        mostrarModalSesiones = true;
     }
 
     private async Task GuardarLiquidacionFinal()
     {
-        // 1. Validaciones requeridas de claves foráneas
         if (profesionalId <= 0)
         {
-            MostrarAlerta("Debe seleccionar un PROFESIONAL antes de guardar la liquidación.", true);
+            MostrarAlerta("Debe seleccionar un profesional para la liquidación.", true);
             return;
         }
 
         if (socioId <= 0)
         {
-            MostrarAlerta("Debe seleccionar un SOCIO RESPONSABLE antes de guardar.", true);
+            MostrarAlerta("Debe asignar un socio responsable.", true);
             return;
         }
 
         if (detallesCargados.Count == 0)
         {
-            MostrarAlerta("Debe agregar al menos una factura a la liquidación antes de guardar.", true);
+            MostrarAlerta("Debe cargar al menos una factura en la liquidación antes de guardar.", true);
             return;
         }
 
         guardando = true;
         try
         {
-            // Determinar estado de pago general
-            var saldoTotal = detallesCargados.Sum(d => d.Saldo);
-            var factTotal = detallesCargados.Sum(d => d.MontoFacturacion);
-            EnumEstadoPagoLiquidacion estadoGeneral = saldoTotal <= 0 ? EnumEstadoPagoLiquidacion.Pagado
-                                                   : (saldoTotal < factTotal ? EnumEstadoPagoLiquidacion.Parcial : EnumEstadoPagoLiquidacion.Pendiente);
+            decimal totalSaldo = detallesCargados.Sum(d => d.Saldo);
+            decimal totalRet = detallesCargados.Sum(d => d.Retencion);
+            EnumEstadoPagoLiquidacion estadoPagoGeneralCalculado = totalSaldo <= 0 ? EnumEstadoPagoLiquidacion.Pagado
+                : (totalSaldo < totalRet ? EnumEstadoPagoLiquidacion.Parcial : EnumEstadoPagoLiquidacion.Pendiente);
 
-            var guardarDto = new GuardarLiquidacionDTO
+            var dto = new GuardarLiquidacionDTO
             {
                 Id = Id ?? 0,
                 NumeroLiquidacion = numeroLiquidacion,
-                FechaDesde = DateTime.SpecifyKind(fechaDesde, DateTimeKind.Utc),
-                FechaHasta = DateTime.SpecifyKind(fechaHasta, DateTimeKind.Utc),
+                FechaDesde = fechaDesde,
+                FechaHasta = fechaHasta,
                 ProfesionalId = profesionalId,
                 SocioId = socioId,
-                EstadoPago = estadoGeneral,
+                EstadoPago = estadoPagoGeneralCalculado,
+                Observaciones = $"Liquidación generada con {detallesCargados.Count} conceptos.",
                 Detalles = detallesCargados
             };
 
-            var res = await Http.Post<GuardarLiquidacionDTO, int>("api/liquidacion", guardarDto);
-
-            if (!res.Error && res.Respuesta > 0)
+            var res = await Http.Post<GuardarLiquidacionDTO, int>("api/liquidacion", dto);
+            if (!res.Error)
             {
                 hayCambiosSinGuardar = false;
                 Navigation.NavigateTo("/liquidaciones");
             }
             else
             {
-                MostrarAlerta("No se pudo guardar la liquidación: " + (res.ObtenerError() ?? "Verifique los datos de conexión"), true);
+                MostrarAlerta("Error al guardar en el servidor: " + res.ObtenerError(), true);
             }
         }
         catch (Exception ex)
         {
-            MostrarAlerta("Error al conectar con el servidor: " + ex.Message, true);
+            MostrarAlerta("Error inesperado al guardar: " + ex.Message, true);
         }
         finally
         {
@@ -1045,665 +1949,3 @@
         esErrorAlerta = error;
     }
 }
-
-<style>
-    .liq-create-container {
-        width: 100%;
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 1.5rem;
-        font-family: system-ui, -apple-system, sans-serif;
-        color: #2e382d;
-    }
-
-    .top-nav-bar {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .btn-back-arrow {
-        background: #fff;
-        border: 1px solid #d4ded2;
-        border-radius: 0.5rem;
-        padding: 0.5rem;
-        cursor: pointer;
-        color: #3b5038;
-        transition: background 0.2s;
-    }
-
-        .btn-back-arrow:hover {
-            background: #f0f5ee;
-        }
-
-    .page-main-title {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #1e2e1c;
-        margin: 0;
-        line-height: 1.2;
-    }
-
-    .periodo-badge {
-        font-size: 0.8rem;
-        color: #5f755b;
-        font-weight: 500;
-    }
-
-    .autosave-pill {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #3b5038;
-        background: #eaf3e7;
-        padding: 0.35rem 0.85rem;
-        border-radius: 9999px;
-    }
-
-    .section-card {
-        background: #fff;
-        border: 1px solid #dce4da;
-        border-radius: 0.75rem;
-        padding: 1.25rem;
-        margin-bottom: 1.25rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    }
-
-    .section-header {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .section-title {
-        font-size: 0.85rem;
-        font-weight: 800;
-        letter-spacing: 0.05em;
-        color: #435b40;
-        margin: 0;
-    }
-
-    .form-label-custom {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: #4e624c;
-        margin-bottom: 0.25rem;
-        display: block;
-    }
-
-    .custom-input {
-        border-radius: 0.5rem;
-        border: 1px solid #c9d6c6;
-        font-size: 0.85rem;
-        padding: 0.5rem 0.75rem;
-    }
-
-    /* Botones de Cabecera Cargar Factura */
-    .badge-ya-guardada {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        background: #e3eedf;
-        color: #244f1c;
-        border: 1px solid #a2c899;
-        padding: 0.35rem 0.75rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 700;
-    }
-
-    .btn-facturas-pendientes {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.4rem 0.75rem;
-        border-radius: 0.6rem;
-        font-size: 0.75rem;
-        font-weight: 700;
-        border: 1px solid;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-has-pending {
-        background: #f59e0b;
-        color: #fff;
-        border-color: #d97706;
-    }
-
-        .btn-has-pending:hover {
-            background: #d97706;
-        }
-
-    .btn-empty-pending {
-        background: #f3f4f6;
-        color: #6b7280;
-        border-color: #d1d5db;
-    }
-
-    .btn-proxima-factura {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.4rem 0.75rem;
-        border-radius: 0.6rem;
-        font-size: 0.75rem;
-        font-weight: 700;
-        background: #edf4ea;
-        color: #2c4724;
-        border: 1px solid #bcd0b5;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-
-        .btn-proxima-factura:hover {
-            background: #dfead9;
-        }
-
-    .btn-ver-sesiones-header {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.4rem 0.75rem;
-        border-radius: 0.6rem;
-        font-size: 0.75rem;
-        font-weight: 700;
-        background: #fff;
-        color: #374151;
-        border: 1px solid #d1d5db;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-
-        .btn-ver-sesiones-header:hover {
-            background: #f9fafb;
-        }
-
-    /* Menú Emergente Facturas Pendientes */
-    .dropdown-pending-invoices {
-        position: absolute;
-        right: 0;
-        top: 100%;
-        margin-top: 0.5rem;
-        width: 340px;
-        background: #fff;
-        border: 1px solid #d1d5db;
-        border-radius: 0.75rem;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        z-index: 100;
-        padding: 0.75rem;
-    }
-
-    .dropdown-pending-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #f3f4f6;
-        padding-bottom: 0.5rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .dropdown-pending-body {
-        max-height: 250px;
-        overflow-y: auto;
-    }
-
-    .pending-group-item {
-        padding: 0.5rem;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: background 0.15s;
-        margin-bottom: 0.25rem;
-    }
-
-        .pending-group-item:hover {
-            background: #f0f7ee;
-        }
-
-    .badge-cargar-mini {
-        font-size: 0.7rem;
-        font-weight: 700;
-        background: #eaf3e7;
-        color: #2c4724;
-        padding: 0.2rem 0.5rem;
-        border-radius: 0.35rem;
-    }
-
-    /* Acordeón Cargar Factura */
-    .accordion-box {
-        background: #fff;
-        border: 1px solid #dce4da;
-        border-radius: 0.75rem;
-        margin-bottom: 1.25rem;
-        overflow: visible;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    }
-
-    .accordion-header-toggle {
-        padding: 1rem 1.25rem;
-        background: #f7faf6;
-        border-bottom: 1px solid #e2ece0;
-        display: flex;
-        align-items: center;
-    }
-
-    .icon-toggle {
-        width: 1.25rem;
-        height: 1.25rem;
-        color: #435b40;
-        transition: transform 0.2s;
-    }
-
-        .icon-toggle.open {
-            transform: rotate(180deg);
-        }
-
-    .accordion-title {
-        font-size: 0.85rem;
-        font-weight: 800;
-        letter-spacing: 0.05em;
-        color: #314a2e;
-    }
-
-    .badge-modo-edicion {
-        font-size: 0.7rem;
-        font-weight: 700;
-        background: #fef3c7;
-        color: #92400e;
-        border: 1px solid #fde68a;
-        padding: 0.2rem 0.5rem;
-        border-radius: 0.35rem;
-    }
-
-    .accordion-content {
-        padding: 1.25rem;
-    }
-
-    /* Pastillas Modalidades */
-    .modalidad-pill-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .btn-pill {
-        background: #f0f5ee;
-        border: 1px solid #c9d8c5;
-        border-radius: 9999px;
-        padding: 0.4rem 1rem;
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #3d523a;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-        .btn-pill.active {
-            background: #3b5a37;
-            color: #fff;
-            border-color: #3b5a37;
-        }
-
-    /* Tira Financiera */
-    .finance-strip {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        background: #f9fbf9;
-        border: 1px solid #dce8db;
-        border-radius: 0.75rem;
-        padding: 1rem;
-        align-items: center;
-    }
-
-    .finance-item {
-        flex: 1;
-        min-width: 140px;
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-        .finance-item label {
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: #526b4f;
-            letter-spacing: 0.04em;
-        }
-
-    .custom-input-sm {
-        font-size: 0.85rem;
-        padding: 0.35rem 0.6rem;
-        border-radius: 0.4rem;
-        border: 1px solid #c0d1bd;
-    }
-
-    .btn-pagar-todo {
-        background: #3b5a37;
-        color: #fff;
-        border: none;
-        border-radius: 0.35rem;
-        font-size: 0.65rem;
-        font-weight: 700;
-        padding: 0.15rem 0.45rem;
-        cursor: pointer;
-    }
-
-    .btn-add-detalle {
-        background: #3b5a37;
-        color: #fff;
-        border: none;
-        border-radius: 0.5rem;
-        padding: 0.65rem 1.25rem;
-        font-weight: 700;
-        font-size: 0.85rem;
-        cursor: pointer;
-    }
-
-    .btn-cancel-edit {
-        background: #e5e7eb;
-        color: #374151;
-        border: none;
-        border-radius: 0.5rem;
-        padding: 0.65rem 1rem;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-    }
-
-    /* Tabla Detalles */
-    .table-detalles {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.85rem;
-    }
-
-        .table-detalles th {
-            background: #f3f7f2;
-            padding: 0.75rem 1rem;
-            text-align: left;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #435940;
-            border-bottom: 2px solid #dae5d8;
-        }
-
-        .table-detalles td {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid #eef2ed;
-            vertical-align: middle;
-        }
-
-    .badge-modalidad {
-        background: #eaf3e7;
-        color: #314a2e;
-        border: 1px solid #bed2bb;
-        padding: 0.2rem 0.5rem;
-        border-radius: 0.35rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .badge-estado-pago {
-        font-size: 0.7rem;
-        font-weight: 700;
-        padding: 0.2rem 0.6rem;
-        border-radius: 9999px;
-        text-transform: uppercase;
-    }
-
-        .badge-estado-pago.pendiente {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .badge-estado-pago.parcial {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .badge-estado-pago.pagado {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-    .btn-icon-sub {
-        background: #fff;
-        border: 1px solid #d1d5db;
-        border-radius: 0.4rem;
-        padding: 0.35rem;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        color: #4b5563;
-    }
-
-        .btn-icon-sub:hover {
-            background: #f3f4f6;
-        }
-
-    /* Totales Bar */
-    .totales-bar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 2rem;
-        background: #f7faf6;
-        border-top: 2px solid #dce6db;
-        padding: 1rem 1.25rem;
-        border-radius: 0 0 0.75rem 0.75rem;
-        margin-top: 1rem;
-    }
-
-    .tot-item {
-        display: flex;
-        flex-direction: column;
-    }
-
-        .tot-item span {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #5f755c;
-        }
-
-        .tot-item strong {
-            font-size: 1.15rem;
-        }
-
-    .btn-guardar-principal {
-        background: #2f6927;
-        color: #fff;
-        border: none;
-        border-radius: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        font-weight: 800;
-        font-size: 0.9rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        box-shadow: 0 2px 4px rgba(47,105,39,0.25);
-    }
-
-        .btn-guardar-principal:hover {
-            background: #25541f;
-        }
-
-    /* Modales */
-    .modal-backdrop-custom {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1050;
-        padding: 1rem;
-    }
-
-    .modal-card {
-        background: #fff;
-        border-radius: 0.75rem;
-        width: 100%;
-        max-width: 650px;
-        overflow: hidden;
-        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
-    }
-
-        .modal-card.modal-sm {
-            max-width: 450px;
-        }
-
-    .modal-header-custom {
-        padding: 1rem 1.25rem;
-        background: #f7faf6;
-        border-bottom: 1px solid #e5ece3;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .modal-title {
-        font-size: 1rem;
-        font-weight: 800;
-        color: #2e452a;
-        margin: 0;
-    }
-
-    .btn-close-modal {
-        background: none;
-        border: none;
-        font-size: 1.25rem;
-        cursor: pointer;
-        color: #6b7280;
-    }
-
-    .modal-body-custom {
-        padding: 1.25rem;
-        font-size: 0.85rem;
-        color: #4b5563;
-    }
-
-    .modal-footer-custom {
-        padding: 0.75rem 1.25rem;
-        background: #f9fafb;
-        border-top: 1px solid #e5e7eb;
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-    }
-
-    .btn-secondary-custom {
-        background: #e5e7eb;
-        border: none;
-        border-radius: 0.4rem;
-        padding: 0.5rem 1rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-    }
-
-    /* Tablas y Badges */
-    .table-sesiones {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.8rem;
-    }
-
-        .table-sesiones th {
-            background: #f3f7f2;
-            padding: 0.5rem 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #dbe6d9;
-        }
-
-        .table-sesiones td {
-            padding: 0.5rem 0.75rem;
-            border-bottom: 1px solid #edf2ec;
-        }
-
-    .badge-asistencia {
-        background: #dcfce7;
-        color: #15803d;
-        padding: 0.15rem 0.5rem;
-        border-radius: 9999px;
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-    }
-
-    /* Alertas */
-    .alert-banner {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.75rem 1rem;
-        border-radius: 0.5rem;
-        font-size: 0.85rem;
-        margin-bottom: 1rem;
-    }
-
-    .alert-danger {
-        background: #fef2f2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
-    }
-
-    .alert-success {
-        background: #f0fdf4;
-        color: #166534;
-        border: 1px solid #bbf7d0;
-    }
-
-    .btn-close-alert {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 1rem;
-        color: inherit;
-    }
-
-    .empty-state-box {
-        text-align: center;
-        padding: 2.5rem 1rem;
-        color: #6b7280;
-        font-size: 0.85rem;
-        background: #fafcfa;
-        border-radius: 0.5rem;
-        border: 1px dashed #d1ded0;
-    }
-
-    .icon-xs {
-        width: 14px;
-        height: 14px;
-    }
-
-    .icon-sm {
-        width: 18px;
-        height: 18px;
-    }
-
-    .icon-md {
-        width: 22px;
-        height: 22px;
-    }
-
-    .text-amber {
-        color: #f59e0b;
-    }
-
-    .btn-close-sm {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 0.85rem;
-        color: #9ca3af;
-    }
-</style>

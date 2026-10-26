@@ -6,7 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Modelado2025_1Repositorio.Repositorios;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CentroSenderos_2026_Repositorio.Repositorios
 {
@@ -25,47 +26,51 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .Where(p => p.Id == id)
                 .Select(p => new TipoPrestacionDTO
                 {
+                    Id = p.Id,
                     Tipo = p.Tipo,
                     Descripcion = p.Descripcion,
                     Cod = p.Cod,
                     MontoSesion = p.MontoSesion,
+                    PorcentajeRetencion = p.PorcentajeRetencion,
                     EstadoRegistro = p.EstadoRegistro
                 })
                 .FirstOrDefaultAsync();
         }
+
         public async Task<TipoPrestacionListadoDTO?> SelectByCod(string cod)
         {
-            TipoPrestacionListadoDTO? entidad = await context.TipoPrestaciones
+            return await context.TipoPrestaciones
                 .Select(p => new TipoPrestacionListadoDTO
                 {
                     Id = p.Id,
                     Tipo = p.Tipo,
                     Descripcion = p.Descripcion,
                     Cod = p.Cod,
-                    MontoSesion = p.MontoSesion
+                    MontoSesion = p.MontoSesion,
+                    PorcentajeRetencion = p.PorcentajeRetencion
                 })
                 .FirstOrDefaultAsync(x => x.Cod == cod);
-            return entidad;
         }
+
         public async Task<List<TipoPrestacionListadoDTO>> SelectListaTipoPrestacion()
         {
-            var lista = await context.TipoPrestaciones
+            return await context.TipoPrestaciones
                 .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
-                .OrderBy(p => p.Cod)
+                .OrderBy(p => p.Tipo)
                 .Select(p => new TipoPrestacionListadoDTO
                 {
                     Id = p.Id,
                     Tipo = p.Tipo,
                     Descripcion = p.Descripcion,
                     Cod = p.Cod,
-                    MontoSesion = p.MontoSesion
+                    MontoSesion = p.MontoSesion,
+                    PorcentajeRetencion = p.PorcentajeRetencion
                 })
                 .ToListAsync();
-            return lista;
         }
+
         public async Task<int> InsertarTipoPrestacion(TipoPrestacionDTO dto)
         {
-            // Validar que el CUIT no tenga prefijo duplicado
             var codlimpio = dto.Cod.StartsWith("Cod: ") ? dto.Cod.Substring(6) : dto.Cod;
 
             var tipoPrestacion = new TipoPrestacion
@@ -74,6 +79,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 Descripcion = dto.Descripcion,
                 Cod = codlimpio,
                 MontoSesion = dto.MontoSesion,
+                PorcentajeRetencion = dto.PorcentajeRetencion,
                 EstadoRegistro = EnumEstadoRegistro.activo
             };
 
@@ -86,50 +92,42 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             {
                 if (ex.InnerException?.Message.Contains("TipoPrestacion_Cod_UQ") == true)
                 {
-                    throw new ApplicationException($"Ya existe una tipo de prestación con el código '{codlimpio}'.");
+                    throw new ApplicationException($"Ya existe un tipo de prestación con el código '{codlimpio}'.");
                 }
                 throw;
             }
 
             return tipoPrestacion.Id;
         }
+
         public async Task<bool> DeleteTipoPrestacion(int id)
         {
-            var tipoPrestacion = await context.TipoPrestaciones
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (tipoPrestacion == null)
-                return false;
+            var tipoPrestacion = await context.TipoPrestaciones.FirstOrDefaultAsync(p => p.Id == id);
+            if (tipoPrestacion == null) return false;
 
             tipoPrestacion.EstadoRegistro = EnumEstadoRegistro.borrado;
-
             await context.SaveChangesAsync();
             return true;
         }
 
         public async Task<bool> ActualizarTipoPrestacion(int id, TipoPrestacionDTO dto)
         {
-            var tipoPrestacion = await context.TipoPrestaciones
-                .FirstOrDefaultAsync(p => p.Id == id);
+            var tipoPrestacion = await context.TipoPrestaciones.FirstOrDefaultAsync(p => p.Id == id);
+            if (tipoPrestacion == null) return false;
 
-            if (tipoPrestacion == null)
-                return false;
-
-            // Validar que el CUIT no tenga prefijo duplicado
             var codlimpio = dto.Cod.StartsWith("Cod: ") ? dto.Cod.Substring(6) : dto.Cod;
 
-            // Verificar si el CUIT, MP o RNP ya existe (en otro registro)
             var cuitExiste = await context.TipoPrestaciones
                 .AnyAsync(p => p.Cod == codlimpio && p.Id != id);
+
             if (cuitExiste)
                 throw new ApplicationException($"Ya existe un tipo de prestación con el código '{codlimpio}'.");
 
-            // Actualizar los datos
             tipoPrestacion.Tipo = dto.Tipo;
             tipoPrestacion.Descripcion = dto.Descripcion;
             tipoPrestacion.Cod = codlimpio;
             tipoPrestacion.MontoSesion = dto.MontoSesion;
-            //tipoPrestacion.EstadoRegistro = dto.EstadoRegistro;
+            tipoPrestacion.PorcentajeRetencion = dto.PorcentajeRetencion;
 
             try
             {

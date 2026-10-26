@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-
-namespace CentroSenderos_2026_Shared.DTO
+﻿namespace CentroSenderos_2026_Shared.DTO
 {
     public class TipoPrestacionListadoDTO
     {
@@ -12,5 +7,6 @@ namespace CentroSenderos_2026_Shared.DTO
         public string Descripcion { get; set; } = string.Empty;
         public required string Cod { get; set; } = string.Empty;
         public required decimal MontoSesion { get; set; } = 0;
+        public decimal PorcentajeRetencion { get; set; } = 20;
     }
 }

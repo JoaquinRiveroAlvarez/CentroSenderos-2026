@@ -995,6 +995,10 @@ namespace CentroSenderos_2026_BD.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<decimal>("PorcentajeRetencion")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<string>("Tipo")
                         .IsRequired()
                         .HasColumnType("text");

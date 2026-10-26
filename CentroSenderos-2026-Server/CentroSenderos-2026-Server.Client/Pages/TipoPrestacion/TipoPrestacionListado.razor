@@ -136,6 +136,7 @@
                 <div>DESCRIPCIÓN</div>
                 <div>CÓDIGO</div>
                 <div>MONTO SESIÓN</div>
+                <div>% RETENCIÓN CENTRO</div>
                 <div></div>
 
             </div>
@@ -210,6 +211,11 @@
                             @FormatearMonto(item.MontoSesion)
                         </div>
 
+                        <div class="prestacion-retencion">
+                            <span class="badge @(item.PorcentajeRetencion >= 100 ? "bg-warning text-dark" : "bg-success text-white")" style="font-weight: 700; padding: 4px 8px; border-radius: 6px;">
+                                @item.PorcentajeRetencion.ToString("0.##")%
+                            </span>
+                        </div>
 
                         <div class="prestacion-action">
                             <i class="bi bi-chevron-right"></i>

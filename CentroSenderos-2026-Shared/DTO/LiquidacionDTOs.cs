@@ -16,6 +16,8 @@ namespace CentroSenderos_2026_Shared.DTO
         public decimal TotalFacturacion { get; set; }
         public decimal TotalRetencion { get; set; }
         public decimal TotalSaldo { get; set; }
+        public decimal TotalAbonado { get; set; }
+        public decimal CobroProfesional { get; set; }
         public EnumEstadoPagoLiquidacion EstadoPago { get; set; }
         public int CantidadDetalles { get; set; }
         public List<string> Modalidades { get; set; } = new();
@@ -41,6 +43,9 @@ namespace CentroSenderos_2026_Shared.DTO
         public bool Anulada { get; set; } = false;
         public List<DetalleLiquidacionDTO> Detalles { get; set; } = new();
     }
+
+    // Alias para compatibilidad total con llamadas que busquen LiquidacionDetalleDTO
+    public class LiquidacionDetalleDTO : LiquidacionDTO { }
 
     // DTO para cada fila de detalle (Modalidad, Paciente/Taller, Montos y Retenciones)
     public class DetalleLiquidacionDTO
@@ -83,17 +88,57 @@ namespace CentroSenderos_2026_Shared.DTO
         public int CantidadTurnosAsignados { get; set; }
     }
 
-    // DTO para el sub-detalle al tocar un registro (Muestra la lista de turnos correlativos del paciente o taller)
+    // DTO para el sub-detalle de turnos con compatibilidad de nombres
     public class TurnoLiquidacionItemDTO
     {
         public int TurnoId { get; set; }
-        public int NumeroSesion { get; set; } // 1, 2, 3, etc. generado correlativamente
+        public int NumeroSesion { get; set; }
         public DateTime Fecha { get; set; }
         public TimeOnly HoraInicio { get; set; }
         public TimeOnly HoraFin { get; set; }
         public string ConsultorioNombre { get; set; } = string.Empty;
         public string TipoTurnoNombre { get; set; } = string.Empty;
         public EnumEstadoTurno EstadoTurno { get; set; }
+
+        // Paciente
+        public int? PacienteId { get; set; }
+        public string? PacienteNombre { get; set; }
+        public string? PacienteNombreCompleto
+        {
+            get => PacienteNombre;
+            set => PacienteNombre = value;
+        }
+
+        // Prestación
+        public int? TipoPrestacionId { get; set; }
+        public string? TipoPrestacionNombre { get; set; }
+
+        // Obra Social (con alias para ObraSocialId)
+        public int? TipoObraSocialId { get; set; }
+        public int? ObraSocialId
+        {
+            get => TipoObraSocialId;
+            set => TipoObraSocialId = value;
+        }
+        public string? TipoObraSocialNombre { get; set; }
+        public string? ObraSocialNombre
+        {
+            get => TipoObraSocialNombre;
+            set => TipoObraSocialNombre = value;
+        }
+
+        // Modalidad
+        public int TipoModalidadId { get; set; } = 1;
+
+        // Montos (con alias para MontoSesion)
+        public decimal MontoSugerido { get; set; }
+        public decimal MontoSesion
+        {
+            get => MontoSugerido;
+            set => MontoSugerido = value;
+        }
+
+        public decimal PorcentajeRetencion { get; set; } = 20;
     }
 
     // DTO para crear o actualizar Liquidación con sus detalles
