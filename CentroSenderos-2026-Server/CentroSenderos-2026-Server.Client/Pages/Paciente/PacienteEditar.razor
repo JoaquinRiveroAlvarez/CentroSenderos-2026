@@ -1,10 +1,11 @@
 ﻿@page "/pacientes/editar/{id:int}"
-@attribute [Authorize]
+@rendermode InteractiveAuto
 @using Microsoft.AspNetCore.Authorization
+@using CentroSenderos_2026_Servicio.ServiciosHttp
 @using CentroSenderos_2026_Shared.DTO
+@attribute [Authorize]
 @inject IHttpServicio Http
 @inject NavigationManager Nav
-@rendermode InteractiveAuto
 
 <div class="editar-paciente-page">
 
@@ -195,58 +196,93 @@
             <section class="form-section">
                 <div class="section-title">
                     <span class="section-number">04</span>
-                    <span>Documentos</span>
+                    <span>Documentos y Estudios</span>
                 </div>
 
-                <!-- Selector de tipo de documento -->
-                <InputSelect @bind-Value="nuevoDocumento.TipoDocumentoId">
-                    <option value="">-- Seleccione tipo de documento --</option>
-                    @foreach (var tipo in tiposDocumentos)
+                <!-- Controles de selección y subida -->
+                <div class="document-upload-bar" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px;">
+                    <!-- Selector de tipo de documento -->
+                    <InputSelect @bind-Value="nuevoDocumento.TipoDocumentoId" class="form-input" style="max-width: 280px;">
+                        <option value="0">-- Seleccione tipo de documento --</option>
+                        @foreach (var tipo in tiposDocumentos)
+                        {
+                            <option value="@tipo.Id">@tipo.Tipo</option>
+                        }
+                    </InputSelect>
+
+                    <!-- Subida de archivo (con límite de tamaño ampliado) -->
+                    <div style="position: relative;">
+                        <InputFile OnChange="SubirDocumento"
+                                   disabled="@(subiendoDocumento || guardando || eliminando)"
+                                   class="form-input" />
+                    </div>
+
+                    @if (subiendoDocumento)
                     {
-                        <option value="@tipo.Id">@tipo.Tipo</option>
+                        <span style="font-size: 13px; color: #556f4f; font-weight: 500;">
+                            <i class="bi bi-hourglass-split"></i> Subiendo archivo a la base de datos...
+                        </span>
                     }
-                </InputSelect>
+                </div>
 
-                <ul class="document-list">
-                    @foreach (var doc in modelo.Documentos)
-                    {
-                        <li>
-                            <!-- Mostrar nombre generado -->
-                            <span>@doc.NombreGenerado</span>
+                <!-- Listado de documentos del paciente -->
+                @if (modelo.Documentos != null && modelo.Documentos.Any())
+                {
+                    <ul class="document-list" style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px;">
+                        @foreach (var doc in modelo.Documentos)
+                        {
+                            <li style="border: 1px solid #e4e1dc; border-radius: 12px; padding: 14px 18px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
+                                    <div>
+                                        <strong style="color: #2b3a2a; font-size: 14px;">@doc.NombreGenerado</strong>
+                                        <span class="doc-type" style="margin-left: 8px; font-size: 12px; background: #f0eee9; padding: 3px 8px; border-radius: 6px; color: #736c64;">
+                                            @(string.IsNullOrEmpty(doc.TipoDocumentoNombre) ? "Sin tipo" : doc.TipoDocumentoNombre)
+                                        </span>
+                                    </div>
 
-                            <!-- Mostrar tipo de documento si existe -->
-                            <span class="doc-type">
-                                @(string.IsNullOrEmpty(doc.TipoDocumentoNombre) ? "Sin tipo" : doc.TipoDocumentoNombre)
-                            </span>
+                                    <!-- Acciones (con barra inicial / para que la ruta sea absoluta) -->
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <a href="/api/documento/ver/@doc.Id" target="_blank" class="btn-link" style="color: #556f4f; text-decoration: none; font-size: 13px; font-weight: 600;">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </a>
+                                        <a href="/api/documento/descargar/@doc.Id" download="@doc.NombreGenerado" class="btn-link" style="color: #3b5b75; text-decoration: none; font-size: 13px; font-weight: 600;">
+                                            <i class="bi bi-download"></i> Descargar
+                                        </a>
+                                        <button type="button"
+                                                @onclick="() => EliminarDocumento(doc.Id)"
+                                                disabled="@(guardando || eliminando)"
+                                                style="background: transparent; border: none; color: #b94a48; cursor: pointer; font-size: 13px; font-weight: 600;">
+                                            <i class="bi bi-trash"></i> Eliminar
+                                        </button>
+                                    </div>
+                                </div>
 
-                            <!-- Botón Ver -->
-                            <a href="@doc.UrlArchivo" target="_blank">Ver</a>
-
-                            <!-- Botón Descargar -->
-                            <a href="@doc.UrlArchivo" download="@doc.NombreGenerado">Descargar</a>
-
-                            <!-- Botón Eliminar -->
-                            <button @onclick="() => EliminarDocumento(doc.Id)">Eliminar</button>
-
-                            <!-- Vista previa embebida -->
-                            @if (doc.UrlArchivo.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-                            {
-                                <iframe src="@doc.UrlArchivo" width="600" height="400"></iframe>
-                            }
-                            else if (doc.UrlArchivo.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                                     doc.UrlArchivo.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
-                            {
-                                <img src="@doc.UrlArchivo" alt="@doc.NombreGenerado" style="max-width:300px;" />
-                            }
-                        </li>
-                    }
-                </ul>
-
-
-                <!-- Subida de archivo -->
-                <InputFile OnChange="SubirDocumento" />
+                                <!-- Vista previa embebida en base al archivo -->
+                                @if (doc.NombreGenerado.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <div style="margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #eee;">
+                                        <iframe src="/api/documento/ver/@doc.Id" width="100%" height="320" style="border: none;"></iframe>
+                                    </div>
+                                }
+                                else if (doc.NombreGenerado.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                         doc.NombreGenerado.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                                         doc.NombreGenerado.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <div style="margin-top: 10px;">
+                                        <img src="/api/documento/ver/@doc.Id" alt="@doc.NombreGenerado" style="max-width: 280px; max-height: 220px; border-radius: 8px; border: 1px solid #ddd; object-fit: contain;" />
+                                    </div>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div style="padding: 14px 16px; background: #faf9f6; border-radius: 10px; border: 1px dashed #d5d0c7; color: #8a847b; font-size: 13px;">
+                        <i class="bi bi-folder-x"></i> Este paciente no tiene documentos ni estudios adjuntos.
+                    </div>
+                }
             </section>
-
 
             <section class="form-section">
 
@@ -564,33 +600,60 @@
         }
     }
 
+    private bool subiendoDocumento = false;
+
     private async Task SubirDocumento(InputFileChangeEventArgs e)
     {
-        if (nuevoDocumento.TipoDocumentoId == 0)
+        if (nuevoDocumento.TipoDocumentoId <= 0)
         {
             Mensaje = "Debe seleccionar un tipo de documento antes de subir.";
             return;
         }
 
-        var file = e.File;
-        using var stream = file.OpenReadStream();
-
-        var content = new MultipartFormDataContent();
-        content.Add(new StreamContent(stream), "archivo", file.Name);
-        content.Add(new StringContent(modelo!.Id.ToString()), "PacienteId");
-        content.Add(new StringContent(nuevoDocumento.TipoDocumentoId.ToString()), "TipoDocumentoId");
-
-        var resp = await Http.PostMultipart<DocumentoDTO>("api/documento/insertar", content);
-        if (!resp.Error && resp.Respuesta != null)
+        try
         {
-            modelo.Documentos.Add(resp.Respuesta);
+            subiendoDocumento = true;
+            Mensaje = string.Empty;
+
+            var file = e.File;
+
+            // 1. Leemos el archivo en memoria (máx 20 MB) para que SignalR lo reciba limpiamente
+            using var ms = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024).CopyToAsync(ms);
+            var bytes = ms.ToArray();
+
+            // 2. Preparamos el contenido como ByteArrayContent
+            var content = new MultipartFormDataContent();
+            var fileContent = new ByteArrayContent(bytes);
+            if (!string.IsNullOrWhiteSpace(file.ContentType))
+            {
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+            }
+            content.Add(fileContent, "archivo", file.Name);
+            content.Add(new StringContent(modelo!.Id.ToString()), "pacienteId");
+            content.Add(new StringContent(nuevoDocumento.TipoDocumentoId.ToString()), "tipoDocumentoId");
+
+            // 3. Enviamos a la API
+            var resp = await Http.PostMultipart<DocumentoDTO>("api/documento/insertar", content);
+            if (!resp.Error && resp.Respuesta != null)
+            {
+                modelo.Documentos.Add(resp.Respuesta);
+                nuevoDocumento.TipoDocumentoId = 0; // Reinicia el selector
+            }
+            else
+            {
+                Mensaje = resp.ObtenerError();
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Mensaje = resp.ObtenerError();
+            Mensaje = $"Error al procesar el archivo: {ex.Message}";
+        }
+        finally
+        {
+            subiendoDocumento = false;
         }
     }
-
 
 
 

@@ -14,6 +14,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             this.context = context;
         }
+
         public async Task<DocumentoDTO> SelectPorId(int id)
         {
             return await context.Documentos
@@ -23,41 +24,59 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Id = d.Id,
                     PacienteId = d.PacienteId,
                     TipoDocumentoId = d.TipoDocumentoId,
-                    TipoDocumentoNombre = d.TipoDocumentos!.Tipo,
-                    UrlArchivo = d.UrlArchivo,
+                    TipoDocumentoNombre = d.TipoDocumentos != null ? d.TipoDocumentos.Tipo : string.Empty,
+                    UrlArchivo = $"/api/documento/ver/{d.Id}",
                     FechaSubida = d.FechaSubida,
                     NombreGenerado = d.NombreGenerado
                 })
                 .FirstAsync();
         }
 
-        public async Task<int> InsertarDocumento(DocumentoDTO dto)
+        public async Task<Documento?> ObtenerArchivoCompleto(int id)
         {
-            var tipo = await context.TipoDocumentos.FindAsync(dto.TipoDocumentoId);
-            var paciente = await context.Pacientes.FindAsync(dto.PacienteId);
+            return await context.Documentos.FirstOrDefaultAsync(d => d.Id == id);
+        }
+
+        public async Task<int> InsertarDocumentoConArchivo(
+            int pacienteId,
+            int tipoDocumentoId,
+            string nombreOriginal,
+            string contentType,
+            byte[] contenido)
+        {
+            var tipo = await context.TipoDocumentos.FindAsync(tipoDocumentoId);
+            var paciente = await context.Pacientes.FindAsync(pacienteId);
 
             if (tipo == null)
-                throw new InvalidOperationException($"TipoDocumentoId {dto.TipoDocumentoId} no existe.");
+                throw new InvalidOperationException($"TipoDocumentoId {tipoDocumentoId} no existe.");
             if (paciente == null)
-                throw new InvalidOperationException($"PacienteId {dto.PacienteId} no existe.");
+                throw new InvalidOperationException($"PacienteId {pacienteId} no existe.");
 
-            var nombreGenerado = $"{paciente.Nombre}_{tipo.Tipo}_{DateTime.UtcNow:yyyyMMddHHmmss}_";
+            var extension = Path.GetExtension(nombreOriginal);
+            var nombreGenerado = $"{paciente.Nombre.Replace(" ", "_")}_{tipo.Tipo.Replace(" ", "_")}_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
 
             var documento = new Documento
             {
-                PacienteId = dto.PacienteId,
-                TipoDocumentoId = dto.TipoDocumentoId,
-                UrlArchivo = dto.UrlArchivo,
+                PacienteId = pacienteId,
+                TipoDocumentoId = tipoDocumentoId,
+                NombreOriginal = nombreOriginal,
+                NombreGenerado = nombreGenerado,
+                ContentType = contentType,
+                Contenido = contenido,
+                TamanoBytes = contenido.LongLength,
                 FechaSubida = DateTime.UtcNow,
-                NombreGenerado = nombreGenerado
+                UrlArchivo = string.Empty // Se asigna dinámicamente con el Id
             };
 
             context.Documentos.Add(documento);
             await context.SaveChangesAsync();
+
+            // Guardamos la URL relativa que apunta a nuestro propio controlador
+            documento.UrlArchivo = $"/api/documento/ver/{documento.Id}";
+            await context.SaveChangesAsync();
+
             return documento.Id;
         }
-
-
 
         public async Task<bool> DeleteDocumento(int id)
         {
@@ -80,7 +99,5 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 })
                 .ToListAsync();
         }
-
     }
 }
-
