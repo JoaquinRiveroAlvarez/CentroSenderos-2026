@@ -1370,14 +1370,85 @@
         )
         .ToList();
 
+    private string? ultimaUrlAgendaAplicada;
+
     protected override async Task OnInitializedAsync()
     {
         await CargarConsultorios();
         await CargarTurnos();
+        AplicarContextoDeAgenda();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!cargando)
+        {
+            AplicarContextoDeAgenda();
+        }
+    }
+
+    private void AplicarContextoDeAgenda()
+    {
+        var uri = new Uri(Nav.Uri);
+
+        // No restablecer esta agenda mientras se navega a otra página.
+        if (!uri.AbsolutePath.TrimEnd('/').Equals(
+                "/turnos", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        // Conservar los cambios hechos mediante los controles de la agenda
+        // cuando Blazor vuelve a aplicar parámetros de la misma URL.
+        if (ultimaUrlAgendaAplicada == uri.AbsoluteUri)
+        {
+            return;
+        }
+
+        var parametros = new Dictionary<string, string>(
+            StringComparer.OrdinalIgnoreCase);
+
+        foreach (var parte in uri.Query.TrimStart('?').Split(
+                     '&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var par = parte.Split('=', 2);
+            var nombre = Uri.UnescapeDataString(par[0].Replace("+", " "));
+            var valor = par.Length == 2
+                ? Uri.UnescapeDataString(par[1].Replace("+", " "))
+                : string.Empty;
+
+            parametros[nombre] = valor;
+        }
+
+        string? Leer(string nombre) =>
+            parametros.TryGetValue(nombre, out var valor) ? valor : null;
+
+        VistaDesdeUrl = Leer("vista");
+        FechaDesdeUrl = Leer("fecha");
+        ConsultoriosDesdeUrl = Leer("consultorios");
+        TiposDesdeUrl = Leer("tipos");
+        ProfesionalesDesdeUrl = Leer("profesionales");
+        PacientesDesdeUrl = Leer("pacientes");
+        Estado = Leer("estado");
+        DetalleTurnoId = int.TryParse(Leer("detalle"), out var detalleId)
+            ? detalleId
+            : null;
+
+        InicializarFiltros();
+        pacientesSeleccionados = PacientesDisponibles
+            .Select(paciente => paciente.Id)
+            .ToHashSet();
+
+        fechaSeleccionada = DateTime.Today;
+        mesVisible = new DateTime(
+            fechaSeleccionada.Year, fechaSeleccionada.Month, 1);
 
         RestaurarFiltrosDesdeUrl();
         RestaurarVistaDesdeUrl();
+        CerrarDetalle();
         AbrirDetalleDesdeUrl();
+
+        ultimaUrlAgendaAplicada = uri.AbsoluteUri;
     }
 
     private async Task CargarConsultorios()

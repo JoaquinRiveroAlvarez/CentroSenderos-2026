@@ -3,9 +3,11 @@ using CentroSenderos_2026_Shared.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/turno")]
     public class TurnoController : ControllerBase
