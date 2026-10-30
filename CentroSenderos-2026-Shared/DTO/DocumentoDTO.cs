@@ -13,8 +13,7 @@ namespace CentroSenderos_2026_Shared.DTO
         public string UrlArchivo { get; set; } = string.Empty;
         public DateTime FechaSubida { get; set; }
 
-        // Nombre dinámico construido en el repositorio
+        // Nombre dinámico con formato: Tipo_Paciente_dd_MM_yyyy_HHmmss.ext
         public string NombreGenerado { get; set; } = string.Empty;
     }
-
 }

@@ -40,6 +40,7 @@
 
             <DataAnnotationsValidator />
 
+            <!-- SECCIÓN 01: Información Personal -->
             <section class="form-section">
 
                 <div class="section-title">
@@ -91,6 +92,7 @@
 
             </section>
 
+            <!-- SECCIÓN 02: Información Médica / Administrativa -->
             <section class="form-section">
 
                 <div class="section-title">
@@ -193,97 +195,7 @@
 
             </section>
 
-            <section class="form-section">
-                <div class="section-title">
-                    <span class="section-number">04</span>
-                    <span>Documentos y Estudios</span>
-                </div>
-
-                <!-- Controles de selección y subida -->
-                <div class="document-upload-bar" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px;">
-                    <!-- Selector de tipo de documento -->
-                    <InputSelect @bind-Value="nuevoDocumento.TipoDocumentoId" class="form-input" style="max-width: 280px;">
-                        <option value="0">-- Seleccione tipo de documento --</option>
-                        @foreach (var tipo in tiposDocumentos)
-                        {
-                            <option value="@tipo.Id">@tipo.Tipo</option>
-                        }
-                    </InputSelect>
-
-                    <!-- Subida de archivo (con límite de tamaño ampliado) -->
-                    <div style="position: relative;">
-                        <InputFile OnChange="SubirDocumento"
-                                   disabled="@(subiendoDocumento || guardando || eliminando)"
-                                   class="form-input" />
-                    </div>
-
-                    @if (subiendoDocumento)
-                    {
-                        <span style="font-size: 13px; color: #556f4f; font-weight: 500;">
-                            <i class="bi bi-hourglass-split"></i> Subiendo archivo a la base de datos...
-                        </span>
-                    }
-                </div>
-
-                <!-- Listado de documentos del paciente -->
-                @if (modelo.Documentos != null && modelo.Documentos.Any())
-                {
-                    <ul class="document-list" style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px;">
-                        @foreach (var doc in modelo.Documentos)
-                        {
-                            <li style="border: 1px solid #e4e1dc; border-radius: 12px; padding: 14px 18px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
-                                    <div>
-                                        <strong style="color: #2b3a2a; font-size: 14px;">@doc.NombreGenerado</strong>
-                                        <span class="doc-type" style="margin-left: 8px; font-size: 12px; background: #f0eee9; padding: 3px 8px; border-radius: 6px; color: #736c64;">
-                                            @(string.IsNullOrEmpty(doc.TipoDocumentoNombre) ? "Sin tipo" : doc.TipoDocumentoNombre)
-                                        </span>
-                                    </div>
-
-                                    <!-- Acciones (con barra inicial / para que la ruta sea absoluta) -->
-                                    <div style="display: flex; gap: 10px; align-items: center;">
-                                        <a href="/api/documento/ver/@doc.Id" target="_blank" class="btn-link" style="color: #556f4f; text-decoration: none; font-size: 13px; font-weight: 600;">
-                                            <i class="bi bi-eye"></i> Ver
-                                        </a>
-                                        <a href="/api/documento/descargar/@doc.Id" download="@doc.NombreGenerado" class="btn-link" style="color: #3b5b75; text-decoration: none; font-size: 13px; font-weight: 600;">
-                                            <i class="bi bi-download"></i> Descargar
-                                        </a>
-                                        <button type="button"
-                                                @onclick="() => EliminarDocumento(doc.Id)"
-                                                disabled="@(guardando || eliminando)"
-                                                style="background: transparent; border: none; color: #b94a48; cursor: pointer; font-size: 13px; font-weight: 600;">
-                                            <i class="bi bi-trash"></i> Eliminar
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Vista previa embebida en base al archivo -->
-                                @if (doc.NombreGenerado.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <div style="margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #eee;">
-                                        <iframe src="/api/documento/ver/@doc.Id" width="100%" height="320" style="border: none;"></iframe>
-                                    </div>
-                                }
-                                else if (doc.NombreGenerado.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                                         doc.NombreGenerado.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
-                                         doc.NombreGenerado.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <div style="margin-top: 10px;">
-                                        <img src="/api/documento/ver/@doc.Id" alt="@doc.NombreGenerado" style="max-width: 280px; max-height: 220px; border-radius: 8px; border: 1px solid #ddd; object-fit: contain;" />
-                                    </div>
-                                }
-                            </li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <div style="padding: 14px 16px; background: #faf9f6; border-radius: 10px; border: 1px dashed #d5d0c7; color: #8a847b; font-size: 13px;">
-                        <i class="bi bi-folder-x"></i> Este paciente no tiene documentos ni estudios adjuntos.
-                    </div>
-                }
-            </section>
-
+            <!-- SECCIÓN 03: Datos de Contacto -->
             <section class="form-section">
 
                 <div class="section-title section-title-actions">
@@ -368,6 +280,113 @@
 
             </section>
 
+            <!-- SECCIÓN 04: Documentos y Estudios (Estilo Classroom / Drive) -->
+            <section class="form-section">
+                <div class="section-title">
+                    <span class="section-number">04</span>
+                    <span>Documentos y Estudios</span>
+                </div>
+
+                <!-- Barra de selección de tipo y dropzone de carga -->
+                <div style="display: flex; gap: 14px; align-items: stretch; flex-wrap: wrap; margin-bottom: 20px;">
+                    <!-- Selector de tipo de documento -->
+                    <div style="min-width: 250px; display: flex; flex-direction: column; justify-content: center;">
+                        <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #8c8275; margin-bottom: 6px; font-weight: 600;">
+                            Tipo de documento
+                        </label>
+                        <InputSelect @bind-Value="nuevoDocumento.TipoDocumentoId" class="form-input" style="height: 52px; border-radius: 12px;">
+                            <option value="0">-- Seleccione tipo --</option>
+                            @foreach (var tipo in tiposDocumentos)
+                            {
+                                <option value="@tipo.Id">@tipo.Tipo</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <!-- Tarjeta/Botón de subida de archivo estilo Drive -->
+                    <label style="flex: 1; min-width: 280px; min-height: 64px; border: 2px dashed #c8c2b7; border-radius: 14px; background: #faf9f6; display: flex; align-items: center; justify-content: center; gap: 14px; cursor: pointer; padding: 10px 18px; transition: all 0.2s ease;">
+                        <i class="bi bi-cloud-arrow-up" style="font-size: 28px; color: #556f4f;"></i>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-size: 13px; font-weight: 600; color: #3d4a3b;">
+                                @(subiendoDocumento ? "Subiendo archivo a la base de datos..." : "Haga clic para cargar documentos")
+                            </span>
+                            <span style="font-size: 11px; color: #8a847b;">
+                                @(subiendoDocumento ? "Por favor espere unos instantes" : "Archivos PDF, fotos de estudios, recetas, CUD, etc.")
+                            </span>
+                        </div>
+                        <InputFile OnChange="SubirDocumento"
+                                   disabled="@(subiendoDocumento || guardando || eliminando)"
+                                   style="display: none;" />
+                    </label>
+                </div>
+
+                <!-- Chips compactos de documentos adjuntos -->
+                @if (modelo.Documentos != null && modelo.Documentos.Any())
+                {
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px;">
+                        @foreach (var doc in modelo.Documentos)
+                        {
+                            <div style="background: #ffffff; border: 1.5px solid #e3e0d8; border-radius: 12px; padding: 9px 14px; display: inline-flex; align-items: center; gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); max-width: 400px; transition: all 0.15s ease;">
+
+                                <!-- Icono según formato -->
+                                <div @onclick="() => AbrirVistaPrevia(doc)"
+                                     style="width: 36px; height: 36px; border-radius: 9px; background: #eaf1e9; color: #4e6a47; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; flex-shrink: 0;"
+                                     title="Clic para ver vista previa">
+                                    @if (EsPdf(doc.NombreGenerado))
+                                    {
+                                        <i class="bi bi-file-earmark-pdf-fill" style="color: #b54747;"></i>
+                                    }
+                                    else if (EsImagen(doc.NombreGenerado))
+                                    {
+                                        <i class="bi bi-file-earmark-image-fill" style="color: #4a7c59;"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-file-earmark-text-fill" style="color: #4b6645;"></i>
+                                    }
+                                </div>
+
+                                <!-- Nombre y Tipo (al hacer clic abre el visor oscuro) -->
+                                <div @onclick="() => AbrirVistaPrevia(doc)"
+                                     style="cursor: pointer; display: flex; flex-direction: column; overflow: hidden; min-width: 140px; max-width: 220px;"
+                                     title="Clic para ver vista previa">
+                                    <span style="font-size: 13px; font-weight: 600; color: #2c3329; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                        @doc.NombreGenerado
+                                    </span>
+                                    <span style="font-size: 11px; color: #7f786d;">
+                                        @(string.IsNullOrEmpty(doc.TipoDocumentoNombre) ? "Documento" : doc.TipoDocumentoNombre)
+                                    </span>
+                                </div>
+
+                                <!-- Botones de acción: Descargar y Eliminar -->
+                                <div style="display: flex; align-items: center; gap: 4px; margin-left: auto;">
+                                    <a href="/api/documento/descargar/@doc.Id"
+                                       download="@doc.NombreGenerado"
+                                       style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #50614e; text-decoration: none;"
+                                       title="Descargar archivo">
+                                        <i class="bi bi-download" style="font-size: 15px;"></i>
+                                    </a>
+                                    <button type="button"
+                                            @onclick="() => SolicitarEliminarDocumento(doc)"
+                                            disabled="@(guardando || eliminando || eliminandoDocumento)"
+                                            style="width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; color: #c44d4d; cursor: pointer;"
+                                            title="Eliminar documento">
+                                        <i class="bi bi-trash3" style="font-size: 15px;"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div style="padding: 14px 18px; background: #faf9f6; border-radius: 12px; border: 1px dashed #d5d0c7; color: #8a847b; font-size: 13px;">
+                        <i class="bi bi-folder-x"></i> Este paciente no tiene documentos ni estudios adjuntos.
+                    </div>
+                }
+            </section>
+
             @if (!string.IsNullOrWhiteSpace(Mensaje))
             {
                 <div class="editar-mensaje">
@@ -419,6 +438,7 @@
 
 </div>
 
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN DE PACIENTE -->
 @if (mostrarConfirmacionEliminar)
 {
     <div class="modal-overlay">
@@ -482,6 +502,138 @@
     </div>
 }
 
+<!-- MODAL DE VISTA PREVIA OSCURECIDA (ESTILO CLASSROOM / GOOGLE DRIVE) -->
+@if (documentoVistaPrevia != null)
+{
+    <div @onclick="CerrarVistaPrevia"
+         style="position: fixed; inset: 0; background: rgba(15, 18, 14, 0.82); backdrop-filter: blur(4px); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;">
+
+        <div @onclick:stopPropagation="true"
+             style="background: #1c211b; border-radius: 16px; width: 92vw; max-width: 1020px; height: 88vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.1);">
+
+            <!-- Barra superior del visor -->
+            <div style="padding: 14px 20px; background: #262c24; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); color: #fff;">
+                <div style="display: flex; align-items: center; gap: 12px; overflow: hidden;">
+                    @if (EsPdf(documentoVistaPrevia.NombreGenerado))
+                    {
+                        <i class="bi bi-file-earmark-pdf-fill" style="font-size: 22px; color: #ef5350;"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-file-earmark-image-fill" style="font-size: 22px; color: #81c784;"></i>
+                    }
+                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <span style="font-size: 14px; font-weight: 600; color: #f1f3f0;">@documentoVistaPrevia.NombreGenerado</span>
+                        <span style="margin-left: 8px; font-size: 11px; background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; color: #d0d7cf;">
+                            @(string.IsNullOrEmpty(documentoVistaPrevia.TipoDocumentoNombre) ? "Documento" : documentoVistaPrevia.TipoDocumentoNombre)
+                        </span>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <a href="/api/documento/descargar/@documentoVistaPrevia.Id"
+                       download="@documentoVistaPrevia.NombreGenerado"
+                       style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.14); color: #fff; padding: 7px 14px; border-radius: 8px; font-size: 13px; text-decoration: none; font-weight: 500;"
+                       title="Descargar este archivo">
+                        <i class="bi bi-download"></i> Descargar
+                    </a>
+                    <button type="button"
+                            @onclick="() => SolicitarEliminarDocumento(documentoVistaPrevia)"
+                            disabled="@(guardando || eliminando || eliminandoDocumento)"
+                            style="display: inline-flex; align-items: center; gap: 8px; background: rgba(220, 53, 69, 0.25); color: #ff9b9b; padding: 7px 14px; border-radius: 8px; font-size: 13px; border: 1px solid rgba(220, 53, 69, 0.45); cursor: pointer; font-weight: 500;"
+                            title="Eliminar este archivo">
+                        <i class="bi bi-trash3"></i> Eliminar
+                    </button>
+                    <button type="button"
+                            @onclick="CerrarVistaPrevia"
+                            style="background: transparent; border: none; color: #ddd; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px;"
+                            title="Cerrar vista previa">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contenedor central del archivo -->
+            <div style="flex: 1; display: flex; align-items: center; justify-content: center; background: #121511; padding: 14px; overflow: hidden;">
+                @if (EsPdf(documentoVistaPrevia.NombreGenerado))
+                {
+                    <iframe src="/api/documento/ver/@documentoVistaPrevia.Id" style="width: 100%; height: 100%; border: none; border-radius: 8px; background: #fff;"></iframe>
+                }
+                else
+                {
+                    <img src="/api/documento/ver/@documentoVistaPrevia.Id"
+                         alt="@documentoVistaPrevia.NombreGenerado"
+                         style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.6);" />
+                }
+            </div>
+
+        </div>
+    </div>
+}
+
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN DE DOCUMENTO -->
+@if (documentoAEliminar != null)
+{
+    <div class="modal-overlay" style="z-index: 100000;" @onclick="CancelarEliminarDocumento">
+
+        <div class="delete-modal" @onclick:stopPropagation="true">
+
+            <div class="delete-warning-icon">
+                <i class="bi bi-trash3-fill"></i>
+            </div>
+
+            <h2>¿Eliminar documento?</h2>
+
+            <p>
+                ¿Estás seguro de que querés eliminar el documento
+                <strong style="display: block; margin: 10px 0; color: #2e382d; word-break: break-all; font-size: 13px; background: #f3f0e8; padding: 8px 12px; border-radius: 8px; border: 1px solid #dfdad0;">
+                    "@documentoAEliminar.NombreGenerado"
+                </strong>
+                Esta acción no se puede deshacer.
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(MensajeEliminarDocumento))
+            {
+                <div class="delete-error">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@MensajeEliminarDocumento</span>
+                </div>
+            }
+
+            <div class="delete-modal-actions">
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminandoDocumento"
+                        @onclick="ConfirmarEliminarDocumento">
+
+                    @if (eliminandoDocumento)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Eliminando...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-trash"></i>
+                        <span>Eliminar documento</span>
+                    }
+
+                </button>
+
+                <button type="button"
+                        class="modal-cancel-button"
+                        disabled="@eliminandoDocumento"
+                        @onclick="CancelarEliminarDocumento">
+                    Cancelar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
 @code {
 
     [Parameter]
@@ -503,6 +655,12 @@
 
     private List<TipoDTO> tiposObraSocial = new();
     private List<TipoDTO> tiposDiagnostico = new();
+
+    private bool subiendoDocumento = false;
+    private DocumentoDTO? documentoVistaPrevia;
+    private DocumentoDTO? documentoAEliminar;
+    private bool eliminandoDocumento = false;
+    private string MensajeEliminarDocumento = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -587,20 +745,75 @@
 
         cargando = false;
     }
-    private async Task EliminarDocumento(int id)
+
+    private void AbrirVistaPrevia(DocumentoDTO doc)
     {
-        var resp = await Http.Delete($"api/documento/{id}");
+        documentoVistaPrevia = doc;
+    }
+
+    private void CerrarVistaPrevia()
+    {
+        documentoVistaPrevia = null;
+    }
+
+    private static bool EsPdf(string? nombre)
+    {
+        return !string.IsNullOrEmpty(nombre) && nombre.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool EsImagen(string? nombre)
+    {
+        return !string.IsNullOrEmpty(nombre) && (
+            nombre.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+            nombre.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+            nombre.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+            nombre.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)
+        );
+    }
+
+    private void SolicitarEliminarDocumento(DocumentoDTO? doc)
+    {
+        if (doc == null) return;
+        documentoAEliminar = doc;
+        MensajeEliminarDocumento = string.Empty;
+    }
+
+    private void CancelarEliminarDocumento()
+    {
+        if (eliminandoDocumento)
+            return;
+
+        documentoAEliminar = null;
+        MensajeEliminarDocumento = string.Empty;
+    }
+
+    private async Task ConfirmarEliminarDocumento()
+    {
+        if (documentoAEliminar == null)
+            return;
+
+        eliminandoDocumento = true;
+        MensajeEliminarDocumento = string.Empty;
+
+        var idAEliminar = documentoAEliminar.Id;
+        var resp = await Http.Delete($"api/documento/{idAEliminar}");
+
+        eliminandoDocumento = false;
+
         if (!resp.Error)
         {
-            modelo?.Documentos.RemoveAll(d => d.Id == id);
+            modelo?.Documentos.RemoveAll(d => d.Id == idAEliminar);
+            if (documentoVistaPrevia?.Id == idAEliminar)
+            {
+                documentoVistaPrevia = null;
+            }
+            documentoAEliminar = null;
         }
         else
         {
-            Mensaje = resp.ObtenerError();
+            MensajeEliminarDocumento = resp.ObtenerError();
         }
     }
-
-    private bool subiendoDocumento = false;
 
     private async Task SubirDocumento(InputFileChangeEventArgs e)
     {
@@ -616,13 +829,11 @@
             Mensaje = string.Empty;
 
             var file = e.File;
-
-            // 1. Leemos el archivo en memoria (máx 20 MB) para que SignalR lo reciba limpiamente
+            // Leer el archivo a memoria primero para evitar contención de streams en el circuito SignalR
             using var ms = new MemoryStream();
             await file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024).CopyToAsync(ms);
             var bytes = ms.ToArray();
 
-            // 2. Preparamos el contenido como ByteArrayContent
             var content = new MultipartFormDataContent();
             var fileContent = new ByteArrayContent(bytes);
             if (!string.IsNullOrWhiteSpace(file.ContentType))
@@ -633,7 +844,6 @@
             content.Add(new StringContent(modelo!.Id.ToString()), "pacienteId");
             content.Add(new StringContent(nuevoDocumento.TipoDocumentoId.ToString()), "tipoDocumentoId");
 
-            // 3. Enviamos a la API
             var resp = await Http.PostMultipart<DocumentoDTO>("api/documento/insertar", content);
             if (!resp.Error && resp.Respuesta != null)
             {
@@ -654,8 +864,6 @@
             subiendoDocumento = false;
         }
     }
-
-
 
     private void AgregarTelefono()
     {
