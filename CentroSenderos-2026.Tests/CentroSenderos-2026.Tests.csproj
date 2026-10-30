@@ -35,10 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Unitarias\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CentroSenderos-2026-Server\CentroSenderos-2026-Server\CentroSenderos-2026-Server.csproj" />
   </ItemGroup>
 </Project>

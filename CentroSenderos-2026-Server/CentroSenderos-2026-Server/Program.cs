@@ -2,76 +2,118 @@ using CentroSenderos_2026_BD;
 using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Server.Components;
 using CentroSenderos_2026_Server.Components.Account;
+using CentroSenderos_2026_Server.Seguridad;
 using CentroSenderos_2026_Servicio;
 using CentroSenderos_2026_Servicio.ServiciosHttp;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi;
-using CentroSenderos_2026_Server.Seguridad;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuración de HttpClient para el cliente Blazor
+// Configuración de HttpClient para el cliente Blazor.
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
-    ?? throw new InvalidOperationException("ApiBaseUrl no está configurado.");
+    ?? throw new InvalidOperationException(
+        "ApiBaseUrl no está configurado.");
 
 builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped(sp =>
 {
     var destino = new Uri(apiBaseUrl);
+
     var handler = new SesionApiHandler(
         sp.GetRequiredService<AuthenticationStateProvider>(),
         sp.GetRequiredService<IHttpContextAccessor>(),
-        sp.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>(),
+        sp.GetRequiredService<
+            IOptionsMonitor<CookieAuthenticationOptions>>(),
         destino);
-    return new HttpClient(handler, disposeHandler: true) { BaseAddress = destino };
+
+    return new HttpClient(handler, disposeHandler: true)
+    {
+        BaseAddress = destino
+    };
 });
 
-// Servicios generales
+// Servicios generales.
 builder.Services.AddScoped<IHttpServicio, HttpServicio>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "CentroSenderos-2026 API",
         Version = "v1",
-        Description = "API de gestión",
+        Description = "API de gestión"
     });
 });
 
-// Configuración de base de datos
-var strConn = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("La cadena de conexión no existe.");
+// Configuración de base de datos.
+var strConn = builder.Configuration.GetConnectionString(
+    "DefaultConnection")
+    ?? throw new InvalidOperationException(
+        "La cadena de conexión no existe.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(strConn));
 
-// Repositorios
-builder.Services.AddScoped<IProfesionalRepositorio, ProfesionalRepositorio>();
-builder.Services.AddScoped<IPacienteRepositorio, PacienteRepositorio>();
-builder.Services.AddScoped<ITipoObraSocialRepositorio, TipoObraSocialRepositorio>();
-builder.Services.AddScoped<ITipoTurnoRepositorio, TipoTurnoRepositorio>();
-builder.Services.AddScoped<ITipoPrestacionRepositorio, TipoPrestacionRepositorio>();
-builder.Services.AddScoped<ITipoDiagnosticoRepositorio, TipoDiagnosticoRepositorio>();
-builder.Services.AddScoped<ISocioRepositorio, SocioRepositorio>();
-builder.Services.AddScoped<ITipoPlanillaRepositorio, TipoPlanillaRepositorio>();
-builder.Services.AddScoped<ITipoAreaRepositorio, TipoAreaRepositorio>();
-builder.Services.AddScoped<ITurnoRepositorio, TurnoRepositorio>();
-builder.Services.AddScoped<ITipoConsultorioRepositorio, TipoConsultorioRepositorio>();
-builder.Services.AddScoped<ITipoDocumentoRepositorio, TipoDocumentoRepositorio>();
-builder.Services.AddScoped<ITipoGastoRepositorio, TipoGastoRepositorio>();
-builder.Services.AddScoped<IGastoRepositorio, GastoRepositorio>();
+// Repositorios.
+builder.Services.AddScoped<
+    IProfesionalRepositorio, ProfesionalRepositorio>();
+
+builder.Services.AddScoped<
+    IPacienteRepositorio, PacienteRepositorio>();
+
+builder.Services.AddScoped<
+    ITipoObraSocialRepositorio, TipoObraSocialRepositorio>();
+
+builder.Services.AddScoped<
+    ITipoTurnoRepositorio, TipoTurnoRepositorio>();
+
+builder.Services.AddScoped<
+    ITipoPrestacionRepositorio, TipoPrestacionRepositorio>();
+
+builder.Services.AddScoped<
+    ITipoDiagnosticoRepositorio, TipoDiagnosticoRepositorio>();
+
+builder.Services.AddScoped<
+    ISocioRepositorio, SocioRepositorio>();
+
+builder.Services.AddScoped<
+    ITipoPlanillaRepositorio, TipoPlanillaRepositorio>();
+
+builder.Services.AddScoped<
+    ITipoAreaRepositorio, TipoAreaRepositorio>();
+
+builder.Services.AddScoped<
+    ITurnoRepositorio, TurnoRepositorio>();
+
+builder.Services.AddScoped<
+    ITipoConsultorioRepositorio, TipoConsultorioRepositorio>();
+
+builder.Services.AddScoped<
+    ITipoDocumentoRepositorio, TipoDocumentoRepositorio>();
+
+builder.Services.AddScoped<
+    ITipoGastoRepositorio, TipoGastoRepositorio>();
+
+builder.Services.AddScoped<
+    IGastoRepositorio, GastoRepositorio>();
+
 builder.Services.AddSingleton<SupabaseStorageService>();
-builder.Services.AddScoped<IDocumentoRepositorio, DocumentoRepositorio>();
-builder.Services.AddScoped<IReintegroSocioRepositorio,ReintegroSocioRepositorio>();
 
+builder.Services.AddScoped<
+    IDocumentoRepositorio, DocumentoRepositorio>();
 
-// Razor Components + Auth
+builder.Services.AddScoped<
+    IReintegroSocioRepositorio, ReintegroSocioRepositorio>();
+
+// Razor Components y estado de autenticación.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents()
@@ -79,13 +121,19 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-// Configuración de Identity
+builder.Services.AddScoped<
+    AuthenticationStateProvider,
+    IdentityRevalidatingAuthenticationStateProvider>();
+
+// Configuración de Identity.
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+    options.DefaultScheme =
+        IdentityConstants.ApplicationScheme;
+
+    options.DefaultSignInScheme =
+        IdentityConstants.ExternalScheme;
 })
 .AddIdentityCookies();
 
@@ -101,43 +149,74 @@ builder.Services.AddIdentityCore<MiUsuario>(options =>
 .AddSignInManager()
 .AddDefaultTokenProviders();
 
-// Políticas de autorización
+// Políticas de autorización.
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("EsAdmin", policy => policy.RequireRole("admin"));
-    options.AddPolicy("EsEquipo", policy => policy.RequireRole("equipo", "admin"));
-    options.AddPolicy("EsProfesional", policy => policy.RequireRole("profesional", "equipo", "admin"));
+    options.AddPolicy(
+        "EsAdmin",
+        policy => policy.RequireRole("admin"));
+
+    options.AddPolicy(
+        "EsEquipo",
+        policy => policy.RequireRole("equipo", "admin"));
+
+    options.AddPolicy(
+        "EsProfesional",
+        policy => policy.RequireRole(
+            "profesional", "equipo", "admin"));
 });
 
-builder.Services.AddSingleton<IEmailSender<MiUsuario>, IdentityNoOpEmailSender>();
+builder.Services.AddSingleton<
+    IEmailSender<MiUsuario>,
+    IdentityNoOpEmailSender>();
 
 var app = builder.Build();
 
-// Pipeline HTTP
+// Pipeline HTTP.
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
     app.UseWebAssemblyDebugging();
     app.UseMigrationsEndPoint();
+
     app.UseSwagger();
+
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CentroSenderos-2026 API v1");
+        c.SwaggerEndpoint(
+            "/swagger/v1/swagger.json",
+            "CentroSenderos-2026 API v1");
+
         c.RoutePrefix = "swagger";
     });
 }
 else
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseExceptionHandler(
+        "/Error",
+        createScopeForErrors: true);
+
     app.UseHsts();
 }
 
-// Conservar los estados HTTP de las API protegidas (401/403/404).
-// Reejecutar un POST/PUT/DELETE en una página Razor puede convertirlos en 400/405.
-app.UseWhen(context =>
-    !context.Request.Path.StartsWithSegments("/api/paciente", StringComparison.OrdinalIgnoreCase)
-    && !context.Request.Path.StartsWithSegments("/api/profesional", StringComparison.OrdinalIgnoreCase),
-    paginas => paginas.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
+// Conservar los estados HTTP de las API protegidas.
+// Reejecutar un POST/PUT/DELETE en una página Razor puede
+// convertir las respuestas en 400 o 405.
+app.UseWhen(
+    context =>
+        !context.Request.Path.StartsWithSegments(
+            "/api/paciente",
+            StringComparison.OrdinalIgnoreCase)
+        && !context.Request.Path.StartsWithSegments(
+            "/api/profesional",
+            StringComparison.OrdinalIgnoreCase)
+        && !context.Request.Path.StartsWithSegments(
+            "/api/turno",
+            StringComparison.OrdinalIgnoreCase),
+    paginas => paginas.UseStatusCodePagesWithReExecute(
+        "/not-found",
+        createScopeForStatusCodePages: true));
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
@@ -145,12 +224,13 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(CentroSenderos_2026_Server.Client._Imports).Assembly);
+    .AddAdditionalAssemblies(
+        typeof(CentroSenderos_2026_Server.Client._Imports).Assembly);
 
-// Controllers (incluye SeguridadController)
 app.MapControllers();
 app.MapAdditionalIdentityEndpoints();
 
