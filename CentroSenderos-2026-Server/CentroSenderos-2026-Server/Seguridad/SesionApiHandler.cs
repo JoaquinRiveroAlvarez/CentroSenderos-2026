@@ -54,7 +54,9 @@ public sealed class SesionApiHandler : DelegatingHandler
         var protegida = path.Equals("/api/paciente", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/api/paciente/", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/api/profesional", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("/api/profesional/", StringComparison.OrdinalIgnoreCase);
+            || path.StartsWith("/api/profesional/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/api/turno", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/api/turno/", StringComparison.OrdinalIgnoreCase);
         if (protegida)
         {
             var estado = await autenticacion.GetAuthenticationStateAsync();

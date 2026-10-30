@@ -142,7 +142,8 @@ else
 // Reejecutar un POST/PUT/DELETE en una página Razor puede convertirlos en 400/405.
 app.UseWhen(context =>
     !context.Request.Path.StartsWithSegments("/api/paciente", StringComparison.OrdinalIgnoreCase)
-    && !context.Request.Path.StartsWithSegments("/api/profesional", StringComparison.OrdinalIgnoreCase),
+    && !context.Request.Path.StartsWithSegments("/api/profesional", StringComparison.OrdinalIgnoreCase)
+    && !context.Request.Path.StartsWithSegments("/api/turno", StringComparison.OrdinalIgnoreCase),
     paginas => paginas.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
 app.UseHttpsRedirection();
 
