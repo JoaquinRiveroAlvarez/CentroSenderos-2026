@@ -44,6 +44,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// Configuración de SignalR para permitir subida de archivos (evita que se corte la conexión)
+builder.Services.Configure<Microsoft.AspNetCore.SignalR.HubOptions>(options =>
+{
+    options.MaximumReceiveMessageSize = 30 * 1024 * 1024; // 30 MB
+});
+
 // Configuración de base de datos
 var strConn = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("La cadena de conexión no existe.");
@@ -66,7 +72,6 @@ builder.Services.AddScoped<ITipoConsultorioRepositorio, TipoConsultorioRepositor
 builder.Services.AddScoped<ITipoDocumentoRepositorio, TipoDocumentoRepositorio>();
 builder.Services.AddScoped<ITipoGastoRepositorio, TipoGastoRepositorio>();
 builder.Services.AddScoped<IGastoRepositorio, GastoRepositorio>();
-builder.Services.AddSingleton<SupabaseStorageService>();
 builder.Services.AddScoped<IDocumentoRepositorio, DocumentoRepositorio>();
 builder.Services.AddScoped<IReintegroSocioRepositorio,ReintegroSocioRepositorio>();
 builder.Services.AddScoped<ILiquidacionRepositorio, LiquidacionRepositorio>();
@@ -135,10 +140,15 @@ else
 
 // Conservar los estados HTTP de las API protegidas (401/403/404).
 // Reejecutar un POST/PUT/DELETE en una página Razor puede convertirlos en 400/405.
+//app.UseWhen(context =>
+//    !context.Request.Path.StartsWithSegments("/api/paciente", StringComparison.OrdinalIgnoreCase)
+//    && !context.Request.Path.StartsWithSegments("/api/profesional", StringComparison.OrdinalIgnoreCase),
+//    paginas => paginas.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
+
 app.UseWhen(context =>
-    !context.Request.Path.StartsWithSegments("/api/paciente", StringComparison.OrdinalIgnoreCase)
-    && !context.Request.Path.StartsWithSegments("/api/profesional", StringComparison.OrdinalIgnoreCase),
+    !context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase),
     paginas => paginas.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

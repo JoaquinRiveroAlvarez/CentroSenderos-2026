@@ -119,6 +119,14 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<byte[]>("Contenido")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("EstadoRegistro")
                         .HasColumnType("integer");
 
@@ -129,12 +137,19 @@ namespace CentroSenderos_2026_BD.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("NombreOriginal")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Observacion")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("PacienteId")
                         .HasColumnType("integer");
+
+                    b.Property<long>("TamanoBytes")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("TipoDocumentoId")
                         .HasColumnType("integer");
