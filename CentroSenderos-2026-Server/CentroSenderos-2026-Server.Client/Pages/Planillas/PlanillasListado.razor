@@ -1,42 +1,451 @@
 ﻿@page "/planillas"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
-@inject NavigationManager Nav
 
 <div class="planillas-page">
-    <div class="page-header">
-    <div>
 
-            <button type="button"
+    <div class="page-header">
+        <div>
+            @* <button type="button"
                     class="back-button"
                     @onclick="Volver">
                 <i class="bi bi-arrow-left"></i>
                 <span>Volver</span>
-            </button>
+            </button> *@
 
-        <h1>Planillas</h1>
-        <p>Consultá y descargá las planillas base de Centro Senderos.</p>
-    </div>
-
-    <a href="/planillas/crear" class="new-button">
-        <i class="bi bi-plus-lg"></i>
-        Nueva planilla
-    </a>
-</div>
-
-    <div class="empty-state">
-        <div class="empty-icon">
-            <i class="bi bi-file-earmark-pdf"></i>
+            <h1>Planillas</h1>
+            <p>Consultá y descargá las planillas base de Centro Senderos.</p>
         </div>
 
-        <h2>No hay planillas para mostrar</h2>
-        <p>Las planillas PDF cargadas aparecerán en este espacio.</p>
+        <a href="/planillas/crear" class="new-button">
+            <i class="bi bi-plus-lg"></i>
+            Nueva planilla
+        </a>
     </div>
-</div>  
+
+    <div class="search-box">
+        <i class="bi bi-search"></i>
+
+        <input type="search"
+               aria-label="Buscar planillas"
+               placeholder="Buscar por nombre, tipo o descripción..."
+               @bind="busqueda"
+               @bind:event="oninput" />
+    </div>
+
+    @if (cargando)
+    {
+        <div class="state-card" role="status">
+            Cargando planillas...
+        </div>
+    }
+    else if (errorCarga)
+    {
+        <div class="state-card">
+            <i class="bi bi-exclamation-circle"></i>
+            <h2>No se pudieron cargar las planillas</h2>
+            <p>@Mensaje</p>
+
+            <button type="button"
+                    class="secondary-button"
+                    @onclick="CargarPlanillas">
+                Reintentar
+            </button>
+        </div>
+    }
+    else if (lista.Count == 0)
+    {
+        <div class="state-card">
+            <i class="bi bi-file-earmark-pdf"></i>
+            <h2>No hay planillas para mostrar</h2>
+            <p>Las planillas PDF cargadas aparecerán en este espacio.</p>
+        </div>
+    }
+    else if (PlanillasFiltradas.Count == 0)
+    {
+        <div class="state-card">
+            <i class="bi bi-search"></i>
+            <h2>Sin resultados</h2>
+            <p>Probá con otro nombre, tipo o descripción.</p>
+        </div>
+    }
+    else
+    {
+        <div class="tipos-listado">
+            @foreach (var grupo in GruposPlanillas)
+            {
+                var tipoId = grupo.Key;
+                var abierto = EstaAbierto(tipoId);
+                var nombreTipo = grupo.First().TipoPlanillaNombre;
+
+                <section class="tipo-grupo" @key="tipoId">
+
+                    <button type="button"
+                            class="tipo-cabecera"
+                            aria-expanded="@(abierto ? "true" : "false")"
+                            aria-controls="@($"contenido-tipo-{tipoId}")"
+                            @onclick="() => AlternarTipo(tipoId)">
+
+                        <span class="tipo-icono">
+                            <i class="bi @(abierto ? "bi-folder2-open" : "bi-folder2")"></i>
+                        </span>
+
+                        <span class="tipo-informacion">
+                            <strong>@nombreTipo</strong>
+                            <span>
+                                @grupo.Count()
+                                @(grupo.Count() == 1 ? "planilla" : "planillas")
+                            </span>
+                        </span>
+
+                        <i class="tipo-flecha bi @(abierto ? "bi-chevron-up" : "bi-chevron-down")"></i>
+                    </button>
+
+                    @if (abierto)
+                    {
+                        <div id="@($"contenido-tipo-{tipoId}")"
+                             class="tipo-contenido">
+
+                            @foreach (var item in grupo)
+                            {
+                                <article class="archivo-fila" @key="item.Id">
+
+                                    <div class="archivo-icono">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </div>
+
+                                    <div class="archivo-informacion">
+                                        <button type="button"
+                                                class="archivo-nombre"
+                                                @onclick="() => AbrirVistaPrevia(item)">
+                                            @item.Nombre
+                                        </button>
+
+                                        @if (!string.IsNullOrWhiteSpace(item.Descripcion))
+                                        {
+                                            <p>@item.Descripcion</p>
+                                        }
+
+                                        <span class="archivo-datos">
+                                            PDF · @FormatearTamano(item.TamanoBytes)
+                                            · @FormatearFecha(item.FechaSubida)
+                                        </span>
+                                    </div>
+
+                                    <div class="archivo-acciones">
+                                        <button type="button"
+                                                class="secondary-button"
+                                                aria-label="@($"Ver {item.Nombre}")"
+                                                @onclick="() => AbrirVistaPrevia(item)">
+                                            <i class="bi bi-eye"></i>
+                                            Ver
+                                        </button>
+
+                                        <a href="@($"/api/planillas/descargar/{item.Id}")"
+                                           class="download-button"
+                                           aria-label="@($"Descargar {item.Nombre}")"
+                                           download>
+                                            <i class="bi bi-download"></i>
+                                            Descargar
+                                        </a>
+
+                                        <button type="button"
+                                                class="delete-icon-button"
+                                                title="Eliminar planilla"
+                                                aria-label="@($"Eliminar {item.Nombre}")"
+                                                @onclick="() => SolicitarEliminar(item)">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
+
+                                </article>
+                            }
+
+                        </div>
+                    }
+
+                </section>
+            }
+        </div>
+
+        <p class="list-footer">
+            Mostrando @PlanillasFiltradas.Count de @lista.Count planillas
+        </p>
+    }
+</div>
+
+@if (planillaVistaPrevia != null)
+{
+    <div class="preview-overlay" @onclick="CerrarVistaPrevia">
+
+        <div class="preview-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="tituloVistaPrevia"
+             @onclick:stopPropagation="true">
+
+            <div class="preview-header">
+                <div class="preview-title">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    <h2 id="tituloVistaPrevia">@planillaVistaPrevia.Nombre</h2>
+                </div>
+
+                <div class="preview-actions">
+                    <a href="@($"/api/planillas/descargar/{planillaVistaPrevia.Id}")"
+                       class="preview-download"
+                       download>
+                        <i class="bi bi-download"></i>
+                        Descargar
+                    </a>
+
+                    <button type="button"
+                            class="preview-close"
+                            aria-label="Cerrar vista previa"
+                            @onclick="CerrarVistaPrevia">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <iframe @key="planillaVistaPrevia.Id"
+                    src="@($"/api/planillas/ver/{planillaVistaPrevia.Id}")"
+                    title="@($"Vista previa de {planillaVistaPrevia.Nombre}")">
+            </iframe>
+
+        </div>
+    </div>
+}
+
+@if (planillaAEliminar != null)
+{
+    <div class="delete-overlay" @onclick="CancelarEliminar">
+
+        <div class="delete-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="tituloEliminar"
+             @onclick:stopPropagation="true">
+
+            <div class="delete-warning-icon">
+                <i class="bi bi-trash3"></i>
+            </div>
+
+            <h2 id="tituloEliminar">¿Eliminar planilla?</h2>
+
+            <p>
+                Vas a eliminar
+                <strong>@planillaAEliminar.Nombre</strong>
+                y su archivo PDF. Esta acción no se puede deshacer.
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(MensajeEliminar))
+            {
+                <div class="error-message" role="alert">
+                    @MensajeEliminar
+                </div>
+            }
+
+            <div class="delete-modal-actions">
+                <button type="button"
+                        class="secondary-button"
+                        disabled="@eliminando"
+                        @onclick="CancelarEliminar">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminando"
+                        @onclick="ConfirmarEliminar">
+                    @(eliminando ? "Eliminando..." : "Eliminar planilla")
+                </button>
+            </div>
+
+        </div>
+    </div>
+}
 
 @code {
+    private List<ListadoPlanillasDTO> lista = new();
 
-    private void Volver() => Nav.NavigateTo("/admin");
+    private bool cargando = true;
+    private bool errorCarga;
+    private bool eliminando;
+
+    private string busqueda = string.Empty;
+    private string Mensaje = string.Empty;
+    private string MensajeEliminar = string.Empty;
+
+    private ListadoPlanillasDTO? planillaVistaPrevia;
+    private ListadoPlanillasDTO? planillaAEliminar;
+
+    private List<ListadoPlanillasDTO> PlanillasFiltradas
+    {
+        get
+        {
+            var texto = busqueda.Trim();
+
+            if (string.IsNullOrWhiteSpace(texto))
+                return lista;
+
+            return lista.Where(p =>
+                p.Nombre.Contains(
+                    texto,
+                    StringComparison.OrdinalIgnoreCase) ||
+                p.TipoPlanillaNombre.Contains(
+                    texto,
+                    StringComparison.OrdinalIgnoreCase) ||
+                p.Descripcion.Contains(
+                    texto,
+                    StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarPlanillas();
+    }
+
+    private async Task CargarPlanillas()
+    {
+        cargando = true;
+        errorCarga = false;
+        Mensaje = string.Empty;
+
+        try
+        {
+            var resp = await Http.Get<List<ListadoPlanillasDTO>>(
+                "api/planillas");
+
+            if (resp.Error)
+            {
+                errorCarga = true;
+                Mensaje = resp.ObtenerError();
+                return;
+            }
+
+            lista = resp.Respuesta ?? new();
+        }
+        catch
+        {
+            errorCarga = true;
+            Mensaje = "No se pudo consultar el listado. Intentá nuevamente.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void AbrirVistaPrevia(ListadoPlanillasDTO planilla)
+    {
+        planillaVistaPrevia = planilla;
+    }
+
+    private void CerrarVistaPrevia()
+    {
+        planillaVistaPrevia = null;
+    }
+
+    private void SolicitarEliminar(ListadoPlanillasDTO planilla)
+    {
+        planillaAEliminar = planilla;
+        MensajeEliminar = string.Empty;
+    }
+
+    private void CancelarEliminar()
+    {
+        if (eliminando)
+            return;
+
+        planillaAEliminar = null;
+        MensajeEliminar = string.Empty;
+    }
+
+    private async Task ConfirmarEliminar()
+    {
+        if (planillaAEliminar == null || eliminando)
+            return;
+
+        eliminando = true;
+        MensajeEliminar = string.Empty;
+
+        var idEliminar = planillaAEliminar.Id;
+
+        try
+        {
+            var resp = await Http.Delete($"api/planillas/{idEliminar}");
+
+            if (resp.Error)
+            {
+                MensajeEliminar = resp.ObtenerError();
+                return;
+            }
+
+            lista.RemoveAll(p => p.Id == idEliminar);
+
+            if (planillaVistaPrevia?.Id == idEliminar)
+                planillaVistaPrevia = null;
+
+            planillaAEliminar = null;
+        }
+        catch
+        {
+            MensajeEliminar =
+                "No se pudo eliminar la planilla. Intentá nuevamente.";
+        }
+        finally
+        {
+            eliminando = false;
+        }
+    }
+
+    private static string FormatearTamano(long bytes)
+    {
+        if (bytes < 1024)
+            return $"{bytes} B";
+
+        if (bytes < 1024 * 1024)
+            return $"{bytes / 1024d:0.#} KB";
+
+        return $"{bytes / (1024d * 1024d):0.#} MB";
+    }
+
+    private static string FormatearFecha(DateTime fecha)
+    {
+        // La fecha se guarda en UTC y se muestra en horario argentino.
+        var fechaUtc = DateTime.SpecifyKind(fecha, DateTimeKind.Utc);
+
+        return new DateTimeOffset(fechaUtc)
+            .ToOffset(TimeSpan.FromHours(-3))
+            .ToString("dd/MM/yyyy");
+    }
+
+    private HashSet<int> tiposAbiertos = new();
+
+    private IEnumerable<System.Linq.IGrouping<int, ListadoPlanillasDTO>> GruposPlanillas =>PlanillasFiltradas.GroupBy(p => p.TipoPlanillaId).OrderBy(g => g.First().TipoPlanillaNombre);
+
+    private bool EstaAbierto(int tipoId)
+    {
+        // Al buscar, mostramos directamente las coincidencias.
+        return !string.IsNullOrWhiteSpace(busqueda)
+            || tiposAbiertos.Contains(tipoId);
+    }
+
+    private void AlternarTipo(int tipoId)
+    {
+        // Durante la búsqueda mantenemos visibles los resultados.
+        if (!string.IsNullOrWhiteSpace(busqueda))
+            return;
+
+        if (!tiposAbiertos.Add(tipoId))
+            tiposAbiertos.Remove(tipoId);
+    }
+
+    // private void Volver() => Nav.NavigateTo("/admin");
 }

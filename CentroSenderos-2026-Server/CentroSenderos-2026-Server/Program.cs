@@ -70,7 +70,7 @@ builder.Services.AddSingleton<SupabaseStorageService>();
 builder.Services.AddScoped<IDocumentoRepositorio, DocumentoRepositorio>();
 builder.Services.AddScoped<IReintegroSocioRepositorio,ReintegroSocioRepositorio>();
 builder.Services.AddScoped<ILiquidacionRepositorio, LiquidacionRepositorio>();
-
+builder.Services.AddScoped<IPlanillaRepositorio, PlanillaRepositorio>();
 
 // Razor Components + Auth
 builder.Services.AddRazorComponents()

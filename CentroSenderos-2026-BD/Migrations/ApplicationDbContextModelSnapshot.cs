@@ -17,7 +17,7 @@ namespace CentroSenderos_2026_BD.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.9")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -463,6 +463,65 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex("PacienteId");
 
                     b.ToTable("PacienteTelefonos");
+                });
+
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Planilla", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<byte[]>("Contenido")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("EstadoRegistro")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("FechaSubida")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("NombreGenerado")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("NombreOriginal")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("Observacion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("TamanoBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("TipoPlanillaId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TipoPlanillaId");
+
+                    b.ToTable("Planillas");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Profesional", b =>
@@ -1595,6 +1654,17 @@ namespace CentroSenderos_2026_BD.Migrations
                         .IsRequired();
 
                     b.Navigation("Paciente");
+                });
+
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Planilla", b =>
+                {
+                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.TipoPlanilla", "TipoPlanilla")
+                        .WithMany()
+                        .HasForeignKey("TipoPlanillaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("TipoPlanilla");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.ProfesionalTipoPrestacion", b =>
