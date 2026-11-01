@@ -1052,13 +1052,13 @@
         1
     );
 
-    private readonly EnumEstadoTurno[] EstadosDisponibles = {
-        EnumEstadoTurno.disponible,
-        EnumEstadoTurno.reservado,
-        EnumEstadoTurno.atendido,
-        EnumEstadoTurno.cancelado,
-        EnumEstadoTurno.ausente
-    };
+    private readonly EnumEstadoTurno[] EstadosDisponibles =
+        {
+            EnumEstadoTurno.reservado,
+            EnumEstadoTurno.atendido,
+            EnumEstadoTurno.cancelado,
+            EnumEstadoTurno.ausente
+        };
 
     protected override async Task OnInitializedAsync()
     {
@@ -1827,9 +1827,9 @@
     {
         return estado switch
         {
-            EnumEstadoTurno.disponible => "Disponible",
-            EnumEstadoTurno.reservado => "Reservado",
-            EnumEstadoTurno.atendido => "Atendido",
+            EnumEstadoTurno.disponible => "Pendiente",
+            EnumEstadoTurno.reservado => "Pendiente",
+            EnumEstadoTurno.atendido => "Completado",
             EnumEstadoTurno.cancelado => "Cancelado",
             EnumEstadoTurno.ausente => "Ausente",
             _ => "Sin estado"

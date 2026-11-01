@@ -1680,11 +1680,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             Turno turnoSeleccionado,
             TurnoDTO dto,
             List<int> profesionalIds,
-            List<int> pacienteIds,
-            List<TurnoProfesionalPrestacionDTO> profesionalPrestaciones,
-            int tipoTurnoId,
-            int duracionMinutos
-        )
+            List<int> pacienteIds,List<TurnoProfesionalPrestacionDTO> profesionalPrestaciones,int tipoTurnoId,int duracionMinutos)
         {
             if (!turnoSeleccionado.SerieTurnoId.HasValue)
             {
@@ -2014,11 +2010,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 }
             }
 
-            var obrasSocialesGuardadas =
-    turnosSerie
-        .SelectMany(turno =>
-            turno.TurnoPacientes.Select(
-                relacion => new
+            var obrasSocialesGuardadas = turnosSerie.SelectMany(turno =>turno.TurnoPacientes.Select(relacion => new
                 {
                     TurnoId =
                         turno.Id,
@@ -2027,8 +2019,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     relacion.TipoObraSocialId,
                     relacion.NombreObraSocial
                 }
-            )
-        )
+            ))
         .ToDictionary(
             item => (
                 item.TurnoId,
@@ -2237,8 +2228,80 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 await transaccion.RollbackAsync();
                 throw;
             }
+        }    
+    public async Task<bool> CambiarEstadoTurno(
+    int id,
+    EnumEstadoTurno estado)
+        {
+            if (estado != EnumEstadoTurno.reservado &&
+                estado != EnumEstadoTurno.atendido &&
+                estado != EnumEstadoTurno.cancelado &&
+                estado != EnumEstadoTurno.ausente)
+            {
+                throw new ApplicationException(
+                    "Seleccioná un estado válido."
+                );
+            }
+
+            var turno = await context.Turnos
+                .Include(t => t.TurnoProfesionales)
+                .Include(t => t.TurnoPacientes)
+                .FirstOrDefaultAsync(t =>
+                    t.Id == id &&
+                    t.EstadoRegistro == EnumEstadoRegistro.activo
+                );
+
+            if (turno is null)
+            {
+                return false;
+            }
+
+            // Si se reactiva un turno cancelado, hay que
+            // comprobar que su horario siga disponible.
+            if (turno.EstadoTurno == EnumEstadoTurno.cancelado &&
+                estado != EnumEstadoTurno.cancelado)
+            {
+                var profesionalIds = turno.TurnoProfesionales
+                    .Select(relacion => relacion.ProfesionalId)
+                    .ToList();
+
+                var pacienteIds = turno.TurnoPacientes
+                    .Select(relacion => relacion.PacienteId)
+                    .ToList();
+
+                var existeConflicto = await context.Turnos
+                    .AnyAsync(otro =>
+                        otro.Id != turno.Id &&
+                        otro.EstadoRegistro == EnumEstadoRegistro.activo &&
+                        otro.EstadoTurno != EnumEstadoTurno.cancelado &&
+                        otro.FechaInicio < turno.FechaFin &&
+                        otro.FechaFin > turno.FechaInicio &&
+                        (
+                            otro.TipoConsultorioId == turno.TipoConsultorioId ||
+                            otro.TurnoProfesionales.Any(relacion =>
+                                profesionalIds.Contains(relacion.ProfesionalId)
+                            ) ||
+                            otro.TurnoPacientes.Any(relacion =>
+                                pacienteIds.Contains(relacion.PacienteId)
+                            )
+                        )
+                    );
+
+                if (existeConflicto)
+                {
+                    throw new ApplicationException(
+                        "No se puede reactivar el turno porque el consultorio, " +
+                        "un profesional o un paciente ya tiene otro turno " +
+                        "en ese horario."
+                    );
+                }
+            }
+
+            turno.EstadoTurno = estado;
+
+            await context.SaveChangesAsync();
+
+            return true;
         }
-
-
     }
 }

@@ -85,10 +85,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put(
-            int id,
-            [FromBody] TurnoDTO dto
-        )
+        public async Task<IActionResult> Put(int id,[FromBody] TurnoDTO dto)
         {
             try
             {
@@ -141,9 +138,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post(
-            [FromBody] TurnoDTO dto
-        )
+        public async Task<IActionResult> Post([FromBody] TurnoDTO dto)
         {
             try
             {
@@ -173,14 +168,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpGet("Disponibles")]
-        public async Task<ActionResult<List<string>>> GetDisponibles(
-            DateOnly fecha,
-            int tipoTurnoId,
-            int consultorioId,
-            [FromQuery] List<int>? profesionalIds = null,
-            [FromQuery] List<int>? pacienteIds = null,
-            int? turnoIdExcluir = null
-        )
+        public async Task<ActionResult<List<string>>> GetDisponibles(DateOnly fecha,int tipoTurnoId,int consultorioId,[FromQuery] List<int>? profesionalIds = null,[FromQuery] List<int>? pacienteIds = null,int? turnoIdExcluir = null)
         {
             try
             {
@@ -279,6 +267,45 @@ namespace CentroSenderos_2026_Server.Controllers
                     mensaje = mensaje
                 }
             );
+        }
+        [HttpPut("{id:int}/estado")]
+        public async Task<IActionResult> CambiarEstado(int id,[FromBody]CentroSenderos_2026_Shared.Enum.EnumEstadoTurno estado)
+        {
+            try
+            {
+                var actualizado = await repositorio.CambiarEstadoTurno(
+                    id,
+                    estado
+                );
+
+                if (!actualizado)
+                {
+                    return NotFound(new RespuestaDTO
+                    {
+                        mensaje = "No encontramos el turno solicitado."
+                    });
+                }
+
+                return Ok(new RespuestaDTO
+                {
+                    mensaje = "El estado del turno se actualizó correctamente."
+                });
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(new RespuestaDTO
+                {
+                    mensaje = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return ErrorInterno(
+                    ex,
+                    "cambiar el estado del turno",
+                    "No pudimos actualizar el estado. Intentá nuevamente."
+                );
+            }
         }
     }
 }

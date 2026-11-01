@@ -58,3 +58,22 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* #region Paleta general de estados de turnos */
+
+:root {
+    --turno-pendiente-color: #1d4ed8;
+    --turno-pendiente-fondo: #eff6ff;
+    --turno-pendiente-borde: #93c5fd;
+    --turno-completado-color: #15803d;
+    --turno-completado-fondo: #ecfdf3;
+    --turno-completado-borde: #86efac;
+    --turno-cancelado-color: #4b5563;
+    --turno-cancelado-fondo: #f3f4f6;
+    --turno-cancelado-borde: #cbd5e1;
+    --turno-ausente-color: #c2410c;
+    --turno-ausente-fondo: #fff7ed;
+    --turno-ausente-borde: #fdba74;
+}
+
+/* #endregion */

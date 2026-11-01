@@ -315,6 +315,205 @@
 /* #endregion */
 
 
+/* #region Cambio de estado del turno */
+
+.detalle-cambio-estado {
+    margin: 4px 24px 20px;
+    padding: 18px 20px;
+    background: #fff;
+    border: 1px solid #e7e3dc;
+    border-radius: 14px;
+}
+
+.detalle-estado-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.detalle-estado-titulo {
+    color: #71796e;
+    font-size: 0.73rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.detalle-estado-pendiente {
+    color: #98703b;
+    font-size: 0.73rem;
+}
+
+.detalle-estado-opciones {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.detalle-estado-opcion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 40px;
+    padding: 8px 10px;
+    background: #faf9f6;
+    color: #72786f;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+    .detalle-estado-opcion i {
+        font-size: 0.95rem;
+    }
+
+    .detalle-estado-opcion:hover:not(:disabled) {
+        background: #f0f3ed;
+        color: #556f4f;
+    }
+
+    .detalle-estado-opcion.seleccionado {
+        background: #edf2e9;
+        color: #486341;
+        border-color: #b8c8b0;
+        font-weight: 600;
+    }
+
+.detalle-estado-pie {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 13px;
+}
+
+.detalle-estado-ayuda {
+    color: #90958b;
+    font-size: 0.73rem;
+}
+
+.detalle-estado-guardar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 11px;
+    background: #556f4f;
+    color: #fff;
+    border: 1px solid #556f4f;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 0.77rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .detalle-estado-guardar:hover:not(:disabled) {
+        background: #455d40;
+    }
+
+    .detalle-estado-guardar:disabled {
+        background: #f5f6f2;
+        color: #9ba293;
+        border-color: #e8ebe3;
+        cursor: default;
+    }
+
+.detalle-estado-opcion:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.detalle-estado-opcion:focus-visible,
+.detalle-estado-guardar:focus-visible {
+    outline: 2px solid #647b5b;
+    outline-offset: 3px;
+}
+
+.detalle-estado-mensaje {
+    margin: 12px 0 0;
+    color: #556f4f;
+    font-size: 0.78rem;
+}
+
+    .detalle-estado-mensaje.es-error {
+        color: #a33131;
+    }
+
+@media (max-width: 600px) {
+    .detalle-cambio-estado {
+        margin-right: 16px;
+        margin-left: 16px;
+        padding: 15px;
+    }
+
+    .detalle-estado-opciones {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* #endregion */
+
+/* #region Colores del selector de estados */
+
+/*.detalle-estado-opcion.opcion-reservado {
+    --estado-color: #1d4ed8;
+    --estado-fondo: #eff6ff;
+    --estado-borde: #93c5fd;
+}
+
+.detalle-estado-opcion.opcion-atendido {
+    --estado-color: #15803d;
+    --estado-fondo: #ecfdf3;
+    --estado-borde: #86efac;
+}
+
+.detalle-estado-opcion.opcion-cancelado {
+    --estado-color: #4b5563;
+    --estado-fondo: #f3f4f6;
+    --estado-borde: #cbd5e1;
+}
+
+.detalle-estado-opcion.opcion-ausente {
+    --estado-color: #c2410c;
+    --estado-fondo: #fff7ed;
+    --estado-borde: #fdba74;
+}
+
+.detalle-estado-opcion {
+    background: var(--estado-fondo);
+    color: var(--estado-color);
+    border-color: var(--estado-borde);
+    font-weight: 600;
+}
+
+    .detalle-estado-opcion:hover:not(:disabled) {
+        background: var(--estado-fondo);
+        color: var(--estado-color);
+        border-color: var(--estado-color);
+    }
+
+    .detalle-estado-opcion.seleccionado,
+    .detalle-estado-opcion.seleccionado:hover:not(:disabled) {
+        background: var(--estado-color);
+        color: #fff;
+        border-color: var(--estado-color);
+        box-shadow: 0 3px 8px rgb(0 0 0 / 12%);
+    }
+
+    .detalle-estado-opcion:focus-visible {
+        outline-color: var(--estado-color);
+    }*/
+
+/* #endregion */
 
 /* #region BARRA SUPERIOR Y NAVEGACIÓN
    Modifica la fecha, los botones de vista y las acciones superiores. */
@@ -2858,6 +3057,88 @@
     .detalle-nuevo-atencion-relacion {
         flex-wrap: wrap;
     }
+}
+
+/* #endregion */
+
+/* #region Asociación de colores por estado */
+
+/* Disponible se conserva por compatibilidad con turnos anteriores. */
+.estado-disponible,
+.estado-reservado,
+.turno-grilla-disponible,
+.turno-grilla-reservado,
+.opcion-reservado {
+    --estado-color: var(--turno-pendiente-color);
+    --estado-fondo: var(--turno-pendiente-fondo);
+    --estado-borde: var(--turno-pendiente-borde);
+}
+
+.estado-atendido,
+.turno-grilla-atendido,
+.opcion-atendido {
+    --estado-color: var(--turno-completado-color);
+    --estado-fondo: var(--turno-completado-fondo);
+    --estado-borde: var(--turno-completado-borde);
+}
+
+.estado-cancelado,
+.turno-grilla-cancelado,
+.opcion-cancelado {
+    --estado-color: var(--turno-cancelado-color);
+    --estado-fondo: var(--turno-cancelado-fondo);
+    --estado-borde: var(--turno-cancelado-borde);
+}
+
+.estado-ausente,
+.turno-grilla-ausente,
+.opcion-ausente {
+    --estado-color: var(--turno-ausente-color);
+    --estado-fondo: var(--turno-ausente-fondo);
+    --estado-borde: var(--turno-ausente-borde);
+}
+
+/* #endregion */
+
+/* #region Estados en agenda, lista y detalle */
+
+/* Etiquetas y selector del detalle. */
+.estado-badge,
+.detalle-estado-opcion {
+    background: var(--estado-fondo);
+    color: var(--estado-color);
+    border-color: var(--estado-borde);
+}
+
+/* Tarjetas de la agenda. */
+.turno-grilla {
+    background: var(--estado-fondo);
+    border-color: var(--estado-borde);
+    border-left-color: var(--estado-color);
+}
+
+    /* Conserva el color al pasar el cursor. */
+    .turno-grilla:hover,
+    .detalle-estado-opcion:hover:not(:disabled) {
+        background: var(--estado-fondo);
+        border-color: var(--estado-color);
+    }
+
+    .turno-grilla .turno-grilla-estado {
+        color: var(--estado-color);
+    }
+
+/* Selección activa del detalle. */
+.detalle-estado-opcion.seleccionado,
+.detalle-estado-opcion.seleccionado:hover:not(:disabled) {
+    background: var(--estado-color);
+    color: #fff;
+    border-color: var(--estado-color);
+    box-shadow: 0 3px 8px rgb(0 0 0 / 12%);
+}
+
+.detalle-estado-opcion:focus-visible {
+    outline-color: var(--estado-color);
 }
 
 /* #endregion */

@@ -1789,3 +1789,86 @@ select.control-formulario {
 }
 
 /* #endregion */
+
+/* #region Asociación de colores por estado */
+
+/* Disponible se conserva por compatibilidad con turnos anteriores. */
+.estado-disponible,
+.estado-reservado,
+.turno-grilla-disponible,
+.turno-grilla-reservado,
+.opcion-reservado {
+    --estado-color: var(--turno-pendiente-color);
+    --estado-fondo: var(--turno-pendiente-fondo);
+    --estado-borde: var(--turno-pendiente-borde);
+}
+
+.estado-atendido,
+.turno-grilla-atendido,
+.opcion-atendido {
+    --estado-color: var(--turno-completado-color);
+    --estado-fondo: var(--turno-completado-fondo);
+    --estado-borde: var(--turno-completado-borde);
+}
+
+.estado-cancelado,
+.turno-grilla-cancelado,
+.opcion-cancelado {
+    --estado-color: var(--turno-cancelado-color);
+    --estado-fondo: var(--turno-cancelado-fondo);
+    --estado-borde: var(--turno-cancelado-borde);
+}
+
+.estado-ausente,
+.turno-grilla-ausente,
+.opcion-ausente {
+    --estado-color: var(--turno-ausente-color);
+    --estado-fondo: var(--turno-ausente-fondo);
+    --estado-borde: var(--turno-ausente-borde);
+}
+
+/* #endregion */
+
+/* #region Estados en Editar turno */
+
+.estado-opcion {
+    background: var(--estado-fondo);
+    color: var(--estado-color);
+    border-color: var(--estado-borde);
+}
+
+    .estado-opcion:hover:not(:disabled) {
+        background: var(--estado-fondo);
+        color: var(--estado-color);
+        border-color: var(--estado-color);
+    }
+
+    .estado-opcion .estado-indicador {
+        background: var(--estado-color);
+    }
+
+    .estado-opcion > i {
+        color: var(--estado-color);
+    }
+
+    .estado-opcion.estado-seleccionado,
+    .estado-opcion.estado-seleccionado:hover:not(:disabled) {
+        background: var(--estado-color);
+        color: #fff;
+        border-color: var(--estado-color);
+    }
+
+        .estado-opcion.estado-seleccionado .estado-indicador {
+            background: #fff;
+        }
+
+        .estado-opcion.estado-seleccionado > i {
+            color: #fff;
+        }
+
+    .estado-opcion:focus-visible {
+        outline: 2px solid var(--estado-color);
+        outline-offset: 3px;
+    }
+
+/* #endregion */

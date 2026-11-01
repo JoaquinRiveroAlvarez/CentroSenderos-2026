@@ -19,5 +19,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
              int? turnoIdExcluir = null
          );
         Task<bool> DeleteTurno(int id);
+        Task<bool> CambiarEstadoTurno(int id,CentroSenderos_2026_Shared.Enum.EnumEstadoTurno estado);
     }
 }

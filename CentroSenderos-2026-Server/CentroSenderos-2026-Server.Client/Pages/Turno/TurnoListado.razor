@@ -1103,7 +1103,96 @@
 
             </div>
 
-            <footer class="detalle-turno-acciones detalle-nuevo-acciones">
+<section class="detalle-cambio-estado"
+         aria-label="Cambiar estado del turno"
+         aria-busy="@guardandoEstado">
+
+    <div class="detalle-estado-cabecera">
+        <span class="detalle-estado-titulo">Estado del turno</span>
+
+        @if (estadoSeleccionado != turnoSeleccionado.EstadoTurno)
+        {
+            <span class="detalle-estado-pendiente">
+                Sin guardar
+            </span>
+        }
+    </div>
+
+    <div class="detalle-estado-opciones"
+         role="group"
+         aria-label="Estados disponibles">
+
+        @foreach (var estado in new[]
+        {
+            EnumEstadoTurno.reservado,
+            EnumEstadoTurno.atendido,
+            EnumEstadoTurno.cancelado,
+            EnumEstadoTurno.ausente
+        })
+        {
+            var nombre = estado switch
+            {
+                EnumEstadoTurno.reservado => "Pendiente",
+                EnumEstadoTurno.atendido => "Completado",
+                EnumEstadoTurno.cancelado => "Cancelado",
+                _ => "Ausente"
+            };
+
+            var icono = estado switch
+            {
+                EnumEstadoTurno.reservado => "bi-clock",
+                EnumEstadoTurno.atendido => "bi-check-circle",
+                EnumEstadoTurno.cancelado => "bi-x-circle",
+                _ => "bi-person-x"
+            };
+
+            <button type="button"
+                                class="detalle-estado-opcion opcion-@estado @(estadoSeleccionado == estado ? "seleccionado" : "")"
+                                aria-pressed="@(estadoSeleccionado == estado ? "true" : "false")"
+                                disabled="@guardandoEstado"
+                                @onclick="() =>
+                                {
+                                    estadoSeleccionado = estado;
+                                    mensajeEstado = string.Empty;
+                                }">
+
+                <i class="bi @icono" aria-hidden="true"></i>
+                <span>@nombre</span>
+
+            </button>
+        }
+
+    </div>
+
+    <div class="detalle-estado-pie">
+
+        <span class="detalle-estado-ayuda">
+            Se aplica únicamente a este turno.
+        </span>
+
+        <button type="button"
+                class="detalle-estado-guardar"
+                disabled="@(guardandoEstado ||
+                    estadoSeleccionado == turnoSeleccionado.EstadoTurno)"
+                @onclick="GuardarEstadoTurno">
+
+            <i class="bi bi-check2" aria-hidden="true"></i>
+            @(guardandoEstado ? "Guardando..." : "Guardar estado")
+
+        </button>
+
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(mensajeEstado))
+    {
+        <p class="detalle-estado-mensaje @(errorEstado ? "es-error" : "")"
+           role="status">
+            @mensajeEstado
+        </p>
+    }
+
+</section>           
+<footer class="detalle-turno-acciones detalle-nuevo-acciones">
 
                 <button type="button"
                         class="detalle-btn-cerrar"
@@ -1866,12 +1955,12 @@
     {
         return turno.EstadoTurno switch
         {
-            EnumEstadoTurno.disponible => "Disponible",
-            EnumEstadoTurno.reservado => "Reservado",
-            EnumEstadoTurno.atendido => "Atendido",
+            EnumEstadoTurno.disponible => "Pendiente",
+            EnumEstadoTurno.reservado => "Pendiente",
+            EnumEstadoTurno.atendido => "Completado",
             EnumEstadoTurno.cancelado => "Cancelado",
-            EnumEstadoTurno.ausente => "No asistió",
-            _ => turno.EstadoTurno.ToString()
+            EnumEstadoTurno.ausente => "Ausente",
+            _ => "Sin estado"
         };
     }
 
@@ -1995,7 +2084,20 @@
 
     private void AbrirDetalle(TurnoListadoDTO turno)
     {
+        if (guardandoEstado)
+        {
+            return;
+        }
+
         turnoSeleccionado = turno;
+
+        estadoSeleccionado =
+            turno.EstadoTurno == EnumEstadoTurno.disponible
+                ? EnumEstadoTurno.reservado
+                : turno.EstadoTurno;
+
+        mensajeEstado = string.Empty;
+        errorEstado = false;
         mostrarDetalle = true;
     }
 
@@ -2160,13 +2262,19 @@
 
     private void CerrarDetalle()
     {
+        if (guardandoEstado)
+        {
+            return;
+        }
+
         mostrarDetalle = false;
         turnoSeleccionado = null;
+        mensajeEstado = string.Empty;
     }
 
     private void EditarTurnoSeleccionado()
     {
-        if (turnoSeleccionado is null)
+        if (guardandoEstado || turnoSeleccionado is null)
         {
             return;
         }
@@ -2498,5 +2606,60 @@
                 ", ",
                 turno.NombresPacientes
             );
+    }
+
+    private EnumEstadoTurno estadoSeleccionado;
+    private bool guardandoEstado;
+    private bool errorEstado;
+    private string mensajeEstado = string.Empty;
+
+    private async Task GuardarEstadoTurno()
+    {
+        if (guardandoEstado || turnoSeleccionado is null)
+        {
+            return;
+        }
+
+        var turno = turnoSeleccionado;
+        var nuevoEstado = estadoSeleccionado;
+
+        if (nuevoEstado == turno.EstadoTurno)
+        {
+            return;
+        }
+
+        guardandoEstado = true;
+        mensajeEstado = string.Empty;
+        errorEstado = false;
+
+        try
+        {
+            var respuesta = await Http.Put<EnumEstadoTurno, RespuestaDTO>(
+                $"api/turno/{turno.Id}/estado",
+                nuevoEstado
+            );
+
+            if (respuesta.Error)
+            {
+                errorEstado = true;
+                mensajeEstado = respuesta.ObtenerError();
+                return;
+            }
+
+            // Actualiza también la etiqueta del turno en la agenda.
+            turno.EstadoTurno = nuevoEstado;
+
+            mensajeEstado = "Estado actualizado correctamente.";
+        }
+        catch
+        {
+            errorEstado = true;
+            mensajeEstado =
+                "No pudimos actualizar el estado. Intentá nuevamente.";
+        }
+        finally
+        {
+            guardandoEstado = false;
+        }
     }
 }
