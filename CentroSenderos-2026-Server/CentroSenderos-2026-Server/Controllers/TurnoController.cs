@@ -248,11 +248,7 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
-        private ObjectResult ErrorInterno(
-            Exception exception,
-            string operacion,
-            string mensaje
-        )
+        private ObjectResult ErrorInterno(Exception exception,string operacion,string mensaje)
         {
             logger.LogError(
                 exception,
@@ -268,6 +264,7 @@ namespace CentroSenderos_2026_Server.Controllers
                 }
             );
         }
+
         [HttpPut("{id:int}/estado")]
         public async Task<IActionResult> CambiarEstado(int id,[FromBody]CentroSenderos_2026_Shared.Enum.EnumEstadoTurno estado)
         {
@@ -304,6 +301,48 @@ namespace CentroSenderos_2026_Server.Controllers
                     ex,
                     "cambiar el estado del turno",
                     "No pudimos actualizar el estado. Intentá nuevamente."
+                );
+            }
+        }
+
+        [HttpPut("{turnoId:int}/pacientes/{pacienteId:int}/asistencia")]
+        public async Task<IActionResult> CambiarAsistenciaPaciente(int turnoId,int pacienteId,[FromBody] TurnoPacienteAsistenciaDTO dto)
+        {
+            try
+            {
+                var actualizado = await repositorio.CambiarAsistenciaPaciente(
+                    turnoId,
+                    pacienteId,
+                    dto.Asistencia
+                );
+
+                if (!actualizado)
+                {
+                    return NotFound(new RespuestaDTO
+                    {
+                        mensaje =
+                            "No encontramos al paciente asignado a ese turno."
+                    });
+                }
+
+                return Ok(new RespuestaDTO
+                {
+                    mensaje = "La asistencia se actualizó correctamente."
+                });
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(new RespuestaDTO
+                {
+                    mensaje = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return ErrorInterno(
+                    ex,
+                    "actualizar la asistencia del paciente",
+                    "No pudimos guardar la asistencia. Intentá nuevamente."
                 );
             }
         }

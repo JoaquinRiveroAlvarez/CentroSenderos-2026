@@ -1251,6 +1251,98 @@
 
 /* #endregion */
 
+/* #region Diagnóstico por paciente */
+
+/* Opciones del buscador */
+
+.selector-desplegable-opcion:has(.paciente-opcion-datos) {
+    padding: 10px 12px;
+}
+
+.selector-desplegable-opcion > .paciente-opcion-datos {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    white-space: normal;
+}
+
+.paciente-opcion-cabecera {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 3px 10px;
+}
+
+    .paciente-opcion-cabecera strong {
+        color: #354330;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .paciente-opcion-cabecera small {
+        color: #92968c;
+        font-size: 10px;
+        font-weight: 400;
+    }
+
+.paciente-diagnostico {
+    color: #747e6d;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+/* Pacientes seleccionados */
+
+.selector-multiple-chip.paciente-chip {
+    align-items: center;
+    gap: 10px;
+    max-width: 100%;
+    padding: 7px 8px 7px 11px;
+    background: #f5f7f2;
+    border: 1px solid #dfe5d9;
+    border-radius: 8px;
+}
+
+.paciente-chip-datos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+    .paciente-chip-datos strong {
+        color: #43563c;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .paciente-chip-datos > span {
+        color: #7b8474;
+        font-size: 10px;
+        font-weight: 400;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+.selector-multiple-chip.paciente-chip > button {
+    align-self: flex-start;
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    color: #87927e;
+}
+
+    .selector-multiple-chip.paciente-chip > button:hover {
+        background: #e5ebdf;
+        color: #43563c;
+    }
+
+/* #endregion */
 /* #region Cierre de selectores al hacer clic afuera */
 
 .selector-cierre-fondo {

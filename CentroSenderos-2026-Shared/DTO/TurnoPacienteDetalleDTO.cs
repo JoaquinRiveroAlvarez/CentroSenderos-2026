@@ -1,4 +1,7 @@
-﻿namespace CentroSenderos_2026_Shared.DTO
+﻿using CentroSenderos_2026_Shared.Enum;
+
+namespace CentroSenderos_2026_Shared.DTO
+
 {
     public class TurnoPacienteDetalleDTO
     {
@@ -9,5 +12,6 @@
         public int? TipoObraSocialId { get; set; }
 
         public string? NombreObraSocial { get; set; }
+        public EnumAsistenciaPaciente? Asistencia { get; set; }
     }
 }

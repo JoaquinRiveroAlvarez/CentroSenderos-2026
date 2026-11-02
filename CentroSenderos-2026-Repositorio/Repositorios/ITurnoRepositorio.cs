@@ -1,6 +1,7 @@
 ﻿using CentroSenderos_2026_BD.Datos.Entity;
 using CentroSenderos_2026_Shared.DTO;
 using Modelado2025_1Repositorio.Repositorios;
+using CentroSenderos_2026_Shared.Enum;
 
 namespace CentroSenderos_2026_Repositorio.Repositorios
 {
@@ -20,5 +21,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
          );
         Task<bool> DeleteTurno(int id);
         Task<bool> CambiarEstadoTurno(int id,CentroSenderos_2026_Shared.Enum.EnumEstadoTurno estado);
+        Task<bool> CambiarAsistenciaPaciente(int turnoId,int pacienteId,EnumAsistenciaPaciente? asistencia);
     }
 }

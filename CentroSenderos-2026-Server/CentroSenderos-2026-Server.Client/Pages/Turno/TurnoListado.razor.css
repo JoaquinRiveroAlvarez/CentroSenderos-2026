@@ -3142,3 +3142,90 @@
 }
 
 /* #endregion */
+
+/* #region Asistencia individual por paciente */
+
+.asistencia-ayuda {
+    margin: 0 0 14px;
+    color: #81887b;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.asistencia-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.asistencia-opcion {
+    padding: 6px 9px;
+    background: #fff;
+    color: var(--asistencia-color);
+    border: 1px solid var(--asistencia-borde);
+    border-radius: 7px;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.3;
+    cursor: pointer;
+    transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.asistencia-pendiente {
+    --asistencia-color: #64748b;
+    --asistencia-borde: #d5dce4;
+    --asistencia-fondo: #f1f5f9;
+}
+
+.asistencia-presente {
+    --asistencia-color: var(--turno-completado-color, #15803d);
+    --asistencia-borde: var(--turno-completado-borde, #86efac);
+    --asistencia-fondo: var(--turno-completado-fondo, #ecfdf3);
+}
+
+.asistencia-ausente {
+    --asistencia-color: var(--turno-ausente-color, #c2410c);
+    --asistencia-borde: var(--turno-ausente-borde, #fdba74);
+    --asistencia-fondo: var(--turno-ausente-fondo, #fff7ed);
+}
+
+.asistencia-opcion:hover:not(:disabled) {
+    background: var(--asistencia-fondo);
+    border-color: var(--asistencia-color);
+}
+
+.asistencia-opcion.activa {
+    background: var(--asistencia-color);
+    color: #fff;
+    border-color: var(--asistencia-color);
+    font-weight: 600;
+}
+
+    .asistencia-opcion.activa:hover:not(:disabled) {
+        background: var(--asistencia-color);
+    }
+
+.asistencia-opcion:disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+
+.asistencia-opcion:focus-visible {
+    outline: 2px solid var(--asistencia-color);
+    outline-offset: 2px;
+}
+
+.asistencia-mensaje {
+    margin: 7px 0 0;
+    color: #556f4f;
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+    .asistencia-mensaje.es-error {
+        color: #a33131;
+    }
+
+/* #endregion */

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using CentroSenderos_2026_Shared.Enum;
 
 namespace CentroSenderos_2026_BD.Datos.Entity
 {
@@ -31,5 +32,7 @@ namespace CentroSenderos_2026_BD.Datos.Entity
           modifique la información de turnos anteriores.
          */
         public string? NombreObraSocial { get; set; }
+
+        public EnumAsistenciaPaciente? Asistencia { get; set; }
     }
 }

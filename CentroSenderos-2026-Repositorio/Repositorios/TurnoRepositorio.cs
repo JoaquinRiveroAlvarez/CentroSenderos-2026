@@ -134,7 +134,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                                 : "Paciente",
 
                             TipoObraSocialId = relacion.TipoObraSocialId,
-                            NombreObraSocial = relacion.NombreObraSocial
+                            NombreObraSocial = relacion.NombreObraSocial,
+                            Asistencia = relacion.Asistencia
                         })
                         .ToList()
                 })
@@ -293,7 +294,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                                 : "Paciente",
 
                             TipoObraSocialId = relacion.TipoObraSocialId,
-                            NombreObraSocial = relacion.NombreObraSocial
+                            NombreObraSocial = relacion.NombreObraSocial,
+                            Asistencia = relacion.Asistencia
                         })
                         .ToList()
                 })
@@ -378,7 +380,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            // La obligatoriedad depende de la configuración del tipo.
             if (tipoTurno.RequierePacientes && pacienteIds.Count == 0)
             {
                 throw new ApplicationException(
@@ -472,7 +473,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             var tipoTurnoId = tipoTurno.Id;
             var duracionMinutos = tipoTurno.DuracionMinutos;
-
             var primeraFechaInicio = fechasInicioUtc.Min();
 
             var ultimaFechaFin = fechasInicioUtc
@@ -752,6 +752,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                             {
                                 TurnoId = turno.Id,
                                 PacienteId = pacienteId,
+                                Asistencia = null,
 
                                 TipoObraSocialId =
                                     datosPaciente.TipoObraSocialId,
@@ -795,13 +796,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
         }
 
-        public async Task<List<TimeOnly>> HorariosDisponibles(
-            DateOnly fecha,
-            int tipoTurnoId,
-            int consultorioId,
-            List<int>? profesionalIds = null,
-            List<int>? pacienteIds = null,
-            int? turnoIdExcluir = null)
+        public async Task<List<TimeOnly>> HorariosDisponibles(DateOnly fecha,int tipoTurnoId,int consultorioId,List<int>? profesionalIds = null,List<int>? pacienteIds = null,int? turnoIdExcluir = null)
         {
             profesionalIds ??= new List<int>();
             pacienteIds ??= new List<int>();
@@ -907,8 +902,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .Distinct()
                 .ToList();
 
-            // La lista es la fuente de pacientes para la edición.
-            // Si queda vacía, no se recupera el PacienteId anterior.
+            // Si la lista queda vacía, no se recupera el PacienteId anterior.
             var pacienteIds = dto.PacienteIds
                 .Where(pacienteId => pacienteId > 0)
                 .Distinct()
@@ -1233,6 +1227,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     }
                 );
 
+            var asistenciasGuardadas = turno.TurnoPacientes
+                .ToDictionary(
+                    relacion => relacion.PacienteId,
+                    relacion => relacion.Asistencia
+                );
+
             var datosPacientesActuales = await context.Pacientes
                 .Where(paciente => pacienteIds.Contains(paciente.Id))
                 .Select(paciente => new
@@ -1288,6 +1288,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         TurnoId = turno.Id,
                         PacienteId = pacienteId,
 
+                        Asistencia = asistenciasGuardadas
+                            .GetValueOrDefault(pacienteId),
+
                         TipoObraSocialId = teniaObraSocialGuardada
                             ? datosGuardados!.TipoObraSocialId
                             : datosActuales.TipoObraSocialId,
@@ -1320,10 +1323,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
-        private IQueryable<Turno> ConsultarTurnosQueBloquean(
-            int consultorioId,
-            List<int> profesionalIds,
-            List<int> pacienteIds)
+        private IQueryable<Turno> ConsultarTurnosQueBloquean(int consultorioId,List<int> profesionalIds,List<int> pacienteIds)
         {
             return context.Turnos
                 .Where(turno =>
@@ -1358,14 +1358,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
-        private async Task<bool> ActualizarTodaLaSerie(
-            Turno turnoSeleccionado,
-            TurnoDTO dto,
-            List<int> profesionalIds,
-            List<int> pacienteIds,
-            List<TurnoProfesionalPrestacionDTO> profesionalPrestaciones,
-            int tipoTurnoId,
-            int duracionMinutos)
+        private async Task<bool> ActualizarTodaLaSerie(Turno turnoSeleccionado,TurnoDTO dto,List<int> profesionalIds,List<int> pacienteIds,List<TurnoProfesionalPrestacionDTO> profesionalPrestaciones,int tipoTurnoId,int duracionMinutos)
         {
             if (!turnoSeleccionado.SerieTurnoId.HasValue)
             {
@@ -1633,6 +1626,20 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     }
                 );
 
+            var asistenciasGuardadas = turnosSerie
+                .SelectMany(turno =>
+                    turno.TurnoPacientes.Select(relacion => new
+                    {
+                        TurnoId = turno.Id,
+                        relacion.PacienteId,
+                        relacion.Asistencia
+                    })
+                )
+                .ToDictionary(
+                    item => (item.TurnoId, item.PacienteId),
+                    item => item.Asistencia
+                );
+
             var datosPacientesActuales = await context.Pacientes
                 .Where(paciente => pacienteIds.Contains(paciente.Id))
                 .Select(paciente => new
@@ -1721,6 +1728,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                                 TurnoId = turno.Id,
                                 PacienteId = pacienteId,
 
+                                Asistencia = asistenciasGuardadas
+                                    .GetValueOrDefault(
+                                        (turno.Id, pacienteId)
+                                    ),
+
                                 TipoObraSocialId = teniaObraSocialGuardada
                                     ? datosGuardados!.TipoObraSocialId
                                     : datosActuales.TipoObraSocialId,
@@ -1765,9 +1777,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
         }
 
-        public async Task<bool> CambiarEstadoTurno(
-            int id,
-            EnumEstadoTurno estado)
+        public async Task<bool> CambiarEstadoTurno(int id,EnumEstadoTurno estado)
         {
             if (estado != EnumEstadoTurno.reservado &&
                 estado != EnumEstadoTurno.atendido &&
@@ -1792,7 +1802,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 return false;
             }
 
-            // Reactivar un turno cancelado vuelve a ocupar recursos.
             if (turno.EstadoTurno == EnumEstadoTurno.cancelado &&
                 estado != EnumEstadoTurno.cancelado)
             {
@@ -1840,5 +1849,38 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             return true;
         }
+
+        public async Task<bool> CambiarAsistenciaPaciente(int turnoId,int pacienteId,EnumAsistenciaPaciente? asistencia)
+        {
+            if (asistencia.HasValue &&
+                asistencia.Value != EnumAsistenciaPaciente.asistio &&
+                asistencia.Value != EnumAsistenciaPaciente.ausente)
+            {
+                throw new ApplicationException(
+                    "Seleccioná una asistencia válida."
+                );
+            }
+
+            var relacion = await context.Set<TurnoPaciente>()
+                .FirstOrDefaultAsync(item =>
+                    item.TurnoId == turnoId &&
+                    item.PacienteId == pacienteId &&
+                    item.EstadoRegistro == EnumEstadoRegistro.activo &&
+                    item.Turnos != null &&
+                    item.Turnos.EstadoRegistro == EnumEstadoRegistro.activo
+                );
+
+            if (relacion is null)
+            {
+                return false;
+            }
+
+            relacion.Asistencia = asistencia;
+
+            await context.SaveChangesAsync();
+
+            return true;
+        }
+
     }
 }

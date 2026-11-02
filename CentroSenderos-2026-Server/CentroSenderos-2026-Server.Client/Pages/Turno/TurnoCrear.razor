@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Enum
 @using CentroSenderos_2026_Shared.Recurrencias
 @inject IHttpServicio Http
 @inject NavigationManager Nav
@@ -12,35 +13,27 @@
     <button type="button"
             class="btn-volver"
             @onclick="Cancelar">
-
         <i class="bi bi-arrow-left"></i>
         <span>Volver a la agenda</span>
-
     </button>
 
     <header class="crear-header">
-
         <div>
             <h1>Nuevo turno</h1>
-
             <p>
                 Seleccioná los datos del turno.
                 Los horarios disponibles se actualizarán automáticamente.
             </p>
         </div>
-
     </header>
 
     @if (cargando)
     {
         <div class="estado-carga">
-
-            <div class="spinner-border text-secondary"
-                 role="status">
+            <div class="spinner-border text-secondary" role="status">
+                <span class="visually-hidden">Cargando...</span>
             </div>
-
             <span>Cargando datos...</span>
-
         </div>
     }
     else
@@ -49,11 +42,7 @@
                   OnSubmit="Grabar"
                   class="turno-form">
 
-            @* Cierra los selectores cuando se hace clic fuera. *@
-            @if (
-                mostrarSelectorProfesionales ||
-                mostrarSelectorPacientes
-            )
+            @if (mostrarSelectorProfesionales || mostrarSelectorPacientes)
             {
                 <button type="button"
                         class="selector-cierre-fondo"
@@ -67,29 +56,21 @@
                 <section class="form-card datos-turno-card">
 
                     <div class="seccion-header">
-
-                        <div class="seccion-numero">
-                            01
-                        </div>
-
+                        <div class="seccion-numero">01</div>
                         <div>
                             <h2>Datos del turno</h2>
-
                             <p>
                                 Completá la fecha, el tipo de turno
                                 y el consultorio.
                             </p>
                         </div>
-
                     </div>
 
                     <div class="campos-grid">
 
                         <div class="campo campo-completo">
 
-                            <label for="tipoTurno">
-                                Tipo de turno
-                            </label>
+                            <label for="tipoTurno">Tipo de turno</label>
 
                             <InputSelect id="tipoTurno"
                                          class="form-select"
@@ -103,8 +84,7 @@
                                 @foreach (var tipo in tiposTurno)
                                 {
                                     <option value="@tipo.Id">
-                                        @tipo.Tipo
-                                        (@tipo.DuracionMinutos min)
+                                        @tipo.Tipo (@tipo.DuracionMinutos min)
                                     </option>
                                 }
 
@@ -112,14 +92,9 @@
 
                         </div>
 
-                   
-
-
                         <div class="campo">
 
-                            <label for="consultorio">
-                                Consultorio
-                            </label>
+                            <label for="consultorio">Consultorio</label>
 
                             <InputSelect id="consultorio"
                                          class="form-select"
@@ -143,9 +118,7 @@
 
                         <div class="campo campo-fecha">
 
-                            <label>
-                                Fecha
-                            </label>
+                            <label>Fecha</label>
 
                             <button type="button"
                                     class="fecha-selector"
@@ -170,9 +143,7 @@
                                                 class="calendario-crear-nav"
                                                 title="Mes anterior"
                                                 @onclick="IrMesAnteriorCalendario">
-
                                             <i class="bi bi-chevron-left"></i>
-
                                         </button>
 
                                         <strong>
@@ -183,9 +154,7 @@
                                                 class="calendario-crear-nav"
                                                 title="Mes siguiente"
                                                 @onclick="IrMesSiguienteCalendario">
-
                                             <i class="bi bi-chevron-right"></i>
-
                                         </button>
 
                                     </div>
@@ -207,32 +176,27 @@
                                             <button type="button"
                                                     class="@ObtenerClaseDiaCalendario(dia)"
                                                     @onclick="() => SeleccionarFechaCalendario(dia)">
-
                                                 @dia.Day
-
                                             </button>
                                         }
 
                                     </div>
 
                                     <div class="calendario-crear-footer">
-
                                         <button type="button"
                                                 @onclick="SeleccionarHoy">
                                             Hoy
                                         </button>
-
                                     </div>
 
                                 </div>
                             }
 
                         </div>
+
                         <div class="campo">
 
-                            <label>
-                                Profesionales
-                            </label>
+                            <label>Profesionales</label>
 
                             <div class="selector-desplegable">
 
@@ -246,8 +210,8 @@
                                     </span>
 
                                     <i class="bi @(mostrarSelectorProfesionales
-                                                                                                                                     ? "bi-chevron-up"
-                                                                                                                                     : "bi-chevron-down")">
+                                        ? "bi-chevron-up"
+                                        : "bi-chevron-down")">
                                     </i>
 
                                 </button>
@@ -279,10 +243,7 @@
                                             }
                                             else
                                             {
-                                                @foreach (
-                                                    var profesional
-                                                    in ProfesionalesFiltrados
-                                                )
+                                                @foreach (var profesional in ProfesionalesFiltrados)
                                                 {
                                                     var estaSeleccionado =
                                                         modelo.ProfesionalIds.Contains(
@@ -291,13 +252,11 @@
 
                                                     <button type="button"
                                                             class="@(estaSeleccionado
-                                                                                                                                                                                ? "selector-desplegable-opcion seleccionado"
-                                                                                                                                                                                : "selector-desplegable-opcion")"
-                                                            @onclick="() => AlternarProfesional(
-                                                                                                                                                                                profesional.Id
-                                                                                                                                                                            )">
+                                                                ? "selector-desplegable-opcion seleccionado"
+                                                                : "selector-desplegable-opcion")"
+                                                            @onclick="() => AlternarProfesional(profesional.Id)">
 
-<span>
+                                                        <span>
                                                             @profesional.Nombre
                                                         </span>
 
@@ -325,16 +284,11 @@
 
                                 <div class="profesionales-prestaciones-lista">
 
-                                    @foreach (
-                                        var profesionalId
-                                        in modelo.ProfesionalIds
-                                    )
+                                    @foreach (var profesionalId in modelo.ProfesionalIds)
                                     {
-                                        var profesional =
-                                            profesionales.FirstOrDefault(
-                                                item =>
-                                                    item.Id == profesionalId
-                                            );
+                                        var profesional = profesionales.FirstOrDefault(
+                                            item => item.Id == profesionalId
+                                        );
 
                                         if (profesional is not null)
                                         {
@@ -349,20 +303,18 @@
                                                         </span>
 
                                                         <div>
+
                                                             <strong>
                                                                 @profesional.Nombre
                                                             </strong>
 
-                                                            @if (
-                                                                !string.IsNullOrWhiteSpace(
-                                                                    profesional.Area
-                                                                )
-                                                            )
+                                                            @if (!string.IsNullOrWhiteSpace(profesional.Area))
                                                             {
                                                                 <span>
                                                                     @profesional.Area
                                                                 </span>
                                                             }
+
                                                         </div>
 
                                                     </div>
@@ -370,27 +322,17 @@
                                                     <button type="button"
                                                             class="profesional-prestacion-quitar"
                                                             title="Quitar profesional"
-                                                            @onclick="() => QuitarProfesional(
-                                                                                                                                                                                profesional.Id
-                                                                                                                                                                            )">
-
-<i class="bi bi-x-lg"></i>
-
-</button>
+                                                            @onclick="() => QuitarProfesional(profesional.Id)">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
 
                                                 </div>
 
                                                 <div class="profesional-prestacion-cuerpo">
 
-                                                    <label>
-                                                        Prestación
-                                                    </label>
+                                                    <label>Prestación</label>
 
-                                                    @if (
-                                                        profesional
-                                                            .TipoPrestacionIds
-                                                            .Count == 0
-                                                    )
+                                                    @if (profesional.TipoPrestacionIds.Count == 0)
                                                     {
                                                         <div class="profesional-sin-prestaciones">
 
@@ -403,19 +345,14 @@
 
                                                         </div>
                                                     }
-                                                    else if (
-                                                        profesional
-                                                            .TipoPrestacionIds
-                                                            .Count == 1
-                                                    )
+                                                    else if (profesional.TipoPrestacionIds.Count == 1)
                                                     {
                                                         <div class="prestacion-automatica">
 
                                                             <i class="bi bi-check-circle"></i>
 
                                                             <span>
-                                                                @(profesional
-                                                                    .TipoPrestacionNombres
+                                                                @(profesional.TipoPrestacionNombres
                                                                     .FirstOrDefault()
                                                                     ?? "Prestación")
                                                             </span>
@@ -425,39 +362,25 @@
                                                     else
                                                     {
                                                         <select class="form-select"
-                                                                value="@ObtenerPrestacionSeleccionada(
-                                                                                                                                                                                            profesional.Id
-                                                                                                                                                                                        )"
-                                                                @onchange="evento =>
-                                                                                                                                                                                            SeleccionarPrestacion(
-                                                                                                                                                                                                profesional.Id,
-                                                                                                                                                                                                evento
-                                                                                                                                                                                            )">
+                                                                value="@ObtenerPrestacionSeleccionada(profesional.Id)"
+                                                                @onchange="evento => SeleccionarPrestacion(profesional.Id, evento)">
 
-<option value="0">
+                                                            <option value="0">
                                                                 Seleccioná una prestación
                                                             </option>
 
                                                             @for (
                                                                 var indice = 0;
-                                                                indice <
-                                                                    profesional
-                                                                        .TipoPrestacionIds
-                                                                        .Count;
+                                                                indice < profesional.TipoPrestacionIds.Count;
                                                                 indice++
                                                             )
                                                             {
                                                                 var prestacionId =
-                                                                    profesional
-                                                                        .TipoPrestacionIds[indice];
+                                                                    profesional.TipoPrestacionIds[indice];
 
                                                                 var nombrePrestacion =
-                                                                    indice <
-                                                                        profesional
-                                                                            .TipoPrestacionNombres
-                                                                            .Count
-                                                                        ? profesional
-                                                                            .TipoPrestacionNombres[indice]
+                                                                    indice < profesional.TipoPrestacionNombres.Count
+                                                                        ? profesional.TipoPrestacionNombres[indice]
                                                                         : "Prestación";
 
                                                                 <option value="@prestacionId">
@@ -482,7 +405,9 @@
                         <div class="campo">
 
                             <label>
-                                Pacientes @(RequierePacientes ? "(obligatorio)" : "(opcional)")
+                                Pacientes @(RequierePacientes
+                                                                    ? "(obligatorio)"
+                                                                    : "(opcional)")
                             </label>
 
                             <div class="selector-desplegable">
@@ -497,8 +422,8 @@
                                     </span>
 
                                     <i class="bi @(mostrarSelectorPacientes
-                                                                                              ? "bi-chevron-up"
-                                                                                              : "bi-chevron-down")">
+                                        ? "bi-chevron-up"
+                                        : "bi-chevron-down")">
                                     </i>
 
                                 </button>
@@ -539,14 +464,21 @@
 
                                                     <button type="button"
                                                             class="@(estaSeleccionado
-                                                                                                                                                        ? "selector-desplegable-opcion seleccionado"
-                                                                                                                                                        : "selector-desplegable-opcion")"
-                                                            @onclick="() => AlternarPaciente(
-                                                                                                                                                        paciente.Id
-                                                                                                                                                    )">
+                                                                ? "selector-desplegable-opcion seleccionado"
+                                                                : "selector-desplegable-opcion")"
+                                                            @onclick="() => AlternarPaciente(paciente.Id)">
 
-<span>
-                                                            @paciente.Nombre — DNI @paciente.DNI
+                                                        <span class="paciente-opcion-datos">
+
+                                                            <span class="paciente-opcion-cabecera">
+                                                                <strong>@paciente.Nombre</strong>
+                                                                <small>DNI @paciente.DNI</small>
+                                                            </span>
+
+                                                            <span class="paciente-diagnostico">
+                                                                @MostrarDiagnostico(paciente)
+                                                            </span>
+
                                                         </span>
 
                                                         @if (estaSeleccionado)
@@ -559,7 +491,6 @@
                                             }
 
                                         </div>
-
 
                                     </div>
                                 }
@@ -578,12 +509,16 @@
 
                                         if (paciente is not null)
                                         {
-                                            <span class="selector-multiple-chip">
+                                            <span class="selector-multiple-chip paciente-chip">
 
-                                                @paciente.Nombre
+                                                <span class="paciente-chip-datos">
+                                                    <strong>@paciente.Nombre</strong>
+                                                    <span>@MostrarDiagnostico(paciente)</span>
+                                                </span>
 
                                                 <button type="button"
                                                         title="Quitar paciente"
+                                                        aria-label="@($"Quitar a {paciente.Nombre}")"
                                                         @onclick="() => QuitarPaciente(paciente.Id)">
                                                     <i class="bi bi-x"></i>
                                                 </button>
@@ -595,7 +530,6 @@
                                 </div>
                             }
 
-                        
                         </div>
 
                         <div class="campo campo-completo">
@@ -684,9 +618,7 @@
                         {
                             <div class="campo campo-completo">
 
-                                <label>
-                                    Repetir hasta
-                                </label>
+                                <label>Repetir hasta</label>
 
                                 <div class="fecha-recurrencia-contenedor">
 
@@ -697,8 +629,7 @@
 
                                         <span>
                                             @(modelo.FechaHastaRecurrencia.HasValue
-                                                ? modelo.FechaHastaRecurrencia.Value
-                                                    .ToString("dd/MM/yyyy")
+                                                ? modelo.FechaHastaRecurrencia.Value.ToString("dd/MM/yyyy")
                                                 : "Seleccione una fecha")
                                         </span>
 
@@ -716,24 +647,18 @@
                                                         class="calendario-crear-nav"
                                                         title="Mes anterior"
                                                         @onclick="IrMesAnteriorRecurrencia">
-
                                                     <i class="bi bi-chevron-left"></i>
-
                                                 </button>
 
                                                 <strong>
-                                                    @FormatearMesCalendario(
-                                                        mesCalendarioRecurrencia
-                                                    )
+                                                    @FormatearMesCalendario(mesCalendarioRecurrencia)
                                                 </strong>
 
                                                 <button type="button"
                                                         class="calendario-crear-nav"
                                                         title="Mes siguiente"
                                                         @onclick="IrMesSiguienteRecurrencia">
-
                                                     <i class="bi bi-chevron-right"></i>
-
                                                 </button>
 
                                             </div>
@@ -750,30 +675,23 @@
 
                                             <div class="calendario-crear-dias">
 
-                                                @foreach (
-                                                    var dia in ObtenerDiasCalendarioRecurrencia()
-                                                )
+                                                @foreach (var dia in ObtenerDiasCalendarioRecurrencia())
                                                 {
                                                     <button type="button"
                                                             class="@ObtenerClaseDiaRecurrencia(dia)"
                                                             disabled="@(dia.Date < modelo.Fecha.Date)"
-                                                            @onclick="() =>
-                                                                                                                                                        SeleccionarFechaRecurrencia(dia)">
-
-@dia.Day
-
-</button>
+                                                            @onclick="() => SeleccionarFechaRecurrencia(dia)">
+                                                        @dia.Day
+                                                    </button>
                                                 }
 
                                             </div>
 
                                             <div class="calendario-crear-footer">
-
                                                 <button type="button"
                                                         @onclick="SeleccionarMismaFechaRecurrencia">
                                                     Misma fecha
                                                 </button>
-
                                             </div>
 
                                         </div>
@@ -802,6 +720,7 @@
                                         <i class="bi bi-arrow-repeat"></i>
 
                                         <div>
+
                                             <strong>
                                                 @fechasVistaPrevia.Count
                                                 @(fechasVistaPrevia.Count == 1
@@ -812,15 +731,14 @@
                                             <span>
                                                 Incluyendo el primer turno.
                                             </span>
+
                                         </div>
 
                                     </div>
 
                                     <div class="recurrencia-fechas">
 
-                                        @foreach (
-                                            var fecha in fechasVistaPrevia.Take(8)
-                                        )
+                                        @foreach (var fecha in fechasVistaPrevia.Take(8))
                                         {
                                             <span class="recurrencia-fecha">
                                                 @fecha.ToString("dd/MM/yyyy")
@@ -848,16 +766,12 @@
 
                     <div class="seccion-header">
 
-                        <div class="seccion-numero">
-                            02
-                        </div>
+                        <div class="seccion-numero">02</div>
 
                         <div>
                             <h2>Horarios disponibles</h2>
-
                             <p>
-                                Elegí el horario de inicio
-                                para el turno.
+                                Elegí el horario de inicio para el turno.
                             </p>
                         </div>
 
@@ -903,8 +817,8 @@
                     else
                     {
                         <div class="@(MostrarNavegacionHorarios
-                                                                         ? "horarios-navegacion"
-                                                                         : "horarios-navegacion sin-flechas")">
+                             ? "horarios-navegacion"
+                             : "horarios-navegacion sin-flechas")">
 
                             @if (MostrarNavegacionHorarios)
                             {
@@ -913,9 +827,7 @@
                                         title="Horarios anteriores"
                                         disabled="@(!PuedeRetrocederHorarios)"
                                         @onclick="RetrocederHorarios">
-
                                     <i class="bi bi-chevron-left"></i>
-
                                 </button>
                             }
 
@@ -926,9 +838,7 @@
                                     <button type="button"
                                             class="@ObtenerClaseHorario(hora)"
                                             @onclick="() => SeleccionarHora(hora)">
-
                                         @hora
-
                                     </button>
                                 }
 
@@ -941,14 +851,13 @@
                                         title="Horarios siguientes"
                                         disabled="@(!PuedeAvanzarHorarios)"
                                         @onclick="AvanzarHorarios">
-
                                     <i class="bi bi-chevron-right"></i>
-
                                 </button>
                             }
 
                         </div>
                     }
+
                 </section>
 
             </div>
@@ -958,37 +867,32 @@
                 <section class="resumen-turno">
 
                     <div class="resumen-header">
+
                         <i class="bi bi-calendar-check"></i>
 
                         <div>
                             <h2>Resumen del turno</h2>
                             <p>Revisá los datos antes de guardar.</p>
                         </div>
+
                     </div>
 
                     <div class="resumen-grid">
 
                         <div class="resumen-item">
                             <span class="resumen-label">Fecha</span>
-
-                            <strong>
-                                @FormatearFecha(modelo.Fecha)
-                            </strong>
+                            <strong>@FormatearFecha(modelo.Fecha)</strong>
                         </div>
 
                         <div class="resumen-item">
                             <span class="resumen-label">Horario</span>
-
                             <strong>
-                                @horaSeleccionada
-                                -
-                                @CalcularHoraFin()
+                                @horaSeleccionada - @CalcularHoraFin()
                             </strong>
                         </div>
 
                         <div class="resumen-item">
                             <span class="resumen-label">Duración</span>
-
                             <strong>
                                 @ObtenerDuracionSeleccionada() minutos
                             </strong>
@@ -996,20 +900,12 @@
 
                         <div class="resumen-item">
                             <span class="resumen-label">Consultorio</span>
-
-                            <strong>
-                                @ObtenerNombreConsultorio()
-                            </strong>
+                            <strong>@ObtenerNombreConsultorio()</strong>
                         </div>
 
                         <div class="resumen-item">
-                            <span class="resumen-label">
-                                Tipo de turno
-                            </span>
-
-                            <strong>
-                                @ObtenerNombreTipoTurno()
-                            </strong>
+                            <span class="resumen-label">Tipo de turno</span>
+                            <strong>@ObtenerNombreTipoTurno()</strong>
                         </div>
 
                     </div>
@@ -1069,16 +965,22 @@
         Fecha = DateTime.Today,
         Hora = TimeOnly.MinValue
     };
+
     [SupplyParameterFromQuery(Name = "vistaOrigen")]
     public string? VistaOrigen { get; set; }
+
     [SupplyParameterFromQuery(Name = "fechaOrigen")]
     public string? FechaOrigen { get; set; }
+
     [SupplyParameterFromQuery(Name = "consultorios")]
     public string? ConsultoriosDesdeUrl { get; set; }
+
     [SupplyParameterFromQuery(Name = "tipos")]
     public string? TiposDesdeUrl { get; set; }
+
     [SupplyParameterFromQuery(Name = "profesionales")]
     public string? ProfesionalesDesdeUrl { get; set; }
+
     [SupplyParameterFromQuery(Name = "pacientes")]
     public string? PacientesDesdeUrl { get; set; }
 
@@ -1087,16 +989,42 @@
     private List<ProfesionalListadoDTO> profesionales = new();
     private List<PacienteResumenDTO> pacientes = new();
     private List<string> horasDisponibles = new();
+
     private const int HorariosPorPagina = 24;
-    private int paginaHorarios = 0;
+    private int paginaHorarios;
+
+    private string horaSeleccionada = string.Empty;
+    private string Mensaje = string.Empty;
+    private string busquedaProfesional = string.Empty;
+    private string busquedaPaciente = string.Empty;
+
+    private bool cargando = true;
+    private bool consultandoHorarios;
+    private bool horariosConsultados;
+    private int versionConsultaHorarios;
+    private bool guardando;
+    private bool mostrarSelectorProfesionales;
+    private bool mostrarSelectorPacientes;
+    private bool calendarioAbierto;
+    private bool calendarioRecurrenciaAbierto;
+
+    private DateTime mesCalendario = new(
+        DateTime.Today.Year,
+        DateTime.Today.Month,
+        1
+    );
+
+    private DateTime mesCalendarioRecurrencia = new(
+        DateTime.Today.Year,
+        DateTime.Today.Month,
+        1
+    );
+
     private IEnumerable<string> HorariosVisibles =>
-    horasDisponibles
-        .Skip(
-            paginaHorarios *
-            HorariosPorPagina
-        )
-        .Take(HorariosPorPagina);
-    
+        horasDisponibles
+            .Skip(paginaHorarios * HorariosPorPagina)
+            .Take(HorariosPorPagina);
+
     private bool RequierePacientes =>
         ObtenerTipoSeleccionado()?.RequierePacientes ?? true;
 
@@ -1105,8 +1033,7 @@
 
     private int CantidadPaginasHorarios =>
         (int)Math.Ceiling(
-            horasDisponibles.Count /
-            (double)HorariosPorPagina
+            horasDisponibles.Count / (double)HorariosPorPagina
         );
 
     private bool MostrarNavegacionHorarios =>
@@ -1116,8 +1043,250 @@
         paginaHorarios > 0;
 
     private bool PuedeAvanzarHorarios =>
-        paginaHorarios <
-        CantidadPaginasHorarios - 1;
+        paginaHorarios < CantidadPaginasHorarios - 1;
+
+    private List<KeyValuePair<int, string>> PrestacionesDisponibles =>
+        profesionales
+            .Where(profesional =>
+                modelo.ProfesionalIds.Contains(profesional.Id)
+            )
+            .SelectMany(profesional =>
+                profesional.TipoPrestacionIds.Select(
+                    (prestacionId, indice) =>
+                        new KeyValuePair<int, string>(
+                            prestacionId,
+                            indice < profesional.TipoPrestacionNombres.Count
+                                ? profesional.TipoPrestacionNombres[indice]
+                                : "Prestación"
+                        )
+                )
+            )
+            .GroupBy(prestacion => prestacion.Key)
+            .Select(grupo => grupo.First())
+            .OrderBy(prestacion => prestacion.Value)
+            .ToList();
+
+    private bool EsRecurrente =>
+        modelo.FrecuenciaRecurrencia !=
+        EnumFrecuenciaRecurrenciaTurno.noRepite;
+
+    private bool EsRecurrenciaPersonalizada =>
+        modelo.FrecuenciaRecurrencia ==
+        EnumFrecuenciaRecurrenciaTurno.personalizado;
+
+    private bool RecurrenciaValida
+    {
+        get
+        {
+            if (!EsRecurrente)
+            {
+                return true;
+            }
+
+            var fechaValida =
+                modelo.FechaHastaRecurrencia.HasValue &&
+                modelo.FechaHastaRecurrencia.Value.Date >=
+                    modelo.Fecha.Date;
+
+            if (!fechaValida)
+            {
+                return false;
+            }
+
+            if (!EsRecurrenciaPersonalizada)
+            {
+                return true;
+            }
+
+            return modelo.IntervaloRecurrencia > 0 &&
+                modelo.UnidadRecurrencia.HasValue;
+        }
+    }
+
+    private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
+        string.IsNullOrWhiteSpace(busquedaProfesional)
+            ? profesionales
+            : profesionales
+                .Where(profesional =>
+                    profesional.Nombre.Contains(
+                        busquedaProfesional,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                )
+                .ToList();
+
+    private List<PacienteResumenDTO> PacientesFiltrados =>
+        string.IsNullOrWhiteSpace(busquedaPaciente)
+            ? pacientes
+            : pacientes
+                .Where(paciente =>
+                    paciente.Nombre.Contains(
+                        busquedaPaciente,
+                        StringComparison.OrdinalIgnoreCase
+                    ) ||
+                    paciente.DNI.Contains(
+                        busquedaPaciente,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                )
+                .ToList();
+
+    private string TextoProfesionalesSeleccionados =>
+        modelo.ProfesionalIds.Count switch
+        {
+            0 => "Seleccione profesionales",
+            1 => "1 profesional seleccionado",
+            _ => $"{modelo.ProfesionalIds.Count} profesionales seleccionados"
+        };
+
+    private string TextoPacientesSeleccionados =>
+        modelo.PacienteIds.Count switch
+        {
+            0 => "Seleccione pacientes",
+            1 => "1 paciente seleccionado",
+            _ => $"{modelo.PacienteIds.Count} pacientes seleccionados"
+        };
+
+    private static string MostrarDiagnostico(
+        PacienteResumenDTO paciente)
+    {
+        return string.IsNullOrWhiteSpace(
+            paciente.TipoDiagnosticoNombre
+        )
+            ? "Sin diagnóstico registrado"
+            : paciente.TipoDiagnosticoNombre;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        cargando = true;
+        Mensaje = string.Empty;
+
+        AplicarFechaOrigen();
+
+        try
+        {
+            var respTurnos = await Http.Get<List<TipoTurnoListadoDTO>>(
+                "api/tipoturno/ListaTipoTurno"
+            );
+
+            if (!respTurnos.Error && respTurnos.Respuesta is not null)
+            {
+                tiposTurno = respTurnos.Respuesta;
+            }
+            else
+            {
+                Mensaje =
+                    "No pudimos cargar los tipos de turno. " +
+                    "Recargá la página e intentá nuevamente.";
+            }
+
+            var respConsultorios =
+                await Http.Get<List<TipoConsultorioListadoDTO>>(
+                    "api/tipoconsultorio/ListaTipoConsultorio"
+                );
+
+            if (!respConsultorios.Error &&
+                respConsultorios.Respuesta is not null)
+            {
+                consultorios = respConsultorios.Respuesta;
+            }
+            else if (string.IsNullOrWhiteSpace(Mensaje))
+            {
+                Mensaje =
+                    "No pudimos cargar los consultorios. " +
+                    "Recargá la página e intentá nuevamente.";
+            }
+
+            var respProfesionales =
+                await Http.Get<List<ProfesionalListadoDTO>>(
+                    "api/profesional/ListaProfesional"
+                );
+
+            if (!respProfesionales.Error &&
+                respProfesionales.Respuesta is not null)
+            {
+                profesionales = respProfesionales.Respuesta
+                    .OrderBy(profesional => profesional.Nombre)
+                    .ToList();
+            }
+            else if (string.IsNullOrWhiteSpace(Mensaje))
+            {
+                Mensaje =
+                    "No pudimos cargar los profesionales. " +
+                    "Recargá la página e intentá nuevamente.";
+            }
+
+            var respPacientes = await Http.Get<List<PacienteResumenDTO>>(
+                "api/paciente/ListaPaciente"
+            );
+
+            if (!respPacientes.Error &&
+                respPacientes.Respuesta is not null)
+            {
+                pacientes = respPacientes.Respuesta
+                    .OrderBy(paciente => paciente.Nombre)
+                    .ToList();
+            }
+            else if (string.IsNullOrWhiteSpace(Mensaje))
+            {
+                Mensaje =
+                    "No pudimos cargar los pacientes. " +
+                    "Recargá la página e intentá nuevamente.";
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            Mensaje =
+                "La carga está tardando más de lo esperado. " +
+                "Verificá tu conexión e intentá nuevamente.";
+        }
+        catch (HttpRequestException)
+        {
+            Mensaje =
+                "No pudimos conectarnos con el servidor. " +
+                "Verificá tu conexión e intentá nuevamente.";
+        }
+        catch (Exception)
+        {
+            Mensaje =
+                "Ocurrió un problema al preparar el formulario. " +
+                "Recargá la página e intentá nuevamente.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void AplicarFechaOrigen()
+    {
+        if (string.IsNullOrWhiteSpace(FechaOrigen) ||
+            !DateTime.TryParseExact(
+                FechaOrigen,
+                "yyyy-MM-dd",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out var fechaOrigen
+            ))
+        {
+            return;
+        }
+
+        modelo.Fecha = fechaOrigen.Date;
+
+        mesCalendario = new DateTime(
+            fechaOrigen.Year,
+            fechaOrigen.Month,
+            1
+        );
+
+        mesCalendarioRecurrencia = new DateTime(
+            fechaOrigen.Year,
+            fechaOrigen.Month,
+            1
+        );
+    }
 
     private void RetrocederHorarios()
     {
@@ -1137,77 +1306,6 @@
         }
 
         paginaHorarios++;
-    }
-
-    private List<KeyValuePair<int, string>> PrestacionesDisponibles =>
-    profesionales
-        .Where(profesional =>
-            modelo.ProfesionalIds.Contains(profesional.Id)
-        )
-        .SelectMany(profesional =>
-            profesional.TipoPrestacionIds.Select(
-                (prestacionId, indice) =>
-                    new KeyValuePair<int, string>(
-                        prestacionId,
-                        indice < profesional.TipoPrestacionNombres.Count
-                            ? profesional.TipoPrestacionNombres[indice]
-                            : "Prestación"
-                    )
-            )
-        )
-        .GroupBy(prestacion => prestacion.Key)
-        .Select(grupo => grupo.First())
-        .OrderBy(prestacion => prestacion.Value)
-        .ToList();
-
-    private string horaSeleccionada = string.Empty;
-    private string Mensaje = string.Empty;
-    private string busquedaProfesional = string.Empty;
-    private string busquedaPaciente = string.Empty;
-
-
-    private bool cargando = true;
-    private bool consultandoHorarios;
-    private bool horariosConsultados;
-    private int versionConsultaHorarios;
-    private bool guardando;
-    private bool mostrarSelectorProfesionales;
-    private bool mostrarSelectorPacientes;
-
-    
-
-
-    private bool EsRecurrente =>
-        modelo.FrecuenciaRecurrencia !=
-        EnumFrecuenciaRecurrenciaTurno.noRepite;
-
-    private bool RecurrenciaValida
-    {
-        get
-        {
-            if (!EsRecurrente)
-            {
-                return true;
-            }
-
-            var fechaValida =
-                modelo.FechaHastaRecurrencia.HasValue
-                && modelo.FechaHastaRecurrencia.Value.Date
-                    >= modelo.Fecha.Date;
-
-            if (!fechaValida)
-            {
-                return false;
-            }
-
-            if (!EsRecurrenciaPersonalizada)
-            {
-                return true;
-            }
-
-            return modelo.IntervaloRecurrencia > 0
-                && modelo.UnidadRecurrencia.HasValue;
-        }
     }
 
     private List<DateTime> ObtenerFechasRecurrenciaVistaPrevia()
@@ -1232,12 +1330,6 @@
             return new List<DateTime>();
         }
     }
-
-
-    private bool EsRecurrenciaPersonalizada =>
-    modelo.FrecuenciaRecurrencia ==
-        EnumFrecuenciaRecurrenciaTurno.personalizado;
-
 
     private bool ValidarAntesDeGuardar()
     {
@@ -1270,18 +1362,16 @@
         var prestacionesCompletas =
             modelo.ProfesionalPrestaciones.Count ==
                 modelo.ProfesionalIds.Count &&
-            modelo.ProfesionalPrestaciones.All(
-                seleccion =>
-                    seleccion.TipoPrestacionId > 0 &&
-                    modelo.ProfesionalIds.Contains(
-                        seleccion.ProfesionalId
-                    )
+            modelo.ProfesionalPrestaciones.All(seleccion =>
+                seleccion.TipoPrestacionId > 0 &&
+                modelo.ProfesionalIds.Contains(
+                    seleccion.ProfesionalId
+                )
             );
 
         if (!prestacionesCompletas)
         {
-            Mensaje =
-                "Seleccioná una prestación para cada profesional.";
+            Mensaje = "Seleccioná una prestación para cada profesional.";
             return false;
         }
 
@@ -1358,58 +1448,33 @@
         return true;
     }
 
-    private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
-                string.IsNullOrWhiteSpace(busquedaProfesional)
-                    ? profesionales
-                    : profesionales
-                        .Where(profesional =>
-                            profesional.Nombre.Contains(
-                                busquedaProfesional,
-                                StringComparison.OrdinalIgnoreCase
-                            )
-                        )
-                        .ToList();
-
     private async Task AlternarProfesional(int profesionalId)
     {
         if (modelo.ProfesionalIds.Contains(profesionalId))
         {
-            modelo.ProfesionalIds.Remove(
-                profesionalId
-            );
-
-            QuitarPrestacionDelProfesional(
-                profesionalId
-            );
+            modelo.ProfesionalIds.Remove(profesionalId);
+            QuitarPrestacionDelProfesional(profesionalId);
         }
         else
         {
-            modelo.ProfesionalIds.Add(
-                profesionalId
-            );
-
-            SeleccionarPrestacionAutomatica(
-                profesionalId
-            );
+            modelo.ProfesionalIds.Add(profesionalId);
+            SeleccionarPrestacionAutomatica(profesionalId);
         }
 
-        // Compatibilidad con la propiedad anterior.
-        modelo.ProfesionalId = modelo.ProfesionalIds.FirstOrDefault();
+        modelo.ProfesionalId =
+            modelo.ProfesionalIds.FirstOrDefault();
 
         await CargarHorasDisponibles();
     }
 
     private void SeleccionarPrestacionAutomatica(int profesionalId)
     {
-        var profesional =
-            profesionales.FirstOrDefault(
-                item => item.Id == profesionalId
-            );
+        var profesional = profesionales.FirstOrDefault(
+            item => item.Id == profesionalId
+        );
 
-        if (
-            profesional is null ||
-            profesional.TipoPrestacionIds.Count != 1
-        )
+        if (profesional is null ||
+            profesional.TipoPrestacionIds.Count != 1)
         {
             return;
         }
@@ -1418,32 +1483,22 @@
             new TurnoProfesionalPrestacionDTO
             {
                 ProfesionalId = profesionalId,
-                TipoPrestacionId =
-                    profesional.TipoPrestacionIds[0]
+                TipoPrestacionId = profesional.TipoPrestacionIds[0]
             }
         );
 
-        // Compatibilidad temporal.
-        modelo.TipoPrestacionIds =
-            modelo.ProfesionalPrestaciones
-                .Select(seleccion =>
-                    seleccion.TipoPrestacionId
-                )
-                .Distinct()
-                .ToList();
+        modelo.TipoPrestacionIds = modelo.ProfesionalPrestaciones
+            .Select(seleccion => seleccion.TipoPrestacionId)
+            .Distinct()
+            .ToList();
     }
 
     private async Task QuitarProfesional(int profesionalId)
     {
-        modelo.ProfesionalIds.Remove(
-            profesionalId
-        );
+        modelo.ProfesionalIds.Remove(profesionalId);
 
-        QuitarPrestacionDelProfesional(
-            profesionalId
-        );
+        QuitarPrestacionDelProfesional(profesionalId);
 
-        // Compatibilidad con la propiedad anterior.
         modelo.ProfesionalId =
             modelo.ProfesionalIds.FirstOrDefault();
 
@@ -1452,27 +1507,15 @@
 
     private void QuitarPrestacionDelProfesional(int profesionalId)
     {
-        modelo.ProfesionalPrestaciones.RemoveAll(
-            seleccion =>
-                seleccion.ProfesionalId ==
-                profesionalId
+        modelo.ProfesionalPrestaciones.RemoveAll(seleccion =>
+            seleccion.ProfesionalId == profesionalId
         );
 
-        modelo.TipoPrestacionIds =
-            modelo.ProfesionalPrestaciones
-                .Select(seleccion =>
-                    seleccion.TipoPrestacionId
-                )
-                .Distinct()
-                .ToList();
+        modelo.TipoPrestacionIds = modelo.ProfesionalPrestaciones
+            .Select(seleccion => seleccion.TipoPrestacionId)
+            .Distinct()
+            .ToList();
     }
-
-    private string TextoProfesionalesSeleccionados => modelo.ProfesionalIds.Count switch
-    {
-        0 => "Seleccione profesionales",
-        1 => "1 profesional seleccionado",
-        _ => $"{modelo.ProfesionalIds.Count} profesionales seleccionados"
-    };
 
     private void AlternarSelectorProfesionales()
     {
@@ -1487,33 +1530,9 @@
     {
         mostrarSelectorProfesionales = false;
         mostrarSelectorPacientes = false;
-
         busquedaProfesional = string.Empty;
         busquedaPaciente = string.Empty;
     }
-
-    private List<PacienteResumenDTO> PacientesFiltrados =>
-        string.IsNullOrWhiteSpace(busquedaPaciente)
-            ? pacientes
-            : pacientes
-                .Where(paciente =>
-                    paciente.Nombre.Contains(
-                        busquedaPaciente,
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                    || paciente.DNI.Contains(
-                        busquedaPaciente,
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                )
-                .ToList();
-
-    private string TextoPacientesSeleccionados => modelo.PacienteIds.Count switch
-    {
-        0 => "Seleccione pacientes",
-        1 => "1 paciente seleccionado",
-        _ => $"{modelo.PacienteIds.Count} pacientes seleccionados"
-    };
 
     private void AlternarSelectorPacientes()
     {
@@ -1535,7 +1554,6 @@
             modelo.PacienteIds.Add(pacienteId);
         }
 
-        // Compatibilidad con la propiedad anterior.
         modelo.PacienteId =
             modelo.PacienteIds.FirstOrDefault();
 
@@ -1546,165 +1564,15 @@
     {
         modelo.PacienteIds.Remove(pacienteId);
 
-        // Compatibilidad con la propiedad anterior.
         modelo.PacienteId =
             modelo.PacienteIds.FirstOrDefault();
 
         await CargarHorasDisponibles();
     }
 
-    private bool calendarioAbierto;
-
-    private DateTime mesCalendario = new(
-        DateTime.Today.Year,
-        DateTime.Today.Month,
-        1
-    );
-
-    private bool calendarioRecurrenciaAbierto;
-
-    protected override async Task OnInitializedAsync()
-    {
-        cargando = true;
-        Mensaje = string.Empty;
-
-        AplicarFechaOrigen();
-
-        try
-        {
-            var respTurnos =
-                await Http.Get<List<TipoTurnoListadoDTO>>(
-                    "api/tipoturno/ListaTipoTurno"
-                );
-
-            if (!respTurnos.Error &&
-                respTurnos.Respuesta is not null)
-            {
-                tiposTurno = respTurnos.Respuesta;
-            }
-            else
-            {
-                Mensaje =
-                    "No pudimos cargar los tipos de turno. " +
-                    "Recargá la página e intentá nuevamente.";
-            }
-
-            var respConsultorios =
-                await Http.Get<List<TipoConsultorioListadoDTO>>(
-                    "api/tipoconsultorio/ListaTipoConsultorio"
-                );
-
-            if (!respConsultorios.Error &&
-                respConsultorios.Respuesta is not null)
-            {
-                consultorios = respConsultorios.Respuesta;
-            }
-            else if (string.IsNullOrWhiteSpace(Mensaje))
-            {
-                Mensaje =
-                    "No pudimos cargar los consultorios. " +
-                    "Recargá la página e intentá nuevamente.";
-            }
-
-            var respProfesionales =
-                await Http.Get<List<ProfesionalListadoDTO>>(
-                    "api/profesional/ListaProfesional"
-                );
-
-            if (!respProfesionales.Error &&
-                respProfesionales.Respuesta is not null)
-            {
-                profesionales = respProfesionales.Respuesta
-                    .OrderBy(profesional =>
-                        profesional.Nombre
-                    )
-                    .ToList();
-            }
-            else if (string.IsNullOrWhiteSpace(Mensaje))
-            {
-                Mensaje =
-                    "No pudimos cargar los profesionales. " +
-                    "Recargá la página e intentá nuevamente.";
-            }
-
-            var respPacientes =
-                await Http.Get<List<PacienteResumenDTO>>(
-                    "api/paciente/ListaPaciente"
-                );
-
-            if (!respPacientes.Error &&
-                respPacientes.Respuesta is not null)
-            {
-                pacientes = respPacientes.Respuesta
-                    .OrderBy(paciente =>
-                        paciente.Nombre
-                    )
-                    .ToList();
-            }
-            else if (string.IsNullOrWhiteSpace(Mensaje))
-            {
-                Mensaje =
-                    "No pudimos cargar los pacientes. " +
-                    "Recargá la página e intentá nuevamente.";
-            }
-        }
-        catch (TaskCanceledException)
-        {
-            Mensaje =
-                "La carga está tardando más de lo esperado. " +
-                "Verificá tu conexión e intentá nuevamente.";
-        }
-        catch (HttpRequestException)
-        {
-            Mensaje =
-                "No pudimos conectarnos con el servidor. " +
-                "Verificá tu conexión e intentá nuevamente.";
-        }
-        catch (Exception)
-        {
-            Mensaje =
-                "Ocurrió un problema al preparar el formulario. " +
-                "Recargá la página e intentá nuevamente.";
-        }
-        finally
-        {
-            cargando = false;
-        }
-    }
-
-    private void AplicarFechaOrigen()
-    {
-        if (string.IsNullOrWhiteSpace(FechaOrigen) ||
-            !DateTime.TryParseExact(
-                FechaOrigen,
-                "yyyy-MM-dd",
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.None,
-                out var fechaOrigen
-            ))
-        {
-            return;
-        }
-
-        modelo.Fecha = fechaOrigen.Date;
-
-        mesCalendario = new DateTime(
-            fechaOrigen.Year,
-            fechaOrigen.Month,
-            1
-        );
-
-        mesCalendarioRecurrencia = new DateTime(
-            fechaOrigen.Year,
-            fechaOrigen.Month,
-            1
-        );
-    }
-
     private async Task CargarHorasDisponibles()
     {
-        var versionActual =
-            ++versionConsultaHorarios;
+        var versionActual = ++versionConsultaHorarios;
 
         Mensaje = string.Empty;
         horasDisponibles.Clear();
@@ -1714,11 +1582,11 @@
         horariosConsultados = false;
 
         var seleccionCompleta =
-    modelo.TipoTurnoId > 0 &&
-    modelo.TipoConsultorioId > 0 &&
-    modelo.ProfesionalIds.Count > 0 &&
-    SeleccionPacientesValida &&
-    modelo.Fecha != DateTime.MinValue;
+            modelo.TipoTurnoId > 0 &&
+            modelo.TipoConsultorioId > 0 &&
+            modelo.ProfesionalIds.Count > 0 &&
+            SeleccionPacientesValida &&
+            modelo.Fecha != DateTime.MinValue;
 
         if (!seleccionCompleta)
         {
@@ -1728,24 +1596,20 @@
 
         consultandoHorarios = true;
 
-        var parametrosProfesionales =
-            string.Concat(
-                modelo.ProfesionalIds.Select(
-                    profesionalId =>
-                        $"&profesionalIds={profesionalId}"
-                )
-            );
+        var parametrosProfesionales = string.Concat(
+            modelo.ProfesionalIds.Select(profesionalId =>
+                $"&profesionalIds={profesionalId}"
+            )
+        );
 
-        var parametrosPacientes =
-            string.Concat(
-                modelo.PacienteIds.Select(
-                    pacienteId =>
-                        $"&pacienteIds={pacienteId}"
-                )
-            );
+        var parametrosPacientes = string.Concat(
+            modelo.PacienteIds.Select(pacienteId =>
+                $"&pacienteIds={pacienteId}"
+            )
+        );
 
         var url =
-            $"api/turno/Disponibles" +
+            "api/turno/Disponibles" +
             $"?fecha={modelo.Fecha:yyyy-MM-dd}" +
             $"&tipoTurnoId={modelo.TipoTurnoId}" +
             $"&consultorioId={modelo.TipoConsultorioId}" +
@@ -1754,10 +1618,8 @@
 
         try
         {
-            var respuesta =
-                await Http.Get<List<string>>(url);
+            var respuesta = await Http.Get<List<string>>(url);
 
-            // Ignora respuestas pertenecientes a una selección anterior.
             if (versionActual != versionConsultaHorarios)
             {
                 return;
@@ -1768,14 +1630,11 @@
                 Mensaje =
                     "No pudimos consultar los horarios disponibles. " +
                     "Revisá la selección e intentá nuevamente.";
-
                 return;
             }
 
             horariosConsultados = true;
-
-            horasDisponibles =
-                respuesta.Respuesta ?? new List<string>();
+            horasDisponibles = respuesta.Respuesta ?? new List<string>();
         }
         catch (TaskCanceledException)
         {
@@ -1822,10 +1681,7 @@
     private void SeleccionarHora(string hora)
     {
         horaSeleccionada = hora;
-
-        modelo.Hora =
-            TimeOnly.ParseExact(hora, "HH:mm");
-
+        modelo.Hora = TimeOnly.ParseExact(hora, "HH:mm");
         Mensaje = string.Empty;
     }
 
@@ -1845,8 +1701,7 @@
 
     private int ObtenerDuracionSeleccionada()
     {
-        return ObtenerTipoSeleccionado()
-            ?.DuracionMinutos ?? 0;
+        return ObtenerTipoSeleccionado()?.DuracionMinutos ?? 0;
     }
 
     private string CalcularHoraFin()
@@ -1856,11 +1711,10 @@
             return "—";
         }
 
-        var horaInicio =
-            TimeOnly.ParseExact(
-                horaSeleccionada,
-                "HH:mm"
-            );
+        var horaInicio = TimeOnly.ParseExact(
+            horaSeleccionada,
+            "HH:mm"
+        );
 
         return horaInicio
             .AddMinutes(ObtenerDuracionSeleccionada())
@@ -1869,19 +1723,14 @@
 
     private string ObtenerNombreTipoTurno()
     {
-        return ObtenerTipoSeleccionado()
-            ?.Tipo ?? "—";
+        return ObtenerTipoSeleccionado()?.Tipo ?? "—";
     }
 
     private string ObtenerNombreConsultorio()
     {
-        return consultorios
-            .FirstOrDefault(
-                consultorio =>
-                    consultorio.Id ==
-                    modelo.TipoConsultorioId
-            )
-            ?.Tipo ?? "—";
+        return consultorios.FirstOrDefault(consultorio =>
+            consultorio.Id == modelo.TipoConsultorioId
+        )?.Tipo ?? "—";
     }
 
     private static string FormatearFecha(DateTime fecha)
@@ -1897,8 +1746,6 @@
     private void AlternarCalendario()
     {
         calendarioAbierto = !calendarioAbierto;
-
-        // Evita tener abiertos los dos calendarios.
         calendarioRecurrenciaAbierto = false;
 
         if (calendarioAbierto)
@@ -1913,20 +1760,12 @@
 
     private void IrMesAnteriorCalendario()
     {
-        mesCalendario =
-            mesCalendario.AddMonths(-1);
+        mesCalendario = mesCalendario.AddMonths(-1);
     }
-
-    private DateTime mesCalendarioRecurrencia = new(
-        DateTime.Today.Year,
-        DateTime.Today.Month,
-        1
-    );
 
     private void IrMesSiguienteCalendario()
     {
-        mesCalendario =
-            mesCalendario.AddMonths(1);
+        mesCalendario = mesCalendario.AddMonths(1);
     }
 
     private List<DateTime> ObtenerDiasCalendarioCrear()
@@ -1943,10 +1782,8 @@
         var primerDiaVisible =
             primerDiaMes.AddDays(-desplazamiento);
 
-        return Enumerable
-            .Range(0, 42)
-            .Select(numero =>
-                primerDiaVisible.AddDays(numero))
+        return Enumerable.Range(0, 42)
+            .Select(numero => primerDiaVisible.AddDays(numero))
             .ToList();
     }
 
@@ -1983,9 +1820,9 @@
     private string ObtenerClaseDiaCalendario(DateTime dia)
     {
         var clases = new List<string>
-    {
-        "calendario-crear-dia"
-    };
+        {
+            "calendario-crear-dia"
+        };
 
         if (dia.Month != mesCalendario.Month)
         {
@@ -2020,14 +1857,12 @@
         calendarioRecurrenciaAbierto =
             !calendarioRecurrenciaAbierto;
 
-        // Evita tener los dos calendarios abiertos.
         calendarioAbierto = false;
 
         if (calendarioRecurrenciaAbierto)
         {
             var fechaReferencia =
-                modelo.FechaHastaRecurrencia
-                ?? modelo.Fecha;
+                modelo.FechaHastaRecurrencia ?? modelo.Fecha;
 
             mesCalendarioRecurrencia = new DateTime(
                 fechaReferencia.Year,
@@ -2063,11 +1898,8 @@
         var primerDiaVisible =
             primerDiaMes.AddDays(-desplazamiento);
 
-        return Enumerable
-            .Range(0, 42)
-            .Select(numero =>
-                primerDiaVisible.AddDays(numero)
-            )
+        return Enumerable.Range(0, 42)
+            .Select(numero => primerDiaVisible.AddDays(numero))
             .ToList();
     }
 
@@ -2092,8 +1924,7 @@
 
     private void SeleccionarMismaFechaRecurrencia()
     {
-        modelo.FechaHastaRecurrencia =
-            modelo.Fecha.Date;
+        modelo.FechaHastaRecurrencia = modelo.Fecha.Date;
 
         mesCalendarioRecurrencia = new DateTime(
             modelo.Fecha.Year,
@@ -2108,9 +1939,9 @@
     private string ObtenerClaseDiaRecurrencia(DateTime dia)
     {
         var clases = new List<string>
-    {
-        "calendario-crear-dia"
-    };
+        {
+            "calendario-crear-dia"
+        };
 
         if (dia.Month != mesCalendarioRecurrencia.Month)
         {
@@ -2122,9 +1953,8 @@
             clases.Add("hoy");
         }
 
-        if (modelo.FechaHastaRecurrencia.HasValue
-            && dia.Date ==
-                modelo.FechaHastaRecurrencia.Value.Date)
+        if (modelo.FechaHastaRecurrencia.HasValue &&
+            dia.Date == modelo.FechaHastaRecurrencia.Value.Date)
         {
             clases.Add("seleccionado");
         }
@@ -2148,56 +1978,59 @@
 
     private string ObtenerFiltrosParaRegresoConTurnoCreado()
     {
-        var consultorios = CombinarFiltroConIds(
+        var consultoriosFiltro = CombinarFiltroConIds(
             ConsultoriosDesdeUrl,
             new[] { modelo.TipoConsultorioId }
         );
 
-        var tiposTurno = CombinarFiltroConIds(
+        var tiposFiltro = CombinarFiltroConIds(
             TiposDesdeUrl,
             new[] { modelo.TipoTurnoId }
         );
 
-        var profesionales = CombinarFiltroConIds(
+        var profesionalesFiltro = CombinarFiltroConIds(
             ProfesionalesDesdeUrl,
             modelo.ProfesionalIds
         );
 
-        var pacientes = CombinarFiltroConIds(
+        // El valor 0 corresponde a la opción "Sin paciente".
+        var pacientesFiltro = CombinarFiltroConIds(
             PacientesDesdeUrl,
-            modelo.PacienteIds
+            modelo.PacienteIds.DefaultIfEmpty(0),
+            permitirSinPaciente: true
         );
 
         return
-            $"&consultorios={consultorios}" +
-            $"&tipos={tiposTurno}" +
-            $"&profesionales={profesionales}" +
-            $"&pacientes={pacientes}";
+            $"&consultorios={consultoriosFiltro}" +
+            $"&tipos={tiposFiltro}" +
+            $"&profesionales={profesionalesFiltro}" +
+            $"&pacientes={pacientesFiltro}";
     }
 
     private static string CombinarFiltroConIds(
         string? filtroActual,
-        IEnumerable<int> idsNuevos
-    )
+        IEnumerable<int> idsNuevos,
+        bool permitirSinPaciente = false)
     {
-        var idsActuales =
-            (filtroActual ?? string.Empty)
-                .Split(
-                    ',',
-                    StringSplitOptions.RemoveEmptyEntries |
-                    StringSplitOptions.TrimEntries
-                )
-                .Select(valor =>
-                    int.TryParse(valor, out var id)
-                        ? id
-                        : 0
-                );
+        var idsActuales = (filtroActual ?? string.Empty)
+            .Split(
+                ',',
+                StringSplitOptions.RemoveEmptyEntries |
+                StringSplitOptions.TrimEntries
+            )
+            .Select(valor =>
+                int.TryParse(valor, out var id)
+                    ? id
+                    : -1
+            );
 
         return string.Join(
             ",",
             idsActuales
                 .Concat(idsNuevos)
-                .Where(id => id > 0)
+                .Where(id =>
+                    id > 0 || (permitirSinPaciente && id == 0)
+                )
                 .Distinct()
                 .OrderBy(id => id)
         );
@@ -2208,34 +2041,30 @@
         return modelo.ProfesionalPrestaciones
             .FirstOrDefault(seleccion =>
                 seleccion.ProfesionalId == profesionalId
-            )
-            ?.TipoPrestacionId ?? 0;
+            )?.TipoPrestacionId ?? 0;
     }
 
-    private void SeleccionarPrestacion(int profesionalId, ChangeEventArgs evento)
+    private void SeleccionarPrestacion(
+        int profesionalId,
+        ChangeEventArgs evento)
     {
         if (!int.TryParse(
-                evento.Value?.ToString(),
-                out var tipoPrestacionId
-            ))
+            evento.Value?.ToString(),
+            out var tipoPrestacionId))
         {
             tipoPrestacionId = 0;
         }
 
-        var seleccionActual =
-            modelo.ProfesionalPrestaciones
-                .FirstOrDefault(seleccion =>
-                    seleccion.ProfesionalId ==
-                    profesionalId
-                );
+        var seleccionActual = modelo.ProfesionalPrestaciones
+            .FirstOrDefault(seleccion =>
+                seleccion.ProfesionalId == profesionalId
+            );
 
         if (tipoPrestacionId == 0)
         {
             if (seleccionActual is not null)
             {
-                modelo.ProfesionalPrestaciones.Remove(
-                    seleccionActual
-                );
+                modelo.ProfesionalPrestaciones.Remove(seleccionActual);
             }
         }
         else if (seleccionActual is null)
@@ -2244,28 +2073,20 @@
                 new TurnoProfesionalPrestacionDTO
                 {
                     ProfesionalId = profesionalId,
-                    TipoPrestacionId =
-                        tipoPrestacionId
+                    TipoPrestacionId = tipoPrestacionId
                 }
             );
         }
         else
         {
-            seleccionActual.TipoPrestacionId =
-                tipoPrestacionId;
+            seleccionActual.TipoPrestacionId = tipoPrestacionId;
         }
 
-        // Compatibilidad temporal.
-        modelo.TipoPrestacionIds =
-            modelo.ProfesionalPrestaciones
-                .Select(seleccion =>
-                    seleccion.TipoPrestacionId
-                )
-                .Distinct()
-                .ToList();
+        modelo.TipoPrestacionIds = modelo.ProfesionalPrestaciones
+            .Select(seleccion => seleccion.TipoPrestacionId)
+            .Distinct()
+            .ToList();
     }
-
-
 
     private async Task Grabar()
     {
@@ -2284,35 +2105,30 @@
 
         try
         {
-            modelo.Hora =
-                TimeOnly.ParseExact(
-                    horaSeleccionada,
-                    "HH:mm"
-                );
+            modelo.Hora = TimeOnly.ParseExact(
+                horaSeleccionada,
+                "HH:mm"
+            );
 
-            var respuesta =
-                await Http.Post<TurnoDTO, int>(
-                    "api/turno",
-                    modelo
-                );
+            var respuesta = await Http.Post<TurnoDTO, int>(
+                "api/turno",
+                modelo
+            );
 
             if (respuesta.Error)
             {
-                Mensaje =
-                    await ObtenerMensajeErrorGuardado(
-                        respuesta.HttpResponseMessage
-                    );
+                Mensaje = await ObtenerMensajeErrorGuardado(
+                    respuesta.HttpResponseMessage
+                );
 
                 return;
             }
 
-            var vistaDestino =
-                string.IsNullOrWhiteSpace(VistaOrigen)
-                    ? "diaria"
-                    : VistaOrigen;
+            var vistaDestino = string.IsNullOrWhiteSpace(VistaOrigen)
+                ? "diaria"
+                : VistaOrigen;
 
-            var fechaDestino =
-                modelo.Fecha.ToString("yyyy-MM-dd");
+            var fechaDestino = modelo.Fecha.ToString("yyyy-MM-dd");
 
             Nav.NavigateTo(
                 "/turnos" +
@@ -2347,21 +2163,19 @@
         }
     }
 
-    private async Task<string> ObtenerMensajeErrorGuardado(HttpResponseMessage respuesta)
+    private async Task<string> ObtenerMensajeErrorGuardado(
+        HttpResponseMessage respuesta)
     {
         string? mensajeApi = null;
 
         try
         {
-            var contenido =
-                await respuesta.Content.ReadAsStringAsync();
+            var contenido = await respuesta.Content.ReadAsStringAsync();
 
             if (!string.IsNullOrWhiteSpace(contenido))
             {
                 using var documento =
-                    System.Text.Json.JsonDocument.Parse(
-                        contenido
-                    );
+                    System.Text.Json.JsonDocument.Parse(contenido);
 
                 if (documento.RootElement.ValueKind ==
                         System.Text.Json.JsonValueKind.Object &&
@@ -2370,18 +2184,17 @@
                         out var propiedadMensaje
                     ))
                 {
-                    mensajeApi =
-                        propiedadMensaje.GetString();
+                    mensajeApi = propiedadMensaje.GetString();
                 }
             }
         }
         catch (System.Text.Json.JsonException)
         {
-            // Si la API no devuelve JSON, usamos un mensaje alternativo.
+            // Se utiliza el mensaje alternativo.
         }
         catch (InvalidOperationException)
         {
-            // Si el contenido no puede leerse, usamos un mensaje alternativo.
+            // Se utiliza el mensaje alternativo.
         }
 
         if (!string.IsNullOrWhiteSpace(mensajeApi))
@@ -2449,21 +2262,19 @@
 
     private void Cancelar()
     {
-        var vistaDestino =
-            string.IsNullOrWhiteSpace(VistaOrigen)
-                ? "diaria"
-                : VistaOrigen;
+        var vistaDestino = string.IsNullOrWhiteSpace(VistaOrigen)
+            ? "diaria"
+            : VistaOrigen;
 
-        var fechaDestino =
-            string.IsNullOrWhiteSpace(FechaOrigen)
-                ? DateTime.Today.ToString("yyyy-MM-dd")
-                : FechaOrigen;
+        var fechaDestino = string.IsNullOrWhiteSpace(FechaOrigen)
+            ? DateTime.Today.ToString("yyyy-MM-dd")
+            : FechaOrigen;
 
         Nav.NavigateTo(
-    "/turnos" +
-    $"?vista={vistaDestino}" +
-    $"&fecha={fechaDestino}" +
-    ObtenerFiltrosParaRegreso()
+            "/turnos" +
+            $"?vista={vistaDestino}" +
+            $"&fecha={fechaDestino}" +
+            ObtenerFiltrosParaRegreso()
         );
     }
 }

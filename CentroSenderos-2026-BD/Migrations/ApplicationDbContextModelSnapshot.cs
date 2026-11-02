@@ -1187,6 +1187,9 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("Asistencia")
+                        .HasColumnType("integer");
+
                     b.Property<int>("EstadoRegistro")
                         .HasColumnType("integer");
 

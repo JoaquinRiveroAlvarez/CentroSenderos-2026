@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Enum
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
@@ -11,53 +12,43 @@
     @if (mostrarMensajeResultado && Estado == "creado")
     {
         <div class="success-message">
-
             <i class="bi bi-check-circle-fill"></i>
-
             <div>
                 <strong>Turno creado</strong>
                 <span>El turno fue creado correctamente.</span>
             </div>
-
         </div>
     }
     else if (mostrarMensajeResultado && Estado == "actualizado")
     {
         <div class="success-message">
-
             <i class="bi bi-check-circle-fill"></i>
-
             <div>
                 <strong>Turno actualizado</strong>
                 <span>El turno se actualizó correctamente.</span>
             </div>
-
         </div>
     }
     else if (mostrarMensajeResultado && Estado == "serie-actualizada")
     {
         <div class="success-message">
-
             <i class="bi bi-check-circle-fill"></i>
-
             <div>
                 <strong>Serie actualizada</strong>
-                <span>Los turnos futuros de la serie se actualizaron correctamente.</span>
+                <span>
+                    Los turnos futuros de la serie se actualizaron correctamente.
+                </span>
             </div>
-
         </div>
     }
     else if (mostrarMensajeResultado && Estado == "eliminado")
     {
         <div class="success-message">
-
             <i class="bi bi-check-circle-fill"></i>
-
             <div>
                 <strong>Turno eliminado</strong>
                 <span>El turno fue eliminado correctamente.</span>
             </div>
-
         </div>
     }
 
@@ -83,24 +74,20 @@
 
             <button type="button"
                     class="@(vistaAmpliada && !vistaSemanal
-                                                                        ? "btn-presentacion activo"
-                                                                        : "btn-presentacion")"
+                        ? "btn-presentacion activo"
+                        : "btn-presentacion")"
                     title="Agenda ampliada"
                     @onclick="MostrarVistaAmpliada">
-
                 <i class="bi bi-grid-fill"></i>
-
             </button>
 
             <button type="button"
                     class="@(!vistaAmpliada && !vistaSemanal
-                                                                        ? "btn-presentacion activo"
-                                                                        : "btn-presentacion")"
+                        ? "btn-presentacion activo"
+                        : "btn-presentacion")"
                     title="Agenda en lista"
                     @onclick="MostrarVistaLista">
-
                 <i class="bi bi-list-ul"></i>
-
             </button>
 
         </div>
@@ -109,22 +96,18 @@
 
             <button type="button"
                     class="@(vistaSemanal
-                                                                        ? "periodo-inactivo"
-                                                                        : "periodo-activo")"
+                        ? "periodo-inactivo"
+                        : "periodo-activo")"
                     @onclick="MostrarVistaDiaria">
-
                 Diaria
-
             </button>
 
             <button type="button"
                     class="@(vistaSemanal
-                                                                        ? "periodo-activo"
-                                                                        : "periodo-inactivo")"
+                        ? "periodo-activo"
+                        : "periodo-inactivo")"
                     @onclick="MostrarVistaSemanal">
-
                 Semanal
-
             </button>
 
         </div>
@@ -132,10 +115,8 @@
         <button type="button"
                 class="btn-nuevo-turno"
                 @onclick="IrACrear">
-
             <i class="bi bi-plus-lg"></i>
             Turno
-
         </button>
 
     </div>
@@ -150,9 +131,7 @@
                         class="calendario-nav"
                         title="Mes anterior"
                         @onclick="IrMesAnterior">
-
                     <i class="bi bi-chevron-left"></i>
-
                 </button>
 
                 <span>@FormatearMes(mesVisible)</span>
@@ -161,15 +140,12 @@
                         class="calendario-nav"
                         title="Mes siguiente"
                         @onclick="IrMesSiguiente">
-
                     <i class="bi bi-chevron-right"></i>
-
                 </button>
 
             </div>
 
             <div class="calendario-semana">
-
                 <span>Lu</span>
                 <span>Ma</span>
                 <span>Mi</span>
@@ -177,7 +153,6 @@
                 <span>Vi</span>
                 <span>Sá</span>
                 <span>Do</span>
-
             </div>
 
             <div class="calendario-dias">
@@ -211,8 +186,8 @@
                         <span>Consultorios</span>
 
                         <i class="bi @(mostrarConsultorios
-                                                                                                             ? "bi-chevron-up"
-                                                                                                             : "bi-chevron-down")">
+                            ? "bi-chevron-up"
+                            : "bi-chevron-down")">
                         </i>
 
                     </button>
@@ -227,9 +202,9 @@
 
                                     <input type="checkbox"
                                            checked="@consultoriosSeleccionados.Contains(consultorio.Id)"
-                                           @onchange="e => CambiarFiltroConsultorio(
-                                                                                                                                                           consultorio.Id,
-                                                                                                                                                           Convert.ToBoolean(e.Value))" />
+                                           @onchange="evento => CambiarFiltroConsultorio(
+                                               consultorio.Id,
+                                               Convert.ToBoolean(evento.Value))" />
 
 <span>@consultorio.Nombre</span>
 
@@ -250,8 +225,8 @@
                         <span>Tipo de Turno</span>
 
                         <i class="bi @(mostrarServicios
-                                                                                                             ? "bi-chevron-up"
-                                                                                                             : "bi-chevron-down")">
+                            ? "bi-chevron-up"
+                            : "bi-chevron-down")">
                         </i>
 
                     </button>
@@ -266,9 +241,9 @@
 
                                     <input type="checkbox"
                                            checked="@tiposSeleccionados.Contains(tipo.Id)"
-                                           @onchange="e => CambiarFiltroTipo(
-                                                                                                                                                           tipo.Id,
-                                                                                                                                                           Convert.ToBoolean(e.Value))" />
+                                           @onchange="evento => CambiarFiltroTipo(
+                                               tipo.Id,
+                                               Convert.ToBoolean(evento.Value))" />
 
 <span>@tipo.Nombre</span>
 
@@ -289,8 +264,8 @@
                         <span>Profesionales</span>
 
                         <i class="bi @(mostrarProfesionales
-                                                                                 ? "bi-chevron-up"
-                                                                                 : "bi-chevron-down")">
+                            ? "bi-chevron-up"
+                            : "bi-chevron-down")">
                         </i>
 
                     </button>
@@ -299,22 +274,15 @@
                     {
                         <div class="filtro-opciones">
 
-                            @foreach (
-                                var profesional
-                                in ProfesionalesDisponibles
-                            )
+                            @foreach (var profesional in ProfesionalesDisponibles)
                             {
                                 <label class="filtro-check">
 
                                     <input type="checkbox"
-                                           checked="@profesionalesSeleccionados.Contains(
-                                                                                                       profesional.Id
-                                                                                                   )"
-                                           @onchange="evento =>
-                                                                                                       CambiarFiltroProfesional(
-                                                                                                           profesional.Id,
-                                                                                                           Convert.ToBoolean(evento.Value)
-                                                                                                       )" />
+                                           checked="@profesionalesSeleccionados.Contains(profesional.Id)"
+                                           @onchange="evento => CambiarFiltroProfesional(
+                                               profesional.Id,
+                                               Convert.ToBoolean(evento.Value))" />
 
 <span>@profesional.Nombre</span>
 
@@ -335,8 +303,8 @@
                         <span>Pacientes</span>
 
                         <i class="bi @(mostrarPacientes
-                                                                                 ? "bi-chevron-up"
-                                                                                 : "bi-chevron-down")">
+                            ? "bi-chevron-up"
+                            : "bi-chevron-down")">
                         </i>
 
                     </button>
@@ -345,22 +313,15 @@
                     {
                         <div class="filtro-opciones">
 
-                            @foreach (
-                                var paciente
-                                in PacientesDisponibles
-                            )
+                            @foreach (var paciente in PacientesDisponibles)
                             {
                                 <label class="filtro-check">
 
                                     <input type="checkbox"
-                                           checked="@pacientesSeleccionados.Contains(
-                                                                                                       paciente.Id
-                                                                                                   )"
-                                           @onchange="evento =>
-                                                                                                       CambiarFiltroPaciente(
-                                                                                                           paciente.Id,
-                                                                                                           Convert.ToBoolean(evento.Value)
-                                                                                                       )" />
+                                           checked="@pacientesSeleccionados.Contains(paciente.Id)"
+                                           @onchange="evento => CambiarFiltroPaciente(
+                                               paciente.Id,
+                                               Convert.ToBoolean(evento.Value))" />
 
 <span>@paciente.Nombre</span>
 
@@ -377,10 +338,8 @@
             <button type="button"
                     class="btn-restaurar-filtros"
                     @onclick="RestaurarTodosLosFiltros">
-
                 <i class="bi bi-arrow-counterclockwise"></i>
                 <span>Restaurar filtros</span>
-
             </button>
 
         </aside>
@@ -393,6 +352,7 @@
 
                     <div class="spinner-border text-secondary"
                          role="status">
+                        <span class="visually-hidden">Cargando...</span>
                     </div>
 
                     <p>Cargando turnos...</p>
@@ -402,11 +362,8 @@
             else if (!string.IsNullOrWhiteSpace(Mensaje))
             {
                 <div class="mensaje-error">
-
                     <i class="bi bi-exclamation-circle"></i>
-
                     <span>@Mensaje</span>
-
                 </div>
             }
             else if (vistaSemanal)
@@ -436,13 +393,8 @@
                                 </div>
 
                                 <span class="dia-semana-cantidad">
-
                                     @turnosDia.Count
-
-                                    @(turnosDia.Count == 1
-                                        ? "turno"
-                                        : "turnos")
-
+                                    @(turnosDia.Count == 1 ? "turno" : "turnos")
                                 </span>
 
                             </header>
@@ -468,13 +420,11 @@
 
                                             <div class="turno-informacion">
 
-                                                @* Primera línea: consultorio, prestación y profesional. *@
                                                 <div class="turno-encabezado-datos">
 
                                                     <span class="turno-consultorio">
                                                         @ObtenerCodigoConsultorio(
-                                                            turno.NombreTipoConsultorio
-                                                        )
+                                                            turno.NombreTipoConsultorio)
                                                     </span>
 
                                                     <span class="turno-prestacion">
@@ -489,7 +439,6 @@
 
                                                 </div>
 
-                                                @* Horario y recurrencia en una misma línea. *@
                                                 <div class="turno-horario-fila">
 
                                                     <h2>
@@ -511,14 +460,12 @@
 
                                                 </div>
 
-                                                @* Tipo de turno y paciente con el detalle original. *@
                                                 <div class="turno-detalles">
 
                                                     <span>
-                                                        @(string.IsNullOrWhiteSpace(
-                                                            turno.NombreTipoTurno)
-                                                                ? "Turno"
-                                                                : turno.NombreTipoTurno)
+                                                        @(string.IsNullOrWhiteSpace(turno.NombreTipoTurno)
+                                                            ? "Turno"
+                                                            : turno.NombreTipoTurno)
                                                     </span>
 
                                                     <span>
@@ -532,11 +479,9 @@
                                             </div>
 
                                             <div class="turno-estado">
-
                                                 <span class="@ObtenerClaseEstado(turno)">
                                                     @ObtenerTextoEstado(turno)
                                                 </span>
-
                                             </div>
 
                                             <button type="button"
@@ -544,9 +489,7 @@
                                                     title="Editar turno"
                                                     @onclick:stopPropagation="true"
                                                     @onclick="() => IrAEditar(turno.Id)">
-
                                                 <i class="bi bi-pencil"></i>
-
                                             </button>
 
                                         </article>
@@ -570,8 +513,8 @@
                         {
                             <button type="button"
                                     class="@(dia.Date == fechaSeleccionada.Date
-                                                                                                                                        ? "dia-ampliado activo"
-                                                                                                                                        : "dia-ampliado")"
+                                        ? "dia-ampliado activo"
+                                        : "dia-ampliado")"
                                     @onclick="() => SeleccionarFecha(dia)">
 
                                 <span class="dia-ampliado-nombre">
@@ -609,11 +552,10 @@
                             <div class="grilla-agenda"
                                  style="--cantidad-consultorios: @ConsultoriosVisibles.Count;">
 
-                                <div class="grilla-esquina">
-                                    Hora
-                                </div>
+                                <div class="grilla-esquina">Hora</div>
 
-                                @for (var indice = 0;
+                                @for (
+                                    var indice = 0;
                                     indice < ConsultoriosVisibles.Count;
                                     indice++)
                                 {
@@ -622,14 +564,12 @@
 
                                     <div class="grilla-consultorio"
                                          style="grid-column: @columna; grid-row: 1;">
-
                                         @consultorio.Nombre
-
                                     </div>
 
                                     <div class="grilla-columna-fondo @(indice % 2 == 0
-                                                                                                                                                                ? "columna-par"
-                                                                                                                                                                : "columna-impar")"
+                                            ? "columna-par"
+                                            : "columna-impar")"
                                  style="grid-column: @columna; grid-row: 2 / 38;">
                             </div>
                         }
@@ -649,15 +589,11 @@
                             var estiloLinea =
                                 $"grid-column: 2 / -1; grid-row: {fila};";
 
-                            <div class="@claseHora"
-                                 style="@estiloHora">
-
+                            <div class="@claseHora" style="@estiloHora">
                                 @($"{horaActual:00}:00")
-
                             </div>
 
-                            <div class="grilla-linea"
-                                 style="@estiloLinea">
+                            <div class="grilla-linea" style="@estiloLinea">
                             </div>
                         }
 
@@ -669,7 +605,6 @@
                                     title="Ver detalle del turno"
                                     @onclick="() => AbrirDetalle(turno)">
 
-                                @* Cabecera compacta: horario y recurrencia. *@
                                 <span class="turno-grilla-cabecera">
 
                                     <strong>
@@ -682,16 +617,14 @@
                                     {
                                         <span class="turno-grilla-recurrencia"
                                               title="@ObtenerTextoRecurrencia(turno)">
-
                                             <i class="bi bi-arrow-repeat"></i>
-
                                         </span>
                                     }
 
                                 </span>
 
-                                @* Segunda línea: tipo de turno y prestación. *@
                                 <span class="turno-grilla-prestacion">
+
                                     @(string.IsNullOrWhiteSpace(turno.NombreTipoTurno)
                                         ? "Turno"
                                         : turno.NombreTipoTurno)
@@ -699,9 +632,9 @@
                                     <span>—</span>
 
                                     @ObtenerTextoPrestaciones(turno)
+
                                 </span>
 
-                                @* Tercera línea: pacientes y profesionales del turno. *@
                                 <span class="turno-grilla-participantes">
 
                                     @ObtenerResumenPersonas(
@@ -742,9 +675,7 @@
             <button type="button"
                     class="btn-nuevo-turno"
                     @onclick="IrACrear">
-
                 Crear turno
-
             </button>
 
         </div>
@@ -754,17 +685,12 @@
         <div class="agenda-contenido">
 
             <div class="resumen-dia">
-
                 <span>
-
                     @TurnosDelDia.Count
-
                     @(TurnosDelDia.Count == 1
                         ? "turno programado"
                         : "turnos programados")
-
                 </span>
-
             </div>
 
             <div class="lista-turnos">
@@ -780,13 +706,11 @@
 
                         <div class="turno-informacion">
 
-                            @* Primera línea: consultorio, prestación y profesional. *@
                             <div class="turno-encabezado-datos">
 
                                 <span class="turno-consultorio">
                                     @ObtenerCodigoConsultorio(
-                                        turno.NombreTipoConsultorio
-                                    )
+                                        turno.NombreTipoConsultorio)
                                 </span>
 
                                 <span class="turno-prestacion">
@@ -801,7 +725,6 @@
 
                             </div>
 
-                            @* Horario y recurrencia en una misma línea. *@
                             <div class="turno-horario-fila">
 
                                 <h2>
@@ -823,14 +746,12 @@
 
                             </div>
 
-                            @* Tipo de turno y paciente con el detalle original. *@
                             <div class="turno-detalles">
 
                                 <span>
-                                    @(string.IsNullOrWhiteSpace(
-                                        turno.NombreTipoTurno)
-                                            ? "Turno"
-                                            : turno.NombreTipoTurno)
+                                    @(string.IsNullOrWhiteSpace(turno.NombreTipoTurno)
+                                        ? "Turno"
+                                        : turno.NombreTipoTurno)
                                 </span>
 
                                 <span>
@@ -844,11 +765,9 @@
                         </div>
 
                         <div class="turno-estado">
-
                             <span class="@ObtenerClaseEstado(turno)">
                                 @ObtenerTextoEstado(turno)
                             </span>
-
                         </div>
 
                         <button type="button"
@@ -856,9 +775,7 @@
                                 title="Editar turno"
                                 @onclick:stopPropagation="true"
                                 @onclick="() => IrAEditar(turno.Id)">
-
                             <i class="bi bi-pencil"></i>
-
                         </button>
 
                     </article>
@@ -886,23 +803,20 @@
                  aria-label="Detalle del turno"
                  @onclick:stopPropagation="true">
 
-            @* Encabezado secundario: identifica el modal y conserva el estado visible. *@
             <header class="detalle-nuevo-encabezado">
 
                 <div class="detalle-nuevo-identidad">
 
                     <span class="detalle-codigo-consultorio">
                         @ObtenerCodigoConsultorio(
-                            turnoSeleccionado.NombreTipoConsultorio
-                        )
+                            turnoSeleccionado.NombreTipoConsultorio)
                     </span>
 
                     <div>
                         <span>Detalle del turno</span>
                         <strong>
                             @FormatearFechaDetalle(
-                                turnoSeleccionado.FechaInicio
-                            )
+                                turnoSeleccionado.FechaInicio)
                         </strong>
                     </div>
 
@@ -910,21 +824,16 @@
 
                 <div class="detalle-nuevo-encabezado-acciones">
 
-                    <span class="@ObtenerClaseEstado(
-                                                                                            turnoSeleccionado
-                                                                                        )">
-                        @ObtenerTextoEstado(
-                            turnoSeleccionado
-                        )
+                    <span class="@ObtenerClaseEstado(turnoSeleccionado)">
+                        @ObtenerTextoEstado(turnoSeleccionado)
                     </span>
 
                     <button type="button"
                             class="detalle-turno-cerrar"
                             title="Cerrar"
+                            disabled="@GuardandoDetalle"
                             @onclick="CerrarDetalle">
-
                         <i class="bi bi-x-lg"></i>
-
                     </button>
 
                 </div>
@@ -933,7 +842,6 @@
 
             <div class="detalle-nuevo-contenido">
 
-                @* Datos principales: primero las personas y la atención brindada. *@
                 <section class="detalle-nuevo-principal">
 
                     <article class="detalle-nuevo-panel">
@@ -945,24 +853,57 @@
 
                         @if (turnoSeleccionado.PacientesDetalle.Count > 0)
                         {
-                            @foreach (
-                                var paciente in
-                                turnoSeleccionado.PacientesDetalle
-                            )
+                            <p class="asistencia-ayuda">
+                                Seleccioná una opción para guardar la asistencia.
+                            </p>
+
+                            @foreach (var paciente in turnoSeleccionado.PacientesDetalle)
                             {
                                 <div class="detalle-nuevo-paciente">
 
-                                    <strong>
-                                        @paciente.NombrePaciente
-                                    </strong>
+                                    <strong>@paciente.NombrePaciente</strong>
 
                                     <span>
-                                        @(string.IsNullOrWhiteSpace(
-                                            paciente.NombreObraSocial
-                                        )
+                                        @(string.IsNullOrWhiteSpace(paciente.NombreObraSocial)
                                             ? "Sin obra social histórica"
                                             : paciente.NombreObraSocial)
                                     </span>
+
+                                    <div class="asistencia-selector"
+                                         role="group"
+                                         aria-label="@($"Asistencia de {paciente.NombrePaciente}")"
+                                         aria-busy="@(pacienteGuardandoAsistencia == paciente.PacienteId)">
+
+                                        @foreach (var asistencia in opcionesAsistencia)
+                                        {
+                                            <button type="button"
+                                                    class="@($"{ObtenerClaseAsistencia(asistencia)} {(paciente.Asistencia == asistencia ? "activa" : "")}")"
+                                                    aria-pressed="@(paciente.Asistencia == asistencia ? "true" : "false")"
+                                                    disabled="@GuardandoDetalle"
+                                                    @onclick="() => GuardarAsistenciaPaciente(paciente, asistencia)">
+
+                                                @ObtenerTextoAsistencia(asistencia)
+
+                                            </button>
+                                        }
+
+                                    </div>
+
+                                    @if (pacienteGuardandoAsistencia == paciente.PacienteId)
+                                    {
+                                        <p class="asistencia-mensaje" role="status">
+                                            Guardando...
+                                        </p>
+                                    }
+                                    else if (
+                                        pacienteMensajeAsistencia == paciente.PacienteId &&
+                                        !string.IsNullOrWhiteSpace(mensajeAsistencia))
+                                    {
+                                        <p class="asistencia-mensaje @(errorAsistencia ? "es-error" : "")"
+                                           role="status">
+                                            @mensajeAsistencia
+                                        </p>
+                                    }
 
                                 </div>
                             }
@@ -971,11 +912,9 @@
                         {
                             <div class="detalle-nuevo-paciente">
                                 <strong>
-                                    @ObtenerTextoPacientes(
-                                        turnoSeleccionado
-                                    )
+                                    @ObtenerTextoPacientes(turnoSeleccionado)
                                 </strong>
-                                <span>Sin obra social histórica</span>
+                                <span>Sin pacientes asignados</span>
                             </div>
                         }
 
@@ -988,21 +927,14 @@
                             <span>Atención</span>
                         </div>
 
-                        @if (
-                            turnoSeleccionado
-                                .ProfesionalPrestaciones.Count > 0
-                        )
+                        @if (turnoSeleccionado.ProfesionalPrestaciones.Count > 0)
                         {
-                            @foreach (
-                                var atencion in turnoSeleccionado
-                                    .ProfesionalPrestaciones
-                            )
+                            @foreach (var atencion in turnoSeleccionado.ProfesionalPrestaciones)
                             {
                                 <div class="detalle-nuevo-atencion-relacion">
+
                                     <strong>
-                                        @(string.IsNullOrWhiteSpace(
-                                            atencion.NombreProfesional
-                                        )
+                                        @(string.IsNullOrWhiteSpace(atencion.NombreProfesional)
                                             ? "Sin profesional"
                                             : atencion.NombreProfesional)
                                     </strong>
@@ -1010,32 +942,28 @@
                                     <span>—</span>
 
                                     <strong>
-                                        @(string.IsNullOrWhiteSpace(
-                                            atencion.NombreTipoPrestacion
-                                        )
+                                        @(string.IsNullOrWhiteSpace(atencion.NombreTipoPrestacion)
                                             ? "Sin prestación"
                                             : atencion.NombreTipoPrestacion)
                                     </strong>
+
                                 </div>
                             }
                         }
                         else
                         {
-                            @* Compatibilidad con una versión anterior de la API. *@
                             <div class="detalle-nuevo-atencion-relacion">
+
                                 <strong>
-                                    @ObtenerTextoProfesionales(
-                                        turnoSeleccionado
-                                    )
+                                    @ObtenerTextoProfesionales(turnoSeleccionado)
                                 </strong>
 
                                 <span>—</span>
 
                                 <strong>
-                                    @ObtenerTextoPrestaciones(
-                                        turnoSeleccionado
-                                    )
+                                    @ObtenerTextoPrestaciones(turnoSeleccionado)
                                 </strong>
+
                             </div>
                         }
 
@@ -1043,7 +971,6 @@
 
                 </section>
 
-                @* Contexto del turno: visible, pero con menor protagonismo. *@
                 <section class="detalle-nuevo-contexto">
 
                     <div class="detalle-nuevo-contexto-item">
@@ -1058,9 +985,7 @@
                     <div class="detalle-nuevo-contexto-item">
                         <span>Tipo de turno</span>
                         <strong>
-                            @(string.IsNullOrWhiteSpace(
-                                turnoSeleccionado.NombreTipoTurno
-                            )
+                            @(string.IsNullOrWhiteSpace(turnoSeleccionado.NombreTipoTurno)
                                 ? "Sin especificar"
                                 : turnoSeleccionado.NombreTipoTurno)
                         </strong>
@@ -1068,7 +993,6 @@
 
                 </section>
 
-                @* La recurrencia queda resumida en una sola línea informativa. *@
                 @if (turnoSeleccionado.SerieTurnoId.HasValue)
                 {
                     <div class="detalle-nuevo-recurrencia">
@@ -1076,26 +1000,20 @@
                         <i class="bi bi-arrow-repeat"></i>
 
                         <span>
+
                             <strong>
-                                @ObtenerTextoRecurrencia(
-                                    turnoSeleccionado
-                                )
+                                @ObtenerTextoRecurrencia(turnoSeleccionado)
                             </strong>
 
-                            @if (
-                                turnoSeleccionado
-                                    .FechaHastaRecurrencia
-                                    .HasValue
-                            )
+                            @if (turnoSeleccionado.FechaHastaRecurrencia.HasValue)
                             {
                                 <text>
                                     · hasta el
-                                    @(turnoSeleccionado
-                                        .FechaHastaRecurrencia
-                                        .Value
+                                    @(turnoSeleccionado.FechaHastaRecurrencia.Value
                                         .ToString("dd/MM/yyyy"))
                                 </text>
                             }
+
                         </span>
 
                     </div>
@@ -1103,113 +1021,109 @@
 
             </div>
 
-<section class="detalle-cambio-estado"
-         aria-label="Cambiar estado del turno"
-         aria-busy="@guardandoEstado">
+            <section class="detalle-cambio-estado"
+                     aria-label="Cambiar estado del turno"
+                     aria-busy="@guardandoEstado">
 
-    <div class="detalle-estado-cabecera">
-        <span class="detalle-estado-titulo">Estado del turno</span>
+                <div class="detalle-estado-cabecera">
 
-        @if (estadoSeleccionado != turnoSeleccionado.EstadoTurno)
-        {
-            <span class="detalle-estado-pendiente">
-                Sin guardar
-            </span>
-        }
-    </div>
+                    <span class="detalle-estado-titulo">
+                        Estado del turno
+                    </span>
 
-    <div class="detalle-estado-opciones"
-         role="group"
-         aria-label="Estados disponibles">
+                    @if (estadoSeleccionado != turnoSeleccionado.EstadoTurno)
+                    {
+                        <span class="detalle-estado-pendiente">
+                            Sin guardar
+                        </span>
+                    }
 
-        @foreach (var estado in new[]
-        {
-            EnumEstadoTurno.reservado,
-            EnumEstadoTurno.atendido,
-            EnumEstadoTurno.cancelado,
-            EnumEstadoTurno.ausente
-        })
-        {
-            var nombre = estado switch
-            {
-                EnumEstadoTurno.reservado => "Pendiente",
-                EnumEstadoTurno.atendido => "Completado",
-                EnumEstadoTurno.cancelado => "Cancelado",
-                _ => "Ausente"
-            };
+                </div>
 
-            var icono = estado switch
-            {
-                EnumEstadoTurno.reservado => "bi-clock",
-                EnumEstadoTurno.atendido => "bi-check-circle",
-                EnumEstadoTurno.cancelado => "bi-x-circle",
-                _ => "bi-person-x"
-            };
+                <div class="detalle-estado-opciones"
+                     role="group"
+                     aria-label="Estados disponibles">
 
-            <button type="button"
+                    @foreach (var estado in estadosDisponibles)
+                    {
+                        var nombre = estado switch
+                        {
+                            EnumEstadoTurno.reservado => "Pendiente",
+                            EnumEstadoTurno.atendido => "Completado",
+                            EnumEstadoTurno.cancelado => "Cancelado",
+                            _ => "Ausente"
+                        };
+
+                        var icono = estado switch
+                        {
+                            EnumEstadoTurno.reservado => "bi-clock",
+                            EnumEstadoTurno.atendido => "bi-check-circle",
+                            EnumEstadoTurno.cancelado => "bi-x-circle",
+                            _ => "bi-person-x"
+                        };
+
+                        <button type="button"
                                 class="detalle-estado-opcion opcion-@estado @(estadoSeleccionado == estado ? "seleccionado" : "")"
                                 aria-pressed="@(estadoSeleccionado == estado ? "true" : "false")"
-                                disabled="@guardandoEstado"
+                                disabled="@GuardandoDetalle"
                                 @onclick="() =>
-                                {
-                                    estadoSeleccionado = estado;
-                                    mensajeEstado = string.Empty;
-                                }">
+                                                            {
+                                                                estadoSeleccionado = estado;
+                                                                mensajeEstado = string.Empty;
+                                                            }">
 
-                <i class="bi @icono" aria-hidden="true"></i>
-                <span>@nombre</span>
+                            <i class="bi @icono" aria-hidden="true"></i>
+                            <span>@nombre</span>
 
-            </button>
-        }
+                        </button>
+                    }
 
-    </div>
+                </div>
 
-    <div class="detalle-estado-pie">
+                <div class="detalle-estado-pie">
 
-        <span class="detalle-estado-ayuda">
-            Se aplica únicamente a este turno.
-        </span>
+                    <span class="detalle-estado-ayuda">
+                        Se aplica únicamente a este turno.
+                    </span>
 
-        <button type="button"
-                class="detalle-estado-guardar"
-                disabled="@(guardandoEstado ||
-                    estadoSeleccionado == turnoSeleccionado.EstadoTurno)"
-                @onclick="GuardarEstadoTurno">
+                    <button type="button"
+                            class="detalle-estado-guardar"
+                            disabled="@(GuardandoDetalle ||
+                                estadoSeleccionado == turnoSeleccionado.EstadoTurno)"
+                            @onclick="GuardarEstadoTurno">
 
-            <i class="bi bi-check2" aria-hidden="true"></i>
-            @(guardandoEstado ? "Guardando..." : "Guardar estado")
+                        <i class="bi bi-check2" aria-hidden="true"></i>
+                        @(guardandoEstado ? "Guardando..." : "Guardar estado")
 
-        </button>
+                    </button>
 
-    </div>
+                </div>
 
-    @if (!string.IsNullOrWhiteSpace(mensajeEstado))
-    {
-        <p class="detalle-estado-mensaje @(errorEstado ? "es-error" : "")"
-           role="status">
-            @mensajeEstado
-        </p>
-    }
+                @if (!string.IsNullOrWhiteSpace(mensajeEstado))
+                {
+                    <p class="detalle-estado-mensaje @(errorEstado ? "es-error" : "")"
+                       role="status">
+                        @mensajeEstado
+                    </p>
+                }
 
-</section>           
-<footer class="detalle-turno-acciones detalle-nuevo-acciones">
+            </section>
+
+            <footer class="detalle-turno-acciones detalle-nuevo-acciones">
 
                 <button type="button"
                         class="detalle-btn-cerrar"
+                        disabled="@GuardandoDetalle"
                         @onclick="CerrarDetalle">
-
                     Cerrar
-
                 </button>
 
                 <button type="button"
                         class="detalle-btn-editar"
+                        disabled="@GuardandoDetalle"
                         @onclick="EditarTurnoSeleccionado">
-
                     <i class="bi bi-pencil"></i>
-
                     <span>Editar turno</span>
-
                 </button>
 
             </footer>
@@ -1218,7 +1132,6 @@
 
     </div>
 }
-
 
 @code {
 
@@ -1238,21 +1151,55 @@
     private HashSet<int> profesionalesSeleccionados = new();
     private HashSet<int> pacientesSeleccionados = new();
 
-
     private bool cargando = true;
     private string Mensaje = string.Empty;
+
     private bool vistaSemanal;
     private bool vistaAmpliada;
+
     private bool mostrarConsultorios = true;
-    private bool mostrarServicios = false;
-    private bool mostrarProfesionales = false;
-    private bool mostrarPacientes = false;
+    private bool mostrarServicios;
+    private bool mostrarProfesionales;
+    private bool mostrarPacientes;
     private bool mostrarDetalle;
     private bool mostrarMensajeResultado = true;
 
     private const int FiltroSinPaciente = 0;
 
     private TurnoListadoDTO? turnoSeleccionado;
+    private string? ultimaUrlAgendaAplicada;
+
+    private EnumEstadoTurno estadoSeleccionado;
+    private bool guardandoEstado;
+    private bool errorEstado;
+    private string mensajeEstado = string.Empty;
+
+    private int? pacienteGuardandoAsistencia;
+    private int? pacienteMensajeAsistencia;
+
+    private string mensajeAsistencia = string.Empty;
+    private bool errorAsistencia;
+
+    private bool GuardandoAsistencia =>
+        pacienteGuardandoAsistencia.HasValue;
+
+    private bool GuardandoDetalle =>
+        guardandoEstado || GuardandoAsistencia;
+
+    private readonly EnumEstadoTurno[] estadosDisponibles =
+    {
+        EnumEstadoTurno.reservado,
+        EnumEstadoTurno.atendido,
+        EnumEstadoTurno.cancelado,
+        EnumEstadoTurno.ausente
+    };
+
+    private readonly EnumAsistenciaPaciente?[] opcionesAsistencia =
+    {
+        null,
+        EnumAsistenciaPaciente.asistio,
+        EnumAsistenciaPaciente.ausente
+    };
 
     [SupplyParameterFromQuery(Name = "detalle")]
     public int? DetalleTurnoId { get; set; }
@@ -1281,30 +1228,28 @@
     private List<TurnoListadoDTO> TurnosDelDia =>
         listaTurnos
             .Where(turno =>
-                turno.FechaInicio.Date == fechaSeleccionada.Date
-                && EstaConsultorioSeleccionado(
-                    turno.TipoConsultorioId)
-                && EstaTipoSeleccionado(
-                    turno.TipoTurnoId)
-                && EstaProfesionalSeleccionado(turno)
-                && EstaPacienteSeleccionado(turno)
-                )
+                turno.FechaInicio.Date == fechaSeleccionada.Date &&
+                EstaConsultorioSeleccionado(turno.TipoConsultorioId) &&
+                EstaTipoSeleccionado(turno.TipoTurnoId) &&
+                EstaProfesionalSeleccionado(turno) &&
+                EstaPacienteSeleccionado(turno)
+            )
             .OrderBy(turno => turno.FechaInicio)
             .ToList();
 
     private List<OpcionFiltro> ConsultoriosVisibles =>
         ConsultoriosDisponibles
             .Where(consultorio =>
-                EstaConsultorioSeleccionado(consultorio.Id))
+                EstaConsultorioSeleccionado(consultorio.Id)
+            )
             .ToList();
 
     private List<TurnoListadoDTO> TurnosGrilla =>
         TurnosDelDia
             .Where(turno =>
-                turno.FechaInicio.TimeOfDay >=
-                    new TimeSpan(8, 0, 0)
-                && turno.FechaInicio.TimeOfDay <
-                    new TimeSpan(20, 0, 0))
+                turno.FechaInicio.TimeOfDay >= new TimeSpan(8, 0, 0) &&
+                turno.FechaInicio.TimeOfDay < new TimeSpan(20, 0, 0)
+            )
             .ToList();
 
     private DateTime InicioSemana
@@ -1314,36 +1259,16 @@
             var desplazamiento =
                 ((int)fechaSeleccionada.DayOfWeek + 6) % 7;
 
-            return fechaSeleccionada.Date
-                .AddDays(-desplazamiento);
+            return fechaSeleccionada.Date.AddDays(-desplazamiento);
         }
     }
 
-    private DateTime FinSemana =>
-        InicioSemana.AddDays(6);
+    private DateTime FinSemana => InicioSemana.AddDays(6);
 
     private List<DateTime> DiasDeLaSemana =>
-        Enumerable
-            .Range(0, 7)
-            .Select(numero =>
-                InicioSemana.AddDays(numero))
+        Enumerable.Range(0, 7)
+            .Select(numero => InicioSemana.AddDays(numero))
             .ToList();
-
-    private List<TurnoListadoDTO> ObtenerTurnosDelDia(DateTime dia)
-    {
-        return listaTurnos
-            .Where(turno =>
-                turno.FechaInicio.Date == dia.Date
-                && EstaConsultorioSeleccionado(
-                    turno.TipoConsultorioId)
-                && EstaTipoSeleccionado(
-                    turno.TipoTurnoId)
-                && EstaProfesionalSeleccionado(turno)
-                && EstaPacienteSeleccionado(turno)
-            )
-            .OrderBy(turno => turno.FechaInicio)
-            .ToList();
-    }
 
     private List<OpcionFiltro> ConsultoriosDisponibles
     {
@@ -1356,10 +1281,9 @@
                     {
                         Id = consultorio.Id,
 
-                        Nombre = string.IsNullOrWhiteSpace(
-                            consultorio.Tipo)
-                                ? "Sin nombre"
-                                : consultorio.Tipo
+                        Nombre = string.IsNullOrWhiteSpace(consultorio.Tipo)
+                            ? "Sin nombre"
+                            : consultorio.Tipo
                     })
                     .OrderBy(item => item.Nombre)
                     .ToList();
@@ -1398,71 +1322,59 @@
             {
                 Id = grupo.Key.TipoTurnoId,
 
-                Nombre = string.IsNullOrWhiteSpace(
-                    grupo.Key.NombreTipoTurno)
-                        ? "Turno"
-                        : grupo.Key.NombreTipoTurno
+                Nombre = string.IsNullOrWhiteSpace(grupo.Key.NombreTipoTurno)
+                    ? "Turno"
+                    : grupo.Key.NombreTipoTurno
             })
             .OrderBy(item => item.Nombre)
             .ToList();
 
     private List<OpcionFiltro> ProfesionalesDisponibles =>
-    listaTurnos
-        .SelectMany(turno =>
-            turno.ProfesionalPrestaciones
-        )
-        .Where(relacion =>
-            relacion.ProfesionalId > 0
-        )
-        .GroupBy(relacion =>
-            relacion.ProfesionalId
-        )
-        .Select(grupo => new OpcionFiltro
-        {
-            Id = grupo.Key,
+        listaTurnos
+            .SelectMany(turno => turno.ProfesionalPrestaciones)
+            .Where(relacion => relacion.ProfesionalId > 0)
+            .GroupBy(relacion => relacion.ProfesionalId)
+            .Select(grupo => new OpcionFiltro
+            {
+                Id = grupo.Key,
 
-            Nombre = grupo
-                .Select(relacion =>
-                    relacion.NombreProfesional
-                )
-                .FirstOrDefault(nombre =>
-                    !string.IsNullOrWhiteSpace(nombre)
-                ) ?? "Profesional"
-        })
-        .OrderBy(profesional =>
-            profesional.Nombre
-        )
-        .ToList();
+                Nombre = grupo
+                    .Select(relacion => relacion.NombreProfesional)
+                    .FirstOrDefault(nombre =>
+                        !string.IsNullOrWhiteSpace(nombre)
+                    ) ?? "Profesional"
+            })
+            .OrderBy(profesional => profesional.Nombre)
+            .ToList();
 
     private List<OpcionFiltro> PacientesDisponibles =>
-    listaTurnos
-        .SelectMany(turno => turno.PacientesDetalle)
-        .Where(paciente => paciente.PacienteId > 0)
-        .GroupBy(paciente => paciente.PacienteId)
-        .Select(grupo => new OpcionFiltro
-        {
-            Id = grupo.Key,
+        listaTurnos
+            .SelectMany(turno => turno.PacientesDetalle)
+            .Where(paciente => paciente.PacienteId > 0)
+            .GroupBy(paciente => paciente.PacienteId)
+            .Select(grupo => new OpcionFiltro
+            {
+                Id = grupo.Key,
 
-            Nombre = grupo
-                .Select(paciente => paciente.NombrePaciente)
-                .FirstOrDefault(nombre =>
-                    !string.IsNullOrWhiteSpace(nombre)
-                ) ?? "Paciente"
-        })
-        .OrderBy(paciente => paciente.Nombre)
-        .Prepend(new OpcionFiltro
-        {
-            Id = FiltroSinPaciente,
-            Nombre = "Sin paciente"
-        })
-        .ToList();
-    
-    private string? ultimaUrlAgendaAplicada;
+                Nombre = grupo
+                    .Select(paciente => paciente.NombrePaciente)
+                    .FirstOrDefault(nombre =>
+                        !string.IsNullOrWhiteSpace(nombre)
+                    ) ?? "Paciente"
+            })
+            .OrderBy(paciente => paciente.Nombre)
+            .Prepend(new OpcionFiltro
+            {
+                Id = FiltroSinPaciente,
+                Nombre = "Sin paciente"
+            })
+            .ToList();
 
     protected override async Task OnInitializedAsync()
     {
         await CargarConsultorios();
         await CargarTurnos();
+
         AplicarContextoDeAgenda();
     }
 
@@ -1478,28 +1390,32 @@
     {
         var uri = new Uri(Nav.Uri);
 
-        // No restablecer esta agenda mientras se navega a otra página.
         if (!uri.AbsolutePath.TrimEnd('/').Equals(
-                "/turnos", StringComparison.OrdinalIgnoreCase))
+            "/turnos",
+            StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
-        // Conservar los cambios hechos mediante los controles de la agenda
-        // cuando Blazor vuelve a aplicar parámetros de la misma URL.
         if (ultimaUrlAgendaAplicada == uri.AbsoluteUri)
         {
             return;
         }
 
         var parametros = new Dictionary<string, string>(
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.OrdinalIgnoreCase
+        );
 
         foreach (var parte in uri.Query.TrimStart('?').Split(
-                     '&', StringSplitOptions.RemoveEmptyEntries))
+            '&',
+            StringSplitOptions.RemoveEmptyEntries))
         {
             var par = parte.Split('=', 2);
-            var nombre = Uri.UnescapeDataString(par[0].Replace("+", " "));
+
+            var nombre = Uri.UnescapeDataString(
+                par[0].Replace("+", " ")
+            );
+
             var valor = par.Length == 2
                 ? Uri.UnescapeDataString(par[1].Replace("+", " "))
                 : string.Empty;
@@ -1508,7 +1424,9 @@
         }
 
         string? Leer(string nombre) =>
-            parametros.TryGetValue(nombre, out var valor) ? valor : null;
+            parametros.TryGetValue(nombre, out var valor)
+                ? valor
+                : null;
 
         VistaDesdeUrl = Leer("vista");
         FechaDesdeUrl = Leer("fecha");
@@ -1517,18 +1435,26 @@
         ProfesionalesDesdeUrl = Leer("profesionales");
         PacientesDesdeUrl = Leer("pacientes");
         Estado = Leer("estado");
-        DetalleTurnoId = int.TryParse(Leer("detalle"), out var detalleId)
-            ? detalleId
-            : null;
+
+        DetalleTurnoId = int.TryParse(
+            Leer("detalle"),
+            out var detalleId)
+                ? detalleId
+                : null;
 
         InicializarFiltros();
+
         pacientesSeleccionados = PacientesDisponibles
             .Select(paciente => paciente.Id)
             .ToHashSet();
 
         fechaSeleccionada = DateTime.Today;
+
         mesVisible = new DateTime(
-            fechaSeleccionada.Year, fechaSeleccionada.Month, 1);
+            fechaSeleccionada.Year,
+            fechaSeleccionada.Month,
+            1
+        );
 
         RestaurarFiltrosDesdeUrl();
         RestaurarVistaDesdeUrl();
@@ -1542,19 +1468,16 @@
     {
         try
         {
-            var resp =
-                await Http.Get<List<TipoConsultorioListadoDTO>>(
-                    "api/tipoconsultorio/ListaTipoConsultorio"
-                );
+            var resp = await Http.Get<List<TipoConsultorioListadoDTO>>(
+                "api/tipoconsultorio/ListaTipoConsultorio"
+            );
 
             consultorios = resp.Error
                 ? new List<TipoConsultorioListadoDTO>()
-                : resp.Respuesta ??
-                  new List<TipoConsultorioListadoDTO>();
+                : resp.Respuesta ?? new List<TipoConsultorioListadoDTO>();
         }
         catch
         {
-            // La agenda puede obtener los consultorios desde los turnos cargados.
             consultorios = new List<TipoConsultorioListadoDTO>();
         }
     }
@@ -1566,10 +1489,9 @@
 
         try
         {
-            var resp =
-                await Http.Get<List<TurnoListadoDTO>>(
-                    "api/turno/ListaTurnos"
-                );
+            var resp = await Http.Get<List<TurnoListadoDTO>>(
+                "api/turno/ListaTurnos"
+            );
 
             if (resp.Error)
             {
@@ -1590,8 +1512,7 @@
             else
             {
                 listaTurnos =
-                    resp.Respuesta ??
-                    new List<TurnoListadoDTO>();
+                    resp.Respuesta ?? new List<TurnoListadoDTO>();
 
                 InicializarFiltros();
             }
@@ -1599,6 +1520,7 @@
         catch (TaskCanceledException)
         {
             listaTurnos = new List<TurnoListadoDTO>();
+
             Mensaje =
                 "La carga de turnos tardó más de lo esperado. " +
                 "Actualizá la página para intentarlo nuevamente.";
@@ -1606,6 +1528,7 @@
         catch (HttpRequestException)
         {
             listaTurnos = new List<TurnoListadoDTO>();
+
             Mensaje =
                 "No pudimos conectarnos con el servidor para cargar los turnos. " +
                 "Verificá tu conexión e intentá nuevamente.";
@@ -1613,16 +1536,16 @@
         catch (Exception)
         {
             listaTurnos = new List<TurnoListadoDTO>();
+
             Mensaje =
                 "Ocurrió un problema al cargar los turnos. " +
                 "Actualizá la página para intentarlo nuevamente.";
         }
         finally
         {
-            pacientesSeleccionados =
-                PacientesDisponibles
-                    .Select(paciente => paciente.Id)
-                    .ToHashSet();
+            pacientesSeleccionados = PacientesDisponibles
+                .Select(paciente => paciente.Id)
+                .ToHashSet();
 
             cargando = false;
         }
@@ -1630,8 +1553,7 @@
 
     private static string ObtenerMensajeAmigable(
         string? mensaje,
-        string mensajeAlternativo
-    )
+        string mensajeAlternativo)
     {
         if (string.IsNullOrWhiteSpace(mensaje))
         {
@@ -1642,12 +1564,10 @@
 
         if (mensajeLimpio.Contains(
                 "The operation was canceled",
-                StringComparison.OrdinalIgnoreCase
-            ) ||
+                StringComparison.OrdinalIgnoreCase) ||
             mensajeLimpio.Contains(
                 "TaskCanceledException",
-                StringComparison.OrdinalIgnoreCase
-            ))
+                StringComparison.OrdinalIgnoreCase))
         {
             return
                 "La carga tardó más de lo esperado. " +
@@ -1656,12 +1576,10 @@
 
         if (mensajeLimpio.Contains(
                 "Unable to read data from the transport connection",
-                StringComparison.OrdinalIgnoreCase
-            ) ||
+                StringComparison.OrdinalIgnoreCase) ||
             mensajeLimpio.Contains(
                 "SocketException",
-                StringComparison.OrdinalIgnoreCase
-            ))
+                StringComparison.OrdinalIgnoreCase))
         {
             return
                 "Se interrumpió la conexión con el servidor. " +
@@ -1669,9 +1587,8 @@
         }
 
         if (mensajeLimpio.StartsWith(
-                "System.",
-                StringComparison.OrdinalIgnoreCase
-            ))
+            "System.",
+            StringComparison.OrdinalIgnoreCase))
         {
             var separador = mensajeLimpio.IndexOf(':');
 
@@ -1682,24 +1599,20 @@
                     mensajeLimpio[(separador + 1)..].Trim();
             }
 
-            mensajeLimpio =
-                mensajeLimpio
-                    .Split(
-                        new[] { '\r', '\n' },
-                        StringSplitOptions.RemoveEmptyEntries
-                    )
-                    .FirstOrDefault()
-                ?? mensajeAlternativo;
+            mensajeLimpio = mensajeLimpio
+                .Split(
+                    new[] { '\r', '\n' },
+                    StringSplitOptions.RemoveEmptyEntries
+                )
+                .FirstOrDefault() ?? mensajeAlternativo;
         }
 
         if (mensajeLimpio.Contains(
                 "InternalServerError",
-                StringComparison.OrdinalIgnoreCase
-            ) ||
+                StringComparison.OrdinalIgnoreCase) ||
             mensajeLimpio.Contains(
                 "Response status code does not indicate success",
-                StringComparison.OrdinalIgnoreCase
-            ))
+                StringComparison.OrdinalIgnoreCase))
         {
             return mensajeAlternativo;
         }
@@ -1719,41 +1632,48 @@
             .ToHashSet();
 
         profesionalesSeleccionados = ProfesionalesDisponibles
-        .Select(profesional =>
-            profesional.Id
-        )
-        .ToHashSet();
+            .Select(profesional => profesional.Id)
+            .ToHashSet();
     }
 
-
+    private List<TurnoListadoDTO> ObtenerTurnosDelDia(DateTime dia)
+    {
+        return listaTurnos
+            .Where(turno =>
+                turno.FechaInicio.Date == dia.Date &&
+                EstaConsultorioSeleccionado(turno.TipoConsultorioId) &&
+                EstaTipoSeleccionado(turno.TipoTurnoId) &&
+                EstaProfesionalSeleccionado(turno) &&
+                EstaPacienteSeleccionado(turno)
+            )
+            .OrderBy(turno => turno.FechaInicio)
+            .ToList();
+    }
 
     private bool EstaConsultorioSeleccionado(int id)
     {
-        return consultoriosSeleccionados.Count == 0
-            || consultoriosSeleccionados.Contains(id);
+        return consultoriosSeleccionados.Count == 0 ||
+            consultoriosSeleccionados.Contains(id);
     }
 
     private bool EstaTipoSeleccionado(int id)
     {
-        return tiposSeleccionados.Count == 0
-            || tiposSeleccionados.Contains(id);
+        return tiposSeleccionados.Count == 0 ||
+            tiposSeleccionados.Contains(id);
     }
 
     private bool EstaProfesionalSeleccionado(TurnoListadoDTO turno)
     {
         return profesionalesSeleccionados.Count == 0 ||
-            turno.ProfesionalPrestaciones.Any(
-                relacion =>
-                    profesionalesSeleccionados.Contains(
-                        relacion.ProfesionalId
-                    )
+            turno.ProfesionalPrestaciones.Any(relacion =>
+                profesionalesSeleccionados.Contains(
+                    relacion.ProfesionalId
+                )
             );
     }
 
     private bool EstaPacienteSeleccionado(TurnoListadoDTO turno)
     {
-        // Conserva el comportamiento actual:
-        // sin opciones seleccionadas, no se filtra por paciente.
         if (pacientesSeleccionados.Count == 0)
         {
             return true;
@@ -1819,25 +1739,21 @@
 
     private void RestaurarTodosLosFiltros()
     {
-        consultoriosSeleccionados =
-            ConsultoriosDisponibles
-                .Select(consultorio => consultorio.Id)
-                .ToHashSet();
+        consultoriosSeleccionados = ConsultoriosDisponibles
+            .Select(consultorio => consultorio.Id)
+            .ToHashSet();
 
-        tiposSeleccionados =
-            TiposTurnoDisponibles
-                .Select(tipo => tipo.Id)
-                .ToHashSet();
+        tiposSeleccionados = TiposTurnoDisponibles
+            .Select(tipo => tipo.Id)
+            .ToHashSet();
 
-        profesionalesSeleccionados =
-            ProfesionalesDisponibles
-                .Select(profesional => profesional.Id)
-                .ToHashSet();
+        profesionalesSeleccionados = ProfesionalesDisponibles
+            .Select(profesional => profesional.Id)
+            .ToHashSet();
 
-        pacientesSeleccionados =
-            PacientesDisponibles
-                .Select(paciente => paciente.Id)
-                .ToHashSet();
+        pacientesSeleccionados = PacientesDisponibles
+            .Select(paciente => paciente.Id)
+            .ToHashSet();
     }
 
     private void IrAHoy()
@@ -1886,17 +1802,15 @@
         var primerDiaVisible =
             primerDiaMes.AddDays(-desplazamiento);
 
-        return Enumerable
-            .Range(0, 42)
-            .Select(numero =>
-                primerDiaVisible.AddDays(numero))
+        return Enumerable.Range(0, 42)
+            .Select(numero => primerDiaVisible.AddDays(numero))
             .ToList();
     }
 
     private bool TieneTurnos(DateTime dia)
     {
-        return listaTurnos.Any(
-            turno => turno.FechaInicio.Date == dia.Date
+        return listaTurnos.Any(turno =>
+            turno.FechaInicio.Date == dia.Date
         );
     }
 
@@ -1950,11 +1864,53 @@
         return char.ToUpper(texto[0]) + texto[1..];
     }
 
+    private static string FormatearFechaDetalle(DateTime fecha)
+    {
+        var texto = fecha.ToString(
+            "dddd, d 'de' MMMM 'de' yyyy",
+            new System.Globalization.CultureInfo("es-AR")
+        );
+
+        return char.ToUpper(texto[0]) + texto[1..];
+    }
+
+    private static string FormatearNombreDia(DateTime fecha)
+    {
+        var texto = fecha.ToString(
+            "dddd",
+            new System.Globalization.CultureInfo("es-AR")
+        );
+
+        return char.ToUpper(texto[0]) + texto[1..];
+    }
+
+    private string FormatearRangoSemana()
+    {
+        var cultura = new System.Globalization.CultureInfo("es-AR");
+
+        if (InicioSemana.Month == FinSemana.Month)
+        {
+            return $"{InicioSemana.Day} - " +
+                $"{FinSemana.Day} de " +
+                $"{FinSemana.ToString("MMMM", cultura)} de " +
+                $"{FinSemana.Year}";
+        }
+
+        if (InicioSemana.Year == FinSemana.Year)
+        {
+            return $"{InicioSemana.Day} de " +
+                $"{InicioSemana.ToString("MMMM", cultura)} - " +
+                $"{FinSemana.Day} de " +
+                $"{FinSemana.ToString("MMMM", cultura)} de " +
+                $"{FinSemana.Year}";
+        }
+
+        return $"{InicioSemana:dd/MM/yyyy} - {FinSemana:dd/MM/yyyy}";
+    }
+
     private static int ObtenerDuracion(TurnoListadoDTO turno)
     {
-        return (int)(
-            turno.FechaFin - turno.FechaInicio
-        ).TotalMinutes;
+        return (int)(turno.FechaFin - turno.FechaInicio).TotalMinutes;
     }
 
     private static string ObtenerTextoEstado(TurnoListadoDTO turno)
@@ -1968,47 +1924,6 @@
             EnumEstadoTurno.ausente => "Ausente",
             _ => "Sin estado"
         };
-    }
-
-    private static string ObtenerTextoRecurrencia(TurnoListadoDTO turno)
-    {
-        return turno.FrecuenciaRecurrencia switch
-        {
-            EnumFrecuenciaRecurrenciaTurno.semanal =>
-                "Semanal",
-
-            EnumFrecuenciaRecurrenciaTurno.cadaQuinceDias =>
-                "Cada 15 días",
-
-            EnumFrecuenciaRecurrenciaTurno.mensual =>
-                "Mensual",
-
-            EnumFrecuenciaRecurrenciaTurno.personalizado =>
-                ObtenerTextoRecurrenciaPersonalizada(turno),
-
-            _ => "Recurrente"
-        };
-    }
-
-    private static string ObtenerTextoRecurrenciaPersonalizada(TurnoListadoDTO turno)
-    {
-        var intervalo = turno.IntervaloRecurrencia;
-
-        var unidad = turno.UnidadRecurrencia switch
-        {
-            EnumUnidadRecurrenciaTurno.dias =>
-                intervalo == 1 ? "día" : "días",
-
-            EnumUnidadRecurrenciaTurno.semanas =>
-                intervalo == 1 ? "semana" : "semanas",
-
-            EnumUnidadRecurrenciaTurno.meses =>
-                intervalo == 1 ? "mes" : "meses",
-
-            _ => "períodos"
-        };
-
-        return $"Cada {intervalo} {unidad}";
     }
 
     private static string ObtenerClaseEstado(TurnoListadoDTO turno)
@@ -2034,168 +1949,121 @@
         };
     }
 
+    private static string ObtenerTextoRecurrencia(TurnoListadoDTO turno)
+    {
+        return turno.FrecuenciaRecurrencia switch
+        {
+            EnumFrecuenciaRecurrenciaTurno.semanal => "Semanal",
+
+            EnumFrecuenciaRecurrenciaTurno.cadaQuinceDias =>
+                "Cada 15 días",
+
+            EnumFrecuenciaRecurrenciaTurno.mensual => "Mensual",
+
+            EnumFrecuenciaRecurrenciaTurno.personalizado =>
+                ObtenerTextoRecurrenciaPersonalizada(turno),
+
+            _ => "Recurrente"
+        };
+    }
+
+    private static string ObtenerTextoRecurrenciaPersonalizada(
+        TurnoListadoDTO turno)
+    {
+        var intervalo = turno.IntervaloRecurrencia;
+
+        var unidad = turno.UnidadRecurrencia switch
+        {
+            EnumUnidadRecurrenciaTurno.dias =>
+                intervalo == 1 ? "día" : "días",
+
+            EnumUnidadRecurrenciaTurno.semanas =>
+                intervalo == 1 ? "semana" : "semanas",
+
+            EnumUnidadRecurrenciaTurno.meses =>
+                intervalo == 1 ? "mes" : "meses",
+
+            _ => "períodos"
+        };
+
+        return $"Cada {intervalo} {unidad}";
+    }
+
     private string ObtenerFiltrosActualesParaUrl()
     {
-        var consultorios =
-            string.Join(
-                ",",
-                consultoriosSeleccionados
-                    .OrderBy(id => id)
-            );
+        var consultoriosFiltro = string.Join(
+            ",",
+            consultoriosSeleccionados.OrderBy(id => id)
+        );
 
-        var tipos =
-            string.Join(
-                ",",
-                tiposSeleccionados
-                    .OrderBy(id => id)
-            );
+        var tiposFiltro = string.Join(
+            ",",
+            tiposSeleccionados.OrderBy(id => id)
+        );
 
-        var profesionales =
-            string.Join(
-                ",",
-                profesionalesSeleccionados
-                    .OrderBy(id => id)
-            );
+        var profesionalesFiltro = string.Join(
+            ",",
+            profesionalesSeleccionados.OrderBy(id => id)
+        );
 
-        var pacientes =
-            string.Join(
-                ",",
-                pacientesSeleccionados
-                    .OrderBy(id => id)
-            );
+        var pacientesFiltro = string.Join(
+            ",",
+            pacientesSeleccionados.OrderBy(id => id)
+        );
 
         return
-            $"&consultorios={consultorios}" +
-            $"&tipos={tipos}" +
-            $"&profesionales={profesionales}" +
-            $"&pacientes={pacientes}";
-    }
-
-    private void IrAEditar(int id)
-    {
-        var vistaOrigen =
-            ObtenerVistaActual();
-
-        var fechaOrigen =
-            fechaSeleccionada.ToString("yyyy-MM-dd");
-
-        Nav.NavigateTo(
-            $"/turnos/editar/{id}" +
-            $"?volverAVista=true" +
-            $"&vistaOrigen={vistaOrigen}" +
-            $"&fechaOrigen={fechaOrigen}" +
-            ObtenerFiltrosActualesParaUrl()
-        );
-    }
-
-    private void AbrirDetalle(TurnoListadoDTO turno)
-    {
-        if (guardandoEstado)
-        {
-            return;
-        }
-
-        turnoSeleccionado = turno;
-
-        estadoSeleccionado =
-            turno.EstadoTurno == EnumEstadoTurno.disponible
-                ? EnumEstadoTurno.reservado
-                : turno.EstadoTurno;
-
-        mensajeEstado = string.Empty;
-        errorEstado = false;
-        mostrarDetalle = true;
-    }
-
-    private void AbrirDetalleDesdeUrl()
-    {
-        if (!DetalleTurnoId.HasValue)
-        {
-            return;
-        }
-
-        var turno = listaTurnos.FirstOrDefault(
-            item => item.Id == DetalleTurnoId.Value
-        );
-
-        if (turno is not null)
-        {
-            AbrirDetalle(turno);
-        }
+            $"&consultorios={consultoriosFiltro}" +
+            $"&tipos={tiposFiltro}" +
+            $"&profesionales={profesionalesFiltro}" +
+            $"&pacientes={pacientesFiltro}";
     }
 
     private void RestaurarFiltrosDesdeUrl()
     {
-        if (!string.IsNullOrWhiteSpace(
-            ConsultoriosDesdeUrl))
+        if (!string.IsNullOrWhiteSpace(ConsultoriosDesdeUrl))
         {
-            consultoriosSeleccionados =
-                ConsultoriosDesdeUrl
-                    .Split(
-                        ',',
-                        StringSplitOptions.RemoveEmptyEntries
+            consultoriosSeleccionados = ConsultoriosDesdeUrl
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(valor =>
+                    int.TryParse(valor, out var id) ? id : 0
+                )
+                .Where(id =>
+                    id > 0 &&
+                    ConsultoriosDisponibles.Any(consultorio =>
+                        consultorio.Id == id
                     )
-                    .Select(valor =>
-                        int.TryParse(valor, out var id)
-                            ? id
-                            : 0
-                    )
-                    .Where(id =>
-                        id > 0 &&
-                        ConsultoriosDisponibles.Any(
-                            consultorio =>
-                                consultorio.Id == id
-                        )
-                    )
-                    .ToHashSet();
+                )
+                .ToHashSet();
         }
 
-        if (!string.IsNullOrWhiteSpace(
-            TiposDesdeUrl))
+        if (!string.IsNullOrWhiteSpace(TiposDesdeUrl))
         {
-            tiposSeleccionados =
-                TiposDesdeUrl
-                    .Split(
-                        ',',
-                        StringSplitOptions.RemoveEmptyEntries
-                    )
-                    .Select(valor =>
-                        int.TryParse(valor, out var id)
-                            ? id
-                            : 0
-                    )
-                    .Where(id =>
-                        id > 0 &&
-                        TiposTurnoDisponibles.Any(
-                            tipo =>
-                                tipo.Id == id
-                        )
-                    )
-                    .ToHashSet();
+            tiposSeleccionados = TiposDesdeUrl
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(valor =>
+                    int.TryParse(valor, out var id) ? id : 0
+                )
+                .Where(id =>
+                    id > 0 &&
+                    TiposTurnoDisponibles.Any(tipo => tipo.Id == id)
+                )
+                .ToHashSet();
         }
 
-        if (!string.IsNullOrWhiteSpace(
-    ProfesionalesDesdeUrl))
+        if (!string.IsNullOrWhiteSpace(ProfesionalesDesdeUrl))
         {
-            profesionalesSeleccionados =
-                ProfesionalesDesdeUrl
-                    .Split(
-                        ',',
-                        StringSplitOptions.RemoveEmptyEntries
+            profesionalesSeleccionados = ProfesionalesDesdeUrl
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(valor =>
+                    int.TryParse(valor, out var id) ? id : 0
+                )
+                .Where(id =>
+                    id > 0 &&
+                    ProfesionalesDisponibles.Any(profesional =>
+                        profesional.Id == id
                     )
-                    .Select(valor =>
-                        int.TryParse(valor, out var id)
-                            ? id
-                            : 0
-                    )
-                    .Where(id =>
-                        id > 0 &&
-                        ProfesionalesDisponibles.Any(
-                            profesional =>
-                                profesional.Id == id
-                        )
-                    )
-                    .ToHashSet();
+                )
+                .ToHashSet();
         }
 
         if (!string.IsNullOrWhiteSpace(PacientesDesdeUrl))
@@ -2205,14 +2073,9 @@
                 .ToHashSet();
 
             pacientesSeleccionados = PacientesDesdeUrl
-                .Split(
-                    ',',
-                    StringSplitOptions.RemoveEmptyEntries
-                )
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(valor =>
-                    int.TryParse(valor, out var id)
-                        ? id
-                        : -1
+                    int.TryParse(valor, out var id) ? id : -1
                 )
                 .Where(id => opcionesValidas.Contains(id))
                 .ToHashSet();
@@ -2240,57 +2103,129 @@
         switch (VistaDesdeUrl?.ToLowerInvariant())
         {
             case "semanal":
-
                 vistaSemanal = true;
                 vistaAmpliada = false;
-
                 break;
 
             case "ampliada":
-
                 vistaSemanal = false;
                 vistaAmpliada = true;
-
                 break;
 
             default:
-
                 vistaSemanal = false;
                 vistaAmpliada = false;
-
                 break;
+        }
+    }
+
+    private void IrAEditar(int id)
+    {
+        if (GuardandoDetalle)
+        {
+            return;
+        }
+
+        var vistaOrigen = ObtenerVistaActual();
+        var fechaOrigen = fechaSeleccionada.ToString("yyyy-MM-dd");
+
+        Nav.NavigateTo(
+            $"/turnos/editar/{id}" +
+            "?volverAVista=true" +
+            $"&vistaOrigen={vistaOrigen}" +
+            $"&fechaOrigen={fechaOrigen}" +
+            ObtenerFiltrosActualesParaUrl()
+        );
+    }
+
+    private void AbrirDetalle(TurnoListadoDTO turno)
+    {
+        if (GuardandoDetalle)
+        {
+            return;
+        }
+
+        turnoSeleccionado = turno;
+
+        estadoSeleccionado =
+            turno.EstadoTurno == EnumEstadoTurno.disponible
+                ? EnumEstadoTurno.reservado
+                : turno.EstadoTurno;
+
+        mensajeEstado = string.Empty;
+        errorEstado = false;
+
+        mensajeAsistencia = string.Empty;
+        pacienteMensajeAsistencia = null;
+        errorAsistencia = false;
+
+        mostrarDetalle = true;
+    }
+
+    private void AbrirDetalleDesdeUrl()
+    {
+        if (!DetalleTurnoId.HasValue)
+        {
+            return;
+        }
+
+        var turno = listaTurnos.FirstOrDefault(item =>
+            item.Id == DetalleTurnoId.Value
+        );
+
+        if (turno is not null)
+        {
+            AbrirDetalle(turno);
         }
     }
 
     private void CerrarDetalle()
     {
-        if (guardandoEstado)
+        if (GuardandoDetalle)
         {
             return;
         }
 
         mostrarDetalle = false;
         turnoSeleccionado = null;
+
         mensajeEstado = string.Empty;
+        mensajeAsistencia = string.Empty;
+        pacienteMensajeAsistencia = null;
     }
 
     private void EditarTurnoSeleccionado()
     {
-        if (guardandoEstado || turnoSeleccionado is null)
+        if (GuardandoDetalle || turnoSeleccionado is null)
         {
             return;
         }
 
-        var vistaOrigen =
-            ObtenerVistaActual();
-
-        var fechaOrigen =
-            fechaSeleccionada.ToString("yyyy-MM-dd");
+        var vistaOrigen = ObtenerVistaActual();
+        var fechaOrigen = fechaSeleccionada.ToString("yyyy-MM-dd");
 
         Nav.NavigateTo(
             $"/turnos/editar/{turnoSeleccionado.Id}" +
-            $"?volverADetalle=true" +
+            "?volverADetalle=true" +
             $"&vistaOrigen={vistaOrigen}" +
+            $"&fechaOrigen={fechaOrigen}" +
+            ObtenerFiltrosActualesParaUrl()
+        );
+    }
+
+    private void IrACrear()
+    {
+        if (GuardandoDetalle)
+        {
+            return;
+        }
+
+        var vistaOrigen = ObtenerVistaActual();
+        var fechaOrigen = fechaSeleccionada.ToString("yyyy-MM-dd");
+
+        Nav.NavigateTo(
+            "/turnos/crear" +
+            $"?vistaOrigen={vistaOrigen}" +
             $"&fechaOrigen={fechaOrigen}" +
             ObtenerFiltrosActualesParaUrl()
         );
@@ -2303,49 +2238,7 @@
             return "semanal";
         }
 
-        if (vistaAmpliada)
-        {
-            return "ampliada";
-        }
-
-        return "diaria";
-    }
-
-    private static string FormatearFechaDetalle(DateTime fecha)
-    {
-        var cultura =
-            new System.Globalization.CultureInfo("es-AR");
-
-        var texto = fecha.ToString(
-            "dddd, d 'de' MMMM 'de' yyyy",
-            cultura
-        );
-
-        return char.ToUpper(texto[0]) + texto[1..];
-    }
-
-    private void IrACrear()
-    {
-        var vistaOrigen =
-            ObtenerVistaActual();
-
-        var fechaOrigen =
-            fechaSeleccionada.ToString("yyyy-MM-dd");
-
-        Nav.NavigateTo(
-            "/turnos/crear" +
-            $"?vistaOrigen={vistaOrigen}" +
-            $"&fechaOrigen={fechaOrigen}" +
-            ObtenerFiltrosActualesParaUrl()
-        );
-    }
-
-    private class OpcionFiltro
-    {
-        public int Id { get; set; }
-
-        public string Nombre { get; set; } =
-            string.Empty;
+        return vistaAmpliada ? "ampliada" : "diaria";
     }
 
     private void AlternarConsultorios()
@@ -2360,14 +2253,12 @@
 
     private void AlternarProfesionales()
     {
-        mostrarProfesionales =
-            !mostrarProfesionales;
+        mostrarProfesionales = !mostrarProfesionales;
     }
 
     private void AlternarPacientes()
     {
-        mostrarPacientes =
-            !mostrarPacientes;
+        mostrarPacientes = !mostrarPacientes;
     }
 
     private void MostrarVistaDiaria()
@@ -2378,42 +2269,6 @@
     private void MostrarVistaSemanal()
     {
         vistaSemanal = true;
-    }
-
-    private string FormatearRangoSemana()
-    {
-        var cultura =
-            new System.Globalization.CultureInfo("es-AR");
-
-        if (InicioSemana.Month == FinSemana.Month)
-        {
-            return $"{InicioSemana.Day} - " +
-                   $"{FinSemana.Day} de " +
-                   $"{FinSemana.ToString("MMMM", cultura)} de " +
-                   $"{FinSemana.Year}";
-        }
-
-        if (InicioSemana.Year == FinSemana.Year)
-        {
-            return $"{InicioSemana.Day} de " +
-                   $"{InicioSemana.ToString("MMMM", cultura)} - " +
-                   $"{FinSemana.Day} de " +
-                   $"{FinSemana.ToString("MMMM", cultura)} de " +
-                   $"{FinSemana.Year}";
-        }
-
-        return $"{InicioSemana:dd/MM/yyyy} - " +
-               $"{FinSemana:dd/MM/yyyy}";
-    }
-
-    private static string FormatearNombreDia(DateTime fecha)
-    {
-        var texto = fecha.ToString(
-            "dddd",
-            new System.Globalization.CultureInfo("es-AR")
-        );
-
-        return char.ToUpper(texto[0]) + texto[1..];
     }
 
     private void MostrarVistaLista()
@@ -2430,20 +2285,16 @@
 
     private string ObtenerPosicionTurno(TurnoListadoDTO turno)
     {
-        var indiceConsultorio =
-            ConsultoriosVisibles.FindIndex(
-                consultorio =>
-                    consultorio.Id ==
-                    turno.TipoConsultorioId
-            );
+        var indiceConsultorio = ConsultoriosVisibles.FindIndex(
+            consultorio => consultorio.Id == turno.TipoConsultorioId
+        );
 
         if (indiceConsultorio < 0)
         {
             return "display: none;";
         }
 
-        var inicioAgenda =
-            fechaSeleccionada.Date.AddHours(8);
+        var inicioAgenda = fechaSeleccionada.Date.AddHours(8);
 
         var minutosDesdeInicio =
             (turno.FechaInicio - inicioAgenda).TotalMinutes;
@@ -2454,21 +2305,15 @@
         var filaInicio =
             2 + Math.Max(
                 0,
-                (int)Math.Floor(
-                    minutosDesdeInicio / 20
-                )
+                (int)Math.Floor(minutosDesdeInicio / 20)
             );
 
-        var cantidadFilas =
-            Math.Max(
-                1,
-                (int)Math.Ceiling(
-                    duracionMinutos / 20
-                )
-            );
+        var cantidadFilas = Math.Max(
+            1,
+            (int)Math.Ceiling(duracionMinutos / 20)
+        );
 
-        var columna =
-            indiceConsultorio + 2;
+        var columna = indiceConsultorio + 2;
 
         return
             $"grid-column: {columna}; " +
@@ -2479,21 +2324,11 @@
     {
         var claseEstado = turno.EstadoTurno switch
         {
-            EnumEstadoTurno.disponible =>
-                "turno-grilla-disponible",
-
-            EnumEstadoTurno.reservado =>
-                "turno-grilla-reservado",
-
-            EnumEstadoTurno.atendido =>
-                "turno-grilla-atendido",
-
-            EnumEstadoTurno.cancelado =>
-                "turno-grilla-cancelado",
-
-            EnumEstadoTurno.ausente =>
-                "turno-grilla-ausente",
-
+            EnumEstadoTurno.disponible => "turno-grilla-disponible",
+            EnumEstadoTurno.reservado => "turno-grilla-reservado",
+            EnumEstadoTurno.atendido => "turno-grilla-atendido",
+            EnumEstadoTurno.cancelado => "turno-grilla-cancelado",
+            EnumEstadoTurno.ausente => "turno-grilla-ausente",
             _ => string.Empty
         };
 
@@ -2502,8 +2337,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender ||
-            string.IsNullOrWhiteSpace(Estado))
+        if (!firstRender || string.IsNullOrWhiteSpace(Estado))
         {
             return;
         }
@@ -2526,7 +2360,9 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private static string ObtenerResumenPersonas(List<string> nombres, string textoVacio)
+    private static string ObtenerResumenPersonas(
+        List<string> nombres,
+        string textoVacio)
     {
         if (nombres.Count == 0)
         {
@@ -2541,20 +2377,16 @@
         return $"{nombres[0]} +{nombres.Count - 1}";
     }
 
-    // Convierte "Consultorio 1" en "C1", y así sucesivamente.
-    private static string ObtenerCodigoConsultorio(string? nombreConsultorio)
+    private static string ObtenerCodigoConsultorio(
+        string? nombreConsultorio)
     {
-        if (string.IsNullOrWhiteSpace(
-                nombreConsultorio
-            ))
+        if (string.IsNullOrWhiteSpace(nombreConsultorio))
         {
             return "SC";
         }
 
         var numero = new string(
-            nombreConsultorio
-                .Where(char.IsDigit)
-                .ToArray()
+            nombreConsultorio.Where(char.IsDigit).ToArray()
         );
 
         return string.IsNullOrWhiteSpace(numero)
@@ -2562,31 +2394,25 @@
             : $"C{numero}";
     }
 
-    private static string ObtenerTextoPrestaciones(TurnoListadoDTO turno)
+    private static string ObtenerTextoPrestaciones(
+        TurnoListadoDTO turno)
     {
         if (turno.NombresTipoPrestaciones.Count > 0)
         {
-            return string.Join(
-                ", ",
-                turno.NombresTipoPrestaciones
-            );
+            return string.Join(", ", turno.NombresTipoPrestaciones);
         }
 
-        return string.IsNullOrWhiteSpace(
-            turno.NombreTipoPrestacion
-        )
+        return string.IsNullOrWhiteSpace(turno.NombreTipoPrestacion)
             ? "Sin prestación"
             : turno.NombreTipoPrestacion;
     }
 
-    private static string ObtenerTextoProfesionales(TurnoListadoDTO turno)
+    private static string ObtenerTextoProfesionales(
+        TurnoListadoDTO turno)
     {
         return turno.NombresProfesionales.Count == 0
             ? "Sin profesionales"
-            : string.Join(
-                ", ",
-                turno.NombresProfesionales
-            );
+            : string.Join(", ", turno.NombresProfesionales);
     }
 
     private static string ObtenerTextoPacientes(TurnoListadoDTO turno)
@@ -2595,29 +2421,20 @@
         {
             return string.Join(
                 ", ",
-                turno.PacientesDetalle.Select(
-                    paciente =>
-                        paciente.NombrePaciente
+                turno.PacientesDetalle.Select(paciente =>
+                    paciente.NombrePaciente
                 )
             );
         }
 
         return turno.NombresPacientes.Count == 0
             ? "Sin pacientes"
-            : string.Join(
-                ", ",
-                turno.NombresPacientes
-            );
+            : string.Join(", ", turno.NombresPacientes);
     }
-
-    private EnumEstadoTurno estadoSeleccionado;
-    private bool guardandoEstado;
-    private bool errorEstado;
-    private string mensajeEstado = string.Empty;
 
     private async Task GuardarEstadoTurno()
     {
-        if (guardandoEstado || turnoSeleccionado is null)
+        if (GuardandoDetalle || turnoSeleccionado is null)
         {
             return;
         }
@@ -2648,7 +2465,6 @@
                 return;
             }
 
-            // Actualiza también la etiqueta del turno en la agenda.
             turno.EstadoTurno = nuevoEstado;
 
             mensajeEstado = "Estado actualizado correctamente.";
@@ -2656,6 +2472,7 @@
         catch
         {
             errorEstado = true;
+
             mensajeEstado =
                 "No pudimos actualizar el estado. Intentá nuevamente.";
         }
@@ -2663,5 +2480,95 @@
         {
             guardandoEstado = false;
         }
+    }
+
+    private static string ObtenerTextoAsistencia(
+        EnumAsistenciaPaciente? asistencia)
+    {
+        return asistencia switch
+        {
+            EnumAsistenciaPaciente.asistio => "Asistió",
+            EnumAsistenciaPaciente.ausente => "Ausente",
+            _ => "Sin registrar"
+        };
+    }
+
+    private static string ObtenerClaseAsistencia(
+        EnumAsistenciaPaciente? asistencia)
+    {
+        return asistencia switch
+        {
+            EnumAsistenciaPaciente.asistio =>
+                "asistencia-opcion asistencia-presente",
+
+            EnumAsistenciaPaciente.ausente =>
+                "asistencia-opcion asistencia-ausente",
+
+            _ => "asistencia-opcion asistencia-pendiente"
+        };
+    }
+
+    private async Task GuardarAsistenciaPaciente(
+        TurnoPacienteDetalleDTO paciente,
+        EnumAsistenciaPaciente? asistencia)
+    {
+        if (GuardandoDetalle ||
+            turnoSeleccionado is null ||
+            paciente.Asistencia == asistencia)
+        {
+            return;
+        }
+
+        var turnoId = turnoSeleccionado.Id;
+
+        pacienteGuardandoAsistencia = paciente.PacienteId;
+        pacienteMensajeAsistencia = paciente.PacienteId;
+
+        mensajeAsistencia = string.Empty;
+        errorAsistencia = false;
+
+        try
+        {
+            var dto = new TurnoPacienteAsistenciaDTO
+            {
+                Asistencia = asistencia
+            };
+
+            var respuesta =
+                await Http.Put<TurnoPacienteAsistenciaDTO, RespuestaDTO>(
+                    $"api/turno/{turnoId}/pacientes/" +
+                    $"{paciente.PacienteId}/asistencia",
+                    dto
+                );
+
+            if (respuesta.Error)
+            {
+                errorAsistencia = true;
+                mensajeAsistencia = respuesta.ObtenerError();
+                return;
+            }
+
+            paciente.Asistencia = asistencia;
+
+            mensajeAsistencia = "Asistencia guardada.";
+        }
+        catch
+        {
+            errorAsistencia = true;
+
+            mensajeAsistencia =
+                "No pudimos guardar la asistencia. Intentá nuevamente.";
+        }
+        finally
+        {
+            pacienteGuardandoAsistencia = null;
+        }
+    }
+
+    private class OpcionFiltro
+    {
+        public int Id { get; set; }
+
+        public string Nombre { get; set; } = string.Empty;
     }
 }
