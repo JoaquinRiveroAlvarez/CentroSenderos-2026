@@ -482,7 +482,7 @@
                         <div class="campo">
 
                             <label>
-                                Pacientes
+                                Pacientes @(RequierePacientes ? "(obligatorio)" : "(opcional)")
                             </label>
 
                             <div class="selector-desplegable">
@@ -1096,6 +1096,12 @@
             HorariosPorPagina
         )
         .Take(HorariosPorPagina);
+    
+    private bool RequierePacientes =>
+        ObtenerTipoSeleccionado()?.RequierePacientes ?? true;
+
+    private bool SeleccionPacientesValida =>
+        !RequierePacientes || modelo.PacienteIds.Count > 0;
 
     private int CantidadPaginasHorarios =>
         (int)Math.Ceiling(
@@ -1279,9 +1285,9 @@
             return false;
         }
 
-        if (modelo.PacienteIds.Count == 0)
+        if (!SeleccionPacientesValida)
         {
-            Mensaje = "Seleccioná al menos un paciente.";
+            Mensaje = "Este tipo de turno requiere al menos un paciente.";
             return false;
         }
 
@@ -1708,11 +1714,11 @@
         horariosConsultados = false;
 
         var seleccionCompleta =
-            modelo.TipoTurnoId > 0 &&
-            modelo.TipoConsultorioId > 0 &&
-            modelo.ProfesionalIds.Count > 0 &&
-            modelo.PacienteIds.Count > 0 &&
-            modelo.Fecha != DateTime.MinValue;
+    modelo.TipoTurnoId > 0 &&
+    modelo.TipoConsultorioId > 0 &&
+    modelo.ProfesionalIds.Count > 0 &&
+    SeleccionPacientesValida &&
+    modelo.Fecha != DateTime.MinValue;
 
         if (!seleccionCompleta)
         {

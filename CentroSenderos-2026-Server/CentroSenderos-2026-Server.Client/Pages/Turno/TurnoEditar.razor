@@ -529,7 +529,7 @@
 
                     <div class="campo campo-completo">
                         <label>
-                            Pacientes
+                            Pacientes @(RequierePacientes ? "(obligatorio)" : "(opcional)")
                         </label>
 
                         <div class="selector-desplegable">
@@ -1052,6 +1052,14 @@
         1
     );
 
+    private bool RequierePacientes =>
+    tiposTurno.FirstOrDefault(
+        tipo => tipo.Id == modelo.TipoTurnoId
+    )?.RequierePacientes ?? true;
+
+    private bool SeleccionPacientesValida =>
+    !RequierePacientes || modelo.PacienteIds.Count > 0;
+
     private readonly EnumEstadoTurno[] EstadosDisponibles =
         {
             EnumEstadoTurno.reservado,
@@ -1180,7 +1188,7 @@
                         seleccion.TipoPrestacionId > 0
                     )
                 ) &&
-                modelo.PacienteIds.Count > 0;
+                SeleccionPacientesValida;
         }
     }
 
@@ -1539,8 +1547,7 @@
             seleccion.TipoPrestacionId > 0 &&
             modelo.ProfesionalIds.Contains(seleccion.ProfesionalId)
             ) &&
-        modelo.PacienteIds.Count > 0;
-
+            SeleccionPacientesValida;
         if (!seleccionCompleta)
         {
             consultandoHorarios = false;
@@ -1564,7 +1571,7 @@
             modelo.TipoTurnoId <= 0 ||
             modelo.TipoConsultorioId <= 0 ||
             modelo.ProfesionalIds.Count == 0 ||
-            modelo.PacienteIds.Count == 0 ||
+            !SeleccionPacientesValida || 
             modelo.Fecha == DateTime.MinValue
         )
         {
@@ -2092,9 +2099,9 @@
             return false;
         }
 
-        if (modelo.PacienteIds.Count == 0)
+        if (!SeleccionPacientesValida)
         {
-            Mensaje = "Seleccioná al menos un paciente.";
+            Mensaje = "Este tipo de turno requiere al menos un paciente.";
             return false;
         }
 

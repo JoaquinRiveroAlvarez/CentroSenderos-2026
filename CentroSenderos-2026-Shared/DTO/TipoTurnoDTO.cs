@@ -20,5 +20,6 @@ namespace CentroSenderos_2026_Shared.DTO
         [Required(ErrorMessage = "La duración en minutos es obligatoria")]
         public required int DuracionMinutos { get; set; } = 0;
         public EnumEstadoRegistro EstadoRegistro { get; set; }
+        public bool RequierePacientes { get; set; } = true;
     }
 }

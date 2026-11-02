@@ -1250,6 +1250,8 @@
     private bool mostrarDetalle;
     private bool mostrarMensajeResultado = true;
 
+    private const int FiltroSinPaciente = 0;
+
     private TurnoListadoDTO? turnoSeleccionado;
 
     [SupplyParameterFromQuery(Name = "detalle")]
@@ -1432,33 +1434,29 @@
         )
         .ToList();
 
-    private List<OpcionFiltro> PacientesDisponibles => listaTurnos
-        .SelectMany(turno =>
-            turno.PacientesDetalle
-        )
-        .Where(paciente =>
-            paciente.PacienteId > 0
-        )
-        .GroupBy(paciente =>
-            paciente.PacienteId
-        )
+    private List<OpcionFiltro> PacientesDisponibles =>
+    listaTurnos
+        .SelectMany(turno => turno.PacientesDetalle)
+        .Where(paciente => paciente.PacienteId > 0)
+        .GroupBy(paciente => paciente.PacienteId)
         .Select(grupo => new OpcionFiltro
         {
             Id = grupo.Key,
 
             Nombre = grupo
-                .Select(paciente =>
-                    paciente.NombrePaciente
-                )
+                .Select(paciente => paciente.NombrePaciente)
                 .FirstOrDefault(nombre =>
                     !string.IsNullOrWhiteSpace(nombre)
                 ) ?? "Paciente"
         })
-        .OrderBy(paciente =>
-            paciente.Nombre
-        )
+        .OrderBy(paciente => paciente.Nombre)
+        .Prepend(new OpcionFiltro
+        {
+            Id = FiltroSinPaciente,
+            Nombre = "Sin paciente"
+        })
         .ToList();
-
+    
     private string? ultimaUrlAgendaAplicada;
 
     protected override async Task OnInitializedAsync()
@@ -1754,13 +1752,21 @@
 
     private bool EstaPacienteSeleccionado(TurnoListadoDTO turno)
     {
-        return pacientesSeleccionados.Count == 0 ||
-            turno.PacientesDetalle.Any(
-                paciente =>
-                    pacientesSeleccionados.Contains(
-                        paciente.PacienteId
-                    )
-            );
+        // Conserva el comportamiento actual:
+        // sin opciones seleccionadas, no se filtra por paciente.
+        if (pacientesSeleccionados.Count == 0)
+        {
+            return true;
+        }
+
+        if (turno.PacientesDetalle.Count == 0)
+        {
+            return pacientesSeleccionados.Contains(FiltroSinPaciente);
+        }
+
+        return turno.PacientesDetalle.Any(paciente =>
+            pacientesSeleccionados.Contains(paciente.PacienteId)
+        );
     }
 
     private void CambiarFiltroConsultorio(int id, bool seleccionado)
@@ -2192,28 +2198,24 @@
                     .ToHashSet();
         }
 
-        if (!string.IsNullOrWhiteSpace(
-            PacientesDesdeUrl))
+        if (!string.IsNullOrWhiteSpace(PacientesDesdeUrl))
         {
-            pacientesSeleccionados =
-                PacientesDesdeUrl
-                    .Split(
-                        ',',
-                        StringSplitOptions.RemoveEmptyEntries
-                    )
-                    .Select(valor =>
-                        int.TryParse(valor, out var id)
-                            ? id
-                            : 0
-                    )
-                    .Where(id =>
-                        id > 0 &&
-                        PacientesDisponibles.Any(
-                            paciente =>
-                                paciente.Id == id
-                        )
-                    )
-                    .ToHashSet();
+            var opcionesValidas = PacientesDisponibles
+                .Select(paciente => paciente.Id)
+                .ToHashSet();
+
+            pacientesSeleccionados = PacientesDesdeUrl
+                .Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries
+                )
+                .Select(valor =>
+                    int.TryParse(valor, out var id)
+                        ? id
+                        : -1
+                )
+                .Where(id => opcionesValidas.Contains(id))
+                .ToHashSet();
         }
     }
 

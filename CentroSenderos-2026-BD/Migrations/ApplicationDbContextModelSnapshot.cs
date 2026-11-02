@@ -1110,6 +1110,9 @@ namespace CentroSenderos_2026_BD.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("RequierePacientes")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Tipo")
                         .IsRequired()
                         .HasColumnType("text");

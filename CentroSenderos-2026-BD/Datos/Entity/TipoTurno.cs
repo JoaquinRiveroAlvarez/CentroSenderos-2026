@@ -11,5 +11,6 @@ namespace CentroSenderos_2026_BD.Datos.Entity
     {
         [Required(ErrorMessage = "La duración en minutos es obligatoria")]
         public required int DuracionMinutos { get; set; }
+        public bool RequierePacientes { get; set; } = true;
     }
 }

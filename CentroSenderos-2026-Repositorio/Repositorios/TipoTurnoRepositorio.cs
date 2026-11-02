@@ -28,7 +28,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Tipo = p.Tipo,
                     Descripcion = p.Descripcion,
                     EstadoRegistro = p.EstadoRegistro,
-                    DuracionMinutos = p.DuracionMinutos
+                    DuracionMinutos = p.DuracionMinutos,
+                    RequierePacientes = p.RequierePacientes
                 })
                 .FirstOrDefaultAsync();
         }
@@ -41,7 +42,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Id = p.Id,
                     Tipo = p.Tipo,
                     Descripcion = p.Descripcion,
-                    DuracionMinutos = p.DuracionMinutos
+                    DuracionMinutos = p.DuracionMinutos,
+                    RequierePacientes = p.RequierePacientes
                 })
                 .FirstOrDefaultAsync(x => x.Tipo == tipo);
             return entidad;
@@ -56,7 +58,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Id = p.Id,
                     Tipo = p.Tipo,
                     Descripcion = p.Descripcion,
-                    DuracionMinutos = p.DuracionMinutos
+                    DuracionMinutos = p.DuracionMinutos,
+                    RequierePacientes = p.RequierePacientes
                 })
                 .ToListAsync();
             return lista;
@@ -71,6 +74,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 Tipo = dto.Tipo,
                 Descripcion = dto.Descripcion,
                 DuracionMinutos = dto.DuracionMinutos,
+                RequierePacientes = dto.RequierePacientes,
                 EstadoRegistro = dto.EstadoRegistro = EnumEstadoRegistro.activo
             };
 
@@ -125,6 +129,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             tipoTurno.Tipo = dto.Tipo;
             tipoTurno.Descripcion = dto.Descripcion;
             tipoTurno.DuracionMinutos = dto.DuracionMinutos;
+            tipoTurno.RequierePacientes = dto.RequierePacientes;
             //tipoTurno.EstadoRegistro = dto.EstadoRegistro;
 
             try

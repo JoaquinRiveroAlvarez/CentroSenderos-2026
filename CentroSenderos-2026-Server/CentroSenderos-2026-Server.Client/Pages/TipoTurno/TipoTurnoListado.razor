@@ -27,7 +27,6 @@
 
         </div>
 
-
         <div class="header-actions">
 
             <div class="search-box">
@@ -41,27 +40,23 @@
 
             </div>
 
-
             <button type="button"
                     class="btn-nuevo"
                     @onclick="AbrirCrear">
-
                 <i class="bi bi-plus-lg"></i>
                 <span>Nuevo Tipo de Turno</span>
-
             </button>
 
         </div>
 
     </div>
 
-
     @if (cargando)
     {
         <div class="estado-card">
 
-            <div class="spinner-border"
-                 role="status">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Cargando...</span>
             </div>
 
             <span>Cargando tipos de turno...</span>
@@ -86,10 +81,8 @@
             <button type="button"
                     class="btn-nuevo-estado"
                     @onclick="AbrirCrear">
-
                 <i class="bi bi-plus-lg"></i>
                 <span>Nuevo Tipo de Turno</span>
-
             </button>
 
         </div>
@@ -112,9 +105,7 @@
             <button type="button"
                     class="btn-limpiar-busqueda"
                     @onclick="LimpiarBusqueda">
-
                 Limpiar búsqueda
-
             </button>
 
         </div>
@@ -124,14 +115,11 @@
         <div class="list-card">
 
             <div class="list-header">
-
                 <div>TIPO DE TURNO</div>
                 <div>DESCRIPCIÓN</div>
                 <div>DURACIÓN</div>
                 <div></div>
-
             </div>
-
 
             <div class="list-body">
 
@@ -150,9 +138,7 @@
 
                                 @if (string.IsNullOrWhiteSpace(item.Tipo))
                                 {
-                                    <span class="sin-dato">
-                                        Sin nombre
-                                    </span>
+                                    <span class="sin-dato">Sin nombre</span>
                                 }
                                 else
                                 {
@@ -163,14 +149,11 @@
 
                         </div>
 
-
                         <div class="turno-descripcion">
 
                             @if (string.IsNullOrWhiteSpace(item.Descripcion))
                             {
-                                <span class="sin-dato">
-                                    Sin descripción
-                                </span>
+                                <span class="sin-dato">Sin descripción</span>
                             }
                             else
                             {
@@ -178,7 +161,6 @@
                             }
 
                         </div>
-
 
                         <div class="turno-duracion">
 
@@ -194,7 +176,6 @@
 
                         </div>
 
-
                         <div class="turno-action">
                             <i class="bi bi-chevron-right"></i>
                         </div>
@@ -203,7 +184,6 @@
                 }
 
             </div>
-
 
             <div class="list-footer">
 
@@ -220,25 +200,18 @@
         </div>
     }
 
-
     @if (!string.IsNullOrWhiteSpace(Mensaje) &&
          modalActual == ModalTurno.Ninguno)
     {
         <div class="mensaje-error">
-
             <i class="bi bi-exclamation-circle"></i>
-
             <span>@Mensaje</span>
-
         </div>
     }
 
 </div>
 
-
-@* =========================================================
-   MODAL DETALLE
-========================================================= *@
+@* Modal Detalle *@
 
 @if (modalActual == ModalTurno.Detalle)
 {
@@ -250,8 +223,8 @@
             {
                 <div class="modal-loading">
 
-                    <div class="spinner-border"
-                         role="status">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Cargando...</span>
                     </div>
 
                     <span>Cargando tipo de turno...</span>
@@ -272,18 +245,14 @@
 
                     </div>
 
-
                     <button type="button"
                             class="close-button"
                             title="Cerrar"
                             @onclick="CerrarModal">
-
                         <i class="bi bi-x-lg"></i>
-
                     </button>
 
                 </div>
-
 
                 <div class="detail-grid">
 
@@ -297,7 +266,6 @@
 
                     </div>
 
-
                     <div class="field-group field-full">
 
                         <label>DESCRIPCIÓN</label>
@@ -306,9 +274,7 @@
 
                             @if (string.IsNullOrWhiteSpace(modelo.Descripcion))
                             {
-                                <span class="sin-dato">
-                                    Sin descripción
-                                </span>
+                                <span class="sin-dato">Sin descripción</span>
                             }
                             else
                             {
@@ -318,7 +284,6 @@
                         </div>
 
                     </div>
-
 
                     <div class="field-group field-duration">
 
@@ -342,27 +307,33 @@
 
                     </div>
 
-                </div>
+                    <div class="field-group field-full">
 
+                        <label>PACIENTES</label>
+
+                        <div class="tipo-turno-regla-resumen">
+                            @(modelo.RequierePacientes
+                                ? "Se requiere al menos un paciente."
+                                : "Permite turnos sin pacientes asignados.")
+                        </div>
+
+                    </div>
+
+                </div>
 
                 <div class="modal-actions detail-actions">
 
                     <button type="button"
                             class="btn-cerrar"
                             @onclick="CerrarModal">
-
                         Cerrar
-
                     </button>
-
 
                     <button type="button"
                             class="btn-editar"
                             @onclick="AbrirEditar">
-
                         <i class="bi bi-pencil-square"></i>
                         Editar
-
                     </button>
 
                 </div>
@@ -373,10 +344,7 @@
     </div>
 }
 
-
-@* =========================================================
-   MODAL CREAR
-========================================================= *@
+@* Modal Crear *@
 
 @if (modalActual == ModalTurno.Crear)
 {
@@ -396,19 +364,15 @@
 
                 </div>
 
-
                 <button type="button"
                         class="close-button"
                         disabled="@guardando"
                         title="Cerrar"
                         @onclick="CerrarModal">
-
                     <i class="bi bi-x-lg"></i>
-
                 </button>
 
             </div>
-
 
             <EditForm Model="@modelo"
                       OnValidSubmit="CrearTurno">
@@ -416,7 +380,6 @@
                 <DataAnnotationsValidator />
 
                 <ValidationSummary class="validation-summary" />
-
 
                 <div class="form-grid">
 
@@ -432,7 +395,6 @@
 
                     </div>
 
-
                     <div class="field-group field-full">
 
                         <label>DESCRIPCIÓN</label>
@@ -444,7 +406,6 @@
                         <ValidationMessage For="@(() => modelo.Descripcion)" />
 
                     </div>
-
 
                     <div class="field-group field-duration">
 
@@ -469,20 +430,39 @@
 
                     </div>
 
-                </div>
+                    <div class="field-group field-full">
 
+                        <label class="tipo-turno-regla">
+
+                            <InputCheckbox @bind-Value="modelo.RequierePacientes"
+                                           disabled="@guardando" />
+
+                            <span>
+
+                                <strong>
+                                    Requiere al menos un paciente
+                                </strong>
+
+                                <small>
+                                    Si está desmarcado, permite guardar turnos
+                                    sin pacientes asignados.
+                                </small>
+
+                            </span>
+
+                        </label>
+
+                    </div>
+
+                </div>
 
                 @if (!string.IsNullOrWhiteSpace(Mensaje))
                 {
                     <div class="form-message">
-
                         <i class="bi bi-exclamation-circle"></i>
-
                         <span>@Mensaje</span>
-
                     </div>
                 }
-
 
                 <div class="modal-actions">
 
@@ -490,11 +470,8 @@
                             class="btn-cancelar"
                             disabled="@guardando"
                             @onclick="CerrarModal">
-
                         Cancelar
-
                     </button>
-
 
                     <button type="submit"
                             class="btn-guardar"
@@ -521,10 +498,7 @@
     </div>
 }
 
-
-@* =========================================================
-   MODAL EDITAR
-========================================================= *@
+@* Modal Editar *@
 
 @if (modalActual == ModalTurno.Editar)
 {
@@ -544,19 +518,15 @@
 
                 </div>
 
-
                 <button type="button"
                         class="close-button"
                         disabled="@guardando"
                         title="Volver al detalle"
                         @onclick="CancelarEdicion">
-
                     <i class="bi bi-x-lg"></i>
-
                 </button>
 
             </div>
-
 
             <EditForm Model="@modelo"
                       OnValidSubmit="GuardarCambios">
@@ -564,7 +534,6 @@
                 <DataAnnotationsValidator />
 
                 <ValidationSummary class="validation-summary" />
-
 
                 <div class="form-grid">
 
@@ -580,7 +549,6 @@
 
                     </div>
 
-
                     <div class="field-group field-full">
 
                         <label>DESCRIPCIÓN</label>
@@ -592,7 +560,6 @@
                         <ValidationMessage For="@(() => modelo.Descripcion)" />
 
                     </div>
-
 
                     <div class="field-group field-duration">
 
@@ -617,20 +584,39 @@
 
                     </div>
 
-                </div>
+                    <div class="field-group field-full">
 
+                        <label class="tipo-turno-regla">
+
+                            <InputCheckbox @bind-Value="modelo.RequierePacientes"
+                                           disabled="@guardando" />
+
+                            <span>
+
+                                <strong>
+                                    Requiere al menos un paciente
+                                </strong>
+
+                                <small>
+                                    Si está desmarcado, permite guardar turnos
+                                    sin pacientes asignados.
+                                </small>
+
+                            </span>
+
+                        </label>
+
+                    </div>
+
+                </div>
 
                 @if (!string.IsNullOrWhiteSpace(Mensaje))
                 {
                     <div class="form-message">
-
                         <i class="bi bi-exclamation-circle"></i>
-
                         <span>@Mensaje</span>
-
                     </div>
                 }
-
 
                 <div class="modal-actions edit-actions">
 
@@ -638,13 +624,9 @@
                             class="btn-eliminar"
                             disabled="@guardando"
                             @onclick="AbrirConfirmacionEliminar">
-
                         <i class="bi bi-trash3"></i>
-
                         Eliminar Tipo de Turno
-
                     </button>
-
 
                     <div class="right-actions">
 
@@ -652,11 +634,8 @@
                                 class="btn-cancelar"
                                 disabled="@guardando"
                                 @onclick="CancelarEdicion">
-
                             Cancelar
-
                         </button>
-
 
                         <button type="submit"
                                 class="btn-guardar"
@@ -685,10 +664,7 @@
     </div>
 }
 
-
-@* =========================================================
-   CONFIRMAR ELIMINACIÓN
-========================================================= *@
+@* Confirmar eliminación *@
 
 @if (mostrarConfirmacionEliminar)
 {
@@ -700,17 +676,14 @@
                 <i class="bi bi-exclamation-triangle-fill"></i>
             </div>
 
-
             <h2>
                 ¿Estás seguro que querés eliminar este tipo de turno?
             </h2>
-
 
             <p>
                 Esta acción no se puede deshacer.
                 El tipo de turno será eliminado definitivamente.
             </p>
-
 
             <div class="delete-modal-actions">
 
@@ -731,14 +704,11 @@
 
                 </button>
 
-
                 <button type="button"
                         class="modal-cancel-button"
                         disabled="@eliminando"
                         @onclick="CerrarConfirmacionEliminar">
-
                     Cancelar
-
                 </button>
 
             </div>
@@ -747,7 +717,6 @@
 
     </div>
 }
-
 
 @code {
 
@@ -759,31 +728,19 @@
         Editar
     }
 
-
     private List<TipoTurnoListadoDTO> lista = new();
-
     private TipoTurnoDTO modelo = CrearModeloVacio();
-
-    private ModalTurno modalActual =
-        ModalTurno.Ninguno;
-
+    private ModalTurno modalActual = ModalTurno.Ninguno;
 
     private int? idSeleccionado;
 
-
     private bool cargando = true;
-
-    private bool cargandoDetalle = false;
-
-    private bool guardando = false;
-
-    private bool eliminando = false;
-
-    private bool mostrarConfirmacionEliminar = false;
-
+    private bool cargandoDetalle;
+    private bool guardando;
+    private bool eliminando;
+    private bool mostrarConfirmacionEliminar;
 
     private string Mensaje = string.Empty;
-
     private string textoBusqueda = string.Empty;
 
 
@@ -801,40 +758,31 @@
             return lista.Where(item =>
                 ContieneTexto(item.Tipo, busqueda) ||
                 ContieneTexto(item.Descripcion, busqueda) ||
-                item.DuracionMinutos
-                    .ToString()
-                    .Contains(
-                        busqueda,
-                        StringComparison.OrdinalIgnoreCase
-                    )
+                item.DuracionMinutos.ToString().Contains(
+                    busqueda,
+                    StringComparison.OrdinalIgnoreCase
+                )
             );
         }
     }
-
 
     protected override async Task OnInitializedAsync()
     {
         await Cargar();
     }
 
-
     private async Task Cargar()
     {
         cargando = true;
-
         Mensaje = string.Empty;
 
-
-        var resp =
-            await Http.Get<List<TipoTurnoListadoDTO>>(
-                "api/tipoturno/ListaTipoTurno"
-            );
-
+        var resp = await Http.Get<List<TipoTurnoListadoDTO>>(
+            "api/tipoturno/ListaTipoTurno"
+        );
 
         if (resp.Error)
         {
             lista = new();
-
             Mensaje = resp.ObtenerError();
         }
         else
@@ -842,80 +790,57 @@
             lista = resp.Respuesta ?? new();
         }
 
-
         cargando = false;
     }
-
 
     private async Task AbrirDetalle(int id)
     {
         Mensaje = string.Empty;
-
         idSeleccionado = id;
-
         modelo = CrearModeloVacio();
-
         modalActual = ModalTurno.Detalle;
-
         cargandoDetalle = true;
 
+        var resp = await Http.Get<TipoTurnoDTO>(
+            $"api/tipoturno/{id}"
+        );
 
-        var resp =
-            await Http.Get<TipoTurnoDTO>(
-                $"api/tipoturno/{id}"
-            );
-
-
-        if (!resp.Error &&
-            resp.Respuesta != null)
+        if (!resp.Error && resp.Respuesta != null)
         {
             modelo = resp.Respuesta;
         }
         else
         {
             Mensaje = resp.ObtenerError();
-
             modalActual = ModalTurno.Ninguno;
         }
-
 
         cargandoDetalle = false;
     }
 
-
     private void AbrirCrear()
     {
         Mensaje = string.Empty;
-
         idSeleccionado = null;
-
         modelo = CrearModeloVacio();
-
         modalActual = ModalTurno.Crear;
     }
-
 
     private async Task CrearTurno()
     {
         guardando = true;
-
         Mensaje = string.Empty;
 
-
-        var resp =
-            await Http.Post<TipoTurnoDTO, int>(
-                "api/tipoturno",
-                modelo
-            );
-
+        var resp = await Http.Post<TipoTurnoDTO, int>(
+            "api/tipoturno",
+            modelo
+        );
 
         guardando = false;
-
 
         if (!resp.Error)
         {
             modalActual = ModalTurno.Ninguno;
-
             modelo = CrearModeloVacio();
 
             await Cargar();
@@ -926,80 +851,60 @@
         }
     }
 
-
     private void AbrirEditar()
     {
         Mensaje = string.Empty;
-
         modalActual = ModalTurno.Editar;
     }
 
-
     private async Task CancelarEdicion()
     {
-        if (guardando ||
-            eliminando ||
-            idSeleccionado is null)
+        if (guardando || eliminando || idSeleccionado is null)
         {
             return;
         }
 
-
         Mensaje = string.Empty;
-
         cargandoDetalle = true;
-
         modalActual = ModalTurno.Detalle;
 
+        var resp = await Http.Get<TipoTurnoDTO>(
+            $"api/tipoturno/{idSeleccionado.Value}"
+        );
 
-        var resp =
-            await Http.Get<TipoTurnoDTO>(
-                $"api/tipoturno/{idSeleccionado.Value}"
-            );
-
-
-        if (!resp.Error &&
-            resp.Respuesta != null)
+        if (!resp.Error && resp.Respuesta != null)
         {
             modelo = resp.Respuesta;
         }
         else
         {
             Mensaje = resp.ObtenerError();
-
             modalActual = ModalTurno.Editar;
         }
-
 
         cargandoDetalle = false;
     }
 
-
     private async Task GuardarCambios()
     {
         if (idSeleccionado is null)
+        {
             return;
-
+        }
 
         guardando = true;
-
         Mensaje = string.Empty;
 
-
-        var resp =
-            await Http.Put<TipoTurnoDTO, string>(
-                $"api/tipoturno/{idSeleccionado.Value}",
-                modelo
-            );
-
+        var resp = await Http.Put<TipoTurnoDTO, string>(
+            $"api/tipoturno/{idSeleccionado.Value}",
+            modelo
+        );
 
         guardando = false;
-
 
         if (!resp.Error)
         {
             await Cargar();
-
             await RecargarDetalle();
         }
         else
@@ -1008,12 +913,10 @@
         }
     }
 
-
     private void AbrirConfirmacionEliminar()
     {
         mostrarConfirmacionEliminar = true;
     }
-
 
     private void CerrarConfirmacionEliminar()
     {
@@ -1023,35 +926,27 @@
         }
     }
 
-
     private async Task ConfirmarEliminar()
     {
         if (idSeleccionado is null)
+        {
             return;
-
+        }
 
         eliminando = true;
-
         Mensaje = string.Empty;
 
-
-        var resp =
-            await Http.Delete(
-                $"api/tipoturno/{idSeleccionado.Value}"
-            );
-
+        var resp = await Http.Delete(
+            $"api/tipoturno/{idSeleccionado.Value}"
+        );
 
         eliminando = false;
-
 
         if (!resp.Error)
         {
             mostrarConfirmacionEliminar = false;
-
             modalActual = ModalTurno.Ninguno;
-
             idSeleccionado = null;
-
             modelo = CrearModeloVacio();
 
             await Cargar();
@@ -1059,61 +954,49 @@
         else
         {
             Mensaje = resp.ObtenerError();
-
             mostrarConfirmacionEliminar = false;
         }
     }
 
-
     private async Task RecargarDetalle()
     {
         if (idSeleccionado is null)
+        {
             return;
-
+        }
 
         cargandoDetalle = true;
-
         modalActual = ModalTurno.Detalle;
 
+        var resp = await Http.Get<TipoTurnoDTO>(
+            $"api/tipoturno/{idSeleccionado.Value}"
+        );
 
-        var resp =
-            await Http.Get<TipoTurnoDTO>(
-                $"api/tipoturno/{idSeleccionado.Value}"
-            );
-
-
-        if (!resp.Error &&
-            resp.Respuesta != null)
+        if (!resp.Error && resp.Respuesta != null)
         {
             modelo = resp.Respuesta;
         }
         else
         {
             Mensaje = resp.ObtenerError();
-
             modalActual = ModalTurno.Ninguno;
         }
-
 
         cargandoDetalle = false;
     }
 
-
     private void CerrarModal()
     {
         if (guardando || eliminando)
+        {
             return;
-
+        }
 
         modalActual = ModalTurno.Ninguno;
-
         idSeleccionado = null;
-
         modelo = CrearModeloVacio();
-
         Mensaje = string.Empty;
     }
-
 
     private static TipoTurnoDTO CrearModeloVacio()
     {
@@ -1121,22 +1004,19 @@
         {
             Tipo = string.Empty,
             Descripcion = string.Empty,
-            DuracionMinutos = 0
+            DuracionMinutos = 0,
+            RequierePacientes = true
         };
     }
 
-
-    private static bool ContieneTexto(
-        string? valor,
-        string busqueda)
+    private static bool ContieneTexto(string? valor,string busqueda)
     {
-        return !string.IsNullOrWhiteSpace(valor)
-            && valor.Contains(
+        return !string.IsNullOrWhiteSpace(valor) &&
+            valor.Contains(
                 busqueda,
                 StringComparison.OrdinalIgnoreCase
             );
     }
-
 
     private static string MostrarValor(string? valor)
     {
@@ -1145,16 +1025,13 @@
             : valor;
     }
 
-
     private void LimpiarBusqueda()
     {
         textoBusqueda = string.Empty;
     }
 
-
     private void Volver()
     {
         Nav.NavigateTo("/admin");
     }
-
 }

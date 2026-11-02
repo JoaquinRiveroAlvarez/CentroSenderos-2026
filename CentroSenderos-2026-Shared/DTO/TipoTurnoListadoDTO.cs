@@ -11,5 +11,6 @@ namespace CentroSenderos_2026_Shared.DTO
         public required string Tipo { get; set; } = string.Empty;
         public string Descripcion { get; set; } = string.Empty;
         public required int DuracionMinutos { get; set; } = 0;
+        public bool RequierePacientes { get; set; } = true;
     }
 }
