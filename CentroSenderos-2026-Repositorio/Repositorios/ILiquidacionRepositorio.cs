@@ -19,5 +19,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         Task<bool> ActualizarEstadoPagoLiquidacion(int liquidacionId, EnumEstadoPagoLiquidacion nuevoEstado);
         Task<bool> ActualizarEstadoPagoDetalle(int detalleId, EnumEstadoPagoLiquidacion nuevoEstado);
         Task<bool> AnularLiquidacion(int id);
+        Task<bool> EliminarLiquidacion(int id);
+
+        // Historial de Pagos y Cobros
+        Task<List<PagoLiquidacionHistorialDTO>> ObtenerHistorialPagos(int liquidacionId);
+        Task<bool> RegistrarCobro(RegistrarCobroLiquidacionDTO dto);
+        Task<bool> AnularCobro(AnularPagoLiquidacionDTO dto);
     }
 }

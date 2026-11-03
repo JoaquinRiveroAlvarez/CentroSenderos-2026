@@ -146,6 +146,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         public async Task<List<TurnoLiquidacionItemDTO>> ObtenerTurnosPorDetalleId(int detalleLiquidacionId)
         {
             var turnos = await context.Turnos
+                .Include(t => t.Liquidacion)
                 .Include(t => t.TipoConsultorios)
                 .Include(t => t.TipoTurnos)
                 .Include(t => t.TurnoProfesionales).ThenInclude(tp => tp.Profesionales)
@@ -170,18 +171,20 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 {
                     TurnoId = t.Id,
                     NumeroSesion = sesionNro++,
-                    Fecha = inicioLocal.Date,
+                    Fecha = inicioLocal.Date, // FECHA EXACTA DEL TURNO
                     HoraInicio = TimeOnly.FromDateTime(inicioLocal),
                     HoraFin = TimeOnly.FromDateTime(finLocal),
                     ConsultorioNombre = t.TipoConsultorios?.Tipo ?? "Sin Consultorio",
                     TipoTurnoNombre = prestRel?.TipoPrestaciones?.Tipo ?? t.TipoTurnos?.Tipo ?? "Normal",
-                    EstadoTurno = t.EstadoTurno,
+                    EstadoTurno = t.EstadoTurno, // ESTADO REAL DEL TURNO
                     ProfesionalId = profRel?.ProfesionalId,
                     ProfesionalNombre = profRel?.Profesionales?.Nombre ?? "",
                     PacienteId = pacRel?.PacienteId,
                     PacienteNombre = pacRel?.Pacientes?.Nombre ?? "",
                     TipoPrestacionId = prestRel?.TipoPrestacionId,
-                    TipoPrestacionNombre = prestRel?.TipoPrestaciones?.Tipo ?? ""
+                    TipoPrestacionNombre = prestRel?.TipoPrestaciones?.Tipo ?? "",
+                    LiquidacionId = t.LiquidacionId,
+                    NumeroLiquidacion = t.Liquidacion != null ? t.Liquidacion.NumeroLiquidacion : null
                 });
             }
 
@@ -222,6 +225,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
                 var resultado = turnos.Select(t =>
                 {
+                    var inicioLocal = t.FechaInicio.ToLocalTime();
+                    var finLocal = t.FechaFin.ToLocalTime();
                     var profRel = t.TurnoProfesionales.FirstOrDefault();
                     var pacRel = t.TurnoPacientes.FirstOrDefault();
                     var prestRel = t.TurnoTipoPrestaciones.FirstOrDefault();
@@ -234,12 +239,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     {
                         TurnoId = t.Id,
                         NumeroSesion = sesionContador++,
-                        Fecha = t.FechaInicio.Date,
-                        HoraInicio = TimeOnly.FromDateTime(t.FechaInicio),
-                        HoraFin = TimeOnly.FromDateTime(t.FechaFin),
+                        Fecha = inicioLocal.Date, // FECHA EXACTA DEL TURNO
+                        HoraInicio = TimeOnly.FromDateTime(inicioLocal),
+                        HoraFin = TimeOnly.FromDateTime(finLocal),
                         ConsultorioNombre = t.TipoConsultorios?.Tipo ?? "Consultorio",
                         TipoTurnoNombre = prestRel?.TipoPrestaciones?.Tipo ?? t.TipoTurnos?.Tipo ?? "Sesión",
-                        EstadoTurno = t.EstadoTurno,
+                        EstadoTurno = t.EstadoTurno, // ESTADO REAL DEL TURNO
 
                         // Profesional
                         ProfesionalId = profRel?.ProfesionalId,
@@ -260,7 +265,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         // Modalidad y Montos
                         TipoModalidadId = modalidad,
                         MontoSugerido = monto,
-                        PorcentajeRetencion = retencion
+                        PorcentajeRetencion = retencion,
+                        LiquidacionId = null,
+                        NumeroLiquidacion = null
                     };
                 }).ToList();
 
@@ -394,6 +401,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 throw;
             }
         }
+
         public async Task<bool> AnularLiquidacion(int id)
         {
             var liq = await context.Liquidaciones.FindAsync(id);
@@ -413,6 +421,47 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             await context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> EliminarLiquidacion(int id)
+        {
+            using var transaction = await context.Database.BeginTransactionAsync();
+            try
+            {
+                var liq = await context.Liquidaciones
+                    .Include(l => l.DetalleLiquidaciones)
+                    .FirstOrDefaultAsync(l => l.Id == id);
+
+                if (liq == null) return false;
+
+                // Desvincular turnos
+                var turnos = await context.Turnos.Where(t => t.LiquidacionId == id).ToListAsync();
+                foreach (var t in turnos)
+                {
+                    t.LiquidacionId = null;
+                    t.DetalleLiquidacionId = null;
+                }
+
+                // Eliminar pagos asociados si hubiere
+                var pagos = await context.PagosLiquidaciones.Where(p => p.LiquidacionId == id).ToListAsync();
+                if (pagos.Count > 0)
+                {
+                    context.PagosLiquidaciones.RemoveRange(pagos);
+                }
+
+                context.DetalleLiquidaciones.RemoveRange(liq.DetalleLiquidaciones);
+                context.Liquidaciones.Remove(liq);
+
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task<bool> ActualizarEstadoPagoLiquidacion(int liquidacionId, EnumEstadoPagoLiquidacion nuevoEstado)
         {
             var liq = await context.Liquidaciones.FindAsync(liquidacionId);
@@ -431,6 +480,182 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             detalle.EstadoPago = nuevoEstado;
             await context.SaveChangesAsync();
             return true;
+        }
+
+        // ==========================================
+        // HISTORIAL DE PAGOS Y COBROS DE LIQUIDACIÓN
+        // ==========================================
+        public async Task<List<PagoLiquidacionHistorialDTO>> ObtenerHistorialPagos(int liquidacionId)
+        {
+            var pagos = await context.PagosLiquidaciones
+                .Include(p => p.MetodosPago)
+                .Include(p => p.Imputaciones)
+                    .ThenInclude(i => i.DetalleLiquidacion)
+                        .ThenInclude(d => d!.Pacientes)
+                .Include(p => p.Imputaciones)
+                    .ThenInclude(i => i.DetalleLiquidacion)
+                        .ThenInclude(d => d!.TipoPrestaciones)
+                .Where(p => p.LiquidacionId == liquidacionId)
+                .OrderByDescending(p => p.FechaPago)
+                .ToListAsync();
+
+            return pagos.Select(p => new PagoLiquidacionHistorialDTO
+            {
+                Id = p.Id,
+                LiquidacionId = p.LiquidacionId,
+                FechaPago = p.FechaPago.ToLocalTime(),
+                MontoTotal = p.MontoTotal,
+                Observaciones = p.Observacion,
+                RegistradoPor = p.RegistradoPor,
+                Anulado = p.Anulado,
+                FechaAnulacion = p.FechaAnulacion?.ToLocalTime(),
+                AnuladoPor = p.AnuladoPor,
+                MotivoAnulacion = p.MotivoAnulacion,
+                Metodos = p.MetodosPago.Select(m => new CobroMetodoPagoDTO
+                {
+                    Id = m.Id,
+                    MetodoPago = m.MetodoPago,
+                    MetodoPagoNombre = m.MetodoPagoNombre,
+                    Monto = m.Monto,
+                    CuentaOrigen = m.CuentaOrigen,
+                    NumeroComprobante = m.NumeroComprobante
+                }).ToList(),
+                Imputaciones = p.Imputaciones.Select(i => new CobroDetalleImputacionDTO
+                {
+                    DetalleLiquidacionId = i.DetalleLiquidacionId,
+                    PacienteNombre = i.DetalleLiquidacion?.Pacientes?.Nombre ?? "General / Institucional",
+                    PrestacionNombre = i.DetalleLiquidacion?.TipoPrestaciones?.Tipo ?? "",
+                    MontoImputado = i.MontoImputado,
+                    CantidadSesionesCobradas = i.CantidadSesiones,
+                    Nota = i.Nota
+                }).ToList()
+            }).ToList();
+        }
+
+        public async Task<bool> RegistrarCobro(RegistrarCobroLiquidacionDTO dto)
+        {
+            using var transaction = await context.Database.BeginTransactionAsync();
+            try
+            {
+                var liq = await context.Liquidaciones
+                    .Include(l => l.DetalleLiquidaciones)
+                    .FirstOrDefaultAsync(l => l.Id == dto.LiquidacionId);
+
+                if (liq == null) return false;
+
+                decimal montoTotal = dto.Metodos.Sum(m => m.Monto);
+
+                var pago = new PagoLiquidacion
+                {
+                    LiquidacionId = dto.LiquidacionId,
+                    FechaPago = DateTime.UtcNow,
+                    MontoTotal = montoTotal,
+                    Observacion = dto.Observaciones ?? string.Empty,
+                    RegistradoPor = dto.RegistradoPor ?? "Usuario",
+                    Anulado = false,
+                    EstadoRegistro = EnumEstadoRegistro.activo,
+                    MetodosPago = dto.Metodos.Select(m => new PagoLiquidacionMetodo
+                    {
+                        MetodoPago = m.MetodoPago,
+                        MetodoPagoNombre = !string.IsNullOrWhiteSpace(m.MetodoPagoNombre) ? m.MetodoPagoNombre : m.MetodoPago.ToString(),
+                        Monto = m.Monto,
+                        CuentaOrigen = m.CuentaOrigen,
+                        NumeroComprobante = m.NumeroComprobante,
+                        Observacion = string.Empty,
+                        EstadoRegistro = EnumEstadoRegistro.activo
+                    }).ToList(),
+                    Imputaciones = dto.Imputaciones.Select(imp => new PagoLiquidacionDetalleImputacion
+                    {
+                        DetalleLiquidacionId = imp.DetalleLiquidacionId,
+                        MontoImputado = imp.MontoImputado,
+                        CantidadSesiones = imp.CantidadSesionesCobradas,
+                        Nota = imp.Nota,
+                        Observacion = string.Empty,
+                        EstadoRegistro = EnumEstadoRegistro.activo
+                    }).ToList()
+                };
+
+                context.PagosLiquidaciones.Add(pago);
+                await context.SaveChangesAsync();
+
+                // Imputar cada cobro a su DetalleLiquidacion
+                foreach (var imp in dto.Imputaciones)
+                {
+                    var det = liq.DetalleLiquidaciones.FirstOrDefault(d => d.Id == imp.DetalleLiquidacionId);
+                    if (det != null)
+                    {
+                        det.Saldo = Math.Max(0, det.Saldo - imp.MontoImputado);
+                        det.EstadoPago = det.Saldo <= 0 ? EnumEstadoPagoLiquidacion.Pagado
+                            : (det.Saldo < det.Retencion ? EnumEstadoPagoLiquidacion.Parcial : EnumEstadoPagoLiquidacion.Pendiente);
+                    }
+                }
+
+                // Recalcular saldo general y estado de la liquidación
+                liq.TotalSaldo = liq.DetalleLiquidaciones.Sum(d => d.Saldo);
+                liq.EstadoPago = liq.TotalSaldo <= 0 ? EnumEstadoPagoLiquidacion.Pagado
+                    : (liq.TotalSaldo < liq.TotalRetencion ? EnumEstadoPagoLiquidacion.Parcial : EnumEstadoPagoLiquidacion.Pendiente);
+
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> AnularCobro(AnularPagoLiquidacionDTO dto)
+        {
+            using var transaction = await context.Database.BeginTransactionAsync();
+            try
+            {
+                var pago = await context.PagosLiquidaciones
+                    .Include(p => p.Imputaciones)
+                    .FirstOrDefaultAsync(p => p.Id == dto.PagoId);
+
+                if (pago == null || pago.Anulado) return false;
+
+                pago.Anulado = true;
+                pago.FechaAnulacion = DateTime.UtcNow;
+                pago.AnuladoPor = dto.AnuladoPor ?? "Usuario";
+                pago.MotivoAnulacion = dto.Motivo;
+
+                var liq = await context.Liquidaciones
+                    .Include(l => l.DetalleLiquidaciones)
+                    .FirstOrDefaultAsync(l => l.Id == pago.LiquidacionId);
+
+                if (liq != null)
+                {
+                    // Revertir imputaciones en los detalles
+                    foreach (var imp in pago.Imputaciones)
+                    {
+                        var det = liq.DetalleLiquidaciones.FirstOrDefault(d => d.Id == imp.DetalleLiquidacionId);
+                        if (det != null)
+                        {
+                            det.Saldo = Math.Min(det.Retencion, det.Saldo + imp.MontoImputado);
+                            det.EstadoPago = det.Saldo <= 0 ? EnumEstadoPagoLiquidacion.Pagado
+                                : (det.Saldo < det.Retencion ? EnumEstadoPagoLiquidacion.Parcial : EnumEstadoPagoLiquidacion.Pendiente);
+                        }
+                    }
+
+                    liq.TotalSaldo = liq.DetalleLiquidaciones.Sum(d => d.Saldo);
+                    liq.EstadoPago = liq.TotalSaldo <= 0 ? EnumEstadoPagoLiquidacion.Pagado
+                        : (liq.TotalSaldo < liq.TotalRetencion ? EnumEstadoPagoLiquidacion.Parcial : EnumEstadoPagoLiquidacion.Pendiente);
+                }
+
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
     }
 }

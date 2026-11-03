@@ -53,7 +53,6 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         // GET: api/liquidacion/detalle/{detalleId}/turnos
-        // Retorna los turnos de la fila del detalle (Modal de sesiones de la factura)
         [HttpGet("detalle/{detalleId:int}/turnos")]
         public async Task<ActionResult<List<TurnoLiquidacionItemDTO>>> ObtenerTurnosDeDetalle(int detalleId)
         {
@@ -122,13 +121,98 @@ namespace CentroSenderos_2026_Server.Controllers
             // Regla de negocio: Si ya tiene pagos registrados (Parcial o Pagado), no se puede anular
             if (liq.EstadoPago == EnumEstadoPagoLiquidacion.Parcial || liq.EstadoPago == EnumEstadoPagoLiquidacion.Pagado)
             {
-                return BadRequest("No se puede anular ni eliminar una liquidación que ya registra pagos.");
+                return BadRequest("No se puede anular una liquidación que ya registra pagos.");
             }
 
             var resultado = await liquidacionRepositorio.AnularLiquidacion(id);
             if (!resultado) return BadRequest("No se pudo anular la liquidación.");
 
             return NoContent();
+        }
+
+        // DELETE: api/liquidacion/5
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> EliminarLiquidacion(int id)
+        {
+            var liq = await liquidacionRepositorio.ObtenerPorIdCompleto(id);
+            if (liq == null) return NotFound("No se encontró la liquidación a eliminar.");
+
+            var resultado = await liquidacionRepositorio.EliminarLiquidacion(id);
+            if (!resultado) return BadRequest("No se pudo eliminar la liquidación.");
+
+            return NoContent();
+        }
+
+        // ==========================================
+        // HISTORIAL DE PAGOS Y COBROS
+        // ==========================================
+
+        // GET: api/liquidacion/5/pagos
+        [HttpGet("{id:int}/pagos")]
+        public async Task<ActionResult<List<PagoLiquidacionHistorialDTO>>> ObtenerHistorialPagos(int id)
+        {
+            try
+            {
+                var pagos = await liquidacionRepositorio.ObtenerHistorialPagos(id);
+                return Ok(pagos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al obtener historial de pagos: " + ex.Message });
+            }
+        }
+
+        // POST: api/liquidacion/registrar-cobro
+        [HttpPost("registrar-cobro")]
+        public async Task<IActionResult> RegistrarCobro([FromBody] RegistrarCobroLiquidacionDTO dto)
+        {
+            if (dto.LiquidacionId <= 0 || dto.Metodos == null || dto.Metodos.Count == 0 || dto.Imputaciones == null || dto.Imputaciones.Count == 0)
+            {
+                return BadRequest("Debe especificar la liquidación, al menos un método de pago y al menos un detalle imputado.");
+            }
+
+            decimal totalMetodos = 0;
+            foreach (var m in dto.Metodos) totalMetodos += m.Monto;
+
+            decimal totalImputado = 0;
+            foreach (var imp in dto.Imputaciones) totalImputado += imp.MontoImputado;
+
+            if (Math.Abs(totalMetodos - totalImputado) > 0.01m)
+            {
+                return BadRequest($"La suma de los métodos de pago (${totalMetodos:N2}) no coincide con el total de detalles imputados (${totalImputado:N2}).");
+            }
+
+            try
+            {
+                var ok = await liquidacionRepositorio.RegistrarCobro(dto);
+                if (!ok) return BadRequest("No se pudo registrar el cobro en la liquidación.");
+                return Ok(new { mensaje = "Cobro registrado correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al registrar el cobro: " + ex.Message });
+            }
+        }
+
+        // POST: api/liquidacion/anular-cobro
+        [HttpPost("anular-cobro")]
+        public async Task<IActionResult> AnularCobro([FromBody] AnularPagoLiquidacionDTO dto)
+        {
+            if (dto.PagoId <= 0 || string.IsNullOrWhiteSpace(dto.Motivo))
+            {
+                return BadRequest("Debe especificar el Id del pago y el motivo de la anulación.");
+            }
+
+            try
+            {
+                var ok = await liquidacionRepositorio.AnularCobro(dto);
+                if (!ok) return BadRequest("No se pudo anular el cobro especificado.");
+                return Ok(new { mensaje = "Cobro anulado y saldo revertido correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al anular el cobro: " + ex.Message });
+            }
         }
     }
 }

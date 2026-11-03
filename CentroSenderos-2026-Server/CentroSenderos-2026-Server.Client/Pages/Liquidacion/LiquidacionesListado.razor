@@ -41,7 +41,7 @@
         <div class="liq-table-column">
             <!-- Barra de Filtros -->
             <div class="filters-card">
-                <!-- Filtro Activas / Anuladas (Predeterminado: Activas) -->
+                <!-- Filtro Activas / Anuladas -->
                 <div class="filter-item">
                     <select class="filter-select font-bold text-success" @bind="filtroEstadoLiquidacion" @bind:after="AplicarFiltros">
                         <option value="activas">Activas (Predeterminado)</option>
@@ -98,7 +98,7 @@
 
                 <!-- Botón Ordenar -->
                 <button type="button" class="btn-ordenar" @onclick="AlternarOrden">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;min-width:14px;"><path d="M7 15l5 5 5-5M7 9l5-5 5-5"/></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;min-width:14px;"><path d="M7 15l5 5 5-5M7 9l5-5 5-5" /></svg>
                     <span>@(ordenDescendente ? "Más recientes" : "Más antiguos")</span>
                 </button>
             </div>
@@ -235,7 +235,7 @@
 
         <!-- Columna Derecha: Tarjetas de Métricas -->
         <div class="liq-side-column">
-            <!-- Tarjeta Verde Oscura: Ingreso Total Centro -->
+            <!-- Tarjeta Verde: Ingreso Total Centro -->
             <div class="metric-card-green">
                 <span class="card-eyebrow">INGRESO TOTAL CENTRO (RETENCIONES)</span>
                 <div class="metric-big-number">$@totalIngresoCentroMensual.ToString("N0")</div>
@@ -331,7 +331,7 @@
                     <div>Total abonado: <strong>$@liquidacionSeleccionada.TotalAbonado.ToString("N0")</strong></div>
                     <div>Saldo restante: <strong>$@liquidacionSeleccionada.TotalSaldo.ToString("N0")</strong></div>
                 </div>
-                <p class="text-sm text-muted mt-2">Para anular o eliminar esta liquidación, primero debe revertir los cobros/recibos asentados en el módulo de Tesorería.</p>
+                <p class="text-sm text-muted mt-2">Para anular o eliminar esta liquidación, primero debe revertir los cobros en el Historial de Pagos.</p>
             </div>
             <div class="modal-footer-custom">
                 <button type="button" class="btn-secondary-custom" @onclick="() => mostrarModalBloqueoPagos = false">Entendido</button>
@@ -340,7 +340,7 @@
     </div>
 }
 
-<!-- MODAL 2: CONFIRMAR ANULACIÓN -->
+<!-- MODAL 2: CONFIRMAR ANULACIÓN O ELIMINACIÓN -->
 @if (mostrarModalAnulacion && liquidacionSeleccionada != null)
 {
     <div class="modal-backdrop-custom">
@@ -348,585 +348,616 @@
             <div class="modal-header-custom">
                 <div class="modal-title-with-icon">
                     <svg width="20" height="20" class="text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                    <h3>¿Desea anular la liquidación?</h3>
+                    <h3>Gestión de Liquidación</h3>
                 </div>
                 <button type="button" class="btn-close-modal" @onclick="() => mostrarModalAnulacion = false">✕</button>
             </div>
             <div class="modal-body-custom">
-                <p>Está a punto de anular la liquidación <strong>@liquidacionSeleccionada.NumeroLiquidacion</strong> correspondiente a <strong>@liquidacionSeleccionada.ProfesionalNombreCompleto</strong>.</p>
+                <p>Seleccione la acción para la liquidación <strong>@liquidacionSeleccionada.NumeroLiquidacion</strong> de <strong>@liquidacionSeleccionada.ProfesionalNombreCompleto</strong>:</p>
                 <div class="box-warning-details">
                     <div>Período: <strong>@liquidacionSeleccionada.FechaDesde.ToString("dd/MM/yyyy") - @liquidacionSeleccionada.FechaHasta.ToString("dd/MM/yyyy")</strong></div>
                     <div>Facturado: <strong>$@liquidacionSeleccionada.TotalFacturacion.ToString("N0")</strong></div>
                     <div>Retención Centro: <strong>$@liquidacionSeleccionada.TotalRetencion.ToString("N0")</strong></div>
                 </div>
-                <p class="text-sm text-muted mt-2">Los turnos asociados a esta liquidación quedarán nuevamente liberados como &quot;Pendientes de Liquidar&quot; en la agenda del profesional.</p>
+                <p class="text-sm text-muted mt-2">
+                    <strong>Anular:</strong> La marca como anulada y libera los turnos a pendientes.<br />
+                    <strong>Eliminar Definitivamente:</strong> La borra permanentemente de la base de datos y libera los turnos.
+                </p>
             </div>
-            <div class="modal-footer-custom">
+            <div class="modal-footer-custom" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                 <button type="button" class="btn-secondary-custom" @onclick="() => mostrarModalAnulacion = false">Cancelar</button>
-                <button type="button" class="btn-danger-custom" @onclick="ConfirmarAnulacion">Sí, Anular Liquidación</button>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" class="btn-secondary-custom" style="background:#fef2f2; color:#b91c1c; border:1px solid #fca5a5;" @onclick="ConfirmarEliminacionDefinitiva" title="Borra permanentemente la liquidación de la base de datos">Eliminar Definitivamente</button>
+                    <button type="button" class="btn-danger-custom" @onclick="ConfirmarAnulacion">Anular Liquidación</button>
+                </div>
             </div>
         </div>
     </div>
 }
 
 <style>
-/* CSS embebido y autolimitado para asegurar visualización perfecta sin depender de scoped css */
-.liquidaciones-page {
-    padding: 1.5rem 2rem;
-    max-width: 1600px;
-    margin: 0 auto;
-    font-family: inherit;
-    color: #1e293b;
-}
-
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-}
-
-.btn-nueva-liq {
-    background-color: #3d5a45;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    padding: 0.6rem 1.25rem;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-    transition: background-color 0.2s, transform 0.1s;
-}
-
-.btn-nueva-liq:hover {
-    background-color: #2f4635;
-    transform: translateY(-1px);
-}
-
-.liq-title {
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: #111827;
-    margin: 0;
-}
-
-.subtabs-pill {
-    display: flex;
-    background: #e2e8f0;
-    border-radius: 8px;
-    padding: 3px;
-    gap: 2px;
-}
-
-.subtab-btn {
-    border: none;
-    background: transparent;
-    padding: 0.4rem 1.1rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #64748b;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.subtab-btn.active {
-    background: #ffffff;
-    color: #0f172a;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.alert-banner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.alert-success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-.alert-danger { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-
-.btn-close-alert {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-    color: inherit;
-}
-
-.liq-main-grid {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 1.5rem;
-    align-items: start;
-}
-
-@@media (max-width: 1200px) {
-    .liq-main-grid {
-        grid-template-columns: 1fr;
+    .liquidaciones-page {
+        padding: 1.5rem 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+        font-family: inherit;
+        color: #1e293b;
     }
-}
 
-.filters-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
 
-.filter-item {
-    flex: 1 1 180px;
-}
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
 
-.search-input-box {
-    flex: 1.5 1 220px;
-}
+    .btn-nueva-liq {
+        background-color: #3d5a45;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.25rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        transition: background-color 0.2s, transform 0.1s;
+    }
 
-.filter-select, .filter-input {
-    width: 100%;
-    height: 38px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 0 0.75rem;
-    font-size: 0.85rem;
-    color: #334155;
-    background-color: #ffffff;
-    outline: none;
-}
+        .btn-nueva-liq:hover {
+            background-color: #2f4635;
+            transform: translateY(-1px);
+        }
 
-.filter-select:focus, .filter-input:focus {
-    border-color: #3d5a45;
-}
+    .liq-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #111827;
+        margin: 0;
+    }
 
-.filter-dates {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #475569;
-}
+    .subtabs-pill {
+        display: flex;
+        background: #e2e8f0;
+        border-radius: 8px;
+        padding: 3px;
+        gap: 2px;
+    }
 
-.date-input {
-    width: 135px;
-    height: 38px;
-}
+    .subtab-btn {
+        border: none;
+        background: transparent;
+        padding: 0.4rem 1.1rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
 
-.btn-ordenar {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    height: 38px;
-    padding: 0 0.85rem;
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #475569;
-    cursor: pointer;
-    white-space: nowrap;
-}
+        .subtab-btn.active {
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
 
-.table-container-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    overflow: hidden;
-}
+    .alert-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
 
-.table-liquidaciones {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.825rem;
-}
+    .alert-success {
+        background: #ecfdf5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
 
-.table-liquidaciones th {
-    background: #f8fafc;
-    color: #475569;
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 0.72rem;
-    letter-spacing: 0.03em;
-    padding: 0.85rem 1rem;
-    border-bottom: 1px solid #e2e8f0;
-    white-space: nowrap;
-}
+    .alert-danger {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
 
-.table-liquidaciones td {
-    padding: 0.85rem 1rem;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: middle;
-}
+    .btn-close-alert {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        color: inherit;
+    }
 
-.row-hover {
-    cursor: pointer;
-    transition: background-color 0.15s;
-}
+    .liq-main-grid {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 1.5rem;
+        align-items: start;
+    }
 
-.row-hover:hover {
-    background-color: #f8fafc;
-}
+    @@media (max-width: 1200px) {
+        .liq-main-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 
-.row-anulada {
-    background-color: #fffbeb !important;
-}
+    .filters-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
 
-.badge-anulada-tag {
-    display: inline-block;
-    background: #fef08a;
-    color: #854d0e;
-    font-size: 0.65rem;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-bottom: 2px;
-}
+    .filter-item {
+        flex: 1 1 180px;
+    }
 
-.periodo-texto {
-    font-weight: 600;
-    color: #1e293b;
-    white-space: nowrap;
-}
+    .search-input-box {
+        flex: 1.5 1 220px;
+    }
 
-.num-liq-pill {
-    display: inline-block;
-    background: #f1f5f9;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-family: monospace;
-    font-weight: 700;
-    font-size: 0.75rem;
-    color: #334155;
-}
+    .filter-select, .filter-input {
+        width: 100%;
+        height: 38px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 0 0.75rem;
+        font-size: 0.85rem;
+        color: #334155;
+        background-color: #ffffff;
+        outline: none;
+    }
 
-.num-liq-anulada {
-    background: #fed7aa;
-    color: #9a3412;
-}
+        .filter-select:focus, .filter-input:focus {
+            border-color: #3d5a45;
+        }
 
-.prof-name {
-    font-weight: 700;
-    color: #0f172a;
-}
+    .filter-dates {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #475569;
+    }
 
-.prof-detalles-count {
-    font-size: 0.725rem;
-    color: #64748b;
-}
+    .date-input {
+        width: 135px;
+        height: 38px;
+    }
 
-.modalidades-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-}
+    .btn-ordenar {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        height: 38px;
+        padding: 0 0.85rem;
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #475569;
+        cursor: pointer;
+        white-space: nowrap;
+    }
 
-.mod-chip {
-    background: #f0fdf4;
-    color: #166534;
-    border: 1px solid #bbf7d0;
-    font-size: 0.7rem;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 4px;
-    white-space: nowrap;
-}
+    .table-container-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        overflow: hidden;
+    }
 
-.text-centro {
-    color: #3d5a45;
-}
+    .table-liquidaciones {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.825rem;
+    }
 
-.badge-status {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-}
+        .table-liquidaciones th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.03em;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
 
-.badge-pagado { background: #dcfce7; color: #166534; }
-.badge-parcial { background: #fef3c7; color: #92400e; }
-.badge-pendiente { background: #fee2e2; color: #991b1b; }
-.badge-anulado { background: #f1f5f9; color: #475569; }
+        .table-liquidaciones td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
 
-.btn-action-delete {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #94a3b8;
-    padding: 4px;
-    border-radius: 4px;
-    transition: color 0.15s;
-}
+    .row-hover {
+        cursor: pointer;
+        transition: background-color 0.15s;
+    }
 
-.btn-action-delete:hover {
-    color: #dc2626;
-    background-color: #fee2e2;
-}
+        .row-hover:hover {
+            background-color: #f8fafc;
+        }
 
-.table-totals-bar {
-    background: #3d5a45;
-    color: #ffffff;
-    padding: 0.85rem 1.25rem;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.825rem;
-    gap: 0.75rem;
-}
+    .row-anulada {
+        background-color: #fffbeb !important;
+    }
 
-.totals-title {
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    font-size: 0.75rem;
-}
+    .badge-anulada-tag {
+        display: inline-block;
+        background: #fef08a;
+        color: #854d0e;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-bottom: 2px;
+    }
 
-.totals-values {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-}
+    .periodo-texto {
+        font-weight: 600;
+        color: #1e293b;
+        white-space: nowrap;
+    }
 
-.totals-values strong {
-    font-weight: 800;
-    color: #f1f5f9;
-}
+    .num-liq-pill {
+        display: inline-block;
+        background: #f1f5f9;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-family: monospace;
+        font-weight: 700;
+        font-size: 0.75rem;
+        color: #334155;
+    }
 
-.text-highlight {
-    color: #a7f3d0 !important;
-}
+    .num-liq-anulada {
+        background: #fed7aa;
+        color: #9a3412;
+    }
 
-.table-footer-info {
-    padding: 0.75rem 1.25rem;
-    font-size: 0.75rem;
-    color: #64748b;
-    background: #ffffff;
-    border-top: 1px solid #f1f5f9;
-}
+    .prof-name {
+        font-weight: 700;
+        color: #0f172a;
+    }
 
-.metric-card-green {
-    background: #2d4533;
-    color: #ffffff;
-    border-radius: 12px;
-    padding: 1.25rem;
-    margin-bottom: 1.25rem;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-}
+    .prof-detalles-count {
+        font-size: 0.725rem;
+        color: #64748b;
+    }
 
-.card-eyebrow {
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    color: #a7f3d0;
-    text-transform: uppercase;
-}
+    .modalidades-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
 
-.metric-big-number {
-    font-size: 2rem;
-    font-weight: 800;
-    margin: 0.4rem 0 0.75rem 0;
-    color: #ffffff;
-}
+    .mod-chip {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 4px;
+        white-space: nowrap;
+    }
 
-.metric-divider {
-    height: 1px;
-    background: rgba(255,255,255,0.15);
-    margin: 0.75rem 0;
-}
+    .text-centro {
+        color: #3d5a45;
+    }
 
-.metric-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    margin-bottom: 0.4rem;
-    color: #cbd5e1;
-}
+    .badge-status {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+    }
 
-.metric-row strong {
-    color: #ffffff;
-}
+    .badge-pagado {
+        background: #dcfce7;
+        color: #166534;
+    }
 
-.metric-card-white {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 1.25rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
+    .badge-parcial {
+        background: #fef3c7;
+        color: #92400e;
+    }
 
-.card-white-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.75rem;
-    font-weight: 750;
-    color: #475569;
-    letter-spacing: 0.04em;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #f1f5f9;
-    padding-bottom: 0.6rem;
-}
+    .badge-pendiente {
+        background: #fee2e2;
+        color: #991b1b;
+    }
 
-.modalidad-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
+    .badge-anulado {
+        background: #f1f5f9;
+        color: #475569;
+    }
 
-.mod-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.85rem;
-}
+    .btn-action-delete {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #94a3b8;
+        padding: 4px;
+        border-radius: 4px;
+        transition: color 0.15s;
+    }
 
-.mod-info {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
+        .btn-action-delete:hover {
+            color: #dc2626;
+            background-color: #fee2e2;
+        }
 
-.mod-icon-tag {
-    font-size: 0.65rem;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: #f1f5f9;
-    color: #475569;
-}
+    .table-totals-bar {
+        background: #3d5a45;
+        color: #ffffff;
+        padding: 0.85rem 1.25rem;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.825rem;
+        gap: 0.75rem;
+    }
 
-.spinner-custom {
-    display: inline-block;
-    width: 32px;
-    height: 32px;
-    border: 3px solid #e2e8f0;
-    border-top-color: #3d5a45;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
+    .totals-title {
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        font-size: 0.75rem;
+    }
 
-@@keyframes spin {
-    to { transform: rotate(360deg); }
-}
+    .totals-values {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+    }
 
-.modal-backdrop-custom {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1050;
-}
+        .totals-values strong {
+            font-weight: 800;
+            color: #f1f5f9;
+        }
 
-.modal-card-custom {
-    background: #ffffff;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 500px;
-    overflow: hidden;
-    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
-}
+    .text-highlight {
+        color: #a7f3d0 !important;
+    }
 
-.modal-header-custom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #e2e8f0;
-}
+    .table-footer-info {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.75rem;
+        color: #64748b;
+        background: #ffffff;
+        border-top: 1px solid #f1f5f9;
+    }
 
-.modal-title-with-icon {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-}
+    .metric-card-green {
+        background: #2d4533;
+        color: #ffffff;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
 
-.modal-title-with-icon h3 {
-    margin: 0;
-    font-size: 1.05rem;
-    font-weight: 700;
-}
+    .card-eyebrow {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: #a7f3d0;
+        text-transform: uppercase;
+    }
 
-.btn-close-modal {
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    cursor: pointer;
-    color: #64748b;
-}
+    .metric-big-number {
+        font-size: 2rem;
+        font-weight: 800;
+        margin: 0.4rem 0 0.75rem 0;
+        color: #ffffff;
+    }
 
-.modal-body-custom {
-    padding: 1.25rem;
-    font-size: 0.875rem;
-    color: #334155;
-}
+    .metric-divider {
+        height: 1px;
+        background: rgba(255,255,255,0.15);
+        margin: 0.75rem 0;
+    }
 
-.box-warning-details {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
-    margin: 0.75rem 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    font-size: 0.825rem;
-}
+    .metric-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+        color: #cbd5e1;
+    }
 
-.modal-footer-custom {
-    padding: 0.85rem 1.25rem;
-    background: #f8fafc;
-    border-top: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
-}
+        .metric-row strong {
+            color: #ffffff;
+        }
 
-.btn-secondary-custom {
-    background: #e2e8f0;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-}
+    .metric-card-white {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
 
-.btn-danger-custom {
-    background: #dc2626;
-    color: #ffffff;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-}
+    .card-white-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.75rem;
+        font-weight: 750;
+        color: #475569;
+        letter-spacing: 0.04em;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 0.6rem;
+    }
+
+    .modalidad-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .mod-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+    }
+
+    .mod-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .mod-icon-tag {
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .spinner-custom {
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+        border: 3px solid #e2e8f0;
+        border-top-color: #3d5a45;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .modal-backdrop-custom {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1050;
+    }
+
+    .modal-card-custom {
+        background: #ffffff;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        overflow: hidden;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
+    }
+
+    .modal-header-custom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .modal-title-with-icon {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+    }
+
+        .modal-title-with-icon h3 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+    .btn-close-modal {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+        color: #64748b;
+    }
+
+    .modal-body-custom {
+        padding: 1.25rem;
+        font-size: 0.875rem;
+        color: #334155;
+    }
+
+    .box-warning-details {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        margin: 0.75rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        font-size: 0.825rem;
+    }
+
+    .modal-footer-custom {
+        padding: 0.85rem 1.25rem;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary-custom {
+        background: #e2e8f0;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-danger-custom {
+        background: #dc2626;
+        color: #ffffff;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
 </style>
 
 @code {
@@ -1099,6 +1130,29 @@
             liquidacionSeleccionada.Anulada = true;
             mensajeAlerta = $"Liquidación {liquidacionSeleccionada.NumeroLiquidacion} marcada como anulada.";
             esErrorAlerta = false;
+        }
+        finally
+        {
+            mostrarModalAnulacion = false;
+            AplicarFiltros();
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConfirmarEliminacionDefinitiva()
+    {
+        if (liquidacionSeleccionada == null) return;
+        try
+        {
+            var res = await Http.Delete($"api/liquidacion/{liquidacionSeleccionada.Id}");
+            todasLiquidaciones.RemoveAll(l => l.Id == liquidacionSeleccionada.Id);
+            mensajeAlerta = $"Liquidación {liquidacionSeleccionada.NumeroLiquidacion} eliminada definitivamente.";
+            esErrorAlerta = false;
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = "Error al eliminar: " + ex.Message;
+            esErrorAlerta = true;
         }
         finally
         {

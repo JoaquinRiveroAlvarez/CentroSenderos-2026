@@ -35,6 +35,9 @@ namespace CentroSenderos_2026_BD
         public DbSet<ReintegroSocio> ReintegrosSocios { get; set; }
         public DbSet<ReintegroSocioDetalle> ReintegrosSociosDetalles { get; set; }
         public DbSet<Planilla> Planillas { get; set; }
+        public DbSet<PagoLiquidacion> PagosLiquidaciones { get; set; }
+        public DbSet<PagoLiquidacionMetodo> PagoLiquidacionMetodos { get; set; }
+        public DbSet<PagoLiquidacionDetalleImputacion> PagoLiquidacionImputaciones { get; set; }
 
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {
