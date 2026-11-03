@@ -480,6 +480,142 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.ToTable("PacienteTelefonos");
                 });
 
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.PagoLiquidacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Anulado")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("AnuladoPor")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("EstadoRegistro")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("FechaAnulacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("FechaPago")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("LiquidacionId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("MontoTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("MotivoAnulacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Observacion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RegistradoPor")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LiquidacionId");
+
+                    b.ToTable("PagosLiquidaciones");
+                });
+
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.PagoLiquidacionDetalleImputacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CantidadSesiones")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DetalleLiquidacionId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EstadoRegistro")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("MontoImputado")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Nota")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Observacion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("PagoLiquidacionId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DetalleLiquidacionId");
+
+                    b.HasIndex("PagoLiquidacionId");
+
+                    b.ToTable("PagoLiquidacionImputaciones");
+                });
+
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.PagoLiquidacionMetodo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CuentaOrigen")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("EstadoRegistro")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MetodoPago")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MetodoPagoNombre")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<decimal>("Monto")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("NumeroComprobante")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Observacion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("PagoLiquidacionId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PagoLiquidacionId");
+
+                    b.ToTable("PagoLiquidacionMetodos");
+                });
+
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Planilla", b =>
                 {
                     b.Property<int>("Id")
@@ -1677,6 +1813,47 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Navigation("Paciente");
                 });
 
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.PagoLiquidacion", b =>
+                {
+                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.Liquidacion", "Liquidacion")
+                        .WithMany()
+                        .HasForeignKey("LiquidacionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Liquidacion");
+                });
+
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.PagoLiquidacionDetalleImputacion", b =>
+                {
+                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.DetalleLiquidacion", "DetalleLiquidacion")
+                        .WithMany()
+                        .HasForeignKey("DetalleLiquidacionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.PagoLiquidacion", "PagoLiquidacion")
+                        .WithMany("Imputaciones")
+                        .HasForeignKey("PagoLiquidacionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DetalleLiquidacion");
+
+                    b.Navigation("PagoLiquidacion");
+                });
+
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.PagoLiquidacionMetodo", b =>
+                {
+                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.PagoLiquidacion", "PagoLiquidacion")
+                        .WithMany("MetodosPago")
+                        .HasForeignKey("PagoLiquidacionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PagoLiquidacion");
+                });
+
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Planilla", b =>
                 {
                     b.HasOne("CentroSenderos_2026_BD.Datos.Entity.TipoPlanilla", "TipoPlanilla")
@@ -1993,6 +2170,13 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Navigation("Telefonos");
 
                     b.Navigation("TurnoPacientes");
+                });
+
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.PagoLiquidacion", b =>
+                {
+                    b.Navigation("Imputaciones");
+
+                    b.Navigation("MetodosPago");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Profesional", b =>
