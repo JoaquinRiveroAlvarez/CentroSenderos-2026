@@ -307,16 +307,18 @@
     white-space: nowrap;
 }
 
+    /* CUD: Sí — verde fuerte */
     .cud-indicator.has-cud {
-        border-color: #d2dfc8;
-        background: #edf4e7;
-        color: #526c46;
+        border-color: #15803d;
+        background: #15803d;
+        color: #ffffff;
     }
 
+    /* CUD: No — rojo fuerte */
     .cud-indicator.no-cud {
-        border-color: #e1e1d9;
-        background: #f5f5f1;
-        color: #777d70;
+        border-color: #b91c1c;
+        background: #b91c1c;
+        color: #ffffff;
     }
 
 .pacientes-footer {

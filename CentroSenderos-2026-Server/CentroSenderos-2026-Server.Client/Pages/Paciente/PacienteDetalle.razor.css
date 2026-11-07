@@ -385,3 +385,97 @@ button:focus-visible {
     }
 }
 /* #endregion */
+
+/* #region Acceso al próximo o último turno */
+.detalle-turno-acceso {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    max-width: 300px;
+}
+
+.detalle-turno-ayuda {
+    color: #747d6b;
+    font-size: 11px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.detalle-btn-turnos:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    background: #f5f6f2;
+    border-color: #dedfd7;
+}
+
+.detalle-turno-reintentar {
+    padding: 3px 0;
+    border: 0;
+    background: transparent;
+    color: #556f4f;
+    font: inherit;
+    font-size: 12px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+@media (max-width: 480px) {
+    .detalle-turno-acceso {
+        flex: 1 1 100%;
+        max-width: none;
+        align-items: stretch;
+        order: -1;
+    }
+
+        .detalle-turno-acceso .detalle-btn-turnos {
+            width: 100%;
+        }
+}
+/* #endregion */
+
+/* #region CUD destacado */
+.dato-tarjeta .cud-detalle {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 7px;
+    margin-top: 4px;
+    padding: 8px 12px;
+    border: 1px solid;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+    .dato-tarjeta .cud-detalle.con-cud {
+        background: #15803d;
+        border-color: #15803d;
+    }
+
+    .dato-tarjeta .cud-detalle.sin-cud {
+        background: #b91c1c;
+        border-color: #b91c1c;
+    }
+/* #endregion */
+
+/*#region Alinear Cerrar, Ver turno y Editar*/
+.detalle-acciones {
+    align-items: flex-start;
+}
+
+    .detalle-acciones > .detalle-btn-cerrar,
+    .detalle-acciones > .detalle-btn-editar,
+    .detalle-turno-acceso > .detalle-btn-turnos {
+        min-height: 44px;
+        box-sizing: border-box;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+.detalle-turno-acceso {
+    align-self: flex-start;
+}
+/*#endregion*/
