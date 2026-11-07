@@ -12,6 +12,8 @@ namespace CentroSenderos_2026_Shared.DTO
         public int? TipoObraSocialId { get; set; }
 
         public string? NombreObraSocial { get; set; }
+        public string? NombreDiagnostico { get; set; }
         public EnumAsistenciaPaciente? Asistencia { get; set; }
+
     }
 }

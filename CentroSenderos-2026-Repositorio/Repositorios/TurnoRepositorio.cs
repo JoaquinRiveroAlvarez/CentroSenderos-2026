@@ -135,6 +135,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
                             TipoObraSocialId = relacion.TipoObraSocialId,
                             NombreObraSocial = relacion.NombreObraSocial,
+                            NombreDiagnostico =
+                            relacion.Pacientes != null &&
+                            relacion.Pacientes.TipoDiagnosticos != null
+                                ? relacion.Pacientes.TipoDiagnosticos.Tipo
+                                : null, 
                             Asistencia = relacion.Asistencia
                         })
                         .ToList()
@@ -295,6 +300,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
                             TipoObraSocialId = relacion.TipoObraSocialId,
                             NombreObraSocial = relacion.NombreObraSocial,
+                            NombreDiagnostico =
+                            relacion.Pacientes != null &&
+                            relacion.Pacientes.TipoDiagnosticos != null
+                                ? relacion.Pacientes.TipoDiagnosticos.Tipo
+                                : null,
                             Asistencia = relacion.Asistencia
                         })
                         .ToList()

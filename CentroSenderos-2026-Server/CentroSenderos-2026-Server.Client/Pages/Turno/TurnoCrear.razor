@@ -513,7 +513,13 @@
 
                                                 <span class="paciente-chip-datos">
                                                     <strong>@paciente.Nombre</strong>
-                                                    <span>@MostrarDiagnostico(paciente)</span>
+                                                    <span>
+                                                        @(string.IsNullOrWhiteSpace(paciente.TipoObraSocialNombre)
+                                                            ? "Sin obra social registrada"
+                                                            : paciente.TipoObraSocialNombre)
+                                                        -
+                                                        @MostrarDiagnostico(paciente)
+                                                    </span>
                                                 </span>
 
                                                 <button type="button"

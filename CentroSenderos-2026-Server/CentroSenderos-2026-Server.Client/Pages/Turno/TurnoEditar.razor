@@ -588,7 +588,19 @@
                                             <span class="paciente-asistencia-icono"><i class="bi bi-person"></i></span>
                                             <div class="paciente-asistencia-identidad">
                                                 <strong>@ObtenerNombrePaciente(pacienteId)</strong>
-                                                <small>@ObtenerDiagnosticoPaciente(pacienteId)</small>
+                                                <small>
+                                                    @{
+                                                        var obraSocialPaciente = pacientes
+                                                            .FirstOrDefault(p => p.Id == pacienteId)
+                                                            ?.TipoObraSocialNombre;
+                                                    }
+
+                                                    @(string.IsNullOrWhiteSpace(obraSocialPaciente)
+                                                        ? "Sin obra social registrada"
+                                                        : obraSocialPaciente)
+                                                    -
+                                                    @ObtenerDiagnosticoPaciente(pacienteId)
+                                                </small>
                                             </div>
                                             <button type="button" class="paciente-asistencia-quitar"
                                                     title="Quitar paciente" disabled="@OperacionEnCurso"
