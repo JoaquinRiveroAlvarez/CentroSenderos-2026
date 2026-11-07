@@ -1100,6 +1100,8 @@
         Fecha = DateTime.Today,
         Hora = TimeOnly.MinValue
     };
+    [SupplyParameterFromQuery(Name = "duplicarId")]
+    public int? DuplicarId { get; set; }
 
     [SupplyParameterFromQuery(Name = "vistaOrigen")]
     public string? VistaOrigen { get; set; }
@@ -1282,6 +1284,8 @@
             _ => $"{modelo.PacienteIds.Count} pacientes seleccionados"
         };
 
+
+
     private static string MostrarDiagnostico(
         PacienteResumenDTO paciente)
     {
@@ -1369,6 +1373,10 @@
                     "No pudimos cargar los pacientes. " +
                     "Recargá la página e intentá nuevamente.";
             }
+            if (DuplicarId is > 0)
+            {
+                await PrecargarTurnoDuplicado();
+            }
         }
         catch (TaskCanceledException)
         {
@@ -1388,10 +1396,66 @@
                 "Ocurrió un problema al preparar el formulario. " +
                 "Recargá la página e intentá nuevamente.";
         }
+        
+        
         finally
         {
             cargando = false;
         }
+    }
+
+    private async Task PrecargarTurnoDuplicado()
+    {
+        var respuesta = await Http.Get<TurnoDTO>(
+            $"api/turno/{DuplicarId.Value}"
+        );
+
+        if (respuesta.Error || respuesta.Respuesta is null)
+        {
+            Mensaje = "No se pudo cargar el turno para duplicarlo.";
+            return;
+        }
+
+        var original = respuesta.Respuesta;
+
+        modelo.TipoTurnoId = original.TipoTurnoId;
+        modelo.TipoConsultorioId = original.TipoConsultorioId;
+
+        modelo.ProfesionalIds = original.ProfesionalIds.ToList();
+        modelo.PacienteIds = original.PacienteIds.ToList();
+
+        modelo.ProfesionalId = modelo.ProfesionalIds.FirstOrDefault();
+        modelo.PacienteId = modelo.PacienteIds.FirstOrDefault();
+
+        modelo.ProfesionalPrestaciones = original.ProfesionalPrestaciones
+            .Select(p => new TurnoProfesionalPrestacionDTO
+            {
+                ProfesionalId = p.ProfesionalId,
+                TipoPrestacionId = p.TipoPrestacionId
+            })
+            .ToList();
+
+        modelo.TipoPrestacionIds = modelo.ProfesionalPrestaciones
+            .Select(p => p.TipoPrestacionId)
+            .Distinct()
+            .ToList();
+
+        modelo.Id = 0;
+        modelo.EstadoTurno = EnumEstadoTurno.reservado;
+
+        modelo.Fecha = DateTime.Today;
+        modelo.Hora = TimeOnly.MinValue;
+
+        modelo.FrecuenciaRecurrencia =
+            EnumFrecuenciaRecurrenciaTurno.noRepite;
+
+        modelo.FechaHastaRecurrencia = null;
+        modelo.IntervaloRecurrencia = 1;
+        modelo.UnidadRecurrencia = null;
+        modelo.SerieTurnoId = null;
+        modelo.ModificarTodaLaSerie = false;
+
+        await CargarHorasDisponibles();
     }
 
     private void AplicarFechaOrigen()

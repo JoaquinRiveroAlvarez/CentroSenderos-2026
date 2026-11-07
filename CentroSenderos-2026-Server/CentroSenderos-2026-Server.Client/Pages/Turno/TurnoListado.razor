@@ -1091,7 +1091,7 @@
                             class="detalle-estado-guardar"
                             disabled="@(GuardandoDetalle ||
                                 estadoSeleccionado == turnoSeleccionado.EstadoTurno)"
-                            @onclick="GuardarEstadoTurno">
+                            @onclick="SolicitarCambioEstado">
 
                         <i class="bi bi-check2" aria-hidden="true"></i>
                         @(guardandoEstado ? "Guardando..." : "Guardar estado")
@@ -1120,12 +1120,89 @@
                 </button>
 
                 <button type="button"
+                class="detalle-btn-editar"
+                disabled="@GuardandoDetalle"
+                @onclick="DuplicarTurnoSeleccionado">
+                <i class="bi bi-copy"></i>
+                <span>Duplicar turno</span>
+                </button>   
+
+                <button type="button"
                         class="detalle-btn-editar"
                         disabled="@GuardandoDetalle"
                         @onclick="EditarTurnoSeleccionado">
                     <i class="bi bi-pencil"></i>
                     <span>Editar turno</span>
                 </button>
+
+                
+                @if (mostrarConfirmacionCancelacion && turnoSeleccionado is not null)
+                {
+                    <div class="modal-backdrop-custom">
+                        <section class="modal-cancelacion"
+                                 role="dialog"
+                                 aria-modal="true"
+                                 aria-label="Confirmar cancelación de turno">
+
+                            <div class="modal-cancelacion-icono">
+                                <i class="bi bi-exclamation-circle"></i>
+                            </div>
+
+                            <h3>Cancelar turno</h3>
+
+                            <p>
+                                Estás por cancelar el turno del
+                                <strong>
+                                    @turnoSeleccionado.FechaInicio.ToString("dd/MM/yyyy")
+                                </strong>.
+                            </p>
+
+                            @if (turnoSeleccionado.SerieTurnoId.HasValue)
+                            {
+                                <div class="modal-cancelacion-opciones">
+                                    <label>
+                                        <input type="radio"
+                                               name="alcanceCancelacion"
+                                               checked="@(!cancelarTurnosSiguientes)"
+                                               @onchange="() => cancelarTurnosSiguientes = false" />
+                                        Solo este turno
+                                    </label>
+
+                                    <label>
+                                        <input type="radio"
+                                               name="alcanceCancelacion"
+                                               checked="@cancelarTurnosSiguientes"
+                                               @onchange="() => cancelarTurnosSiguientes = true" />
+                                        Este turno y los siguientes
+                                    </label>
+                                </div>
+                            }
+
+                            <p class="modal-cancelacion-aviso">
+                                Los turnos cancelados liberarán sus horarios.
+                                No se eliminarán los registros ni las asistencias.
+                            </p>
+
+                            <div class="modal-cancelacion-acciones">
+                                <button type="button"
+                                        class="detalle-btn-cerrar"
+                                        disabled="@guardandoEstado"
+                                        @onclick="CerrarConfirmacionCancelacion">
+                                    Volver
+                                </button>
+
+                                <button type="button"
+                                        class="btn-confirmar-cancelacion"
+                                        disabled="@guardandoEstado"
+                                        @onclick="ConfirmarCancelacionTurno">
+                                    @(guardandoEstado ? "Cancelando..." : "Confirmar cancelación")
+                                </button>
+                            </div>
+
+                        </section>
+                    </div>
+                }
+
 
             </footer>
 
@@ -1174,6 +1251,8 @@
     private bool guardandoEstado;
     private bool errorEstado;
     private string mensajeEstado = string.Empty;
+    private bool mostrarConfirmacionCancelacion;
+    private bool cancelarTurnosSiguientes;  
 
     private int? pacienteGuardandoAsistencia;
     private int? pacienteMensajeAsistencia;
@@ -2214,6 +2293,24 @@
         );
     }
 
+    private void DuplicarTurnoSeleccionado()
+    {
+        if (GuardandoDetalle || turnoSeleccionado is null)
+        {
+            return;
+        }
+
+        var vistaOrigen = ObtenerVistaActual();
+        var fechaOrigen = fechaSeleccionada.ToString("yyyy-MM-dd");
+
+        Nav.NavigateTo(
+            $"/turnos/crear?duplicarId={turnoSeleccionado.Id}" +
+            $"&vistaOrigen={vistaOrigen}" +
+            $"&fechaOrigen={fechaOrigen}" +
+            ObtenerFiltrosActualesParaUrl()
+        );
+    }
+
     private void IrACrear()
     {
         if (GuardandoDetalle)
@@ -2432,6 +2529,103 @@
             ? "Sin pacientes"
             : string.Join(", ", turno.NombresPacientes);
     }
+    private async Task SolicitarCambioEstado()
+    {
+        if (GuardandoDetalle || turnoSeleccionado is null)
+        {
+            return;
+        }
+
+        if (estadoSeleccionado == EnumEstadoTurno.cancelado)
+        {
+            cancelarTurnosSiguientes = false;
+            mostrarConfirmacionCancelacion = true;
+            return;
+        }
+
+        await GuardarEstadoTurno();
+    }
+
+    
+    private void CerrarConfirmacionCancelacion()
+    {
+        if (guardandoEstado)
+        {
+            return;
+        }
+
+        mostrarConfirmacionCancelacion = false;
+        cancelarTurnosSiguientes = false;
+        estadoSeleccionado =
+            turnoSeleccionado?.EstadoTurno ?? EnumEstadoTurno.reservado;
+    }
+
+    private async Task ConfirmarCancelacionTurno()
+    {
+        if (GuardandoDetalle || turnoSeleccionado is null)
+        {
+            return;
+        }
+
+        guardandoEstado = true;
+        mensajeEstado = string.Empty;
+        errorEstado = false;
+
+        try
+        {
+            var id = turnoSeleccionado.Id;
+            var cancelarSiguientes =
+                turnoSeleccionado.SerieTurnoId.HasValue &&
+                cancelarTurnosSiguientes;
+
+            var respuesta = await Http.Put<object, RespuestaDTO>(
+                $"api/turno/{id}/cancelar" +
+                $"?cancelarSiguientes={cancelarSiguientes.ToString().ToLowerInvariant()}",
+                new { }
+            );
+
+            if (respuesta.Error)
+            {
+                errorEstado = true;
+                mensajeEstado = respuesta.ObtenerError();
+                mostrarConfirmacionCancelacion = false;
+                estadoSeleccionado = turnoSeleccionado.EstadoTurno;
+                return;
+            }
+
+            turnoSeleccionado.EstadoTurno = EnumEstadoTurno.cancelado;
+            estadoSeleccionado = EnumEstadoTurno.cancelado;
+
+            if (cancelarSiguientes)
+            {
+                foreach (var turno in listaTurnos.Where(t =>
+                    t.SerieTurnoId == turnoSeleccionado.SerieTurnoId &&
+                    t.FechaInicio >= turnoSeleccionado.FechaInicio &&
+                    t.EstadoTurno == EnumEstadoTurno.reservado))
+                {
+                    turno.EstadoTurno = EnumEstadoTurno.cancelado;
+                }
+            }
+
+            mensajeEstado = respuesta.Respuesta?.mensaje
+                ?? "Cancelación realizada correctamente.";
+
+            mostrarConfirmacionCancelacion = false;
+            cancelarTurnosSiguientes = false;
+        }
+        catch
+        {
+            errorEstado = true;
+            mensajeEstado = "No pudimos cancelar los turnos. Intentá nuevamente.";
+            mostrarConfirmacionCancelacion = false;
+            estadoSeleccionado = turnoSeleccionado.EstadoTurno;
+        }
+        finally
+        {
+            guardandoEstado = false;
+        }
+    }
+
 
     private async Task GuardarEstadoTurno()
     {
@@ -2468,6 +2662,18 @@
 
             turno.EstadoTurno = nuevoEstado;
 
+            // Recargar los datos del turno para reflejar la asistencia.
+            var respuestaTurno = await Http.Get<TurnoDTO>(
+                $"api/turno/{turno.Id}"
+            );
+
+            if (!respuestaTurno.Error &&
+                respuestaTurno.Respuesta is not null)
+            {
+                turno.PacientesDetalle =
+                    respuestaTurno.Respuesta.PacientesDetalle;
+            }
+
             mensajeEstado = "Estado actualizado correctamente.";
         }
         catch
@@ -2483,8 +2689,7 @@
         }
     }
 
-    private static string ObtenerTextoAsistencia(
-        EnumAsistenciaPaciente? asistencia)
+    private static string ObtenerTextoAsistencia(EnumAsistenciaPaciente? asistencia)
     {
         return asistencia switch
         {
@@ -2494,8 +2699,7 @@
         };
     }
 
-    private static string ObtenerClaseAsistencia(
-        EnumAsistenciaPaciente? asistencia)
+    private static string ObtenerClaseAsistencia(EnumAsistenciaPaciente? asistencia)
     {
         return asistencia switch
         {
@@ -2509,9 +2713,7 @@
         };
     }
 
-    private async Task GuardarAsistenciaPaciente(
-        TurnoPacienteDetalleDTO paciente,
-        EnumAsistenciaPaciente? asistencia)
+    private async Task GuardarAsistenciaPaciente(TurnoPacienteDetalleDTO paciente,EnumAsistenciaPaciente? asistencia)
     {
         if (GuardandoDetalle ||
             turnoSeleccionado is null ||

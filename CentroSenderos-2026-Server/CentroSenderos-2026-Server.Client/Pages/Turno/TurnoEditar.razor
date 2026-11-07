@@ -105,12 +105,16 @@
                                     <input type="radio" name="alcanceEdicion"
                                            checked="@modelo.ModificarTodaLaSerie"
                                            @onchange="SeleccionarEdicionSerie" />
-                                    <span class="alcance-opcion-contenido"><strong>Turnos futuros de la serie</strong></span>
+                                    <strong>Este turno y los siguientes</strong>
                                 </label>
                             </div>
                             @if (modelo.ModificarTodaLaSerie)
                             {
-                                <p class="alcance-nota">Se modifican los turnos futuros; los anteriores conservan sus datos y fechas.</p>
+                                <p class="alcance-nota">
+                                    Los cambios se aplicarán desde este turno en adelante.
+                                    Las sesiones anteriores no se modificarán.
+                                    Las fechas originales de las sesiones se conservarán.
+                                </p>
                             }
                         </fieldset>
                     }
@@ -926,7 +930,9 @@
                         <div>
                             <strong>Alcance de la edición</strong>
                             <span>@(modelo.SerieTurnoId.HasValue
-                                ? (modelo.ModificarTodaLaSerie ? "Todos los turnos futuros de la serie" : "Solo este turno de la serie")
+                                    ? modelo.ModificarTodaLaSerie
+                                    ? "Este turno y los siguientes de la serie"
+                                    : "Solo este turno de la serie"
                                 : "Turno individual, sin serie asociada")</span>
                         </div>
                     </div>
@@ -1009,12 +1015,12 @@
                 <i class="bi bi-calendar-check"></i>
             </div>
 
-            <h2>¿Modificar los turnos futuros?</h2>
-
+                <h2>¿Modificar este turno y los siguientes?</h2>    
             <p>
-                Se actualizarán todos los turnos futuros de la serie.
-                Los turnos anteriores no se modificarán.
-            </p>
+                Se actualizará este turno y todas las sesiones posteriores
+                de la misma serie. Se conservarán sus fechas originales
+                y las sesiones anteriores no se modificarán.
+           </p>    
 
             <div class="modal-acciones">
 

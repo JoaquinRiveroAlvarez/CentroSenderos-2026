@@ -3499,3 +3499,102 @@
 }
 
 /* #endregion */
+
+
+
+
+/* #region Confirmación de cancelación */
+
+.modal-backdrop-custom {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    background: rgba(28, 37, 29, .55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-cancelacion {
+    width: 100%;
+    max-width: 440px;
+    padding: 28px;
+    background: #faf8f5;
+    border: 1px solid #e7e3dc;
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .18);
+    text-align: center;
+}
+
+.modal-cancelacion-icono {
+    font-size: 32px;
+    color: #b45345;
+    margin-bottom: 12px;
+}
+
+.modal-cancelacion h3 {
+    font-size: 21px;
+    color: #28362b;
+    margin-bottom: 12px;
+}
+
+.modal-cancelacion p {
+    color: #657064;
+    line-height: 1.5;
+}
+
+.modal-cancelacion-opciones {
+    display: grid;
+    gap: 10px;
+    margin: 22px 0;
+    text-align: left;
+}
+
+    .modal-cancelacion-opciones label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px;
+        background: #fff;
+        border: 1px solid #e7e3dc;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    .modal-cancelacion-opciones input {
+        accent-color: #556f4f;
+    }
+
+.modal-cancelacion-aviso {
+    font-size: 13px;
+}
+
+.modal-cancelacion-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.btn-confirmar-cancelacion {
+    padding: 11px 18px;
+    background: #b45345;
+    color: white;
+    border: none;
+    border-radius: 9px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .btn-confirmar-cancelacion:hover {
+        background: #963e33;
+    }
+
+    .btn-confirmar-cancelacion:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+    }
+
+/* #endregion */
+

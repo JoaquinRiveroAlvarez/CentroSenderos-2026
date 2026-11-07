@@ -1288,8 +1288,21 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         TurnoId = turno.Id,
                         PacienteId = pacienteId,
 
-                        Asistencia = asistenciasGuardadas
-                            .GetValueOrDefault(pacienteId),
+                        Asistencia = pacienteIds.Count == 1
+                            ? dto.EstadoTurno switch
+                            {
+                                EnumEstadoTurno.ausente =>
+                                    EnumAsistenciaPaciente.ausente,
+
+                                EnumEstadoTurno.atendido =>
+                                    EnumAsistenciaPaciente.asistio,
+
+                                EnumEstadoTurno.reservado =>
+                                    null,
+
+                                _ => asistenciasGuardadas.GetValueOrDefault(pacienteId)
+                            }
+                            : asistenciasGuardadas.GetValueOrDefault(pacienteId),
 
                         TipoObraSocialId = teniaObraSocialGuardada
                             ? datosGuardados!.TipoObraSocialId
@@ -1369,10 +1382,22 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             var serieTurnoId = turnoSeleccionado.SerieTurnoId.Value;
 
-            var inicioHoyUtc = DateTime.SpecifyKind(
-                DateTime.UtcNow.Date,
+            var fechaTurnoSeleccionado = turnoSeleccionado.FechaInicio.Date;
+
+            var fechaActual = DateTime.UtcNow.Date;
+
+            if (fechaTurnoSeleccionado < fechaActual)
+            {
+                throw new ApplicationException(
+                    "No se puede modificar una serie desde un turno pasado. " +
+                    "Seleccioná un turno de hoy o una fecha futura."
+                );
+            }
+
+            var fechaInicioAlcance = DateTime.SpecifyKind(
+                fechaTurnoSeleccionado,
                 DateTimeKind.Utc
-            );
+            );         
 
             var turnosSerie = await context.Turnos
                 .Include(turno => turno.TurnoProfesionales)
@@ -1381,8 +1406,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .Where(turno =>
                     turno.SerieTurnoId == serieTurnoId &&
                     turno.EstadoRegistro == EnumEstadoRegistro.activo &&
-                    turno.FechaInicio >= inicioHoyUtc
-                )
+                    turno.FechaInicio >= fechaInicioAlcance)
                 .OrderBy(turno => turno.FechaInicio)
                 .ToListAsync();
 
@@ -1728,10 +1752,25 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                                 TurnoId = turno.Id,
                                 PacienteId = pacienteId,
 
-                                Asistencia = asistenciasGuardadas
-                                    .GetValueOrDefault(
+                                Asistencia = pacienteIds.Count == 1
+                                ? dto.EstadoTurno switch
+                                {
+                                    EnumEstadoTurno.ausente =>
+                                        EnumAsistenciaPaciente.ausente,
+
+                                    EnumEstadoTurno.atendido =>
+                                        EnumAsistenciaPaciente.asistio,
+
+                                    EnumEstadoTurno.reservado =>
+                                        null,
+
+                                    _ => asistenciasGuardadas.GetValueOrDefault(
                                         (turno.Id, pacienteId)
-                                    ),
+                                    )
+                                }
+                                : asistenciasGuardadas.GetValueOrDefault(
+                                    (turno.Id, pacienteId)
+                                ),
 
                                 TipoObraSocialId = teniaObraSocialGuardada
                                     ? datosGuardados!.TipoObraSocialId
@@ -1845,9 +1884,109 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             turno.EstadoTurno = estado;
 
+            // Si hay un único paciente, sincronizar su asistencia.
+            var pacientesActivos = turno.TurnoPacientes
+                .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
+                .ToList();
+
+            if (pacientesActivos.Count == 1)
+            {
+                var paciente = pacientesActivos[0];
+
+                if (estado == EnumEstadoTurno.ausente)
+                {
+                    paciente.Asistencia = EnumAsistenciaPaciente.ausente;
+                }
+                else if (estado == EnumEstadoTurno.atendido)
+                {
+                    paciente.Asistencia = EnumAsistenciaPaciente.asistio;
+                }
+                else if (estado == EnumEstadoTurno.reservado)
+                {
+                    paciente.Asistencia = null;
+                }
+            }
+
+            // Con varios pacientes no se modifica la asistencia individual.
+            // Cancelar tampoco registra una ausencia.
+
             await context.SaveChangesAsync();
 
             return true;
+        }
+
+
+        public async Task<int> CancelarTurnos(int turnoId,bool cancelarSiguientes)
+        {
+            await using var transaccion =
+                await context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var turnoSeleccionado = await context.Turnos
+                    .FirstOrDefaultAsync(t =>
+                        t.Id == turnoId &&
+                        t.EstadoRegistro == EnumEstadoRegistro.activo);
+
+                if (turnoSeleccionado is null)
+                {
+                    throw new ApplicationException(
+                        "No encontramos el turno seleccionado.");
+                }
+
+                if (cancelarSiguientes &&
+                    !turnoSeleccionado.SerieTurnoId.HasValue)
+                {
+                    throw new ApplicationException(
+                        "Este turno no pertenece a una serie recurrente.");
+                }
+
+                List<Turno> turnosACancelar;
+
+                if (cancelarSiguientes)
+                {
+                    turnosACancelar = await context.Turnos
+                        .Where(t =>
+                            t.SerieTurnoId ==
+                                turnoSeleccionado.SerieTurnoId &&
+                            t.EstadoRegistro ==
+                                EnumEstadoRegistro.activo &&
+                            t.FechaInicio >=
+                                turnoSeleccionado.FechaInicio &&
+                            t.EstadoTurno ==
+                                EnumEstadoTurno.reservado)
+                        .OrderBy(t => t.FechaInicio)
+                        .ToListAsync();
+                }
+                else
+                {
+                    turnosACancelar = turnoSeleccionado.EstadoTurno ==
+                        EnumEstadoTurno.reservado
+                            ? new List<Turno> { turnoSeleccionado }
+                            : new List<Turno>();
+                }
+
+                if (turnosACancelar.Count == 0)
+                {
+                    throw new ApplicationException(
+                        "No hay turnos reservados para cancelar.");
+                }
+
+                foreach (var turno in turnosACancelar)
+                {
+                    turno.EstadoTurno = EnumEstadoTurno.cancelado;
+                }
+
+                await context.SaveChangesAsync();
+                await transaccion.CommitAsync();
+
+                return turnosACancelar.Count;
+            }
+            catch
+            {
+                await transaccion.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<bool> CambiarAsistenciaPaciente(int turnoId,int pacienteId,EnumAsistenciaPaciente? asistencia)

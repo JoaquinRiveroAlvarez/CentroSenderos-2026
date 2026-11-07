@@ -305,6 +305,42 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
+        [HttpPut("{id:int}/cancelar")]
+        public async Task<IActionResult> CancelarTurnos(int id,[FromQuery] bool cancelarSiguientes = false)
+        {
+            try
+            {
+                var cantidadCancelada = await repositorio.CancelarTurnos(
+                    id,
+                    cancelarSiguientes
+                );
+
+                var mensaje = cantidadCancelada == 1
+                    ? "Se canceló 1 turno correctamente."
+                    : $"Se cancelaron {cantidadCancelada} turnos correctamente.";
+
+                return Ok(new RespuestaDTO
+                {
+                    mensaje = mensaje
+                });
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(new RespuestaDTO
+                {
+                    mensaje = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return ErrorInterno(
+                    ex,
+                    "cancelar turnos",
+                    "No pudimos cancelar los turnos. Intentá nuevamente."
+                );
+            }
+        }
+
         [HttpPut("{turnoId:int}/pacientes/{pacienteId:int}/asistencia")]
         public async Task<IActionResult> CambiarAsistenciaPaciente(int turnoId,int pacienteId,[FromBody] TurnoPacienteAsistenciaDTO dto)
         {
