@@ -1,238 +1,116 @@
-﻿@page "/profesionales/detalle/{id:int}"
+﻿@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
 @inject IHttpServicio Http
 @inject NavigationManager Nav
-@rendermode InteractiveAuto
 
-<div class="detalle-profesional-page">
-
-    <button type="button"
-            class="back-button"
-            @onclick="Volver">
-        <i class="bi bi-arrow-left"></i>
-        <span>Volver a Profesionales</span>
-    </button>
-
-    <div class="detalle-title-row">
-        <h1>Detalle Profesional</h1>
-
-        <div class="badges-row">
-            @if (!string.IsNullOrWhiteSpace(modelo.RolAsignado))
+<div class="paciente-detalle-fondo" @onclick="Cerrar" @onkeydown="ProcesarTecla">
+    <section class="paciente-dialog" role="dialog" aria-modal="true" aria-labelledby="profesional-titulo" tabindex="-1" @ref="dialogo" @onclick:stopPropagation="true">
+        <header class="detalle-encabezado">
+            <div class="detalle-identidad"><span class="detalle-icono"><i class="bi bi-person-badge"></i></span><div><span>Detalle del profesional</span><h1 id="profesional-titulo">@(modelo?.Nombre ?? "Ficha del profesional")</h1></div></div>
+            <button type="button" class="detalle-cerrar" aria-label="Cerrar detalle" @onclick="Cerrar"><i class="bi bi-x-lg"></i></button>
+        </header>
+        <div class="detalle-contenido">
+            @if (Estado is "creado" or "actualizado")
             {
-                <span class="rol-badge">
-                    <i class="bi bi-person-badge"></i>
-                    @(modelo.RolAsignado == "admin" ? "Administrador" :
-                      modelo.RolAsignado == "equipo" ? "Equipo" :
-                      modelo.RolAsignado == "profesional" ? "Profesional" :
-                      modelo.RolAsignado == "AdministradorEquipo" ? "Administrador/Equipo" :
-                      modelo.RolAsignado)
-                </span>
+                <div class="detalle-exito" role="status"><i class="bi bi-check-circle"></i>@(Estado == "creado" ? "Profesional registrado correctamente." : "Los cambios se guardaron correctamente.")</div>
             }
-
-            @if (modelo.EsSocio)
+            @if (cargando)
             {
-                <span class="socio-badge">
-                    <i class="bi bi-star-fill"></i>
-                    Socio
-                </span>
+                <p class="detalle-mensaje" role="status">Cargando datos del profesional...</p>
+            }
+            else if (modelo != null)
+            {
+                <section class="detalle-contexto" aria-label="Identificación">
+                    <div><span>Área</span><strong>@Mostrar(modelo.Area)</strong></div>
+                    <div><span>CUIT</span><strong>@Mostrar(modelo.Cuit)</strong></div>
+                </section>
+                <div class="detalle-principal">
+                    <section class="detalle-panel">
+                        <h2 class="panel-titulo"><i class="bi bi-person-vcard"></i>Información profesional</h2>
+                        <div class="dato-tarjeta"><span>Matrícula profesional (M.P.)</span><strong>@Mostrar(modelo.MP)</strong></div>
+                        <div class="dato-tarjeta"><span>R.N.P.</span><strong>@Mostrar(modelo.RNP)</strong></div>
+                        <div class="dato-tarjeta"><span>Rol en el sistema</span><strong>@NombreRol(modelo.RolAsignado)</strong></div>
+                        @if (modelo.EsSocio)
+                        {
+                            <div class="dato-tarjeta"><strong><i class="bi bi-star-fill"></i>Socio del centro</strong></div>
+                        }
+                    </section>
+                    <section class="detalle-panel">
+                        <h2 class="panel-titulo"><i class="bi bi-telephone"></i>Datos de contacto</h2>
+                        <div class="dato-tarjeta"><span>Teléfono</span><strong>@Mostrar(modelo.Telefono)</strong></div>
+                        <div class="dato-tarjeta"><span>Email</span><strong>@Mostrar(modelo.Email)</strong></div>
+                    </section>
+                </div>
+                <section class="detalle-panel">
+                    <h2 class="panel-titulo"><i class="bi bi-clipboard2-check"></i>Prestaciones</h2>
+                    <div class="prestaciones-detalle">
+                        @foreach (var prestacion in modelo.TipoPrestacionNombres)
+                        {
+                            <span class="prestacion-badge">@prestacion</span>
+                        }
+                        @if (modelo.TipoPrestacionNombres.Count == 0)
+                        {
+                            <p class="detalle-mensaje">No tiene prestaciones asignadas.</p>
+                        }
+                    </div>
+                </section>
+            }
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <p class="detalle-error" role="alert">@Mensaje</p>
             }
         </div>
-    </div>
-
-    @if (cargando)
-    {
-        <div class="detalle-loading">Cargando datos del profesional...</div>
-    }
-    else if (!string.IsNullOrWhiteSpace(Mensaje))
-    {
-        <div class="detalle-mensaje">@Mensaje</div>
-    }
-    else
-    {
-        @if (Estado == "actualizado")
-        {
-            <div class="success-message">
-                <i class="bi bi-check-circle-fill"></i>
-                <div>
-                    <strong>Profesional actualizado</strong>
-                    <span>Los cambios se guardaron correctamente.</span>
-                </div>
-            </div>
-        }
-        else if (Estado == "creado")
-        {
-            <div class="success-message">
-                <i class="bi bi-check-circle-fill"></i>
-                <div>
-                    <strong>Profesional registrado</strong>
-                    <span>El profesional fue registrado correctamente.</span>
-                </div>
-            </div>
-        }
-
-        <div class="profesional-detail">
-
-            <!-- 01 - INFORMACIÓN PERSONAL -->
-            <section class="form-section">
-                <div class="section-title">
-                    <span class="section-number">01</span>
-                    <span>Información Personal</span>
-                </div>
-                <div class="form-grid form-grid-2">
-                    <div class="field-group">
-                        <label>Nombre completo</label>
-                        <div class="form-value">@MostrarValor(modelo.Nombre)</div>
-                    </div>
-                    <div class="field-group">
-                        <label>CUIT</label>
-                        <div class="form-value">@MostrarValor(modelo.Cuit)</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 02 - INFORMACIÓN PROFESIONAL -->
-            <section class="form-section">
-
-                <div class="section-title">
-                    <span class="section-number">02</span>
-                    <span>Información Profesional</span>
-                </div>
-
-                <div class="form-grid form-grid-3">
-
-                    <div class="field-group">
-                        <label>Área</label>
-
-                        <div class="form-value">
-                            @MostrarValor(modelo.Area)
-                        </div>
-                    </div>
-
-                    <div class="field-group">
-                        <label>M.P.</label>
-
-                        <div class="form-value">
-                            @MostrarValor(modelo.MP)
-                        </div>
-                    </div>
-
-                    <div class="field-group">
-                        <label>R.N.P.</label>
-
-                        <div class="form-value">
-                            @MostrarValor(modelo.RNP)
-                        </div>
-                    </div>
-
-                    <div class="field-group prestaciones-field">
-                        <label>Prestaciones</label>
-
-                        @if (modelo.TipoPrestacionNombres.Count > 0)
-                        {
-                            <div class="prestaciones-detalle">
-
-                                @foreach (var prestacion
-                                    in modelo.TipoPrestacionNombres)
-                                {
-                                    <span class="prestacion-badge">
-                                        <i class="bi bi-check-circle"></i>
-                                        @prestacion
-                                    </span>
-                                }
-
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="form-value">
-                                No tiene prestaciones asignadas
-                            </div>
-                        }
-
-                    </div>
-
-                </div>
-
-            </section>
-
-            <!-- 03 - DATOS DE CONTACTO -->
-            <section class="form-section">
-
-                <div class="section-title">
-                    <span class="section-number">03</span>
-                    <span>Datos de Contacto</span>
-                </div>
-
-                <div class="form-grid form-grid-2">
-
-                    <div class="field-group">
-                        <label>Teléfono</label>
-
-                        <div class="form-value">
-                            @MostrarValor(modelo.Telefono)
-                        </div>
-                    </div>
-
-                    <div class="field-group">
-                        <label>Email</label>
-
-                        <div class="form-value">
-                            @MostrarValor(modelo.Email)
-                        </div>
-                    </div>
-
-                </div>
-
-            </section>
-
-            <!-- ACCIONES -->
-            <div class="form-actions">
-                <button type="button"
-                        class="edit-button"
-                        @onclick="Editar">
-                    <i class="bi bi-pencil-square"></i>
-                    <span>Editar Profesional</span>
-                </button>
-            </div>
-        </div>
-    }
+        <footer class="detalle-acciones">
+            <button type="button" class="detalle-btn-cerrar" @onclick="Cerrar">Cerrar</button>
+            @if (!cargando && modelo != null)
+            {
+                <button type="button" class="detalle-btn-turnos" @onclick="VerTurnos"><i class="bi bi-calendar3"></i>Ver turnos</button>
+                <button type="button" class="detalle-btn-editar" @onclick="Editar"><i class="bi bi-pencil-square"></i>Editar profesional</button>
+            }
+        </footer>
+    </section>
 </div>
-
 @code {
-    [Parameter] public int id { get; set; }
-    [SupplyParameterFromQuery(Name = "estado")] public string? Estado { get; set; }
-
-    private ProfesionalDTO modelo = CrearModeloVacio();
+    [Parameter] public int Id { get; set; }
+    [Parameter] public string? Estado { get; set; }
+    [Parameter] public string ContextoListado { get; set; } = "/profesionales";
+    [Parameter] public EventCallback OnCerrar { get; set; }
+    private ProfesionalDTO? modelo;
     private bool cargando = true;
     private string Mensaje = "";
-
-    protected override async Task OnInitializedAsync() => await CargarProfesional();
-
-    private async Task CargarProfesional()
+    private int? idCargado;
+    private ElementReference dialogo;
+    private bool enfocar = true;
+    protected override async Task OnParametersSetAsync()
     {
+        if (idCargado == Id) return;
+        idCargado = Id;
+        modelo = null;
         cargando = true;
         Mensaje = "";
-        var resp = await Http.Get<ProfesionalDTO>($"api/profesional/{id}");
-        modelo = !resp.Error && resp.Respuesta != null ? resp.Respuesta : CrearModeloVacio();
-        if (resp.Error) Mensaje = resp.ObtenerError();
-        cargando = false;
+        try
+        {
+            var resp = await Http.Get<ProfesionalDTO>($"api/profesional/{Id}");
+            if (!resp.Error && resp.Respuesta != null)
+            {
+                modelo = resp.Respuesta;
+                modelo.TipoPrestacionNombres ??= new();
+            }
+            else Mensaje = resp.Error ? resp.ObtenerError() : "No se encontró el profesional.";
+        }
+        catch { Mensaje = "No pudimos cargar el profesional. Cerrá la ficha e intentá nuevamente."; }
+        finally { cargando = false; }
     }
-
-    private void Editar() => Nav.NavigateTo($"/profesionales/editar/{id}");
-    private void Volver() => Nav.NavigateTo("/profesionales");
-
-    private static string MostrarValor(object? valor) =>
-        string.IsNullOrWhiteSpace(valor?.ToString()) ? "—" : valor.ToString()!;
-
-    private static ProfesionalDTO CrearModeloVacio() => new()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Nombre = string.Empty,
-        Area = string.Empty,
-        Cuit = string.Empty,
-        MP = string.Empty,
-        RNP = string.Empty,
-        Telefono = string.Empty,
-        Email = string.Empty,
-        RolAsignado = string.Empty
-    };
+        if (enfocar) { enfocar = false; await dialogo.FocusAsync(); }
+    }
+    private Task Cerrar() => OnCerrar.InvokeAsync();
+    private async Task ProcesarTecla(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    { if (e.Key == "Escape") await Cerrar(); }
+    private void Editar() => Nav.NavigateTo($"/profesionales/editar/{Id}?volver=" + Uri.EscapeDataString(ContextoListado + (ContextoListado.Contains('?') ? "&" : "?") + $"detalle={Id}"));
+    private void VerTurnos() => Nav.NavigateTo($"/turnos?profesionales={Id}");
+    private static string Mostrar(object? valor) => string.IsNullOrWhiteSpace(valor?.ToString()) ? "—" : valor.ToString()!;
+    private static string NombreRol(string? rol) => rol switch { "admin" => "Administrador", "equipo" => "Equipo", "profesional" => "Profesional", "AdministradorEquipo" => "Administrador/Equipo", _ => Mostrar(rol) };
 }

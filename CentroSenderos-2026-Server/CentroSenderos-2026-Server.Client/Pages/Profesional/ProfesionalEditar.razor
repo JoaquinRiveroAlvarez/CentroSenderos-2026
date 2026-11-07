@@ -16,26 +16,13 @@
         <span>Volver</span>
     </button>
 
-    <div class="editar-title-row">
-        <h1>Editar Profesional</h1>
-
-        @if (!cargando && !errorCarga &&
-             !string.IsNullOrWhiteSpace(modelo.RolAsignado))
-        {
-            <span class="rol-badge">
-                <i class="bi bi-person-badge"></i>
-                @ObtenerNombreRol(modelo.RolAsignado)
-            </span>
-        }
-
-        @if (!cargando && !errorCarga && modelo.EsSocio)
-        {
-            <span class="socio-badge">
-                <i class="bi bi-star-fill"></i>
-                <span>Socio</span>
-            </span>
-        }
-    </div>
+    <header class="page-header">
+        <span class="page-heading-icon" aria-hidden="true"><i class="bi bi-person-badge"></i></span>
+        <div>
+            <h1>Editar profesional</h1>
+            <p>Actualizá sus datos personales, prestaciones e información de contacto.</p>
+        </div>
+    </header>
 
     @if (cargando)
     {
@@ -61,14 +48,14 @@
             <section class="form-section">
                 <div class="section-title">
                     <span class="section-number">01</span>
-                    <span>Información Personal</span>
+                    <span>Información personal</span>
                 </div>
 
                 <div class="form-grid form-grid-2">
                     <div class="field-group">
-                        <label>Nombre completo</label>
+                        <label for="profesionalNombre">Nombre completo</label>
 
-                        <InputText class="form-input"
+                        <InputText id="profesionalNombre" class="form-input"
                                    @bind-Value="modelo.Nombre"
                                    placeholder="Nombre completo" />
 
@@ -77,9 +64,9 @@
                     </div>
 
                     <div class="field-group">
-                        <label>CUIT</label>
+                        <label for="profesionalCuit">CUIT</label>
 
-                        <InputText class="form-input"
+                        <InputText id="profesionalCuit" class="form-input"
                                    @bind-Value="modelo.Cuit"
                                    placeholder="Ej: 20-12345678-9" />
 
@@ -92,14 +79,79 @@
             <section class="form-section">
                 <div class="section-title">
                     <span class="section-number">02</span>
-                    <span>Información Profesional</span>
+                    <span>Información profesional</span>
                 </div>
 
                 <div class="form-grid form-grid-3">
+
+
+                    <div class="field-group">
+                        <label for="areaProfesional">Área</label>
+
+                        <InputSelect id="areaProfesional"
+                                     class="form-input"
+                                     @bind-Value="modelo.Area"
+                                     @bind-Value:after="AlSeleccionarArea"
+                                     disabled="@(guardando || eliminando || listaTipoAreas.Count == 0)">
+
+                            <option value="">
+                                -- Seleccionar área --
+                            </option>
+
+                            @foreach (var area in listaTipoAreas.OrderBy(x => x.Tipo))
+                            {
+                                <option value="@area.Tipo">
+                                    @area.Tipo
+                                </option>
+                            }
+                        </InputSelect>
+
+                        <ValidationMessage For="@(() => modelo.Area)"
+                                           class="validation-message" />
+
+                        @if (!string.IsNullOrWhiteSpace(areaAnteriorSinCatalogo))
+                        {
+                            <span class="areas-help">
+                                El área anterior «@areaAnteriorSinCatalogo»
+                                no figura en el catálogo. Seleccioná una
+                                de las áreas disponibles.
+                            </span>
+                        }
+                        else if (listaTipoAreas.Count == 0)
+                        {
+                            <span class="areas-help">
+                                No hay áreas disponibles. Cargá un tipo de área
+                                desde Administración para poder editar este profesional.
+                            </span>
+                        }
+                    </div>
+
+                    <div class="field-group">
+                        <label for="profesionalMP">M.P. (Matrícula Profesional)</label>
+
+                        <InputText id="profesionalMP" class="form-input"
+                                   @bind-Value="modelo.MP"
+                                   placeholder="Ingresar M.P." />
+
+                        <ValidationMessage For="@(() => modelo.MP)"
+                                           class="validation-message" />
+                    </div>
+
+                    <div class="field-group">
+                        <label for="profesionalRNP">R.N.P.</label>
+
+                        <InputText id="profesionalRNP" class="form-input"
+                                   @bind-Value="modelo.RNP"
+                                   placeholder="Ingresar R.N.P." />
+
+                        <ValidationMessage For="@(() => modelo.RNP)"
+                                           class="validation-message" />
+                    </div>
                     <div class="field-group prestaciones-field">
-                        <label>Prestaciones</label>
+                        <label for="profesionalPrestaciones">Prestaciones</label>
 
                         <InputSelect class="form-input"
+                                     id="profesionalPrestaciones"
                                      @bind-Value="prestacionSeleccionadaId"
                                      @bind-Value:after="AgregarPrestacion"
                                      disabled="@(guardando || eliminando)">
@@ -147,83 +199,20 @@
                             </span>
                         }
                     </div>
-
-                    <div class="field-group">
-                        <label for="areaProfesional">Área</label>
-
-                        <InputSelect id="areaProfesional"
-                                     class="form-input"
-                                     @bind-Value="modelo.Area"
-                                     @bind-Value:after="AlSeleccionarArea"
-                                     disabled="@(guardando || eliminando || listaTipoAreas.Count == 0)">
-
-                            <option value="">
-                                -- Seleccionar área --
-                            </option>
-
-                            @foreach (var area in listaTipoAreas.OrderBy(x => x.Tipo))
-                            {
-                                <option value="@area.Tipo">
-                                    @area.Tipo
-                                </option>
-                            }
-                        </InputSelect>
-
-                        <ValidationMessage For="@(() => modelo.Area)"
-                                           class="validation-message" />
-
-                        @if (!string.IsNullOrWhiteSpace(areaAnteriorSinCatalogo))
-                        {
-                            <span class="areas-help">
-                                El área anterior «@areaAnteriorSinCatalogo»
-                                no figura en el catálogo. Seleccioná una
-                                de las áreas disponibles.
-                            </span>
-                        }
-                        else if (listaTipoAreas.Count == 0)
-                        {
-                            <span class="areas-help">
-                                No hay áreas disponibles. Cargá un tipo de área
-                                desde Administración para poder editar este profesional.
-                            </span>
-                        }
-                    </div>
-
-                    <div class="field-group">
-                        <label>M.P. (Matrícula Profesional)</label>
-
-                        <InputText class="form-input"
-                                   @bind-Value="modelo.MP"
-                                   placeholder="Ingresar M.P." />
-
-                        <ValidationMessage For="@(() => modelo.MP)"
-                                           class="validation-message" />
-                    </div>
-
-                    <div class="field-group">
-                        <label>R.N.P.</label>
-
-                        <InputText class="form-input"
-                                   @bind-Value="modelo.RNP"
-                                   placeholder="Ingresar R.N.P." />
-
-                        <ValidationMessage For="@(() => modelo.RNP)"
-                                           class="validation-message" />
-                    </div>
                 </div>
             </section>
 
             <section class="form-section">
                 <div class="section-title">
                     <span class="section-number">03</span>
-                    <span>Datos de Contacto</span>
+                    <span>Datos de contacto</span>
                 </div>
 
                 <div class="form-grid form-grid-2">
                     <div class="field-group">
-                        <label>Teléfono</label>
+                        <label for="profesionalTelefono">Teléfono</label>
 
-                        <InputText class="form-input"
+                        <InputText id="profesionalTelefono" class="form-input"
                                    @bind-Value="modelo.Telefono"
                                    placeholder="Ej: +54 351 1234567" />
 
@@ -232,9 +221,9 @@
                     </div>
 
                     <div class="field-group">
-                        <label>Email</label>
+                        <label for="profesionalEmail">Email</label>
 
-                        <InputText class="form-input"
+                        <InputText id="profesionalEmail" class="form-input"
                                    @bind-Value="modelo.Email"
                                    placeholder="Ej: profesional@senderos.com" />
 
@@ -247,14 +236,15 @@
             <section class="form-section">
                 <div class="section-title">
                     <span class="section-number">04</span>
-                    <span>Usuario del Sistema</span>
+                    <span>Usuario del sistema</span>
                 </div>
 
                 <div class="form-grid form-grid-2">
                     <div class="field-group">
-                        <label>Rol</label>
+                        <label for="profesionalRol">Rol</label>
 
                         <InputSelect class="form-input"
+                                     id="profesionalRol"
                                      @bind-Value="modelo.RolAsignado"
                                      disabled="@(guardando || eliminando)">
 
@@ -295,7 +285,7 @@
                         disabled="@(guardando || eliminando)"
                         @onclick="AbrirConfirmacionEliminar">
                     <i class="bi bi-trash"></i>
-                    <span>Eliminar Profesional</span>
+                    <span>Eliminar profesional</span>
                 </button>
 
                 <div class="form-actions-right">
@@ -317,7 +307,7 @@
                         }
                         else
                         {
-                            <span>Guardar Profesional</span>
+                            <span>Guardar profesional</span>
                         }
                     </button>
                 </div>
@@ -386,6 +376,30 @@
 }
 
 @code {
+    [SupplyParameterFromQuery(Name = "volver")]
+    public string? VolverA { get; set; }
+
+    private string ContextoListado => !string.IsNullOrEmpty(VolverA) &&
+        (VolverA == "/profesionales" || VolverA.StartsWith("/profesionales?", StringComparison.Ordinal))
+        ? VolverA : "/profesionales";
+
+    private string UrlFicha => ContextoListado == "/profesionales"
+        ? $"/profesionales?detalle={id}" : ContextoListado;
+    private string ListadoSinDetalle
+    {
+        get
+        {
+            var partes = ContextoListado.Split('?', 2);
+            var parametros = partes.Length == 2
+                ? partes[1].Split('&', StringSplitOptions.RemoveEmptyEntries)
+                    .Where(x => !x.StartsWith("detalle=", StringComparison.OrdinalIgnoreCase)
+                        && !x.StartsWith("estado=", StringComparison.OrdinalIgnoreCase))
+                : Enumerable.Empty<string>();
+            var consulta = string.Join("&", parametros);
+            return "/profesionales" + (consulta.Length > 0 ? "?" + consulta : "");
+        }
+    }
+
     [Parameter]
     public int id { get; set; }
 
@@ -601,7 +615,7 @@
             }
 
             Nav.NavigateTo(
-                $"/profesionales/detalle/{id}?estado=actualizado");
+                UrlFicha + (UrlFicha.Contains('?') ? "&" : "?") + "estado=actualizado");
         }
         catch
         {
@@ -651,7 +665,7 @@
             }
 
             mostrarConfirmacionEliminar = false;
-            Nav.NavigateTo("/profesionales?estado=eliminado");
+            Nav.NavigateTo(ListadoSinDetalle + (ListadoSinDetalle.Contains('?') ? "&" : "?") + "estado=eliminado");
         }
         catch
         {
@@ -678,12 +692,12 @@
 
     private void Cancelar()
     {
-        Nav.NavigateTo($"/profesionales/detalle/{id}");
+        Nav.NavigateTo(UrlFicha);
     }
 
     private void Volver()
     {
-        Nav.NavigateTo($"/profesionales/detalle/{id}");
+        Nav.NavigateTo(UrlFicha);
     }
 
     private static ProfesionalDTO CrearModeloVacio()

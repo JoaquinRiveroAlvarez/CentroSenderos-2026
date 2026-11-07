@@ -1,375 +1,283 @@
 ﻿@page "/profesionales"
+@page "/profesionales/detalle/{IdRuta:int}"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
+@using System.Globalization
+@using System.Text
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-@if (Estado == "eliminado")
-{
-    <div class="success-message">
-
-        <i class="bi bi-check-circle-fill"></i>
-
-        <div>
-            <strong>Profesional eliminado</strong>
-            <span>El profesional fue eliminado correctamente.</span>
-        </div>
-
-    </div>
-}
 <div class="profesionales-page">
-
-
-    <div class="profesionales-header">
-
-        <h1>Gestión de Profesionales</h1>
-
-        <div class="profesionales-actions">
-
-            <div class="search-box">
-                <i class="bi bi-search"></i>
-
-                <input type="text"
-                       placeholder="Buscar profesional..."
-                       @bind="textoBusqueda"
-                       @bind:event="oninput" />
+    <header class="profesionales-header">
+        @if (Estado == "eliminado")
+        {
+            <div class="success-message" role="status">
+                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                <div><strong>Profesional eliminado</strong><span>El profesional fue eliminado correctamente.</span></div>
             </div>
-
-            @*  boton de filtros deshabilitado por el momento 
-             
-         <button type="button"
-                    class="filter-button">
-                <i class="bi bi-funnel"></i>
-                <span>Filtros</span>
-            </button> *@
-
-            <button type="button"
-                    class="new-professional-button"
-                    @onclick="IrACrear">
-
-                <i class="bi bi-person-plus"></i>
-                <span>Nuevo Profesional</span>
-
-            </button>
-
+        }
+        <div class="profesionales-heading">
+            <span class="heading-icon" aria-hidden="true"><i class="bi bi-person-badge"></i></span>
+            <div><h1>Profesionales</h1><p>Consultá sus datos y abrí la ficha para ver el detalle.</p></div>
         </div>
-
-    </div>
-
-
+        <div class="profesionales-actions">
+            <div class="search-control">
+                <div class="search-box">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input type="text" aria-label="Buscar profesionales" aria-describedby="profesionales-busqueda-ayuda"
+                           placeholder="Buscar profesional..." @bind="textoBusqueda" @bind:event="oninput" />
+                    @if (!string.IsNullOrEmpty(textoBusqueda))
+                    {
+                        <button type="button" class="limpiar-icono" aria-label="Limpiar búsqueda"
+                                @onclick="() => textoBusqueda = string.Empty">
+                            <i class="bi bi-x-lg" aria-hidden="true"></i>
+                        </button>
+                    }
+                </div>
+                <p id="profesionales-busqueda-ayuda" class="search-help">Nombre, área, prestación, CUIT o contacto.</p>
+            </div>
+            <button type="button" class="new-professional-button" @onclick="IrACrear">
+                <i class="bi bi-person-plus" aria-hidden="true"></i><span>Nuevo profesional</span>
+            </button>
+        </div>
+    </header>
+    <section class="filtros-panel" aria-label="Filtros de profesionales">
+        <label>
+            <span class="filtro-titulo">Área</span>
+            <select @bind="areaFiltro">
+                <option value="">Todas</option>
+                @foreach (var area in Areas)
+                {
+                    <option value="@area">@area</option>
+                }
+            </select>
+        </label>
+        <label>
+            <span class="filtro-titulo">Prestación</span>
+            <select @bind="prestacionFiltro">
+                <option value="">Todas</option>
+                @foreach (var prestacion in Prestaciones)
+                {
+                    <option value="@prestacion">@prestacion</option>
+                }
+            </select>
+        </label>
+        <label>
+            <span class="filtro-titulo">Socio</span>
+            <select @bind="socioFiltro">
+                <option value="">Todos</option>
+                <option value="si">Socios</option>
+                <option value="no">No socios</option>
+            </select>
+        </label>
+        <button type="button" class="filter-button" @onclick="LimpiarFiltros">Limpiar filtros</button>
+    </section>
+    @if (!cargando && listaProfesionales?.Count > 0)
+    {
+        <div class="orden-movil">
+            <select aria-label="Ordenar profesionales por" @bind="orden">
+                <option value="nombre">Nombre</option>
+                <option value="area">Área</option>
+                <option value="cuit">CUIT</option>
+            </select>
+            <button type="button" @onclick="() => descendente = !descendente">@(descendente ? "Descendente ↓" : "Ascendente ↑")</button>
+        </div>
+    }
     @if (cargando)
     {
-        <div class="profesionales-estado">
-            <div class="estado-spinner"></div>
-
-            <div>
-                <h3>Cargando profesionales</h3>
-                <p>Estamos obteniendo la información registrada.</p>
-            </div>
-        </div>
+        <div class="profesionales-estado" role="status"><div class="estado-spinner"></div><p>Cargando profesionales...</p></div>
     }
     else if (!string.IsNullOrWhiteSpace(Mensaje))
     {
-        <div class="profesionales-estado error">
-            <div class="estado-icono">
-                <i class="bi bi-exclamation-circle"></i>
-            </div>
-
-            <div>
-                <h3>No pudimos cargar los profesionales</h3>
-                <p>@Mensaje</p>
-
-                <button type="button"
-                        class="estado-button secundario"
-                        @onclick="CargarProfesionales">
-                    <i class="bi bi-arrow-clockwise"></i>
-                    Reintentar
-                </button>
-            </div>
-        </div>
+        <div class="profesionales-estado error" role="alert"><div><h3>No pudimos cargar los profesionales</h3><p>@Mensaje</p><button type="button" class="estado-button secundario" @onclick="CargarProfesionales">Reintentar</button></div></div>
     }
-    else if (listaProfesionales == null || listaProfesionales.Count == 0)
+    else if (listaProfesionales?.Count == 0)
     {
-        <div class="profesionales-estado">
-            <div class="estado-icono">
-                <i class="bi bi-person-workspace"></i>
-            </div>
 
-            <div>
-                <h3>No hay profesionales registrados</h3>
-                <p>
-                    Todavía no se registraron profesionales en Senderos.
-                </p>
-
-                <button type="button"
-                        class="estado-button principal"
-                        @onclick="IrACrear">
-                    <i class="bi bi-person-plus"></i>
-                    Nuevo Profesional
-                </button>
-            </div>
-        </div>
+        <div class="profesionales-estado"><div><h3>No hay profesionales registrados</h3><p>Agregá el primer profesional con el botón Nuevo profesional.</p></div></div>
     }
     else if (!ProfesionalesFiltrados.Any())
     {
-        <div class="profesionales-estado">
-            <div class="estado-icono">
-                <i class="bi bi-search"></i>
-            </div>
 
-            <div>
-                <h3>No encontramos resultados</h3>
-
-                <p>
-                    No hay profesionales que coincidan con
-                    <strong>"@textoBusqueda"</strong>.
-                </p>
-
-                <button type="button"
-                        class="estado-button secundario"
-                        @onclick="LimpiarBusqueda">
-                    <i class="bi bi-x-circle"></i>
-                    Limpiar búsqueda
-                </button>
-            </div>
-        </div>
+        <div class="profesionales-estado"><div><h3>No encontramos resultados</h3><p>Probá con otra búsqueda o limpiá los filtros.</p><button type="button" class="estado-button secundario" @onclick="LimpiarFiltros">Limpiar todo</button></div></div>
     }
     else
     {
         <div class="profesionales-card">
-
             <div class="profesionales-table-wrapper">
-
                 <table class="profesionales-table">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Prestaciones</th>
-                            <th>Área</th>
-                            <th>M.P.</th>
-                            <th>R.N.P.</th>
-                            <th>CUIT</th>
-                            <th>Teléfono</th>
-                            <th>Email</th>
-                        </tr>
-                    </thead>
-
+                    <thead><tr><th aria-sort='@AriaOrden("nombre")'><button type="button" class="orden-columna" @onclick='() => CambiarOrden("nombre")'>Nombre<span aria-hidden="true">@IndicadorOrden("nombre")</span></button></th><th aria-sort='@AriaOrden("area")'><button type="button" class="orden-columna" @onclick='() => CambiarOrden("area")'>Área<span aria-hidden="true">@IndicadorOrden("area")</span></button></th><th>Prestaciones</th><th>Matrículas</th><th aria-sort='@AriaOrden("cuit")'><button type="button" class="orden-columna" @onclick='() => CambiarOrden("cuit")'>CUIT<span aria-hidden="true">@IndicadorOrden("cuit")</span></button></th><th>Contacto</th></tr></thead>
                     <tbody>
                         @foreach (var profesional in ProfesionalesFiltrados)
                         {
                             <tr @onclick="() => IrADetalle(profesional.Id)">
-
-                                <td class="profesional-nombre">
-                                    <div class="nombre-con-badges">
+                                <td data-label="Profesional">
+                                    <div class="professional-identity">
+                                        <i class="bi bi-person-badge" aria-hidden="true"></i><div class="nombre-con-badges">
+                                        <button type="button" class="nombre-enlace" @onclick="() => IrADetalle(profesional.Id)" @onclick:stopPropagation="true">@MostrarValor(profesional.Nombre)</button>
                                         <div class="badges-row">
                                             @if (!string.IsNullOrWhiteSpace(profesional.RolAsignado))
                                             {
-                                                <span class="rol-badge">
-                                                    <i class="bi bi-person-badge"></i>
-                                                    @(profesional.RolAsignado == "admin" ? "Administrador" :
-                                                      profesional.RolAsignado == "equipo" ? "Equipo" :
-                                                      profesional.RolAsignado == "profesional" ? "Profesional" :
-                                                      profesional.RolAsignado == "AdministradorEquipo" ? "Administrador/Equipo" :
-                                                      profesional.RolAsignado)
-                                                </span>
+                                                <span class="rol-badge"><i class="bi bi-person-badge"></i>@NombreRol(profesional.RolAsignado)</span>
                                             }
-
                                             @if (profesional.EsSocio)
                                             {
-                                                <span class="socio-badge">
-                                                    <i class="bi bi-star-fill"></i>
-                                                    Socio
-                                                </span>
+                                                <span class="socio-badge"><i class="bi bi-star-fill"></i>Socio</span>
                                             }
                                         </div>
-
-                                        <span class="nombre-texto">@MostrarValor(profesional.Nombre)</span>
                                     </div>
-                                </td>
-
-
-                                <td class="prestaciones-cell">
-
-                                    @if (profesional.TipoPrestacionNombres.Count > 0)
+                                </div>
+                            </td>
+                            <td data-label="Área">@MostrarValor(profesional.Area)</td>
+                            <td data-label="Prestaciones" class="prestaciones-cell">
+                                <div class="prestaciones-listado">
+                                    @foreach (var prestacion in profesional.TipoPrestacionNombres)
                                     {
-                                        <div class="prestaciones-listado">
-
-                                            @foreach (var prestacion
-                                                in profesional.TipoPrestacionNombres)
-                                            {
-                                                <span class="prestacion-listado-badge">
-                                                    @prestacion
-                                                </span>
-                                            }
-
-                                        </div>
+                                        <span class="prestacion-listado-badge">@prestacion</span>
                                     }
-                                    else
+                                    @if (profesional.TipoPrestacionNombres.Count == 0)
                                     {
-                                        <span class="sin-dato">—</span>
+                                        <span class="sin-dato">Sin prestaciones</span>
                                     }
-
-                                </td>
-                                <td>@MostrarValor(profesional.Area)</td>
-                                <td>@MostrarValor(profesional.MP)</td>
-                                <td>@MostrarValor(profesional.RNP)</td>
-                                <td>@MostrarValor(profesional.Cuit)</td>
-                                <td>@MostrarValor(profesional.Telefono)</td>
-                                <td>@MostrarValor(profesional.Email)</td>
-                            </tr>
-                        }
-                    </tbody>
-
-                </table>
-
-
-            </div>
-
-            <div class="profesionales-footer">
-                Mostrando
-                <strong>@ProfesionalesFiltrados.Count()</strong>
-                de
-                <strong>@listaProfesionales.Count</strong>
-                profesionales
-            </div>
-
-        </div>
-    }
-
+                                </div>
+                            </td>
+                            <td data-label="Matrículas"><div class="datos-apilados"><span><small>M.P.</small> @MostrarValor(profesional.MP)</span><span><small>R.N.P.</small> @MostrarValor(profesional.RNP)</span></div></td>
+                            <td data-label="CUIT">@MostrarValor(profesional.Cuit)</td>
+                            <td data-label="Contacto"><div class="datos-apilados"><span><i class="bi bi-telephone"></i> @MostrarValor(profesional.Telefono)</span><span><i class="bi bi-envelope"></i> @MostrarValor(profesional.Email)</span></div></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div><div class="profesionales-footer">Mostrando <strong>@ProfesionalesFiltrados.Count()</strong> de <strong>@(listaProfesionales?.Count ?? 0)</strong> profesionales</div>
+    </div>
+}
 </div>
-
+@if (profesionalSeleccionadoId is int seleccionado)
+{
+    <ProfesionalDetalle @key="seleccionado" Id="seleccionado" Estado="@Estado" ContextoListado="@ContextoListado" OnCerrar="CerrarDetalle" />
+}
 
 @code {
-    [SupplyParameterFromQuery(Name = "estado")]
-    public string? Estado { get; set; }
-
+    [Parameter] public int? IdRuta { get; set; }
+    [SupplyParameterFromQuery(Name = "detalle")] public int? DetalleId { get; set; }
+    [SupplyParameterFromQuery(Name = "estado")] public string? Estado { get; set; }
+    [SupplyParameterFromQuery(Name = "q")] public string? BusquedaUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "area")] public string? AreaUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "prestacion")] public string? PrestacionUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "socio")] public string? SocioUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "orden")] public string? OrdenUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "desc")] public bool DescendenteUrl { get; set; }
+    private string orden = "nombre";
+    private bool descendente;
     private List<ProfesionalListadoDTO>? listaProfesionales;
-
     private bool cargando = true;
+    private string Mensaje = string.Empty;
+    private string textoBusqueda = string.Empty;
+    private string areaFiltro = string.Empty;
+    private string prestacionFiltro = string.Empty;
+    private string socioFiltro = string.Empty;
+    private int? profesionalSeleccionadoId;
+    private IEnumerable<string> Areas => (listaProfesionales ?? new()).Select(p => p.Area).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x);
+    private IEnumerable<string> Prestaciones => (listaProfesionales ?? new()).SelectMany(p => p.TipoPrestacionNombres).Distinct().OrderBy(x => x);
+    private bool HayFiltros => !string.IsNullOrWhiteSpace(textoBusqueda) || areaFiltro != "" || prestacionFiltro != "" || socioFiltro != "";
+    private string ContextoListado => "/profesionales?" + string.Join("&", new[] {
+        ("q", textoBusqueda), ("area", areaFiltro), ("prestacion", prestacionFiltro), ("socio", socioFiltro),
+        ("orden", orden), ("desc", descendente.ToString().ToLowerInvariant())
+    }.Where(x => !string.IsNullOrWhiteSpace(x.Item2)).Select(x => x.Item1 + "=" + Uri.EscapeDataString(x.Item2)));
 
-    private string Mensaje = "";
-
-    private string textoBusqueda = "";
-
-
-    private IEnumerable<ProfesionalListadoDTO> ProfesionalesFiltrados =>
-        listaProfesionales?
-            .Where(p =>
-                string.IsNullOrWhiteSpace(textoBusqueda) ||
-
-                (p.Nombre?.Contains(
-                    textoBusqueda,
-                    StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-                (p.Area?.Contains(
-                    textoBusqueda,
-                    StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-                p.TipoPrestacionNombres.Any(prestacion => prestacion.Contains(
-                    textoBusqueda,
-                    StringComparison.OrdinalIgnoreCase)) ||
-
-                (p.Cuit?.Contains(
-                    textoBusqueda,
-                    StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-                (p.MP?.ToString()?.Contains(
-                    textoBusqueda,
-                    StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-                (p.RNP?.ToString()?.Contains(
-                    textoBusqueda,
-                    StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-                (p.Telefono?.ToString()?.Contains(
-                    textoBusqueda,
-                    StringComparison.OrdinalIgnoreCase) ?? false)
-            )
-        ?? Enumerable.Empty<ProfesionalListadoDTO>();
-
-
-    protected override async Task OnInitializedAsync()
+    private IEnumerable<ProfesionalListadoDTO> ProfesionalesFiltrados
     {
-        await CargarProfesionales();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && Estado == "eliminado")
+        get
         {
-            await Task.Delay(5000);
+            var filtrados = (listaProfesionales ?? new())
+                .Where(p => (areaFiltro == "" || p.Area == areaFiltro)
+                    && (prestacionFiltro == "" || p.TipoPrestacionNombres.Contains(prestacionFiltro))
+                    && (socioFiltro == "" || p.EsSocio == (socioFiltro == "si"))
+                    && CoincideBusqueda(p));
 
-            Nav.NavigateTo(
-                "/profesionales",
-                replace: true
-            );
+            if (orden == "cuit")
+                return (descendente
+                    ? filtrados.OrderByDescending(p => CuitNumerico(p.Cuit))
+                    : filtrados.OrderBy(p => CuitNumerico(p.Cuit)))
+                    .ThenBy(p => Normalizar(p.Nombre)).ThenBy(p => p.Id);
+
+            Func<ProfesionalListadoDTO, string> clave = orden == "area"
+                ? p => Normalizar(p.Area) : p => Normalizar(p.Nombre);
+            return (descendente ? filtrados.OrderByDescending(clave) : filtrados.OrderBy(clave))
+                .ThenBy(p => Normalizar(p.Nombre)).ThenBy(p => p.Id);
         }
     }
 
+    private static long CuitNumerico(string? valor) => long.TryParse(
+        new string((valor ?? "").Where(char.IsDigit).ToArray()), out var numero) ? numero : long.MaxValue;
+
+    private void CambiarOrden(string columna)
+    {
+        descendente = orden == columna ? !descendente : false;
+        orden = columna;
+    }
+
+    private string IndicadorOrden(string columna) => orden == columna
+        ? (descendente ? "↓" : "↑") : "↕";
+
+    private string AriaOrden(string columna) => orden != columna ? "none"
+        : descendente ? "descending" : "ascending";
+
+    private bool CoincideBusqueda(ProfesionalListadoDTO p)
+    {
+        var terminos = Normalizar(textoBusqueda).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var texto = Normalizar(string.Join(" ", new[] { p.Nombre, p.Area, p.MP, p.RNP, p.Cuit, p.Telefono, p.Email }.Concat(p.TipoPrestacionNombres)));
+        var cuit = new string((p.Cuit ?? "").Where(char.IsDigit).ToArray());
+        var consulta = new string(textoBusqueda.Where(char.IsDigit).ToArray());
+        var esCuit = consulta.Length > 0 && textoBusqueda.All(c => char.IsDigit(c) || c == '-' || char.IsWhiteSpace(c));
+        return terminos.All(texto.Contains) || (esCuit && cuit.Contains(consulta));
+    }
+    private static string Normalizar(string? valor)
+    {
+        var texto = (valor ?? "").Normalize(NormalizationForm.FormD);
+        return new string(texto.Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark).ToArray()).ToLowerInvariant().Normalize(NormalizationForm.FormC);
+    }
+    protected override async Task OnInitializedAsync() => await CargarProfesionales();
+    protected override void OnParametersSet()
+    {
+        textoBusqueda = BusquedaUrl ?? "";
+        areaFiltro = AreaUrl ?? "";
+        prestacionFiltro = PrestacionUrl ?? "";
+        socioFiltro = SocioUrl is "si" or "no" ? SocioUrl : "";
+        orden = OrdenUrl is "area" or "cuit" ? OrdenUrl : "nombre";
+        descendente = DescendenteUrl;
+        profesionalSeleccionadoId = DetalleId ?? IdRuta;
+    }
+    private void LimpiarFiltros() { textoBusqueda = ""; areaFiltro = ""; prestacionFiltro = ""; socioFiltro = ""; }
+    private void IrADetalle(int id) => Nav.NavigateTo(ContextoListado + (ContextoListado.Contains('?') ? "&" : "?") + $"detalle={id}");
+    private void CerrarDetalle() => Nav.NavigateTo(ContextoListado, replace: true);
+    private void IrACrear() => Nav.NavigateTo("/profesionales/crear?volver=" + Uri.EscapeDataString(ContextoListado));
+    private static string MostrarValor(object? valor) => string.IsNullOrWhiteSpace(valor?.ToString()) ? "—" : valor.ToString()!;
+    private static string NombreRol(string rol) => rol switch { "admin" => "Administrador", "equipo" => "Equipo", "profesional" => "Profesional", "AdministradorEquipo" => "Administrador/Equipo", _ => rol };
     private async Task CargarProfesionales()
     {
         cargando = true;
-        Mensaje = "";
-        var resp = await Http.Get<List<ProfesionalListadoDTO>>( 
-            "api/profesional/ListaProfesional"
-        );
-
-        if (resp.Error &&
-            resp.HttpResponseMessage.StatusCode ==
-            System.Net.HttpStatusCode.NotFound)
+        Mensaje = string.Empty;
+        try
         {
-            listaProfesionales = new();
-            Mensaje = "";
+            var resp = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
+            if (resp.Error && resp.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+                listaProfesionales = new();
+            else
+            {
+                listaProfesionales = resp.Error ? new() : resp.Respuesta ?? new();
+                Mensaje = resp.Error ? resp.ObtenerError() : string.Empty;
+            }
         }
-        else
+        catch
         {
-            listaProfesionales =
-                resp.Error
-                    ? new()
-                    : resp.Respuesta ?? new();
-
-            Mensaje =
-                resp.Error
-                    ? resp.ObtenerError()
-                    : "";
+            Mensaje = "No pudimos cargar los profesionales. Intentá nuevamente.";
         }
-
-        cargando = false;
-    }
-
-
-    private void LimpiarBusqueda()
-    {
-        textoBusqueda = "";
-    }
-
- private void IrADetalle(int id)
-{
-    Nav.NavigateTo(
-        $"/profesionales/detalle/{id}"
-    );
-}
-
-
-    private void IrACrear()
-    {
-        Nav.NavigateTo(
-            "/profesionales/crear"
-        );
-    }
-
-
-    private static string MostrarValor(object? valor)
-    {
-        if (valor is null)
-            return "—";
-
-        var texto = valor.ToString();
-
-        return string.IsNullOrWhiteSpace(texto)
-            ? "—"
-            : texto;
+        finally
+        {
+            cargando = false;
+        }
     }
 }

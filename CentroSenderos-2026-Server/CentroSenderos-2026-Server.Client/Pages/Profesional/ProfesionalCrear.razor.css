@@ -1,117 +1,138 @@
-/* #region Página y navegación */
-
-/* Ocupa el ancho disponible en el área principal del sistema. */
-.crear-profesional-page {
+/* #region Página y cabecera */
+.crear-profesional-page, .editar-profesional-page {
     width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 8px 0 24px;
     box-sizing: border-box;
+    color: #384235;
 }
 
-    .crear-profesional-page h1 {
-        margin: 0 0 20px;
-        color: #556f4f;
-        font-size: 28px;
-        font-weight: 500;
-    }
-
-/* Regresa al listado sin guardar el formulario. */
 .back-button {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    margin: 0 0 14px;
-    padding: 0;
+    margin-bottom: 22px;
+    padding: 6px 0;
     border: 0;
     background: transparent;
-    color: #6f786a;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
+    color: #657461;
+    font: inherit;
+    font-size: 13px;
     cursor: pointer;
-    transition: color 0.2s ease;
 }
-
-    .back-button i {
-        font-size: 16px;
-        transition: transform 0.2s ease;
-    }
 
     .back-button:hover:not(:disabled) {
-        color: #556f4f;
+        color: #3e5739;
     }
 
-        .back-button:hover:not(:disabled) i {
-            transform: translateX(-3px);
-        }
-
-    .back-button:disabled {
-        opacity: 0.65;
-        cursor: not-allowed;
-    }
-
-/* #endregion */
-
-
-/* #region Formulario y secciones */
-
-/* Contiene los datos del profesional en una tarjeta. */
-.profesional-form {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 22px 24px;
-    border: 1px solid #e4e1dc;
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.96);
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
-}
-
-.form-section {
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
     margin-bottom: 26px;
 }
 
-/* Identifica cada sección con su número y nombre. */
-.section-title {
+.page-heading-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    border: 1px solid #dce5d7;
+    border-radius: 15px;
+    background: #eaf0e6;
+    color: #556f4f;
+    font-size: 23px;
+}
+
+.page-header h1 {
+    margin: 0 0 5px;
+    color: #435b3d;
+    font-size: 28px;
+    font-weight: 650;
+    line-height: 1.2;
+}
+
+.page-header p {
+    margin: 0;
+    color: #72796d;
+    font-size: 14px;
+    line-height: 1.5;
+}
+/* #endregion */
+
+/* #region Formulario y secciones */
+::deep .profesional-form {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 28px 30px 22px;
+    border: 1px solid #e7e3dc;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 5px 22px rgba(54, 65, 48, .035);
+}
+
+.form-section {
+    margin: 0 0 26px;
+    padding-bottom: 26px;
+    border-bottom: 1px solid #eeece6;
+}
+
+    .form-section:last-of-type {
+        margin-bottom: 0;
+        padding-bottom: 24px;
+        border-bottom: 0;
+    }
+
+.section-title, .section-title-content {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-    color: #9b7163;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    gap: 11px;
+}
+
+.section-title {
+    margin-bottom: 22px;
+    color: #475742;
+    font-size: 15px;
+    font-weight: 650;
+    line-height: 1.4;
+}
+
+.section-title-actions {
+    justify-content: space-between;
+    gap: 16px;
 }
 
 .section-number {
-    display: flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #f8e8df;
-    color: #9a6553;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    background: #f1eee7;
+    color: #87705c;
     font-size: 12px;
     font-weight: 700;
 }
 
-/* #endregion */
-
-
-/* #region Distribución de campos */
-
-/* Organiza los campos en una, dos o tres columnas según la sección. */
 .form-grid {
     display: grid;
-    gap: 18px;
-}
-
-.form-grid-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 20px;
 }
 
 .form-grid-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.form-grid-2, .form-grid-medical {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.contact-address {
+    grid-template-columns: 1fr;
+    margin-top: 22px;
 }
 
 .field-group {
@@ -120,70 +141,164 @@
     min-width: 0;
 }
 
-    .field-group label {
-        margin: 0 0 7px 6px;
-        color: #656565;
+    .field-group > label {
+        margin: 0 0 8px;
+        color: #5b6357;
         font-size: 13px;
         font-weight: 600;
-        text-transform: uppercase;
+        line-height: 1.5;
     }
-
 /* #endregion */
 
-
-/* #region Entradas y selectores */
-
-/* Aplica el mismo aspecto a InputText e InputSelect de Blazor. */
+/* #region Campos y validaciones */
 ::deep .form-input {
     width: 100%;
-    height: 44px;
+    height: 45px;
+    min-width: 0;
     box-sizing: border-box;
-    padding: 0 16px;
-    border: 1px solid #d9ddd6;
-    border-radius: 22px;
-    outline: none;
+    padding: 0 13px;
+    border: 1px solid #dcded5;
+    border-radius: 10px;
     background: #fff;
-    color: #444;
-    font-family: inherit;
+    color: #384235;
+    font: inherit;
     font-size: 14px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+    transition: border-color .18s, box-shadow .18s;
 }
 
     ::deep .form-input::placeholder {
-        color: #999;
+        color: #93978e;
         opacity: 1;
     }
 
-    ::deep .form-input:hover:not(:disabled) {
-        border-color: #bbc5b7;
+    ::deep .form-input:hover {
+        border-color: #b6c2af;
     }
 
     ::deep .form-input:focus {
         border-color: #789175;
-        box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .12);
     }
 
     ::deep .form-input.invalid {
-        border-color: #d8857e;
+        border-color: #c77a71;
     }
 
-    ::deep .form-input:disabled {
-        background: #f5f5f3;
-        color: #77736d;
-        cursor: not-allowed;
-    }
+::deep select.form-input {
+    padding-right: 28px;
+    cursor: pointer;
+}
 
+::deep input[type="date"].form-input {
+    color-scheme: light;
+}
+
+::deep .validation-message, .phone-validation {
+    margin: 7px 0 0;
+    color: #aa4b43;
+    font-size: 12px;
+    line-height: 1.5;
+}
 /* #endregion */
 
+/* #region Acciones y estados */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid #eeece6;
+}
 
-/* #region Prestaciones seleccionadas */
+.cancel-button, .save-button {
+    min-height: 44px;
+    padding: 10px 22px;
+    border-radius: 10px;
+}
 
-/* Extiende el selector de prestaciones a todo el ancho de la grilla. */
+.cancel-button {
+    min-width: 110px;
+    border: 1px solid #dbded4;
+    background: #fff;
+    color: #636e5d;
+}
+
+    .cancel-button:hover:not(:disabled) {
+        background: #f5f6f1;
+        border-color: #b8c1b0;
+    }
+
+.save-button {
+    min-width: 170px;
+    border: 1px solid #647b5b;
+    background: #647b5b;
+    color: #fff;
+}
+
+    .save-button:hover:not(:disabled) {
+        background: #52694a;
+        border-color: #52694a;
+    }
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+button:focus-visible {
+    outline: 3px solid #a4b89a;
+    outline-offset: 3px;
+}
+
+.form-message {
+    margin: 0 0 18px;
+    padding: 13px 16px;
+    border: 1px solid #efd0cc;
+    border-radius: 10px;
+    background: #fdf2f0;
+    color: #a94b44;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.crear-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 180px;
+    padding: 24px;
+    border: 1px solid #e7e3dc;
+    border-radius: 18px;
+    background: #fff;
+    color: #657461;
+    font-size: 14px;
+}
+
+.loading-spinner {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    border: 3px solid #e2e8dc;
+    border-top-color: #647b5b;
+    border-radius: 50%;
+    animation: girar .8s linear infinite;
+}
+
+@keyframes girar {
+    to {
+        transform: rotate(360deg);
+    }
+}
+/* #endregion */
+
+/* #region Prestaciones y ayuda de los campos */
 .prestaciones-field {
     grid-column: 1 / -1;
 }
 
-/* Presenta cada prestación agregada como una etiqueta removible. */
 .prestaciones-seleccionadas {
     display: flex;
     flex-wrap: wrap;
@@ -194,199 +309,164 @@
 .prestacion-chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    min-height: 34px;
+    gap: 7px;
+    max-width: 100%;
     padding: 6px 8px 6px 12px;
-    border: 1px solid #c8d2c4;
-    border-radius: 20px;
-    background: #dfe5dc;
-    color: #3f563a;
+    border: 1px solid #d6dfcf;
+    border-radius: 9px;
+    background: #f2f6ee;
+    color: #556f4f;
     font-size: 13px;
-    font-weight: 600;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
 .prestacion-chip-remove {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: none;
-    width: 22px;
-    height: 22px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
     padding: 0;
     border: 0;
-    border-radius: 50%;
+    border-radius: 6px;
     background: transparent;
-    color: #556f4f;
+    color: #647b5b;
     cursor: pointer;
 }
 
     .prestacion-chip-remove:hover:not(:disabled) {
-        background: #ef4545;
-        color: #fff;
+        background: #f7e7e2;
+        color: #a35c51;
     }
 
-    .prestacion-chip-remove:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-    }
-
-    .prestacion-chip-remove i {
-        font-size: 16px;
-        line-height: 1;
-    }
-
-.prestaciones-help {
-    display: block;
-    margin-top: 8px;
-    color: #77736d;
+.prestaciones-help, .areas-help {
+    margin-top: 7px;
+    color: #747d6f;
     font-size: 12px;
+    line-height: 1.5;
 }
 
-/* #endregion */
-
-
-/* #region Selector de área */
-
-/* Explica por qué no se puede seleccionar un área si el catálogo está vacío. */
-.areas-help {
-    display: block;
-    margin: 7px 0 0 6px;
-    color: #77736d;
-    font-size: 12px;
-}
-
-/* #endregion */
-
-
-/* #region Validación y mensajes */
-
-/* Deja cada error de validación debajo de su campo. */
-::deep .validation-message {
-    margin: 5px 0 0 6px;
-    color: #b54b43;
-    font-size: 13px;
-}
-
-/* Muestra los errores de carga o guardado del formulario. */
-.form-message {
-    margin-top: 12px;
-    padding: 12px 15px;
-    border: 1px solid #f0d3cf;
-    border-radius: 10px;
-    background: #fff1ee;
-    color: #a74740;
-    font-size: 14px;
-}
-
-/* #endregion */
-
-
-/* #region Acciones del formulario */
-
-/* Alinea Cancelar y Guardar al final del formulario. */
-.form-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 14px;
-    margin-top: 16px;
-}
-
-.cancel-button,
-.save-button {
+.cancel-button, .save-button {
     display: inline-flex;
-    height: 44px;
     align-items: center;
     justify-content: center;
-    box-sizing: border-box;
-    padding: 0 22px;
-    border-radius: 22px;
-    font-family: inherit;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-/* Sale sin crear el profesional. */
-.cancel-button {
-    min-width: 120px;
-    border: 1px solid #9d9d96;
-    background: #fff;
-    color: #555;
-    font-weight: 500;
-}
-
-    .cancel-button:hover:not(:disabled) {
-        border-color: #777770;
-        background: #f5f5f3;
-    }
-
-/* Envía el formulario para crear el profesional. */
-.save-button {
-    min-width: 170px;
     gap: 8px;
-    border: 0;
-    background: #647b5b;
-    color: #fff;
+    box-sizing: border-box;
+    font: inherit;
+    font-size: 13px;
     font-weight: 600;
-    transition: background 0.2s ease, transform 0.1s ease;
+    cursor: pointer;
+    transition: background .18s, border-color .18s;
 }
 
-    .save-button:hover:not(:disabled) {
-        background: #52694a;
-    }
+::deep .form-input:disabled {
+    background: #f5f6f1;
+    color: #77806f;
+    cursor: not-allowed;
+}
 
-    .save-button:active:not(:disabled) {
-        transform: scale(0.98);
-    }
-
-    .cancel-button:disabled,
-    .save-button:disabled {
-        opacity: 0.65;
-        cursor: not-allowed;
-    }
-
+.editar-loading {
+    padding: 24px;
+    border: 1px solid #e7e3dc;
+    border-radius: 18px;
+    background: #fff;
+    color: #657461;
+    font-size: 14px;
+}
 /* #endregion */
 
-
-/* #region Pantallas medianas */
-
-/* Reduce de tres a dos columnas cuando hay menos espacio. */
+/* #region Adaptación a pantallas pequeñas */
 @media (max-width: 900px) {
+    ::deep .profesional-form {
+        padding: 24px;
+    }
+
     .form-grid-3 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+        .form-grid-3 > .field-group:first-child {
+            grid-column: 1 / -1;
+        }
 }
 
-/* #endregion */
-
-
-/* #region Pantallas pequeñas */
-
-/* Apila los campos y botones para que se puedan usar en celular. */
 @media (max-width: 650px) {
-    .crear-profesional-page h1 {
-        font-size: 24px;
+    .page-header {
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
     }
 
-    .profesional-form {
-        padding: 20px;
-        border-radius: 16px;
+        .page-header h1 {
+            font-size: 24px;
+        }
+
+        .page-header p {
+            font-size: 13px;
+        }
+
+    .page-heading-icon {
+        width: 43px;
+        height: 43px;
+        font-size: 20px;
     }
 
-    .form-grid-2,
-    .form-grid-3 {
-        grid-template-columns: minmax(0, 1fr);
+    ::deep .profesional-form {
+        padding: 20px 16px;
+        border-radius: 15px;
+    }
+
+    .form-grid-3, .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        gap: 18px;
+    }
+
+    .section-title {
+        font-size: 14px;
+        margin-bottom: 18px;
+    }
+
+    .form-actions {
+        flex-wrap: wrap;
+    }
+
+    .cancel-button, .save-button {
+        min-width: 0;
+        padding: 10px 14px;
+        white-space: nowrap;
+    }
+
+    .cancel-button {
+        flex: 0 1 auto;
+    }
+
+    .save-button {
+        flex: 1 1 auto;
+    }
+}
+
+@media (max-width: 380px) {
+    .page-heading-icon {
+        display: none;
     }
 
     .form-actions {
         flex-direction: column-reverse;
         align-items: stretch;
     }
-
-    .cancel-button,
-    .save-button {
-        width: 100%;
-    }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    *, ::deep .form-input {
+        transition: none;
+    }
+
+    .loading-spinner {
+        animation-duration: 2s;
+    }
+}
 /* #endregion */

@@ -16,7 +16,13 @@
         <span>Volver</span>
     </button>
 
-    <h1>Crear Profesional</h1>
+    <header class="page-header">
+        <span class="page-heading-icon" aria-hidden="true"><i class="bi bi-person-badge"></i></span>
+        <div>
+            <h1>Crear profesional</h1>
+            <p>Registrá sus datos personales, prestaciones e información de contacto.</p>
+        </div>
+    </header>
 
     <EditForm Model="@modelo"
               OnValidSubmit="Grabar"
@@ -26,56 +32,103 @@
         <DataAnnotationsValidator />
 
         <section class="form-section">
-
             <div class="section-title">
                 <span class="section-number">01</span>
-                <span>Información Personal</span>
+                <span>Información personal</span>
             </div>
 
             <div class="form-grid form-grid-2">
-
                 <div class="field-group">
-                    <label>Nombre completo</label>
+                    <label for="profesionalNombre">Nombre completo</label>
 
-                    <InputText class="form-input"
+                    <InputText id="profesionalNombre" class="form-input"
                                @bind-Value="modelo.Nombre"
-                               placeholder="Insertar nombre completo" />
+                               placeholder="Nombre completo" />
 
                     <ValidationMessage For="@(() => modelo.Nombre)"
                                        class="validation-message" />
                 </div>
 
                 <div class="field-group">
-                    <label>CUIT</label>
+                    <label for="profesionalCuit">CUIT</label>
 
-                    <InputText class="form-input"
+                    <InputText id="profesionalCuit" class="form-input"
                                @bind-Value="modelo.Cuit"
                                placeholder="Ej: 20-12345678-9" />
 
                     <ValidationMessage For="@(() => modelo.Cuit)"
                                        class="validation-message" />
                 </div>
-
             </div>
-
         </section>
 
         <section class="form-section">
-
             <div class="section-title">
                 <span class="section-number">02</span>
-                <span>Información Profesional</span>
+                <span>Información profesional</span>
             </div>
 
             <div class="form-grid form-grid-3">
 
+
+                <div class="field-group">
+                    <label for="areaProfesional">Área</label>
+
+                    <InputSelect id="areaProfesional"
+                                 class="form-input"
+                                 @bind-Value="modelo.Area"
+                                 disabled="@(guardando || listaTipoAreas.Count == 0)">
+
+                        <option value="">
+                            -- Seleccionar área --
+                        </option>
+
+                        @foreach (var area in listaTipoAreas.OrderBy(x => x.Tipo))
+                        {
+                            <option value="@area.Tipo">
+                                @area.Tipo
+                            </option>
+                        }
+                    </InputSelect>
+
+                    <ValidationMessage For="@(() => modelo.Area)"
+                                       class="validation-message" />
+
+                    @if (!cargandoAreas && listaTipoAreas.Count == 0)
+                    {
+                        <span class="areas-help">Primero cargá un tipo de área desde Administración.</span>
+                    }
+                </div>
+
+                <div class="field-group">
+                    <label for="profesionalMP">M.P. (Matrícula Profesional)</label>
+
+                    <InputText id="profesionalMP" class="form-input"
+                               @bind-Value="modelo.MP"
+                               placeholder="Ingresar M.P." />
+
+                    <ValidationMessage For="@(() => modelo.MP)"
+                                       class="validation-message" />
+                </div>
+
+                <div class="field-group">
+                    <label for="profesionalRNP">R.N.P.</label>
+
+                    <InputText id="profesionalRNP" class="form-input"
+                               @bind-Value="modelo.RNP"
+                               placeholder="Ingresar R.N.P." />
+
+                    <ValidationMessage For="@(() => modelo.RNP)"
+                                       class="validation-message" />
+                </div>
                 <div class="field-group prestaciones-field">
-                    <label>Prestaciones</label>
+                    <label for="profesionalPrestaciones">Prestaciones</label>
 
                     <InputSelect class="form-input"
+                                 id="profesionalPrestaciones"
                                  @bind-Value="prestacionSeleccionadaId"
                                  @bind-Value:after="AgregarPrestacion"
-                                 disabled="@guardando">
+                                 disabled="@(guardando)">
 
                         <option value="">
                             -- Seleccionar prestación --
@@ -87,113 +140,53 @@
                                 @prestacion.Tipo
                             </option>
                         }
-
                     </InputSelect>
 
                     @if (modelo.TipoPrestacionIds.Count > 0)
                     {
                         <div class="prestaciones-seleccionadas">
-
                             @foreach (var prestacionId in modelo.TipoPrestacionIds)
                             {
-                                var prestacion =
-                                    ObtenerPrestacion(prestacionId);
+                                var prestacion = ObtenerPrestacion(prestacionId);
 
-                                if (prestacion != null)
+                                if (prestacion is not null)
                                 {
                                     <div class="prestacion-chip">
-
                                         <span>@prestacion.Tipo</span>
 
                                         <button type="button"
                                                 class="prestacion-chip-remove"
                                                 title="Quitar prestación"
-                                                disabled="@guardando"
+                                                disabled="@(guardando)"
                                                 @onclick="() => QuitarPrestacion(prestacion.Id)">
-
                                             <i class="bi bi-x"></i>
-
                                         </button>
-
                                     </div>
                                 }
                             }
-
                         </div>
                     }
                     else
                     {
                         <span class="prestaciones-help">
-                            Todavía no seleccionaste ninguna prestación.
+                            Todavía no hay prestaciones asignadas.
                         </span>
                     }
                 </div>
-
-                <div class="field-group">
-                            <label for="areaProfesional">Área</label>
-
-                            <InputSelect id="areaProfesional"
-                                         class="form-input"
-                                         @bind-Value="modelo.Area"
-                                         disabled="@(guardando || cargandoAreas || listaTipoAreas.Count == 0)">
-                                <option value="">-- Seleccionar área --</option>
-
-                                @foreach (var area in listaTipoAreas.OrderBy(x => x.Tipo))
-                                {
-                                    <option value="@area.Tipo">@area.Tipo</option>
-                                }
-                            </InputSelect>
-
-                            <ValidationMessage For="@(() => modelo.Area)"
-                                               class="validation-message" />
-
-                            @if (!cargandoAreas && listaTipoAreas.Count == 0)
-                            {
-                                <span class="areas-help">
-                                    Primero cargá un tipo de área desde Administración.
-                                </span>
-                            }
-                        </div>  
-
-                <div class="field-group">
-                    <label>M.P. (Matrícula Profesional)</label>
-
-                    <InputText class="form-input"
-                               @bind-Value="modelo.MP"
-                               placeholder="Ingresar M.P." />
-
-                    <ValidationMessage For="@(() => modelo.MP)"
-                                       class="validation-message" />
-                </div>
-
-                <div class="field-group">
-                    <label>R.N.P.</label>
-
-                    <InputText class="form-input"
-                               @bind-Value="modelo.RNP"
-                               placeholder="Ingresar R.N.P." />
-
-                    <ValidationMessage For="@(() => modelo.RNP)"
-                                       class="validation-message" />
-                </div>
-
             </div>
-
         </section>
 
         <section class="form-section">
-
             <div class="section-title">
                 <span class="section-number">03</span>
-                <span>Datos de Contacto</span>
+                <span>Datos de contacto</span>
             </div>
 
             <div class="form-grid form-grid-2">
-
                 <div class="field-group">
-                    <label>Teléfono</label>
+                    <label for="profesionalTelefono">Teléfono</label>
 
-                    <InputText class="form-input"
+                    <InputText id="profesionalTelefono" class="form-input"
                                @bind-Value="modelo.Telefono"
                                placeholder="Ej: +54 351 1234567" />
 
@@ -201,35 +194,33 @@
                                        class="validation-message" />
                 </div>
 
-            </div>
-
-        </section>
-
-        <section class="form-section">
-
-            <div class="section-title">
-                <span class="section-number">04</span>
-                <span>Usuario del Sistema</span>
-            </div>
-
-            <div class="form-grid form-grid-2">
-
                 <div class="field-group">
-                    <label>Email</label>
+                    <label for="profesionalEmail">Email</label>
 
-                    <InputText class="form-input"
+                    <InputText id="profesionalEmail" class="form-input"
                                @bind-Value="modelo.Email"
                                placeholder="Ej: profesional@senderos.com" />
 
                     <ValidationMessage For="@(() => modelo.Email)"
                                        class="validation-message" />
                 </div>
+            </div>
+        </section>
 
+        <section class="form-section">
+            <div class="section-title">
+                <span class="section-number">04</span>
+                <span>Usuario del sistema</span>
+            </div>
+
+            <div class="form-grid form-grid-2">
                 <div class="field-group">
-                    <label>Rol</label>
+                    <label for="profesionalRol">Rol</label>
 
                     <InputSelect class="form-input"
-                                 @bind-Value="modelo.RolAsignado">
+                                 id="profesionalRol"
+                                 @bind-Value="modelo.RolAsignado"
+                                 disabled="@(guardando)">
 
                         <option value="">
                             -- Seleccionar rol --
@@ -250,12 +241,9 @@
                         <option value="AdministradorEquipo">
                             Administrador/Equipo
                         </option>
-
                     </InputSelect>
                 </div>
-
             </div>
-
         </section>
 
         @if (!string.IsNullOrWhiteSpace(Mensaje))
@@ -285,7 +273,7 @@
                 }
                 else
                 {
-                    <span>Guardar Profesional</span>
+                    <span>Guardar profesional</span>
                 }
 
             </button>
@@ -297,6 +285,13 @@
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "volver")]
+    public string? VolverA { get; set; }
+
+    private string ContextoListado => !string.IsNullOrEmpty(VolverA) &&
+        (VolverA == "/profesionales" || VolverA.StartsWith("/profesionales?", StringComparison.Ordinal))
+        ? VolverA : "/profesionales";
+
     private ProfesionalDTO modelo = new()
     {
         Nombre = string.Empty,
@@ -350,31 +345,31 @@
     }
 
     private async Task CargarTipoAreas()
-{
-    cargandoAreas = true;
-
-    try
     {
-        var respuesta = await Http.Get<List<TipoListadoDTO>>(
-            "api/tipoarea/ListaTipoArea");
+        cargandoAreas = true;
 
-        if (respuesta.Error)
+        try
         {
-            Mensaje = respuesta.ObtenerError();
-            return;
-        }
+            var respuesta = await Http.Get<List<TipoListadoDTO>>(
+                "api/tipoarea/ListaTipoArea");
 
-        listaTipoAreas = respuesta.Respuesta ?? new();
+            if (respuesta.Error)
+            {
+                Mensaje = respuesta.ObtenerError();
+                return;
+            }
+
+            listaTipoAreas = respuesta.Respuesta ?? new();
+        }
+        catch
+        {
+            Mensaje = "No pudimos cargar las áreas. Intentá nuevamente.";
+        }
+        finally
+        {
+            cargandoAreas = false;
+        }
     }
-    catch
-    {
-        Mensaje = "No pudimos cargar las áreas. Intentá nuevamente.";
-    }
-    finally
-    {
-        cargandoAreas = false;
-    }
-}
 
     private void AgregarPrestacion()
     {
@@ -451,17 +446,17 @@
         guardando = false;
 
         Nav.NavigateTo(
-            $"/profesionales/detalle/{profesionalId}?estado=creado"
+            ContextoListado + (ContextoListado.Contains('?') ? "&" : "?") + $"detalle={profesionalId}&estado=creado"
         );
     }
 
     private void Cancelar()
     {
-        Nav.NavigateTo("/profesionales");
+        Nav.NavigateTo(ContextoListado);
     }
 
     private void Volver()
     {
-        Nav.NavigateTo("/profesionales");
+        Nav.NavigateTo(ContextoListado);
     }
 }

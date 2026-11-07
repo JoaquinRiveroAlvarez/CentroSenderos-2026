@@ -1,345 +1,348 @@
-/* ===========================================
-   PÁGINA PROFESIONALES
-=========================================== */
-
+/* #region Página y cabecera */
 .profesionales-page {
     width: 100%;
     box-sizing: border-box;
+    padding: 24px 8px;
+    color: #434d3e;
 }
-
-
-/* ===========================================
-   CABECERA
-=========================================== */
 
 .profesionales-header {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
-    align-items: center;
-    gap: 24px;
+    align-items: flex-start;
+    gap: 22px;
     margin-bottom: 24px;
 }
 
-    .profesionales-header h1 {
-        margin: 0;
-        color: #556f4f;
-        font-size: 30px;
-        font-weight: 500;
-    }
+.profesionales-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
 
+.heading-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border: 1px solid #dce5d7;
+    border-radius: 13px;
+    background: #eaf0e6;
+    color: #556f4f;
+    font-size: 22px;
+}
 
-/* ===========================================
-   ACCIONES
-=========================================== */
+.profesionales-heading h1 {
+    margin: 0 0 5px;
+    color: #435b3d;
+    font-size: 28px;
+    font-weight: 650;
+    line-height: 1.2;
+}
+
+.profesionales-heading p {
+    margin: 0;
+    color: #757d70;
+    font-size: 13px;
+    line-height: 1.5;
+}
 
 .profesionales-actions {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    align-items: flex-start;
+    gap: 12px;
 }
 
-
-/* ===========================================
-   BUSCADOR
-=========================================== */
+.search-control {
+    width: 340px;
+    min-width: 0;
+}
 
 .search-box {
-    width: 280px;
-    height: 42px;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 0 14px;
+    height: 44px;
     box-sizing: border-box;
-    background: #ffffff;
-    border: 1px solid #e1e1e1;
-    border-radius: 22px;
+    padding: 0 13px;
+    border: 1px solid #dcded5;
+    border-radius: 10px;
+    background: #fff;
+    transition: border-color .18s, box-shadow .18s;
 }
 
-    .search-box i {
-        color: #8a8a8a;
-        font-size: 14px;
+    .search-box:focus-within {
+        border-color: #789175;
+        box-shadow: 0 0 0 3px rgba(100,123,91,.12);
+    }
+
+    .search-box > i {
+        color: #7e8c76;
+        font-size: 15px;
     }
 
     .search-box input {
         flex: 1;
         min-width: 0;
-        border: none;
+        border: 0;
         outline: none;
         background: transparent;
-        color: #444444;
+        color: #384235;
+        font: inherit;
         font-size: 14px;
     }
 
         .search-box input::placeholder {
-            color: #969696;
+            color: #8d9487;
         }
 
-
-/* ===========================================
-   BOTÓN FILTROS
-=========================================== */
-
-.filter-button {
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 0 16px;
-    background: #ffffff;
-    border: 1px solid #e1e1e1;
-    border-radius: 22px;
-    color: #5f5f5f;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
+.search-help {
+    margin: 7px 2px 0;
+    color: #77806f;
+    font-size: 11px;
+    line-height: 1.5;
 }
 
-    .filter-button:hover {
-        background: #f5f5f5;
-        border-color: #d4d4d4;
-    }
-
-
-/* ===========================================
-   NUEVO PROFESIONAL
-=========================================== */
-
 .new-professional-button {
-    height: 42px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 0 18px;
+    min-height: 44px;
+    flex-shrink: 0;
+    padding: 10px 16px;
+    border: 1px solid #647b5b;
+    border-radius: 10px;
     background: #647b5b;
-    border: none;
-    border-radius: 22px;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 500;
+    color: #fff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
 }
 
     .new-professional-button:hover {
         background: #52694a;
+        border-color: #52694a;
     }
+/* #endregion */
 
-    .new-professional-button:active {
-        transform: scale(0.98);
-    }
-
-
-/* ===========================================
-   CARD
-=========================================== */
-
+/* #region Tabla y columnas */
 .profesionales-card {
     width: 100%;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(230, 230, 230, 0.8);
-    border-radius: 24px;
     overflow: hidden;
     box-sizing: border-box;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e7e3dc;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 5px 22px rgba(54,65,48,.035);
 }
-
-
-/* ===========================================
-   CONTENEDOR TABLA
-=========================================== */
 
 .profesionales-table-wrapper {
     width: 100%;
     overflow-x: auto;
 }
 
-
-/* ===========================================
-   TABLA
-=========================================== */
-
 .profesionales-table {
     width: 100%;
+    min-width: 1070px;
     border-collapse: collapse;
-    table-layout: auto;
+    table-layout: fixed;
 }
 
-
-    /* ===========================================
-   CABECERA TABLA
-=========================================== */
-
-    .profesionales-table thead {
-        background: rgba(250, 250, 250, 0.75);
-    }
-
     .profesionales-table th {
-        padding: 16px 18px;
-        color: #999999;
-        font-size: 12px;
-        font-weight: 600;
+        padding: 15px 12px;
+        background: #f5f6f0;
+        color: #65715b;
+        font-size: 11px;
+        font-weight: 650;
+        line-height: 1.5;
         text-align: left;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        white-space: nowrap;
     }
-
-
-    /* ===========================================
-   FILAS
-=========================================== */
 
     .profesionales-table td {
-        padding: 16px 18px;
-        color: #555555;
-        font-size: 14px;
-        border-top: 1px solid #f0f0f0;
+        padding: 16px 12px;
+        border-top: 1px solid #eeeee7;
+        color: #5b6455;
+        font-size: 13px;
+        line-height: 1.5;
         vertical-align: middle;
+        overflow-wrap: break-word;
     }
 
     .profesionales-table tbody tr {
         cursor: pointer;
-        transition: background 0.15s;
+        transition: background .15s;
     }
 
-        .profesionales-table tbody tr:hover {
-            background: #fafbf9;
+        .profesionales-table tbody tr:hover, .profesionales-table tbody tr:focus-within {
+            background: #f3f7ef;
         }
 
+    .profesionales-table th:nth-child(1),
+    .profesionales-table td:nth-child(1) {
+        width: 22%;
+    }
 
-/* ===========================================
-   NOMBRE PROFESIONAL
-=========================================== */
+    .profesionales-table th:nth-child(2),
+    .profesionales-table td:nth-child(2) {
+        width: 13%;
+    }
 
-.profesional-nombre {
-    color: #252525 !important;
-    font-weight: 600;
+    .profesionales-table th:nth-child(3),
+    .profesionales-table td:nth-child(3) {
+        width: 20%;
+    }
+
+    .profesionales-table th:nth-child(4),
+    .profesionales-table td:nth-child(4) {
+        width: 12%;
+    }
+
+    .profesionales-table th:nth-child(5),
+    .profesionales-table td:nth-child(5) {
+        width: 13%;
+    }
+
+    .profesionales-table th:nth-child(6),
+    .profesionales-table td:nth-child(6) {
+        width: 20%;
+    }
+
+.professional-identity {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
 }
 
+    .professional-identity > i {
+        color: #72866a;
+        flex-shrink: 0;
+        font-size: 17px;
+        line-height: 1.4;
+    }
 
-/* ===========================================
-   ESTADOS DEL LISTADO
-=========================================== */
+.nombre-enlace {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #34482e;
+    font: inherit;
+    font-weight: 650;
+    text-align: left;
+    line-height: 1.5;
+    overflow-wrap: break-word;
+    cursor: pointer;
+}
 
+    .nombre-enlace:hover {
+        color: #526e46;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+.empty-value {
+    color: #8e9588;
+}
+/* #endregion */
+
+/* #region Pie del listado */
+.profesionales-footer {
+    padding: 14px 18px;
+    border-top: 1px solid #eeeee7;
+    color: #79806f;
+    font-size: 12px;
+}
+
+    .profesionales-footer strong {
+        color: #526149;
+        font-weight: 600;
+    }
+/* #endregion */
+
+/* #region Carga, mensajes y estados existentes */
 .profesionales-estado {
-    min-height: 230px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 18px;
-    padding: 40px;
+    min-height: 230px;
     box-sizing: border-box;
-    background: rgba(255, 255, 255, 0.82);
+    padding: 35px;
     border: 1px solid #e7e3dc;
-    border-radius: 24px;
-    text-align: left;
+    border-radius: 16px;
+    background: #fff;
 }
 
-    .profesionales-estado > div:last-child {
-        max-width: 480px;
-    }
-
     .profesionales-estado h3 {
-        margin: 0 0 6px;
-        color: #424b40;
+        margin: 0 0 7px;
+        color: #475742;
         font-size: 18px;
         font-weight: 600;
     }
 
     .profesionales-estado p {
         margin: 0;
-        color: #777b75;
+        color: #757d70;
         font-size: 14px;
         line-height: 1.5;
+        overflow-wrap: anywhere;
     }
 
-        .profesionales-estado p strong {
-            color: #556f4f;
-            font-weight: 600;
-        }
-
-
-/* ===========================================
-   ICONO DE ESTADO
-=========================================== */
-
 .estado-icono {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
     width: 46px;
     height: 46px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #edf1eb;
-    border-radius: 50%;
+    border-radius: 13px;
+    background: #edf2e7;
     color: #647b5b;
-    font-size: 20px;
+    font-size: 21px;
 }
 
-.profesionales-estado.error .estado-icono {
+.error .estado-icono {
     background: #f8e9e7;
     color: #a74740;
 }
 
-
-/* ===========================================
-   BOTONES DE ESTADO
-=========================================== */
-
 .estado-button {
-    min-height: 38px;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: 7px;
-    margin-top: 18px;
-    padding: 0 15px;
-    border-radius: 20px;
+    min-height: 40px;
+    margin-top: 16px;
+    padding: 8px 14px;
+    border: 1px solid #d6dece;
+    border-radius: 9px;
+    background: #fff;
+    color: #556f4f;
+    font: inherit;
     font-size: 13px;
-    font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
 }
 
     .estado-button.principal {
+        border-color: #647b5b;
         background: #647b5b;
-        border: 1px solid #647b5b;
-        color: #ffffff;
+        color: #fff;
     }
 
-        .estado-button.principal:hover {
-            background: #52694a;
-            border-color: #52694a;
-        }
-
-    .estado-button.secundario {
-        background: #ffffff;
-        border: 1px solid #deded9;
-        color: #596057;
+    .estado-button:hover {
+        filter: brightness(.97);
     }
-
-        .estado-button.secundario:hover {
-            background: #f7f7f4;
-            border-color: #d0d0ca;
-        }
-
-
-/* ===========================================
-   SPINNER
-=========================================== */
 
 .estado-spinner {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     flex-shrink: 0;
     border: 3px solid #dfe5dc;
     border-top-color: #647b5b;
     border-radius: 50%;
-    animation: profesionales-spin 0.8s linear infinite;
+    animation: profesionales-spin .8s linear infinite;
 }
 
 @keyframes profesionales-spin {
@@ -348,137 +351,27 @@
     }
 }
 
-
-/* ===========================================
-   FOOTER LISTADO
-=========================================== */
-
-.profesionales-footer {
-    padding: 14px 18px;
-    border-top: 1px solid #eeeeea;
-    color: #858982;
-    font-size: 12px;
-}
-
-    .profesionales-footer strong {
-        color: #61675f;
-        font-weight: 600;
-    }
-
-
-/* ===========================================
-   LOADING
-=========================================== */
-
-.profesionales-loading {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 24px;
-    color: #667066;
-    font-size: 14px;
-}
-
-
-/* =====================================================
-   PROFESIONAL SOCIO
-===================================================== */
-
-.nombre-con-badges {
-    display: flex;
-    flex-direction: column; /* badges arriba, nombre debajo */
-    align-items: flex-start;
-    gap: 4px;
-    min-width: 0;
-}
-
-.badges-row {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-}
-
-.nombre-texto {
-    font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Rol arriba a la izquierda */
-.rol-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 6px;
-    background: #e7f1ff;
-    color: #0d6efd;
-    border: 1px solid #cfe2ff;
-    border-radius: 10px;
-    font-size: 10px;
-    font-weight: 600;
-    line-height: 1;
-    white-space: nowrap;
-}
-
-    .rol-badge i {
-        font-size: 9px;
-        color: #0d6efd;
-    }
-
-/* Socio a la derecha del rol */
-.socio-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 6px;
-    background: #e4ebe1;
-    color: #556f4f;
-    border: 1px solid #d4dfd0;
-    border-radius: 10px;
-    font-size: 10px;
-    font-weight: 600;
-    line-height: 1;
-    white-space: nowrap;
-}
-
-    .socio-badge i {
-        font-size: 9px;
-        color: #647b5b;
-    }
-
-
-/* ===========================================
-   MENSAJE DE ÉXITO
-=========================================== */
-
 .success-message {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
     padding: 13px 16px;
-    background: #edf3ea;
     border: 1px solid #d7e3d2;
     border-radius: 12px;
+    background: #edf3ea;
     color: #556f4f;
 }
-
-    .success-message > i {
-        flex-shrink: 0;
-        font-size: 18px;
-    }
 
     .success-message > div {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 3px;
     }
 
     .success-message strong {
         font-size: 14px;
-        font-weight: 600;
     }
 
     .success-message span {
@@ -486,62 +379,122 @@
         font-size: 13px;
     }
 
+button:focus-visible {
+    outline: 3px solid #a4b89a;
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+/* #endregion */
 
+/* #region Identidad, distintivos y prestaciones */
+.nombre-con-badges {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    min-width: 0;
+}
 
+.badges-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
 
-.prestaciones-cell {
-    min-width: 180px;
+.rol-badge, .socio-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 7px;
+    border: 1px solid #e0ded7;
+    border-radius: 8px;
+    background: #f1f0ec;
+    color: #6b685e;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.socio-badge {
+    border-color: #d4dfd0;
+    background: #e4ebe1;
+    color: #556f4f;
 }
 
 .prestaciones-listado {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
+    gap: 6px;
 }
 
 .prestacion-listado-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 9px;
-    color: #3f563a;
-    background-color: #dfe5dc;
-    border: 1px solid #c8d2c4;
-    border-radius: 14px;
+    padding: 5px 8px;
+    border: 1px solid #e4e9df;
+    border-radius: 8px;
+    background: #fafbf8;
+    color: #475840;
     font-size: 11px;
-    font-weight: 600;
-    line-height: 1.2;
-    white-space: nowrap;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
 }
+
+.datos-apilados {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+    .datos-apilados small, .datos-apilados i {
+        color: #7b806e;
+        font-size: 10px;
+    }
 
 .sin-dato {
-    color: #8b8781;
+    color: #8e9588;
 }
 
-/* ===========================================
-   RESPONSIVE
-=========================================== */
+.limpiar-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 4px;
+    border: 0;
+    background: transparent;
+    color: #7e8c76;
+    font-size: 12px;
+    cursor: pointer;
+}
 
-@media (max-width: 1000px) {
+/* #endregion */
 
+/* #region Tablet y tarjetas en celular */
+@media (max-width: 1200px) {
     .profesionales-header {
         flex-direction: column;
-        align-items: flex-start;
     }
 
     .profesionales-actions {
         width: 100%;
     }
 
-    .search-box {
+    .search-control {
         flex: 1;
         width: auto;
     }
 }
 
-
 @media (max-width: 700px) {
+    .profesionales-page {
+        padding: 18px 0;
+    }
 
-    .profesionales-header h1 {
+    .profesionales-heading h1 {
         font-size: 24px;
     }
 
@@ -549,26 +502,255 @@
         flex-wrap: wrap;
     }
 
-    .search-box {
-        width: 100%;
+    .search-control {
         flex-basis: 100%;
     }
 
-    .filter-button,
     .new-professional-button {
-        flex: 1;
+        width: 100%;
     }
 
     .profesionales-card {
-        border-radius: 16px;
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .profesionales-table-wrapper {
+        overflow: visible;
     }
 
     .profesionales-table {
-        min-width: 850px;
+        display: block;
+        min-width: 0;
     }
 
-        .profesionales-table th,
-        .profesionales-table td {
-            padding: 14px 12px;
+        .profesionales-table thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip-path: inset(50%);
+        }
+
+        .profesionales-table tbody {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+            .profesionales-table tbody tr {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                overflow: hidden;
+                border: 1px solid #e3e6db;
+                border-radius: 13px;
+                background: #fff;
+            }
+
+                .profesionales-table tbody tr:hover, .profesionales-table tbody tr:focus-within {
+                    background: #f7faf3;
+                }
+
+                .profesionales-table tbody tr > td:nth-child(n) {
+                    display: block;
+                    width: auto;
+                    min-width: 0;
+                    padding: 11px 14px;
+                    border: 0;
+                    font-size: 13px;
+                    white-space: normal;
+                }
+
+        .profesionales-table td::before {
+            content: attr(data-label);
+            display: block;
+            margin-bottom: 4px;
+            color: #7c8574;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .profesionales-table tbody tr > td:first-child {
+            grid-column: 1 / -1;
+            padding: 15px 14px;
+            border-bottom: 1px solid #edf0e7;
+            background: #f4f7ef;
+        }
+
+        .profesionales-table td:first-child::before {
+            display: none;
+        }
+
+    .nombre-enlace {
+        font-size: 15px;
+    }
+
+    .profesionales-table tbody tr > td:nth-child(3), .profesionales-table tbody tr > td:nth-child(6) {
+        grid-column: 1 / -1;
+    }
+
+    .profesionales-footer {
+        margin-top: 14px;
+        padding: 10px 2px;
+        border: 0;
+    }
+
+    .profesionales-estado {
+        align-items: flex-start;
+        min-height: 180px;
+        padding: 24px 18px;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 380px) {
+    .heading-icon {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before {
+        transition: none;
+    }
+
+    .estado-spinner {
+        animation-duration: 2s;
+    }
+}
+/* #endregion */
+
+/* #region Filtros por área, prestación y socio */
+.filtros-panel {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(120px,.6fr) auto;
+    align-items: end;
+    gap: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid #e3e7dc;
+    border-radius: 13px;
+    background: #f7f9f3;
+}
+
+    .filtros-panel label {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        min-width: 0;
+        color: #65715b;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .filtros-panel select {
+        width: 100%;
+        min-width: 0;
+        min-height: 42px;
+        padding: 8px 12px;
+        border: 1px solid #dcded5;
+        border-radius: 9px;
+        background: #fff;
+        color: #43573b;
+        font: inherit;
+        font-size: 13px;
+    }
+
+        .filtros-panel select:focus-visible {
+            outline: 3px solid #a4b89a;
+            outline-offset: 2px;
+        }
+
+.filter-button {
+    min-height: 42px;
+    padding: 8px 13px;
+    border: 1px solid #d7ded0;
+    border-radius: 9px;
+    background: #fff;
+    color: #556f4f;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+@media (max-width: 900px) {
+    .filtros-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 400px) {
+    .filtros-panel {
+        grid-template-columns: 1fr;
+    }
+}
+/* #endregion */
+
+/* #region Títulos de filtros y ordenamiento como en Pacientes */
+.filtro-titulo {
+    margin: 0;
+    color: #65715b;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: normal;
+}
+
+.orden-columna {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+    .orden-columna span {
+        color: #8a9a7e;
+        font-size: 13px;
+    }
+
+.orden-movil {
+    display: none;
+}
+
+@media (max-width: 700px) {
+    .orden-movil {
+        display: flex;
+        gap: 10px;
+        margin: 0 0 16px;
+    }
+
+        .orden-movil select {
+            flex: 1;
+            min-width: 0;
+            padding: 9px;
+            border: 1px solid #dcded5;
+            border-radius: 9px;
+            background: #fff;
+            color: #43573b;
+            font: inherit;
+            font-size: 13px;
+        }
+
+        .orden-movil button {
+            padding: 8px 12px;
+            border: 1px solid #d7ded0;
+            border-radius: 9px;
+            background: #fff;
+            color: #556f4f;
+            font: inherit;
+            font-size: 12px;
+            cursor: pointer;
         }
 }
+
+/* #endregion */

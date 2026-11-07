@@ -1,377 +1,410 @@
-/* CSS for ProfesionalDetalle component */
-/* ===========================================
-   PÁGINA DETALLE PROFESIONAL
-=========================================== */
-
-.detalle-profesional-page {
-    width: 100%;
-    box-sizing: border-box;
-}
-
-    .detalle-profesional-page h1 {
-        margin: 0 0 20px;
-        color: #556f4f;
-        font-size: 28px;
-        font-weight: 500;
-    }
-
-
-/* ===========================================
-   VOLVER
-=========================================== */
-
-.back-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 14px;
-    padding: 0;
-    background: transparent;
-    border: none;
-    color: #6f786a;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-    .back-button i {
-        font-size: 16px;
-        transition: transform 0.2s ease;
-    }
-
-    .back-button:hover {
-        color: #556f4f;
-    }
-
-        .back-button:hover i {
-            transform: translateX(-3px);
-        }
-
-
-/* ===========================================
-   CONTENEDOR
-   SIN CARD BLANCA EXTERIOR
-=========================================== */
-
-.profesional-detail {
-    width: 100%;
-    box-sizing: border-box;
-}
-
-
-/* ===========================================
-   SECCIONES
-=========================================== */
-
-.form-section {
-    margin-bottom: 26px;
-}
-
-.section-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-    color: #9b7163;
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.section-number {
-    width: 28px;
-    height: 28px;
+/* #region Ventana: mismas medidas, colores y bordes que el detalle de Turnos */
+.paciente-detalle-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    background: #f8e8df;
-    border-radius: 50%;
-    color: #9a6553;
-    font-size: 12px;
-    font-weight: 700;
+    box-sizing: border-box;
+    padding: 16px;
+    background: rgba(28, 35, 27, .48);
+    backdrop-filter: blur(3px);
 }
 
-
-/* ===========================================
-   GRILLAS
-=========================================== */
-
-.form-grid {
-    display: grid;
-    gap: 18px;
+.paciente-dialog {
+    width: min(960px, calc(100vw - 32px));
+    max-width: 960px;
+    max-height: calc(100dvh - 32px);
+    box-sizing: border-box;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid #e2e3dc;
+    border-radius: 14px;
+    background: #fff;
+    color: #34432e;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: normal;
+    box-shadow: 0 26px 70px rgba(31, 40, 30, .25);
+    animation: aparecer-modal .2s ease-out;
 }
 
-.form-grid-2 {
-    grid-template-columns: repeat(2, 1fr);
+@keyframes aparecer-modal {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
+/* #endregion */
 
-.form-grid-3 {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-
-/* ===========================================
-   CAMPOS
-=========================================== */
-
-.field-group {
+/* #region Encabezado */
+.detalle-encabezado {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e7e8e1;
+    background: #fff;
+}
+
+.detalle-identidad {
+    display: flex;
+    align-items: center;
+    gap: 14px;
     min-width: 0;
 }
 
-    .field-group label {
-        margin: 0 0 7px 6px;
-        color: #656565;
-        font-size: 13px;
-        font-weight: 600;
-        text-transform: uppercase;
+    .detalle-identidad > div {
+        min-width: 0;
     }
 
+.detalle-icono {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    background: #dfe7d7;
+    color: #405b39;
+    font-size: 22px;
+}
 
-/* ===========================================
-   VALORES SOLO LECTURA
-=========================================== */
+.detalle-identidad > div > span {
+    display: block;
+    margin-bottom: 4px;
+    color: #78816f;
+    font-size: 12px;
+}
 
-.form-value {
-    width: 100%;
-    height: 44px;
-    display: flex;
+.detalle-identidad h1 {
+    margin: 0;
+    color: #33482e;
+    font-size: 18px;
+    font-weight: 650;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.detalle-cerrar {
+    display: inline-flex;
     align-items: center;
-    box-sizing: border-box;
-    padding: 0 16px;
-    background: #ffffff;
-    border: 1px solid #d9ddd6;
-    border-radius: 22px;
-    color: #444444;
-    font-family: inherit;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 37px;
+    height: 37px;
+    padding: 0;
+    border: 1px solid #dedfdc;
+    border-radius: 9px;
+    background: #fff;
+    color: #657066;
     font-size: 14px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    cursor: pointer;
 }
 
+    .detalle-cerrar:hover {
+        border-color: #b9c3b6;
+        background: #f2f5f1;
+        color: #3f583b;
+    }
+/* #endregion */
 
-/* ===========================================
-   ACCIONES
-=========================================== */
-
-.form-actions {
+/* #region Contenido y tarjetas */
+.detalle-contenido {
     display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    margin-top: 18px;
+    flex-direction: column;
+    gap: 18px;
+    padding: 20px 24px;
 }
 
+.detalle-contexto {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid #e1e6d8;
+    border-radius: 10px;
+    background: #edf2e7;
+}
 
-/* ===========================================
-   BOTÓN EDITAR
-=========================================== */
+    .detalle-contexto > div {
+        padding: 14px 18px;
+        min-width: 0;
+    }
 
-.edit-button {
-    min-width: 145px;
-    height: 42px;
+        .detalle-contexto > div + div {
+            border-left: 1px solid #d9e1d0;
+        }
+
+    .detalle-contexto span {
+        display: block;
+        margin-bottom: 4px;
+        color: #74806b;
+        font-size: 12px;
+    }
+
+    .detalle-contexto strong {
+        color: #354b2e;
+        font-size: 16px;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .detalle-contexto > div:first-child strong {
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+.detalle-principal {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 18px;
+}
+
+.detalle-panel {
+    min-width: 0;
+}
+
+.panel-titulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    color: #3c5734;
+    font-size: 15px;
+    font-weight: 650;
+    line-height: 1.5;
+}
+
+    .panel-titulo i {
+        font-size: 16px;
+    }
+
+.dato-tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid #e2e5dc;
+    border-radius: 10px;
+    background: #fafbf8;
+}
+
+    .dato-tarjeta + .dato-tarjeta {
+        margin-top: 10px;
+    }
+
+    .dato-tarjeta span {
+        color: #727b6b;
+        font-size: 12px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .dato-tarjeta strong {
+        color: #34432e;
+        font-size: 15px;
+        font-weight: 650;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+.detalle-mensaje {
+    margin: 0;
+    color: #727b6b;
+    line-height: 1.5;
+}
+
+.detalle-exito, .detalle-error {
+    margin: 0;
+    padding: 12px 14px;
+    border: 1px solid #dbe5d3;
+    border-radius: 10px;
+    background: #edf2e7;
+    color: #435d39;
+    line-height: 1.5;
+}
+
+.detalle-error {
+    border-color: #efd0cc;
+    background: #fdf2f0;
+    color: #a94b44;
+}
+/* #endregion */
+
+/* #region Pie y acciones: mismo diseño que Turnos */
+.detalle-acciones {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+    padding: 16px 24px;
+    border-top: 1px solid #e7e8e1;
+    background: #fff;
+}
+
+.detalle-btn-cerrar, .detalle-btn-editar {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 0 22px;
-    background: #f8dfcf;
-    border: none;
-    border-radius: 22px;
-    color: #8b5c51;
+    min-height: 44px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: background .2s, border-color .2s, box-shadow .2s;
+}
+
+.detalle-btn-cerrar {
+    margin-right: auto;
+    border: 1px solid #d7d9d5;
+    background: #fff;
+    color: #545d55;
+}
+
+    .detalle-btn-cerrar:hover {
+        border-color: #abb4a8;
+        background: #f5f6f4;
+        color: #374138;
+    }
+
+.detalle-btn-editar {
+    min-width: 145px;
+    border: 1px solid #556f4f;
+    background: #556f4f;
+    color: #fff;
+    box-shadow: 0 5px 13px rgba(85, 111, 79, .17);
+}
+
+    .detalle-btn-editar:hover {
+        border-color: #415b3d;
+        background: #415b3d;
+        box-shadow: 0 7px 17px rgba(65, 91, 61, .21);
+    }
+
+button:focus-visible {
+    outline: 3px solid #a4b89a;
+    outline-offset: 3px;
+}
+/* #endregion */
+
+/* #region Pantallas pequeñas */
+@media (max-width: 700px) {
+    .detalle-principal {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .detalle-encabezado {
+        padding: 16px;
+    }
+
+    .detalle-contenido {
+        padding: 16px;
+    }
+
+    .detalle-contexto {
+        grid-template-columns: 1fr;
+    }
+
+        .detalle-contexto > div + div {
+            border-left: 0;
+            border-top: 1px solid #d9e1d0;
+        }
+
+    .detalle-acciones {
+        padding: 14px 16px;
+    }
+
+    .detalle-btn-cerrar, .detalle-btn-editar {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .paciente-dialog {
+        animation: none;
+    }
+
+    button {
+        transition: none;
+    }
+}
+/* #endregion */
+
+/* #region Acceso a Turnos */
+.dato-tarjeta small {
+    color: #727b6b;
     font-size: 12px;
+    line-height: 1.5;
+}
+
+.detalle-btn-turnos {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 16px;
+    border: 1px solid #ccd6c3;
+    border-radius: 8px;
+    background: #fff;
+    color: #556f4f;
+    font: inherit;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
 }
 
-    .edit-button:hover {
-        background: #f2d2c0;
+    .detalle-btn-turnos:hover {
+        border-color: #a8b89c;
+        background: #f3f6ef;
     }
 
-    .edit-button:active {
-        transform: scale(0.98);
+@media (max-width: 480px) {
+    .detalle-btn-turnos {
+        flex: 1;
     }
-
-/* ===========================================
-   TÍTULO + SOCIO
-=========================================== */
-
-.detalle-title-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
 }
+/* #endregion */
 
-    .detalle-title-row h1 {
-        margin: 0;
-    }
-
-
-/* ===========================================
-   BADGE SOCIO
-=========================================== */
-
-.badges-row {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-    margin-top: 6px;
-}
-
-.rol-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 6px;
-    background: #e7f1ff;
-    color: #0d6efd;
-    border: 1px solid #cfe2ff;
-    border-radius: 10px;
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 1;
-}
-
-    .rol-badge i {
-        font-size: 9px;
-        color: #0d6efd;
-    }
-
-.detalle-socio-badge,
-.socio-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 6px;
-    background: #e4ebe1;
-    color: #556f4f;
-    border: 1px solid #d4dfd0;
-    border-radius: 10px;
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 1;
-}
-
-    .socio-badge i,
-    .detalle-socio-badge i {
-        font-size: 9px;
-        color: #647b5b;
-    }
-
-
-
-.prestaciones-field {
-    grid-column: 1 / -1;
-}
-
+/* #region Prestaciones del profesional */
 .prestaciones-detalle {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-top: 4px;
 }
 
 .prestacion-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    min-height: 34px;
     padding: 7px 12px;
-    color: #3f563a;
-    background-color: #dfe5dc;
-    border: 1px solid #c8d2c4;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-    .prestacion-badge i {
-        color: #556f4f;
-        font-size: 14px;
-    }
-/* ===========================================
-   LOADING / MENSAJES
-=========================================== */
-
-.detalle-loading,
-.detalle-mensaje {
-    margin-top: 12px;
-    color: #657461;
-    font-size: 14px;
-}
-
-/* ===========================================
-   MENSAJE DE ÉXITO
-=========================================== */
-
-.success-message {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-    padding: 13px 16px;
-    background: #edf3ea;
-    border: 1px solid #d7e3d2;
-    border-radius: 12px;
+    border: 1px solid #d6dfcf;
+    border-radius: 9px;
+    background: #f2f6ee;
     color: #556f4f;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
-    .success-message > i {
-        flex-shrink: 0;
-        font-size: 18px;
-    }
-
-    .success-message > div {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    .success-message strong {
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    .success-message span {
-        color: #687565;
-        font-size: 13px;
-    }
-/* ===========================================
-   RESPONSIVE - TABLET
-=========================================== */
-
-@media (max-width: 900px) {
-
-    .form-grid-3 {
-        grid-template-columns: repeat(2, 1fr);
-    }
+.paciente-dialog:focus {
+    outline: none;
 }
-
-
-/* ===========================================
-   RESPONSIVE - CELULAR
-=========================================== */
-
-@media (max-width: 650px) {
-
-    .detalle-profesional-page h1 {
-        font-size: 24px;
-    }
-
-    .form-grid-2,
-    .form-grid-3 {
-        grid-template-columns: 1fr;
-    }
-
-    .edit-button {
-        width: 100%;
-    }
-}
+/* #endregion */
