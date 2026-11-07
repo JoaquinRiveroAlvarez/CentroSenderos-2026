@@ -1,96 +1,139 @@
-/* PÁGINA */
-
+/* #region Página y cabecera */
 .crear-paciente-page {
     width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 8px 0 24px;
     box-sizing: border-box;
+    color: #384235;
 }
 
-    .crear-paciente-page h1 {
-        margin: 0 0 20px;
-        color: #556f4f;
-        font-size: 28px;
-        font-weight: 500;
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+    padding: 6px 0;
+    border: 0;
+    background: transparent;
+    color: #657461;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+    .back-button:hover:not(:disabled) {
+        color: #3e5739;
     }
 
-
-/* FORMULARIO PRINCIPAL */
-
-.paciente-form {
-    width: 100%;
-    padding: 22px 24px;
-    box-sizing: border-box;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid #e4e1dc;
-    border-radius: 22px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 26px;
 }
 
+.page-heading-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    border: 1px solid #dce5d7;
+    border-radius: 15px;
+    background: #eaf0e6;
+    color: #556f4f;
+    font-size: 23px;
+}
 
-/* SECCIONES */
+.page-header h1 {
+    margin: 0 0 5px;
+    color: #435b3d;
+    font-size: 28px;
+    font-weight: 650;
+    line-height: 1.2;
+}
+
+.page-header p {
+    margin: 0;
+    color: #72796d;
+    font-size: 14px;
+    line-height: 1.5;
+}
+/* #endregion */
+
+/* #region Formulario y secciones */
+::deep .paciente-form {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 28px 30px 22px;
+    border: 1px solid #e7e3dc;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 5px 22px rgba(54, 65, 48, .035);
+}
 
 .form-section {
-    margin-bottom: 28px;
+    margin: 0 0 26px;
+    padding-bottom: 26px;
+    border-bottom: 1px solid #eeece6;
+}
+
+    .form-section:last-of-type {
+        margin-bottom: 0;
+        padding-bottom: 24px;
+        border-bottom: 0;
+    }
+
+.section-title, .section-title-content {
+    display: flex;
+    align-items: center;
+    gap: 11px;
 }
 
 .section-title {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    margin-bottom: 16px;
-    color: #9b7163;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    margin-bottom: 22px;
+    color: #475742;
+    font-size: 15px;
+    font-weight: 650;
+    line-height: 1.4;
 }
 
 .section-title-actions {
     justify-content: space-between;
-    gap: 18px;
-}
-
-.section-title-content {
-    display: flex;
-    align-items: center;
-    gap: 13px;
+    gap: 16px;
 }
 
 .section-number {
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
     flex-shrink: 0;
-    background: #f8e8df;
-    border-radius: 50%;
-    color: #9a6553;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    background: #f1eee7;
+    color: #87705c;
     font-size: 12px;
     font-weight: 700;
 }
 
-
-/* GRILLAS */
-
 .form-grid {
     display: grid;
-    gap: 18px;
-}
-
-.form-grid-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 20px;
 }
 
 .form-grid-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.form-grid-2, .form-grid-medical {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .contact-address {
-    margin-top: 20px;
+    grid-template-columns: 1fr;
+    margin-top: 22px;
 }
-
-
-/* GRUPOS DE CAMPOS */
 
 .field-group {
     display: flex;
@@ -98,332 +141,128 @@
     min-width: 0;
 }
 
-    .field-group label {
-        margin: 0 0 7px 6px;
-        color: #656565;
+    .field-group > label {
+        margin: 0 0 8px;
+        color: #5b6357;
         font-size: 13px;
         font-weight: 600;
-        text-transform: uppercase;
+        line-height: 1.5;
     }
+/* #endregion */
 
-
-/* INPUTS Y SELECTS */
-
+/* #region Campos y validaciones */
 ::deep .form-input {
     width: 100%;
-    height: 42px;
+    height: 45px;
+    min-width: 0;
     box-sizing: border-box;
-    padding: 0 16px;
-    background: #ffffff;
-    border: 1px solid #d9ddd6;
-    border-radius: 22px;
-    color: #444444;
-    font-family: inherit;
+    padding: 0 13px;
+    border: 1px solid #dcded5;
+    border-radius: 10px;
+    background: #fff;
+    color: #384235;
+    font: inherit;
     font-size: 14px;
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    transition: border-color .18s, box-shadow .18s;
 }
 
     ::deep .form-input::placeholder {
-        color: #999999;
+        color: #93978e;
         opacity: 1;
     }
 
     ::deep .form-input:hover {
-        border-color: #bbc5b7;
+        border-color: #b6c2af;
     }
 
     ::deep .form-input:focus {
-        background: #ffffff;
         border-color: #789175;
-        box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .12);
     }
 
     ::deep .form-input.invalid {
-        border-color: #d8857e;
-        box-shadow: 0 0 0 3px rgba(181, 75, 67, 0.08);
+        border-color: #c77a71;
     }
 
 ::deep select.form-input {
+    padding-right: 28px;
     cursor: pointer;
 }
 
 ::deep input[type="date"].form-input {
     color-scheme: light;
-    cursor: pointer;
 }
 
-    ::deep input[type="date"].form-input::-webkit-calendar-picker-indicator {
-        opacity: 0.65;
-        cursor: pointer;
-    }
+::deep .validation-message, .phone-validation {
+    margin: 7px 0 0;
+    color: #aa4b43;
+    font-size: 12px;
+    line-height: 1.5;
+}
+/* #endregion */
 
-
-/* LISTA DE TELÉFONOS */
-
-.phones-list {
+/* #region Afiliado automático y CUD */
+.automatic-field, .cud-option {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 12px;
-}
-
-.phone-row {
-    display: grid;
-    grid-template-columns: minmax(180px, 0.8fr) minmax(220px, 1.2fr) 42px;
-    align-items: end;
-    gap: 14px;
-    padding: 16px;
-    background: #fafbf9;
-    border: 1px solid #e2e7df;
-    border-radius: 16px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-    .phone-row:hover {
-        border-color: #cbd5c7;
-        box-shadow: 0 4px 14px rgba(85, 111, 79, 0.06);
-    }
-
-
-/* BOTÓN AGREGAR TELÉFONO */
-
-.add-phone-button {
-    min-height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    flex-shrink: 0;
-    padding: 0 15px;
-    background: #eef2ec;
-    border: 1px solid #cbd5c7;
-    border-radius: 18px;
-    color: #556f4f;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: none;
-    letter-spacing: normal;
-    cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-    .add-phone-button i {
-        font-size: 14px;
-    }
-
-    .add-phone-button:hover:not(:disabled) {
-        background: #dfe7dc;
-        border-color: #aebda9;
-        color: #42593d;
-    }
-
-    .add-phone-button:active:not(:disabled) {
-        transform: scale(0.98);
-    }
-
-
-/* BOTÓN ELIMINAR TELÉFONO */
-
-.remove-phone-button {
-    width: 42px;
-    height: 42px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    background: #ffffff;
-    border: 1px solid #e1c7c4;
-    border-radius: 50%;
-    color: #b85b53;
-    font-size: 15px;
-    cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
-}
-
-    .remove-phone-button:hover:not(:disabled) {
-        background: #fff1ef;
-        border-color: #d99a94;
-        color: #9f4039;
-    }
-
-    .remove-phone-button:active:not(:disabled) {
-        transform: scale(0.95);
-    }
-
-
-/* ACCIONES DEL FORMULARIO */
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 14px;
-    margin-top: 16px;
-}
-
-.cancel-button {
-    min-width: 120px;
-    height: 42px;
-    padding: 0 22px;
-    background: #ffffff;
-    border: 1px solid #9d9d96;
-    border-radius: 22px;
-    color: #555555;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-    .cancel-button:hover:not(:disabled) {
-        background: #f5f5f3;
-        border-color: #777770;
-    }
-
-.save-button {
-    min-width: 150px;
-    height: 42px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 0 24px;
-    background: #647b5b;
-    border: none;
-    border-radius: 22px;
-    color: #ffffff;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
-}
-
-    .save-button:hover:not(:disabled) {
-        background: #52694a;
-    }
-
-    .save-button:active:not(:disabled) {
-        transform: scale(0.98);
-    }
-
-
-/* BOTÓN VOLVER */
-
-.back-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 14px;
-    padding: 0;
-    background: transparent;
-    border: none;
-    color: #6f786a;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-    .back-button i {
-        font-size: 16px;
-        transition: transform 0.2s ease;
-    }
-
-    .back-button:hover:not(:disabled) {
-        color: #556f4f;
-    }
-
-        .back-button:hover:not(:disabled) i {
-            transform: translateX(-3px);
-        }
-
-
-/* BOTONES DESHABILITADOS */
-
-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
-}
-
-
-/* VALIDACIONES */
-
-.validation-summary {
-    margin-bottom: 18px;
-    color: #b54b43;
-    font-size: 14px;
-}
-
-::deep .validation-message {
-    margin: 5px 0 0 6px;
-    color: #b54b43;
-    font-size: 13px;
-}
-
-.phone-validation {
-    margin: 8px 0 0 6px;
-    color: #b54b43;
-    font-size: 13px;
-}
-
-
-/* MENSAJES */
-
-.form-message {
-    margin-top: 12px;
-    padding: 12px 16px;
-    background: #fdf2f0;
-    border: 1px solid #efd0cc;
+    min-height: 68px;
+    box-sizing: border-box;
+    padding: 12px 15px;
+    border: 1px solid #dfe5d9;
     border-radius: 12px;
-    color: #a94b44;
+    background: #f7f9f4;
+}
+
+    .automatic-field > i {
+        color: #71866a;
+        font-size: 22px;
+    }
+
+    .automatic-field > div, .cud-option-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+.automatic-field-title, .cud-option-title {
+    color: #4e6047;
     font-size: 14px;
+    font-weight: 600;
 }
 
-.crear-loading {
-    padding: 30px;
-    color: #657461;
-    font-size: 14px;
+.automatic-field-description, .cud-option-description {
+    color: #747d6f;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.45;
 }
-
-
-/* GRILLA MÉDICA */
-
-.form-grid-medical {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-
-/* CAMPO CUD */
 
 .cud-field {
-    justify-content: flex-end;
+    justify-content: flex-start;
 }
 
-.cud-option {
-    min-height: 66px;
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    box-sizing: border-box;
+.field-group > .cud-option {
     margin: 0;
-    padding: 12px 16px;
-    background: #fafbf9;
-    border: 1px solid #d9e1d6;
-    border-radius: 16px;
     cursor: pointer;
-    text-transform: none;
-    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-    .cud-option:hover {
-        background: #f4f7f2;
-        border-color: #b9c8b5;
-        box-shadow: 0 3px 10px rgba(85, 111, 79, 0.06);
-    }
+.cud-option:hover {
+    border-color: #aebfa5;
+    background: #f1f6ed;
+}
+
+.cud-option:has(input:checked) {
+    border-color: #9bb28f;
+    background: #edf4e7;
+}
+
+.cud-option:focus-within {
+    outline: 3px solid rgba(100, 123, 91, .15);
+    outline-offset: 2px;
+}
 
 ::deep .cud-checkbox {
     width: 19px;
@@ -433,144 +272,340 @@ button:disabled {
     accent-color: #647b5b;
     cursor: pointer;
 }
+/* #endregion */
 
-.cud-option-content {
+/* #region Contactos */
+.phones-list {
     display: flex;
     flex-direction: column;
-    gap: 3px;
-}
-
-.cud-option-title {
-    color: #4f5f4b;
-    font-size: 14px;
-    font-weight: 600;
-    text-transform: none;
-}
-
-.cud-option-description {
-    color: #7d817a;
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.35;
-    text-transform: none;
-}
-
-
-.automatic-field {
-    min-height: 66px;
-    display: flex;
-    align-items: center;
     gap: 12px;
+}
+
+.phone-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) 42px;
+    align-items: end;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid #e5e8df;
+    border-radius: 13px;
+    background: #fafbf8;
+}
+
+.add-phone-button, .remove-phone-button, .cancel-button, .save-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     box-sizing: border-box;
-    padding: 12px 16px;
-    background: #f4f7f2;
-    border: 1px dashed #b9c8b5;
-    border-radius: 16px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .18s, border-color .18s;
+}
+
+.add-phone-button {
+    min-height: 36px;
+    padding: 7px 13px;
+    flex-shrink: 0;
+    border: 1px solid #d6dfcf;
+    border-radius: 9px;
+    background: #f2f6ee;
     color: #556f4f;
 }
 
-    .automatic-field > i {
-        flex-shrink: 0;
-        font-size: 19px;
+    .add-phone-button:hover:not(:disabled) {
+        background: #e7eedf;
+        border-color: #b6c6ab;
     }
 
-    .automatic-field > div {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
+.remove-phone-button {
+    width: 42px;
+    height: 45px;
+    padding: 0;
+    border: 1px solid #e8dcd6;
+    border-radius: 10px;
+    background: #fff;
+    color: #a9675d;
+}
+
+    .remove-phone-button:hover:not(:disabled) {
+        background: #fdf0ed;
+        border-color: #dca79c;
+    }
+/* #endregion */
+
+/* #region Acciones y estados */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid #eeece6;
+}
+
+.cancel-button, .save-button {
+    min-height: 44px;
+    padding: 10px 22px;
+    border-radius: 10px;
+}
+
+.cancel-button {
+    min-width: 110px;
+    border: 1px solid #dbded4;
+    background: #fff;
+    color: #636e5d;
+}
+
+    .cancel-button:hover:not(:disabled) {
+        background: #f5f6f1;
+        border-color: #b8c1b0;
     }
 
-.automatic-field-title {
-    color: #4f5f4b;
+.save-button {
+    min-width: 170px;
+    border: 1px solid #647b5b;
+    background: #647b5b;
+    color: #fff;
+}
+
+    .save-button:hover:not(:disabled) {
+        background: #52694a;
+        border-color: #52694a;
+    }
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+button:focus-visible {
+    outline: 3px solid #a4b89a;
+    outline-offset: 3px;
+}
+
+.form-message {
+    margin: 0 0 18px;
+    padding: 13px 16px;
+    border: 1px solid #efd0cc;
+    border-radius: 10px;
+    background: #fdf2f0;
+    color: #a94b44;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.crear-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 180px;
+    padding: 24px;
+    border: 1px solid #e7e3dc;
+    border-radius: 18px;
+    background: #fff;
+    color: #657461;
     font-size: 14px;
-    font-weight: 600;
 }
 
-.automatic-field-description {
-    color: #7d817a;
-    font-size: 12px;
-    line-height: 1.35;
+.loading-spinner {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    border: 3px solid #e2e8dc;
+    border-top-color: #647b5b;
+    border-radius: 50%;
+    animation: girar .8s linear infinite;
 }
 
-/* RESPONSIVE */
+@keyframes girar {
+    to {
+        transform: rotate(360deg);
+    }
+}
+/* #endregion */
 
-@media (max-width: 1000px) {
+/* #region Adaptación a pantallas pequeñas */
+@media (max-width: 900px) {
+    ::deep .paciente-form {
+        padding: 24px;
+    }
+
     .form-grid-3 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .phone-row {
-        grid-template-columns: minmax(160px, 0.8fr) minmax(200px, 1.2fr) 42px;
-    }
+        .form-grid-3 > .field-group:first-child {
+            grid-column: 1 / -1;
+        }
 }
 
-@media (max-width: 700px) {
-    .paciente-form {
-        padding: 20px;
-        border-radius: 16px;
+@media (max-width: 650px) {
+    .page-header {
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
     }
 
-    .crear-paciente-page h1 {
-        font-size: 25px;
+        .page-header h1 {
+            font-size: 24px;
+        }
+
+        .page-header p {
+            font-size: 13px;
+        }
+
+    .page-heading-icon {
+        width: 43px;
+        height: 43px;
+        font-size: 20px;
     }
 
-    .form-grid-2,
-    .form-grid-3 {
+    ::deep .paciente-form {
+        padding: 20px 16px;
+        border-radius: 15px;
+    }
+
+    .form-grid-3, .form-grid-2, .form-grid-medical {
         grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        gap: 18px;
+    }
+
+    .section-title {
+        font-size: 14px;
+        margin-bottom: 18px;
     }
 
     .section-title-actions {
         align-items: flex-start;
         flex-direction: column;
-    }
-
-    .add-phone-button {
-        margin-left: 39px;
+        gap: 12px;
     }
 
     .phone-row {
-        grid-template-columns: 1fr 42px;
+        grid-template-columns: minmax(0, 1fr) 42px;
+        padding: 13px;
+        gap: 12px;
     }
 
-        .phone-row .field-group:first-child {
+        .phone-row > .field-group:first-child {
             grid-column: 1 / -1;
         }
 
-    .contact-address {
-        grid-template-columns: 1fr;
+    .form-actions {
+        flex-wrap: wrap;
+    }
+
+    .cancel-button, .save-button {
+        flex: 1;
+        min-width: 0;
     }
 }
 
-@media (max-width: 500px) {
-    .paciente-form {
-        padding: 18px 15px;
-    }
-
-    .phone-row {
-        grid-template-columns: 1fr;
-        padding: 14px;
-    }
-
-        .phone-row .field-group:first-child {
-            grid-column: auto;
-        }
-
-    .remove-phone-button {
-        width: 100%;
-        border-radius: 20px;
+@media (max-width: 380px) {
+    .page-heading-icon {
+        display: none;
     }
 
     .form-actions {
         flex-direction: column-reverse;
-    }
-
-    .cancel-button,
-    .save-button {
-        width: 100%;
-        font-size: 14px;
-    }
-
-    .add-phone-button {
-        width: calc(100% - 39px);
+        align-items: stretch;
     }
 }
+
+@media (prefers-reduced-motion: reduce) {
+    *, ::deep .form-input {
+        transition: none;
+    }
+
+    .loading-spinner {
+        animation-duration: 2s;
+    }
+}
+/* #endregion */
+
+/* #region Aviso de cambios sin guardar */
+.salida-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 100010;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(28,35,27,.48);
+    backdrop-filter: blur(3px);
+}
+
+.salida-modal {
+    width: min(440px, 100%);
+    box-sizing: border-box;
+    padding: 26px;
+    border: 1px solid #e2e3dc;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 26px 70px rgba(31,40,30,.25);
+}
+
+.salida-icono {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+    background: #f7edda;
+    color: #937039;
+    font-size: 23px;
+}
+
+.salida-modal h2 {
+    margin: 0 0 10px;
+    color: #3e5137;
+    font-size: 20px;
+}
+
+.salida-modal p {
+    margin: 0 0 22px;
+    color: #747d6f;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.salida-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+    .salida-acciones button {
+        flex: 1;
+        min-width: 140px;
+        min-height: 44px;
+        padding: 10px 14px;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 10px;
+    }
+
+.salida-confirmar {
+    border: 1px solid #b36c5e;
+    background: #b36c5e;
+    color: #fff;
+}
+
+.dni-error {
+    margin-top: 7px;
+    color: #aa4b43;
+    font-size: 12px;
+    line-height: 1.5;
+}
+/* #endregion */

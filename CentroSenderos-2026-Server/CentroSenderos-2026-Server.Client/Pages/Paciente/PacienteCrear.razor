@@ -1,10 +1,14 @@
 ﻿@page "/pacientes/crear"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Routing
+@using System.Text.Json
 @using CentroSenderos_2026_Shared.DTO
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
+
+<NavigationLock ConfirmExternalNavigation="TieneCambios" OnBeforeInternalNavigation="AntesDeNavegar" />
 
 <div class="crear-paciente-page">
 
@@ -16,12 +20,21 @@
         <span>Volver</span>
     </button>
 
-    <h1>Crear Paciente</h1>
+    <header class="page-header">
+        <div class="page-heading-icon" aria-hidden="true">
+            <i class="bi bi-person-plus"></i>
+        </div>
+        <div>
+            <h1>Crear paciente</h1>
+            <p>Registrá sus datos personales, cobertura y contactos.</p>
+        </div>
+    </header>
 
     @if (cargando)
     {
         <div class="crear-loading">
-            Cargando datos...
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <span>Cargando datos del formulario...</span>
         </div>
     }
     else
@@ -37,17 +50,18 @@
 
                 <div class="section-title">
                     <span class="section-number">01</span>
-                    <span>Información Personal</span>
+                    <span>Información personal</span>
                 </div>
 
                 <div class="form-grid form-grid-3">
 
                     <div class="field-group">
 
-                        <label>Nombre completo</label>
+                        <label for="pacienteNombre">Nombre completo</label>
 
-                        <InputText class="form-input"
+                        <InputText id="pacienteNombre" class="form-input"
                                    @bind-Value="modelo.Nombre"
+                                   @oninput="e => modelo.Nombre = e.Value?.ToString() ?? string.Empty"
                                    placeholder="Insertar nombre" />
 
                         <ValidationMessage For="@(() => modelo.Nombre)"
@@ -57,22 +71,27 @@
 
                     <div class="field-group">
 
-                        <label>DNI</label>
+                        <label for="pacienteDni">DNI</label>
 
-                        <InputText class="form-input"
+                        <InputText id="pacienteDni" class="form-input"
                                    @bind-Value="modelo.DNI"
+                                   @oninput="e => modelo.DNI = e.Value?.ToString() ?? string.Empty"
                                    placeholder="Insertar DNI" />
 
                         <ValidationMessage For="@(() => modelo.DNI)"
                                            class="validation-message" />
+                        @if (!string.IsNullOrWhiteSpace(MensajeDni))
+                        {
+                            <div class="dni-error" role="alert">@MensajeDni</div>
+                        }
 
                     </div>
 
                     <div class="field-group">
 
-                        <label>Fecha de nacimiento</label>
+                        <label for="pacienteNacimiento">Fecha de nacimiento</label>
 
-                        <InputDate class="form-input"
+                        <InputDate id="pacienteNacimiento" class="form-input"
                                    @bind-Value="modelo.FechaNacimiento" />
 
                         <ValidationMessage For="@(() => modelo.FechaNacimiento)"
@@ -88,7 +107,7 @@
 
                 <div class="section-title">
                     <span class="section-number">02</span>
-                    <span>Información Médica / Administrativa</span>
+                    <span>Información médica y administrativa</span>
                 </div>
 
                 <div class="form-grid form-grid-medical">
@@ -96,7 +115,7 @@
                     <div class="field-group">
 
                         <label for="obraSocial">
-                            Obra Social / Prepaga
+                            Obra social / prepaga
                         </label>
 
                         <InputSelect id="obraSocial"
@@ -123,10 +142,10 @@
 
                     <div class="field-group">
 
-                        <label>Nro. Afiliado</label>
+                        <label>N.º de afiliado</label>
 
                         <div class="automatic-field">
-                            <i class="bi bi-magic"></i>
+                            <i class="bi bi-hash"></i>
 
                             <div>
                                 <span class="automatic-field-title">
@@ -141,33 +160,10 @@
 
                     </div>
 
-                    <div class="field-group cud-field">
-
-                        <label>Certificado Único de Discapacidad</label>
-
-                        <label class="cud-option">
-
-                            <InputCheckbox class="cud-checkbox"
-                                           @bind-Value="modelo.TieneCud" />
-
-                            <span class="cud-option-content">
-                                <span class="cud-option-title">
-                                    Tiene CUD
-                                </span>
-
-                                <span class="cud-option-description">
-                                    Marcar si el paciente posee un CUD vigente.
-                                </span>
-                            </span>
-
-                        </label>
-
-                    </div>
-
                     <div class="field-group">
 
                         <label for="diagnostico">
-                            Diagnóstico / Motivo de Consulta
+                            Diagnóstico / motivo de consulta
                         </label>
 
                         <InputSelect id="diagnostico"
@@ -192,6 +188,29 @@
 
                     </div>
 
+                    <div class="field-group cud-field">
+
+                        <label>Certificado único de discapacidad</label>
+
+                        <label class="cud-option">
+
+                            <InputCheckbox class="cud-checkbox"
+                                           @bind-Value="modelo.TieneCud" />
+
+                            <span class="cud-option-content">
+                                <span class="cud-option-title">
+                                    Tiene CUD
+                                </span>
+
+                                <span class="cud-option-description">
+                                    Marcar si el paciente posee un CUD vigente.
+                                </span>
+                            </span>
+
+                        </label>
+
+                    </div>
+
                 </div>
 
             </section>
@@ -202,7 +221,7 @@
 
                     <div class="section-title-content">
                         <span class="section-number">03</span>
-                        <span>Datos de Contacto</span>
+                        <span>Datos de contacto</span>
                     </div>
 
                     <button type="button"
@@ -227,6 +246,7 @@
 
                                 <InputText class="form-input"
                                            @bind-Value="telefono.Etiqueta"
+                                           @oninput="e => telefono.Etiqueta = e.Value?.ToString() ?? string.Empty"
                                            placeholder="Ej.: Paciente, madre o tutor" />
 
                             </div>
@@ -237,6 +257,7 @@
 
                                 <InputText class="form-input"
                                            @bind-Value="telefono.Numero"
+                                           @oninput="e => telefono.Numero = e.Value?.ToString() ?? string.Empty"
                                            placeholder="Insertar teléfono" />
 
                             </div>
@@ -244,6 +265,7 @@
                             <button type="button"
                                     class="remove-phone-button"
                                     title="Eliminar teléfono"
+                                    aria-label="Eliminar teléfono"
                                     disabled="@(guardando || modelo.Telefonos.Count == 1)"
                                     @onclick="() => EliminarTelefono(telefono)">
                                 <i class="bi bi-trash"></i>
@@ -265,10 +287,11 @@
 
                     <div class="field-group">
 
-                        <label>Domicilio</label>
+                        <label for="pacienteDomicilio">Domicilio</label>
 
-                        <InputText class="form-input"
+                        <InputText id="pacienteDomicilio" class="form-input"
                                    @bind-Value="modelo.Domicilio"
+                                   @oninput="e => modelo.Domicilio = e.Value?.ToString() ?? string.Empty"
                                    placeholder="Insertar domicilio" />
 
                         <ValidationMessage For="@(() => modelo.Domicilio)"
@@ -307,7 +330,8 @@
                     }
                     else
                     {
-                        <span>Guardar Paciente</span>
+                        <i class="bi bi-check2" aria-hidden="true"></i>
+                        <span>Guardar paciente</span>
                     }
 
                 </button>
@@ -319,7 +343,72 @@
 
 </div>
 
+
+@if (destinoPendiente != null)
+{
+    <div class="salida-fondo">
+        <section class="salida-modal" role="dialog" aria-modal="true" aria-labelledby="salida-titulo">
+            <span class="salida-icono"><i class="bi bi-exclamation-circle" aria-hidden="true"></i></span>
+            <h2 id="salida-titulo">Hay cambios sin guardar</h2>
+            <p>Si salís ahora, se perderán las modificaciones del formulario.</p>
+            <div class="salida-acciones">
+                <button type="button" class="cancel-button" @onclick="SeguirEditando">Seguir editando</button>
+                <button type="button" class="salida-confirmar" @onclick="SalirSinGuardar">Salir sin guardar</button>
+            </div>
+        </section>
+    </div>
+}
+
 @code {
+
+    [SupplyParameterFromQuery(Name = "volver")]
+    public string? VolverA { get; set; }
+
+    private string? estadoInicial;
+    private string? destinoPendiente;
+    private bool permitirSalida;
+    private string MensajeDni = string.Empty;
+
+    private bool TieneCambios => !permitirSalida && !cargando && estadoInicial != null
+        && estadoInicial != ObtenerEstadoFormulario();
+
+    private string ObtenerEstadoFormulario() => JsonSerializer.Serialize(new
+    {
+        Nombre = modelo?.Nombre,
+        DNI = modelo?.DNI,
+        FechaNacimiento = modelo?.FechaNacimiento,
+        TieneCud = modelo?.TieneCud,
+        TipoObraSocialId = modelo?.TipoObraSocialId,
+        TipoDiagnosticoId = modelo?.TipoDiagnosticoId,
+        Domicilio = modelo?.Domicilio,
+        Telefonos = modelo?.Telefonos.Select(t => new { t.Etiqueta, t.Numero }).ToList()
+    });
+
+    private void AntesDeNavegar(LocationChangingContext contexto)
+    {
+        if (!TieneCambios) return;
+        contexto.PreventNavigation();
+        destinoPendiente = contexto.TargetLocation;
+        StateHasChanged();
+    }
+
+    private void SeguirEditando() => destinoPendiente = null;
+
+    private void SalirSinGuardar()
+    {
+        if (destinoPendiente == null) return;
+        var destino = destinoPendiente;
+        destinoPendiente = null;
+        permitirSalida = true;
+        Nav.NavigateTo(destino);
+    }
+
+    private string ContextoRegreso => !string.IsNullOrWhiteSpace(VolverA)
+        && (VolverA == "/pacientes" || VolverA.StartsWith("/pacientes?", StringComparison.Ordinal))
+            ? VolverA
+            : "/pacientes";
+
+
     private PacienteCrearDTO modelo = new()
     {
         Nombre = string.Empty,
@@ -383,6 +472,7 @@
             Mensaje = respDiagnostico.ObtenerError();
         }
 
+        estadoInicial = ObtenerEstadoFormulario();
         cargando = false;
     }
 
@@ -421,6 +511,7 @@
     private async Task Grabar()
     {
         Mensaje = string.Empty;
+        MensajeDni = string.Empty;
         MensajeTelefonos = string.Empty;
 
         if (modelo.FechaNacimiento > DateTime.Today)
@@ -464,25 +555,29 @@
 
         if (!resp.Error)
         {
+            permitirSalida = true;
             var pacienteId = resp.Respuesta;
 
             Nav.NavigateTo(
-                $"/pacientes/detalle/{pacienteId}?estado=creado"
+                ContextoRegreso + (ContextoRegreso.Contains('?') ? "&" : "?") + $"detalle={pacienteId}&estado=creado"
             );
         }
         else
         {
             Mensaje = resp.ObtenerError();
+            if (Mensaje.Contains("DNI", StringComparison.OrdinalIgnoreCase)
+                && Mensaje.Contains("Ya existe", StringComparison.OrdinalIgnoreCase))
+                MensajeDni = "Ya existe un paciente con ese DNI. Revisá el número ingresado.";
         }
     }
 
     private void Cancelar()
     {
-        Nav.NavigateTo("/pacientes");
+        Nav.NavigateTo(ContextoRegreso);
     }
 
     private void Volver()
     {
-        Nav.NavigateTo("/pacientes");
+        Nav.NavigateTo(ContextoRegreso);
     }
 }

@@ -24,19 +24,28 @@
             </div>
         }
 
-        <h1>Gestión de Pacientes</h1>
+        <div class="pacientes-heading">
+            <span class="heading-icon" aria-hidden="true"><i class="bi bi-people"></i></span>
+            <div><h1>Pacientes</h1><p>Consultá sus datos y abrí la ficha para ver el detalle.</p></div>
+        </div>
 
         <div class="pacientes-actions">
 
-            <div class="search-box">
+            <div class="search-control">
+                <div class="search-box">
 
-                <i class="bi bi-search"></i>
+                    <i class="bi bi-search"></i>
 
-                <input type="text"
-                       placeholder="Buscar paciente..."
-                       @bind="busqueda"
-                       @bind:event="oninput" />
+                    <input type="text"
+                           placeholder="Buscar paciente..."
+                           aria-label="Buscar pacientes"
+                           aria-describedby="pacientes-busqueda-ayuda"
+                           @bind="busqueda"
+                           @bind:event="oninput" />
 
+                </div>
+
+                <p id="pacientes-busqueda-ayuda" class="search-help">Nombre, DNI, obra social o teléfono.</p>
             </div>
 
             <button type="button"
@@ -44,13 +53,60 @@
                     @onclick="IrACrear">
 
                 <i class="bi bi-person-plus"></i>
-                <span>Nuevo Paciente</span>
+                <span>Nuevo paciente</span>
 
             </button>
 
         </div>
 
     </div>
+
+    @if (!cargando && listaPacientes.Count > 0)
+    {
+        <div class="pacientes-filtros" aria-label="Filtros de pacientes">
+            <label>
+                Obra social
+                <select @bind="filtroObra">
+                    <option value="0">Todas</option>
+                    @foreach (var obra in listaPacientes.GroupBy(p => p.TipoObraSocialId).Select(g => g.First()).OrderBy(p => p.TipoObraSocialNombre))
+                    {
+                        <option value="@obra.TipoObraSocialId">@obra.TipoObraSocialNombre</option>
+                    }
+                </select>
+            </label>
+            <label>
+                Diagnóstico
+                <select @bind="filtroDiagnostico">
+                    <option value="0">Todos</option>
+                    @foreach (var diagnostico in listaPacientes.GroupBy(p => p.TipoDiagnosticoId).Select(g => g.First()).OrderBy(p => p.TipoDiagnosticoNombre))
+                    {
+                        <option value="@diagnostico.TipoDiagnosticoId">@diagnostico.TipoDiagnosticoNombre</option>
+                    }
+                </select>
+            </label>
+            <label>
+                CUD
+                <select @bind="filtroCud">
+                    <option value="">Todos</option>
+                    <option value="si">Con CUD</option>
+                    <option value="no">Sin CUD</option>
+                </select>
+            </label>
+            <button type="button" class="limpiar-filtros" @onclick="LimpiarFiltros">Limpiar filtros</button>
+        </div>
+    }
+
+    @if (!cargando && listaPacientes.Count > 0)
+    {
+        <div class="orden-movil">
+            <select aria-label="Ordenar pacientes por" @bind="orden">
+                <option value="nombre">Nombre</option>
+                <option value="dni">DNI</option>
+                <option value="nacimiento">Nacimiento</option>
+            </select>
+            <button type="button" @onclick="() => descendente = !descendente">@(descendente ? "Descendente ↓" : "Ascendente ↑")</button>
+        </div>
+    }
 
     @if (cargando)
     {
@@ -112,7 +168,7 @@
                         @onclick="IrACrear">
 
                     <i class="bi bi-person-plus"></i>
-                    <span>Nuevo Paciente</span>
+                    <span>Nuevo paciente</span>
 
                 </button>
             </div>
@@ -131,16 +187,15 @@
                 <h3>No encontramos resultados</h3>
 
                 <p>
-                    No hay pacientes que coincidan con
-                    <strong>"@busqueda"</strong>.
+                    No hay pacientes que coincidan con la búsqueda y los filtros seleccionados.
                 </p>
 
                 <button type="button"
                         class="estado-button secundario"
-                        @onclick="LimpiarBusqueda">
+                        @onclick="LimpiarFiltros">
 
                     <i class="bi bi-x-circle"></i>
-                    <span>Limpiar búsqueda</span>
+                    <span>Limpiar filtros</span>
 
                 </button>
             </div>
@@ -157,12 +212,12 @@
 
                     <thead>
                         <tr>
-                            <th>Nombre</th>
-                            <th>DNI</th>
-                            <th>Fecha de nacimiento</th>
-                            <th>Nro. Afiliado</th>
+                            <th aria-sort="@AriaOrden("nombre")"><button type="button" class="orden-columna" @onclick='() => CambiarOrden("nombre")'>Nombre<span aria-hidden="true">@IndicadorOrden("nombre")</span></button></th>
+                            <th aria-sort="@AriaOrden("dni")"><button type="button" class="orden-columna" @onclick='() => CambiarOrden("dni")'>DNI<span aria-hidden="true">@IndicadorOrden("dni")</span></button></th>
+                            <th aria-sort="@AriaOrden("nacimiento")"><button type="button" class="orden-columna" @onclick='() => CambiarOrden("nacimiento")'>Nacimiento<span aria-hidden="true">@IndicadorOrden("nacimiento")</span></button></th>
+                            <th>N.º de afiliado</th>
                             <th>Diagnóstico</th>
-                            <th>Obra Social</th>
+                            <th>Obra social</th>
                             <th>Teléfonos</th>
                             <th>CUD</th>
                         </tr>
@@ -174,37 +229,45 @@
                         {
                             <tr @onclick="() => IrADetalle(paciente.Id)">
 
-                                <td class="paciente-nombre">
-                                    @MostrarValor(paciente.Nombre)
+                                <td data-label="Paciente" class="paciente-nombre">
+                                    <span class="patient-identity">
+                                        <i class="bi bi-person" aria-hidden="true"></i>
+                                        <button type="button" class="patient-name-button"
+                                                @onclick="() => IrADetalle(paciente.Id)"
+                                                @onclick:stopPropagation="true"
+                                                aria-label="@($"Ver detalle de {paciente.Nombre}")">
+                                            @MostrarValor(paciente.Nombre)
+                                        </button>
+                                    </span>
                                 </td>
 
-                                <td>
+                                <td data-label="DNI">
                                     @MostrarValor(paciente.DNI)
                                 </td>
 
-                                <td class="fecha-cell">
+                                <td data-label="Nacimiento" class="fecha-cell">
                                     @MostrarFecha(paciente.FechaNacimiento)
                                 </td>
 
-                                <td>
+                                <td data-label="N.º de afiliado">
                                     <span class="affiliate-number">
                                         @paciente.NumeroAfiliado
                                     </span>
                                 </td>
 
-                                <td>
+                                <td data-label="Diagnóstico">
                                     @MostrarValor(
                                         paciente.TipoDiagnosticoNombre
                                     )
                                 </td>
 
-                                <td>
+                                <td data-label="Obra social">
                                     @MostrarValor(
                                         paciente.TipoObraSocialNombre
                                     )
                                 </td>
 
-                                <td class="phones-cell">
+                                <td data-label="Teléfonos" class="phones-cell">
 
                                     <div class="patient-phones">
 
@@ -239,17 +302,14 @@
 
                                 </td>
 
-                                <td class="cud-cell">
+                                <td data-label="CUD" class="cud-cell">
 
                                     <div class="cud-indicator
                                         @(paciente.TieneCud
-                                            ? "has-cud"
-                                            : "no-cud")">
+    ? "has-cud"
+    : "no-cud")">
 
-                                        <input type="checkbox"
-                                               checked="@paciente.TieneCud"
-                                               disabled
-                                               @onclick:stopPropagation />
+                                        <i class="bi @(paciente.TieneCud ? "bi-check-circle" : "bi-dash-circle")" aria-hidden="true"></i>
 
                                         <span>
                                             @(paciente.TieneCud
@@ -285,7 +345,61 @@
 
 </div>
 
+@if (pacienteSeleccionadoId is int idSeleccionado)
+{
+    <PacienteDetalle @key="idSeleccionado" Id="idSeleccionado" Estado="@Estado" ContextoListado="@ContextoListado" OnCerrar="CerrarDetalle" />
+}
+
 @code {
+    private int? pacienteSeleccionadoId;
+
+    private void CerrarDetalle()
+    {
+        pacienteSeleccionadoId = null;
+        if (DetallePacienteId.HasValue)
+            Nav.NavigateTo(ContextoListado, replace: true);
+    }
+
+    [SupplyParameterFromQuery(Name = "detalle")]
+    public int? DetallePacienteId { get; set; }
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? BusquedaUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "obra")]
+    public int? ObraUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "diagnostico")]
+    public int? DiagnosticoUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "cud")]
+    public string? CudUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "orden")]
+    public string? OrdenUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "desc")]
+    public bool? DescUrl { get; set; }
+
+    private int filtroObra;
+    private int filtroDiagnostico;
+    private string filtroCud = "";
+    private string orden = "nombre";
+    private bool descendente;
+    private string? ultimaUrlAplicada;
+
+    private string ContextoListado => "/pacientes?q=" + Uri.EscapeDataString(busqueda)
+        + $"&obra={filtroObra}&diagnostico={filtroDiagnostico}"
+        + "&cud=" + Uri.EscapeDataString(filtroCud)
+        + "&orden=" + orden + "&desc=" + descendente.ToString().ToLowerInvariant();
+
+    protected override void OnParametersSet()
+    {
+        if (ultimaUrlAplicada == Nav.Uri) return;
+        ultimaUrlAplicada = Nav.Uri;
+        busqueda = BusquedaUrl ?? "";
+        filtroObra = ObraUrl is > 0 ? ObraUrl.Value : 0;
+        filtroDiagnostico = DiagnosticoUrl is > 0 ? DiagnosticoUrl.Value : 0;
+        filtroCud = CudUrl is "si" or "no" ? CudUrl : "";
+        orden = OrdenUrl is "dni" or "nacimiento" ? OrdenUrl : "nombre";
+        descendente = DescUrl == true;
+        pacienteSeleccionadoId = DetallePacienteId is > 0 ? DetallePacienteId : null;
+    }
+
     [SupplyParameterFromQuery(Name = "estado")]
     public string? Estado { get; set; }
 
@@ -296,8 +410,54 @@
     private string Mensaje = string.Empty;
     private string busqueda = string.Empty;
 
-    private IEnumerable<PacienteResumenDTO> PacientesFiltrados =>
-        listaPacientes.Where(CoincideBusqueda);
+    private IEnumerable<PacienteResumenDTO> PacientesFiltrados
+    {
+        get
+        {
+            var pacientes = listaPacientes.Where(p => CoincideBusqueda(p)
+                && (filtroObra == 0 || p.TipoObraSocialId == filtroObra)
+                && (filtroDiagnostico == 0 || p.TipoDiagnosticoId == filtroDiagnostico)
+                && (filtroCud == "" || p.TieneCud == (filtroCud == "si")));
+            IOrderedEnumerable<PacienteResumenDTO> resultado;
+            if (orden == "nacimiento")
+                resultado = descendente
+                    ? pacientes.OrderBy(p => !p.FechaNacimiento.HasValue).ThenByDescending(p => p.FechaNacimiento)
+                    : pacientes.OrderBy(p => !p.FechaNacimiento.HasValue).ThenBy(p => p.FechaNacimiento);
+            else if (orden == "dni")
+                resultado = descendente
+                    ? pacientes.OrderByDescending(p => DniNumerico(p.DNI))
+                    : pacientes.OrderBy(p => DniNumerico(p.DNI));
+            else
+                resultado = descendente
+                    ? pacientes.OrderByDescending(p => p.Nombre, StringComparer.CurrentCultureIgnoreCase)
+                    : pacientes.OrderBy(p => p.Nombre, StringComparer.CurrentCultureIgnoreCase);
+            return resultado.ThenBy(p => p.Id);
+        }
+    }
+
+    private static long DniNumerico(string? dni) =>
+        long.TryParse(new string((dni ?? "").Where(char.IsDigit).ToArray()), out var numero)
+            ? numero : long.MaxValue;
+
+    private void CambiarOrden(string columna)
+    {
+        descendente = orden == columna ? !descendente : false;
+        orden = columna;
+    }
+
+    private string IndicadorOrden(string columna) => orden == columna
+        ? (descendente ? "↓" : "↑") : "↕";
+
+    private string AriaOrden(string columna) => orden != columna ? "none"
+        : descendente ? "descending" : "ascending";
+
+    private void LimpiarFiltros()
+    {
+        busqueda = "";
+        filtroObra = 0;
+        filtroDiagnostico = 0;
+        filtroCud = "";
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -309,11 +469,8 @@
         if (firstRender && Estado == "eliminado")
         {
             await Task.Delay(5000);
-
-            Nav.NavigateTo(
-                "/pacientes",
-                replace: true
-            );
+            if (!pacienteSeleccionadoId.HasValue)
+                Nav.NavigateTo(ContextoListado, replace: true);
         }
     }
 
@@ -437,16 +594,12 @@
 
     private void IrADetalle(int id)
     {
-        Nav.NavigateTo(
-            $"/pacientes/detalle/{id}"
-        );
+        pacienteSeleccionadoId = id;
     }
 
     private void IrACrear()
     {
-        Nav.NavigateTo(
-            "/pacientes/crear"
-        );
+        Nav.NavigateTo("/pacientes/crear?volver=" + Uri.EscapeDataString(ContextoListado));
     }
 
     private static string MostrarFecha(DateTime? fecha)

@@ -1,417 +1,252 @@
-﻿@page "/pacientes/detalle/{id:int}"
-@attribute [Authorize]
+﻿@attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
 @inject IHttpServicio Http
 @inject NavigationManager Nav
-@rendermode InteractiveAuto
 
-<div class="detalle-paciente-page">
-
-    <button type="button"
-            class="back-button"
-            @onclick="Volver">
-        <i class="bi bi-arrow-left"></i>
-        <span>Volver a Pacientes</span>
-    </button>
-
-    <h1>Detalle Paciente</h1>
-
-    @if (Estado == "creado")
-    {
-        <div class="success-message">
-
-            <i class="bi bi-check-circle-fill"></i>
-
-            <div>
-                <strong>Paciente registrado</strong>
-                <span>El paciente fue registrado correctamente.</span>
+<div class="paciente-detalle-fondo" @onclick="Volver" @onkeydown="ProcesarTecla">
+    <section class="paciente-dialog" role="dialog" aria-modal="true"
+             aria-labelledby="detalle-paciente-titulo" tabindex="-1"
+             @onclick:stopPropagation="true">
+        <header class="detalle-encabezado">
+            <div class="detalle-identidad">
+                <span class="detalle-icono"><i class="bi bi-person" aria-hidden="true"></i></span>
+                <div>
+                    <span>Detalle del paciente</span>
+                    <h1 id="detalle-paciente-titulo">@(modelo?.Nombre ?? "Ficha del paciente")</h1>
+                </div>
             </div>
+            <button type="button" class="detalle-cerrar" title="Cerrar" aria-label="Cerrar detalle" @onclick="Volver" autofocus>
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </header>
 
-        </div>
-    }
-    else if (Estado == "actualizado")
-    {
-        <div class="success-message">
-
-            <i class="bi bi-check-circle-fill"></i>
-
-            <div>
-                <strong>Paciente actualizado</strong>
-                <span>Los cambios se guardaron correctamente.</span>
-            </div>
-
-        </div>
-    }
-
-    @if (cargando)
-    {
-        <div class="detalle-loading">
-            Cargando datos del paciente...
-        </div>
-    }
-    else if (modelo == null)
-    {
-        <div class="detalle-mensaje">
-            No se encontró el paciente.
-        </div>
-    }
-    else
-    {
-        <div class="paciente-form">
-
-            <section class="form-section">
-
-                <div class="section-title">
-                    <span class="section-number">01</span>
-                    <span>Información Personal</span>
+        <div class="detalle-contenido">
+            @if (Estado == "creado" || Estado == "actualizado")
+            {
+                <div class="detalle-exito" role="status">
+                    <i class="bi bi-check-circle" aria-hidden="true"></i>
+                    @(Estado == "creado" ? "Paciente registrado correctamente." : "Los cambios se guardaron correctamente.")
                 </div>
+            }
+            @if (cargando)
+            {
+                <p class="detalle-mensaje" role="status">Cargando datos del paciente...</p>
+            }
+            else if (modelo == null)
+            {
+                <p class="detalle-mensaje" role="alert">No se encontró el paciente.</p>
+            }
+            else
+            {
+                <section class="detalle-contexto" aria-label="Identificación">
+                    <div><span>DNI</span><strong>@MostrarValor(modelo.DNI)</strong></div>
+                    <div><span>N.º de afiliado</span><strong>@modelo.NumeroAfiliado</strong></div>
+                </section>
 
-                <div class="form-grid form-grid-3">
-
-                    <div class="field-group">
-
-                        <label>Nombre completo</label>
-
-                        <div class="form-input read-only-field">
-                            @MostrarValor(modelo.Nombre)
+                <div class="detalle-principal">
+                    <section class="detalle-panel">
+                        <h2 class="panel-titulo"><i class="bi bi-person-vcard" aria-hidden="true"></i>Datos del paciente</h2>
+                        <div class="dato-tarjeta">
+                            <span>Fecha de nacimiento</span>
+                            <strong>@MostrarFecha(modelo.FechaNacimiento)</strong>
+                            <small>@MostrarEdad(modelo.FechaNacimiento)</small>
                         </div>
-
-                    </div>
-
-                    <div class="field-group">
-
-                        <label>DNI</label>
-
-                        <div class="form-input read-only-field">
-                            @MostrarValor(modelo.DNI)
+                        <div class="dato-tarjeta">
+                            <span>Obra social / prepaga</span>
+                            <strong>@MostrarValor(modelo.TipoObraSocialNombre)</strong>
                         </div>
-
-                    </div>
-
-                    <div class="field-group">
-
-                        <label>Fecha de nacimiento</label>
-
-                        <div class="form-input read-only-field">
-                            @MostrarFecha(modelo.FechaNacimiento)
+                        <div class="dato-tarjeta">
+                            <span>Diagnóstico / motivo de consulta</span>
+                            <strong>@MostrarValor(modelo.TipoDiagnosticoNombre)</strong>
                         </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-            <section class="form-section">
-
-                <div class="section-title">
-                    <span class="section-number">02</span>
-                    <span>Información Médica / Administrativa</span>
-                </div>
-
-                <div class="form-grid form-grid-medical">
-
-                    <div class="field-group">
-
-                        <label>Obra Social / Prepaga</label>
-
-                        <div class="form-input read-only-field">
-                            @MostrarValor(modelo.TipoObraSocialNombre)
+                        <div class="dato-tarjeta">
+                            <span>Certificado único de discapacidad</span>
+                            <strong><i class="bi @(modelo.TieneCud ? "bi-check-circle" : "bi-dash-circle")" aria-hidden="true"></i> @(modelo.TieneCud ? "Tiene CUD" : "No posee CUD")</strong>
                         </div>
-
-                    </div>
-
-                    <div class="field-group">
-
-                        <label>Nro. Afiliado</label>
-
-                        <div class="readonly-number-field">
-
-                            <i class="bi bi-hash"></i>
-
-                            <div>
-                                <span class="readonly-number-value">
-                                    @modelo.NumeroAfiliado
-                                </span>
-
-                                <span class="readonly-number-description">
-                                    Asignado automáticamente
-                                </span>
+                    </section>
+                    <section class="detalle-panel">
+                        <h2 class="panel-titulo"><i class="bi bi-telephone" aria-hidden="true"></i>Datos de contacto</h2>
+                        @foreach (var telefono in TelefonosAMostrar)
+                        {
+                            <div class="dato-tarjeta">
+                                <span>@MostrarValor(telefono.Etiqueta)</span>
+                                <strong>@MostrarValor(telefono.Numero)</strong>
                             </div>
-
+                        }
+                        @if (!TelefonosAMostrar.Any())
+                        {
+                            <div class="dato-tarjeta"><span>No hay teléfonos registrados.</span></div>
+                        }
+                        <div class="dato-tarjeta">
+                            <span>Domicilio</span>
+                            <strong>@MostrarValor(modelo.Domicilio)</strong>
                         </div>
-
+                    </section>
+                </div>
+                <!-- SECCIÓN 04: Documentos y estudios (Chips compactos) -->
+                <section class="form-section">
+                    <div class="panel-titulo">
+                        <i class="bi bi-folder2-open" aria-hidden="true"></i>
+                        <span>Documentos y estudios</span>
                     </div>
 
-                    <div class="field-group">
-
-                        <label>Diagnóstico / Motivo de Consulta</label>
-
-                        <div class="form-input read-only-field">
-                            @MostrarValor(modelo.TipoDiagnosticoNombre)
-                        </div>
-
-                    </div>
-
-                    <div class="field-group cud-field">
-
-                        <label>Certificado Único de Discapacidad</label>
-
-                        <div class="cud-detail-status">
-
-                            @if (modelo.TieneCud)
+                    @if (modelo.Documentos != null && modelo.Documentos.Any())
+                    {
+                        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px;">
+                            @foreach (var doc in modelo.Documentos)
                             {
-                                <span class="cud-badge cud-badge-yes">
-                                    <i class="bi bi-check-circle-fill"></i>
-                                    Tiene CUD
-                                </span>
+                                <div style="background: #ffffff; border: 1.5px solid #e3e0d8; border-radius: 12px; padding: 9px 14px; display: inline-flex; align-items: center; gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); max-width: 400px; transition: all 0.15s ease;">
+
+                                    <!-- Icono según formato -->
+                                    <div @onclick="() => AbrirVistaPrevia(doc)"
+                                         style="width: 36px; height: 36px; border-radius: 9px; background: #eaf1e9; color: #4e6a47; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; flex-shrink: 0;"
+                                         title="Clic para ver vista previa">
+                                        @if (EsPdf(doc.NombreGenerado))
+                                        {
+                                            <i class="bi bi-file-earmark-pdf-fill" style="color: #b54747;"></i>
+                                        }
+                                        else if (EsImagen(doc.NombreGenerado))
+                                        {
+                                            <i class="bi bi-file-earmark-image-fill" style="color: #4a7c59;"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-file-earmark-text-fill" style="color: #4b6645;"></i>
+                                        }
+                                    </div>
+
+                                    <!-- Nombre y Tipo (al hacer clic abre el visor oscuro) -->
+                                    <div @onclick="() => AbrirVistaPrevia(doc)"
+                                         style="cursor: pointer; display: flex; flex-direction: column; overflow: hidden; min-width: 140px; max-width: 220px;"
+                                         title="Clic para ver vista previa">
+                                        <span style="font-size: 13px; font-weight: 600; color: #2c3329; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                            @doc.NombreGenerado
+                                        </span>
+                                        <span style="font-size: 11px; color: #7f786d;">
+                                            @(string.IsNullOrEmpty(doc.TipoDocumentoNombre) ? "Documento" : doc.TipoDocumentoNombre)
+                                        </span>
+                                    </div>
+
+                                    <!-- Botón de descarga directa -->
+                                    <div style="display: flex; align-items: center; margin-left: auto;">
+                                        <a href="/api/documento/descargar/@doc.Id"
+                                           download="@doc.NombreGenerado"
+                                           style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #50614e; text-decoration: none;"
+                                           title="Descargar archivo">
+                                            <i class="bi bi-download" style="font-size: 15px;"></i>
+                                        </a>
+                                    </div>
+
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="padding: 14px 18px; background: #faf9f6; border-radius: 12px; border: 1px dashed #d5d0c7; color: #8a847b; font-size: 13px;">
+                            <i class="bi bi-folder-x"></i> Este paciente no tiene documentos ni estudios adjuntos.
+                        </div>
+                    }
+
+                </section>
+            }
+            @if (!string.IsNullOrWhiteSpace(Mensaje))
+            {
+                <p class="detalle-error" role="alert">@Mensaje</p>
+            }
+        </div>
+        <footer class="detalle-acciones">
+            <button type="button" class="detalle-btn-cerrar" @onclick="Volver">Cerrar</button>
+            @if (!cargando && modelo != null)
+            {
+                <button type="button" class="detalle-btn-turnos" @onclick="VerTurnos">
+                    <i class="bi bi-calendar3" aria-hidden="true"></i>Ver turnos
+                </button>
+                <button type="button" class="detalle-btn-editar" @onclick="Editar">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>Editar paciente
+                </button>
+            }
+        </footer>
+        <!-- MODAL DE VISTA PREVIA OSCURECIDA (ESTILO CLASSROOM / GOOGLE DRIVE) -->
+        @if (documentoVistaPrevia != null)
+        {
+            <div @onclick="CerrarVistaPrevia"
+                 style="position: fixed; inset: 0; background: rgba(15, 18, 14, 0.82); backdrop-filter: blur(4px); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;">
+
+                <div @onclick:stopPropagation="true"
+                     style="background: #1c211b; border-radius: 16px; width: 92vw; max-width: 1020px; height: 88vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.1);">
+
+                    <!-- Barra superior del visor -->
+                    <div style="padding: 14px 20px; background: #262c24; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); color: #fff;">
+                        <div style="display: flex; align-items: center; gap: 12px; overflow: hidden;">
+                            @if (EsPdf(documentoVistaPrevia.NombreGenerado))
+                            {
+                                <i class="bi bi-file-earmark-pdf-fill" style="font-size: 22px; color: #ef5350;"></i>
                             }
                             else
                             {
-                                <span class="cud-badge cud-badge-no">
-                                    <i class="bi bi-x-circle-fill"></i>
-                                    No posee CUD
-                                </span>
+                                <i class="bi bi-file-earmark-image-fill" style="font-size: 22px; color: #81c784;"></i>
                             }
-
-                            <span class="cud-detail-description">
-                                Registro informado manualmente
-                            </span>
-
+                            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <span style="font-size: 14px; font-weight: 600; color: #f1f3f0;">@documentoVistaPrevia.NombreGenerado</span>
+                                <span style="margin-left: 8px; font-size: 11px; background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; color: #d0d7cf;">
+                                    @(string.IsNullOrEmpty(documentoVistaPrevia.TipoDocumentoNombre) ? "Documento" : documentoVistaPrevia.TipoDocumentoNombre)
+                                </span>
+                            </div>
                         </div>
 
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <a href="/api/documento/descargar/@documentoVistaPrevia.Id"
+                               download="@documentoVistaPrevia.NombreGenerado"
+                               style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.14); color: #fff; padding: 7px 14px; border-radius: 8px; font-size: 13px; text-decoration: none; font-weight: 500;"
+                               title="Descargar este archivo">
+                                <i class="bi bi-download"></i> Descargar
+                            </a>
+                            <button type="button"
+                                    @onclick="CerrarVistaPrevia"
+                                    style="background: transparent; border: none; color: #ddd; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px;"
+                                    title="Cerrar vista previa">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                     </div>
 
-                </div>
-
-            </section>
-
-            <!-- SECCIÓN 04: Documentos y Estudios (Chips compactos) -->
-            <section class="form-section">
-                <div class="section-title">
-                    <span class="section-number">04</span>
-                    <span>Documentos y Estudios</span>
-                </div>
-
-                @if (modelo.Documentos != null && modelo.Documentos.Any())
-                {
-                    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px;">
-                        @foreach (var doc in modelo.Documentos)
+                    <!-- Contenedor central del archivo -->
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; background: #121511; padding: 14px; overflow: hidden;">
+                        @if (EsPdf(documentoVistaPrevia.NombreGenerado))
                         {
-                            <div style="background: #ffffff; border: 1.5px solid #e3e0d8; border-radius: 12px; padding: 9px 14px; display: inline-flex; align-items: center; gap: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); max-width: 400px; transition: all 0.15s ease;">
-
-                                <!-- Icono según formato -->
-                                <div @onclick="() => AbrirVistaPrevia(doc)"
-                                     style="width: 36px; height: 36px; border-radius: 9px; background: #eaf1e9; color: #4e6a47; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; flex-shrink: 0;"
-                                     title="Clic para ver vista previa">
-                                    @if (EsPdf(doc.NombreGenerado))
-                                    {
-                                        <i class="bi bi-file-earmark-pdf-fill" style="color: #b54747;"></i>
-                                    }
-                                    else if (EsImagen(doc.NombreGenerado))
-                                    {
-                                        <i class="bi bi-file-earmark-image-fill" style="color: #4a7c59;"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-file-earmark-text-fill" style="color: #4b6645;"></i>
-                                    }
-                                </div>
-
-                                <!-- Nombre y Tipo (al hacer clic abre el visor oscuro) -->
-                                <div @onclick="() => AbrirVistaPrevia(doc)"
-                                     style="cursor: pointer; display: flex; flex-direction: column; overflow: hidden; min-width: 140px; max-width: 220px;"
-                                     title="Clic para ver vista previa">
-                                    <span style="font-size: 13px; font-weight: 600; color: #2c3329; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                                        @doc.NombreGenerado
-                                    </span>
-                                    <span style="font-size: 11px; color: #7f786d;">
-                                        @(string.IsNullOrEmpty(doc.TipoDocumentoNombre) ? "Documento" : doc.TipoDocumentoNombre)
-                                    </span>
-                                </div>
-
-                                <!-- Botón de descarga directa -->
-                                <div style="display: flex; align-items: center; margin-left: auto;">
-                                    <a href="/api/documento/descargar/@doc.Id"
-                                       download="@doc.NombreGenerado"
-                                       style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #50614e; text-decoration: none;"
-                                       title="Descargar archivo">
-                                        <i class="bi bi-download" style="font-size: 15px;"></i>
-                                    </a>
-                                </div>
-
-                            </div>
+                            <iframe src="/api/documento/ver/@documentoVistaPrevia.Id" style="width: 100%; height: 100%; border: none; border-radius: 8px; background: #fff;"></iframe>
+                        }
+                        else
+                        {
+                            <img src="/api/documento/ver/@documentoVistaPrevia.Id"
+                                 alt="@documentoVistaPrevia.NombreGenerado"
+                                 style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.6);" />
                         }
                     </div>
-                }
-                else
-                {
-                    <div style="padding: 14px 18px; background: #faf9f6; border-radius: 12px; border: 1px dashed #d5d0c7; color: #8a847b; font-size: 13px;">
-                        <i class="bi bi-folder-x"></i> Este paciente no tiene documentos ni estudios adjuntos.
-                    </div>
-                }
-
-            </section>
-
-            <section class="form-section">
-
-                <div class="section-title">
-
-                    <div class="section-title-content">
-                        <span class="section-number">03</span>
-                        <span>Datos de Contacto</span>
-                    </div>
 
                 </div>
-
-                <div class="phones-list">
-
-                    @if (TelefonosAMostrar.Any())
-                    {
-                        @foreach (var telefono in TelefonosAMostrar)
-                        {
-                            <div class="phone-row"
-                                 @key="telefono">
-
-                                <div class="field-group">
-
-                                    <label>Etiqueta</label>
-
-                                    <div class="form-input read-only-field">
-                                        @MostrarValor(telefono.Etiqueta)
-                                    </div>
-
-                                </div>
-
-                                <div class="field-group">
-
-                                    <label>Número de teléfono</label>
-
-                                    <div class="form-input read-only-field">
-                                        @MostrarValor(telefono.Numero)
-                                    </div>
-
-                                </div>
-
-                            </div>
-                        }
-                    }
-                    else
-                    {
-                        <div class="empty-phones">
-                            No hay teléfonos registrados.
-                        </div>
-                    }
-
-                </div>
-
-                <div class="form-grid form-grid-2 contact-address">
-
-                    <div class="field-group">
-
-                        <label>Domicilio</label>
-
-                        <div class="form-input read-only-field">
-                            @MostrarValor(modelo.Domicilio)
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-            <div class="form-actions detail-actions">
-
-                <button type="button"
-                        class="edit-button"
-                        @onclick="Editar">
-                    <i class="bi bi-pencil-square"></i>
-                    <span>Editar Paciente</span>
-                </button>
-
             </div>
+        }
 
-        </div>
-    }
 
-    @if (!string.IsNullOrWhiteSpace(Mensaje))
-    {
-        <div class="detalle-mensaje">
-            @Mensaje
-        </div>
-    }
-
+    </section>
 </div>
-
-<!-- MODAL DE VISTA PREVIA OSCURECIDA (ESTILO CLASSROOM / GOOGLE DRIVE) -->
-@if (documentoVistaPrevia != null)
-{
-    <div @onclick="CerrarVistaPrevia"
-         style="position: fixed; inset: 0; background: rgba(15, 18, 14, 0.82); backdrop-filter: blur(4px); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;">
-
-        <div @onclick:stopPropagation="true"
-             style="background: #1c211b; border-radius: 16px; width: 92vw; max-width: 1020px; height: 88vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.1);">
-
-            <!-- Barra superior del visor -->
-            <div style="padding: 14px 20px; background: #262c24; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); color: #fff;">
-                <div style="display: flex; align-items: center; gap: 12px; overflow: hidden;">
-                    @if (EsPdf(documentoVistaPrevia.NombreGenerado))
-                    {
-                        <i class="bi bi-file-earmark-pdf-fill" style="font-size: 22px; color: #ef5350;"></i>
-                    }
-                    else
-                    {
-                        <i class="bi bi-file-earmark-image-fill" style="font-size: 22px; color: #81c784;"></i>
-                    }
-                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        <span style="font-size: 14px; font-weight: 600; color: #f1f3f0;">@documentoVistaPrevia.NombreGenerado</span>
-                        <span style="margin-left: 8px; font-size: 11px; background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; color: #d0d7cf;">
-                            @(string.IsNullOrEmpty(documentoVistaPrevia.TipoDocumentoNombre) ? "Documento" : documentoVistaPrevia.TipoDocumentoNombre)
-                        </span>
-                    </div>
-                </div>
-
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <a href="/api/documento/descargar/@documentoVistaPrevia.Id"
-                       download="@documentoVistaPrevia.NombreGenerado"
-                       style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.14); color: #fff; padding: 7px 14px; border-radius: 8px; font-size: 13px; text-decoration: none; font-weight: 500;"
-                       title="Descargar este archivo">
-                        <i class="bi bi-download"></i> Descargar
-                    </a>
-                    <button type="button"
-                            @onclick="CerrarVistaPrevia"
-                            style="background: transparent; border: none; color: #ddd; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px;"
-                            title="Cerrar vista previa">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Contenedor central del archivo -->
-            <div style="flex: 1; display: flex; align-items: center; justify-content: center; background: #121511; padding: 14px; overflow: hidden;">
-                @if (EsPdf(documentoVistaPrevia.NombreGenerado))
-                {
-                    <iframe src="/api/documento/ver/@documentoVistaPrevia.Id" style="width: 100%; height: 100%; border: none; border-radius: 8px; background: #fff;"></iframe>
-                }
-                else
-                {
-                    <img src="/api/documento/ver/@documentoVistaPrevia.Id"
-                         alt="@documentoVistaPrevia.NombreGenerado"
-                         style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.6);" />
-                }
-            </div>
-
-        </div>
-    </div>
-}
 
 @code {
     [Parameter]
+    public string ContextoListado { get; set; } = "/pacientes";
+
+    [Parameter]
+    public EventCallback OnCerrar { get; set; }
+
+    private int? idCargado;
+
+    [Parameter]
     public int Id { get; set; }
 
-    [SupplyParameterFromQuery(Name = "estado")]
+    [Parameter]
     public string? Estado { get; set; }
 
     private PacienteDTO? modelo;
@@ -446,8 +281,11 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        if (idCargado == Id) return;
+        idCargado = Id;
+        documentoVistaPrevia = null;
         cargando = true;
         Mensaje = string.Empty;
 
@@ -468,18 +306,14 @@
         cargando = false;
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task ProcesarTecla(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
     {
-        if (firstRender &&
-            (Estado == "creado" || Estado == "actualizado"))
-        {
-            await Task.Delay(5000);
+        if (e.Key != "Escape") return;
 
-            Nav.NavigateTo(
-                $"/pacientes/detalle/{Id}",
-                replace: true
-            );
-        }
+        if (documentoVistaPrevia != null)
+            CerrarVistaPrevia();
+        else
+            await Volver();
     }
 
     private void AbrirVistaPrevia(DocumentoDTO doc)
@@ -507,16 +341,35 @@
         );
     }
 
+    private string UrlFicha => ContextoListado
+        + (ContextoListado.Contains('?') ? "&" : "?") + $"detalle={Id}";
+
+    private void VerTurnos() => Nav.NavigateTo($"/turnos?pacientes={Id}");
+
+    private static string MostrarEdad(DateTime? nacimiento)
+    {
+        if (!nacimiento.HasValue || nacimiento.Value.Date > DateTime.Today)
+            return "Edad no disponible";
+        var fecha = nacimiento.Value.Date;
+        var hoy = DateTime.Today;
+        var edad = hoy.Year - fecha.Year;
+        if (fecha.AddYears(edad) > hoy) edad--;
+        return edad == 1 ? "1 año" : $"{edad} años";
+    }
+
     private void Editar()
     {
         Nav.NavigateTo(
-            $"/pacientes/editar/{Id}"
+            $"/pacientes/editar/{Id}?volver=" + Uri.EscapeDataString(UrlFicha)
         );
     }
 
-    private void Volver()
+    private async Task Volver()
     {
-        Nav.NavigateTo("/pacientes");
+        if (OnCerrar.HasDelegate)
+            await OnCerrar.InvokeAsync();
+        else
+            Nav.NavigateTo("/pacientes");
     }
 
     private static string MostrarFecha(DateTime? fecha)

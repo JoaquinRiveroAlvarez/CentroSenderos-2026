@@ -1,11 +1,15 @@
 ﻿@page "/pacientes/editar/{id:int}"
 @rendermode InteractiveAuto
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Routing
+@using System.Text.Json
 @using CentroSenderos_2026_Servicio.ServiciosHttp
 @using CentroSenderos_2026_Shared.DTO
 @attribute [Authorize]
 @inject IHttpServicio Http
 @inject NavigationManager Nav
+
+<NavigationLock ConfirmExternalNavigation="TieneCambios" OnBeforeInternalNavigation="AntesDeNavegar" />
 
 <div class="editar-paciente-page">
 
@@ -17,12 +21,21 @@
         <span>Volver</span>
     </button>
 
-    <h1>Editar Paciente</h1>
+    <header class="page-header">
+        <div class="page-heading-icon" aria-hidden="true">
+            <i class="bi bi-person-plus"></i>
+        </div>
+        <div>
+            <h1>Editar paciente</h1>
+            <p>Actualizá sus datos personales, cobertura y contactos.</p>
+        </div>
+    </header>
 
     @if (cargando)
     {
         <div class="editar-loading">
-            Cargando datos del paciente...
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <span>Cargando datos del paciente...</span>
         </div>
     }
     else if (modelo == null)
@@ -40,22 +53,23 @@
 
             <DataAnnotationsValidator />
 
-            <!-- SECCIÓN 01: Información Personal -->
+            <!-- SECCIÓN 01: Información personal -->
             <section class="form-section">
 
                 <div class="section-title">
                     <span class="section-number">01</span>
-                    <span>Información Personal</span>
+                    <span>Información personal</span>
                 </div>
 
                 <div class="form-grid form-grid-3">
 
                     <div class="field-group">
 
-                        <label>Nombre completo</label>
+                        <label for="pacienteNombre">Nombre completo</label>
 
-                        <InputText class="form-input"
+                        <InputText id="pacienteNombre" class="form-input"
                                    @bind-Value="modelo.Nombre"
+                                   @oninput="e => modelo.Nombre = e.Value?.ToString() ?? string.Empty"
                                    placeholder="Nombre completo" />
 
                         <ValidationMessage For="@(() => modelo.Nombre)"
@@ -65,22 +79,27 @@
 
                     <div class="field-group">
 
-                        <label>DNI</label>
+                        <label for="pacienteDni">DNI</label>
 
-                        <InputText class="form-input"
+                        <InputText id="pacienteDni" class="form-input"
                                    @bind-Value="modelo.DNI"
+                                   @oninput="e => modelo.DNI = e.Value?.ToString() ?? string.Empty"
                                    placeholder="DNI" />
 
                         <ValidationMessage For="@(() => modelo.DNI)"
                                            class="validation-message" />
+                        @if (!string.IsNullOrWhiteSpace(MensajeDni))
+                        {
+                            <div class="dni-error" role="alert">@MensajeDni</div>
+                        }
 
                     </div>
 
                     <div class="field-group">
 
-                        <label>Fecha de nacimiento</label>
+                        <label for="pacienteNacimiento">Fecha de nacimiento</label>
 
-                        <InputDate class="form-input"
+                        <InputDate id="pacienteNacimiento" class="form-input"
                                    @bind-Value="modelo.FechaNacimiento" />
 
                         <ValidationMessage For="@(() => modelo.FechaNacimiento)"
@@ -92,21 +111,21 @@
 
             </section>
 
-            <!-- SECCIÓN 02: Información Médica / Administrativa -->
+            <!-- SECCIÓN 02: Información médica y administrativa -->
             <section class="form-section">
 
                 <div class="section-title">
                     <span class="section-number">02</span>
-                    <span>Información Médica / Administrativa</span>
+                    <span>Información médica y administrativa</span>
                 </div>
 
                 <div class="form-grid form-grid-medical">
 
                     <div class="field-group">
 
-                        <label>Obra Social / Prepaga</label>
+                        <label for="obraSocial">Obra social / prepaga</label>
 
-                        <InputSelect class="form-input"
+                        <InputSelect id="obraSocial" class="form-input"
                                      @bind-Value="modelo.TipoObraSocialId">
 
                             @foreach (var obra in tiposObraSocial)
@@ -125,18 +144,18 @@
 
                     <div class="field-group">
 
-                        <label>Nro. Afiliado</label>
+                        <label>N.º de afiliado</label>
 
-                        <div class="readonly-number-field">
+                        <div class="automatic-field">
 
                             <i class="bi bi-hash"></i>
 
                             <div>
-                                <span class="readonly-number-value">
+                                <span class="automatic-field-title">
                                     @modelo.NumeroAfiliado
                                 </span>
 
-                                <span class="readonly-number-description">
+                                <span class="automatic-field-description">
                                     Asignado automáticamente
                                 </span>
                             </div>
@@ -147,9 +166,9 @@
 
                     <div class="field-group">
 
-                        <label>Diagnóstico / Motivo de Consulta</label>
+                        <label for="diagnostico">Diagnóstico / motivo de consulta</label>
 
-                        <InputSelect class="form-input"
+                        <InputSelect id="diagnostico" class="form-input"
                                      @bind-Value="modelo.TipoDiagnosticoId">
 
                             @foreach (var diagnostico in tiposDiagnostico)
@@ -168,7 +187,7 @@
 
                     <div class="field-group cud-field">
 
-                        <label>Certificado Único de Discapacidad</label>
+                        <label>Certificado único de discapacidad</label>
 
                         <label class="cud-option">
 
@@ -195,14 +214,14 @@
 
             </section>
 
-            <!-- SECCIÓN 03: Datos de Contacto -->
+            <!-- SECCIÓN 03: Datos de contacto -->
             <section class="form-section">
 
                 <div class="section-title section-title-actions">
 
                     <div class="section-title-content">
                         <span class="section-number">03</span>
-                        <span>Datos de Contacto</span>
+                        <span>Datos de contacto</span>
                     </div>
 
                     <button type="button"
@@ -227,6 +246,7 @@
 
                                 <InputText class="form-input"
                                            @bind-Value="telefono.Etiqueta"
+                                           @oninput="e => telefono.Etiqueta = e.Value?.ToString() ?? string.Empty"
                                            placeholder="Ej.: Paciente, madre o tutor" />
 
                             </div>
@@ -237,6 +257,7 @@
 
                                 <InputText class="form-input"
                                            @bind-Value="telefono.Numero"
+                                           @oninput="e => telefono.Numero = e.Value?.ToString() ?? string.Empty"
                                            placeholder="Insertar teléfono" />
 
                             </div>
@@ -244,6 +265,7 @@
                             <button type="button"
                                     class="remove-phone-button"
                                     title="Eliminar teléfono"
+                                    aria-label="Eliminar teléfono"
                                     disabled="@(guardando ||
                                                                                 eliminando ||
                                                                                 modelo.Telefonos.Count == 1)"
@@ -263,13 +285,14 @@
                     </div>
                 }
 
-                <div class="form-grid">
-                    <div class="field-group address-field">
+                <div class="form-grid form-grid-2 contact-address">
+                    <div class="field-group">
 
-                        <label>Domicilio</label>
+                        <label for="pacienteDomicilio">Domicilio</label>
 
-                        <InputText class="form-input"
+                        <InputText id="pacienteDomicilio" class="form-input"
                                    @bind-Value="modelo.Domicilio"
+                                   @oninput="e => modelo.Domicilio = e.Value?.ToString() ?? string.Empty"
                                    placeholder="Domicilio" />
 
                         <ValidationMessage For="@(() => modelo.Domicilio)"
@@ -280,11 +303,11 @@
 
             </section>
 
-            <!-- SECCIÓN 04: Documentos y Estudios (Estilo Classroom / Drive) -->
+            <!-- SECCIÓN 04: Documentos y estudios (Estilo Classroom / Drive) -->
             <section class="form-section">
                 <div class="section-title">
                     <span class="section-number">04</span>
-                    <span>Documentos y Estudios</span>
+                    <span>Documentos y estudios</span>
                 </div>
 
                 <!-- Barra de selección de tipo y dropzone de carga -->
@@ -401,7 +424,7 @@
                         disabled="@(guardando || eliminando)"
                         @onclick="AbrirConfirmacionEliminar">
                     <i class="bi bi-trash"></i>
-                    <span>Eliminar Paciente</span>
+                    <span>Eliminar paciente</span>
                 </button>
 
                 <div class="form-actions-right">
@@ -424,7 +447,8 @@
                         }
                         else
                         {
-                            <span>Guardar Paciente</span>
+                            <i class="bi bi-check2" aria-hidden="true"></i>
+                            <span>Guardar paciente</span>
                         }
 
                     </button>
@@ -634,7 +658,72 @@
     </div>
 }
 
+
+@if (destinoPendiente != null)
+{
+    <div class="salida-fondo">
+        <section class="salida-modal" role="dialog" aria-modal="true" aria-labelledby="salida-titulo">
+            <span class="salida-icono"><i class="bi bi-exclamation-circle" aria-hidden="true"></i></span>
+            <h2 id="salida-titulo">Hay cambios sin guardar</h2>
+            <p>Si salís ahora, se perderán las modificaciones del formulario.</p>
+            <div class="salida-acciones">
+                <button type="button" class="cancel-button" @onclick="SeguirEditando">Seguir editando</button>
+                <button type="button" class="salida-confirmar" @onclick="SalirSinGuardar">Salir sin guardar</button>
+            </div>
+        </section>
+    </div>
+}
+
 @code {
+
+    [SupplyParameterFromQuery(Name = "volver")]
+    public string? VolverA { get; set; }
+
+    private string? estadoInicial;
+    private string? destinoPendiente;
+    private bool permitirSalida;
+    private string MensajeDni = string.Empty;
+
+    private bool TieneCambios => !permitirSalida && !cargando && estadoInicial != null
+        && estadoInicial != ObtenerEstadoFormulario();
+
+    private string ObtenerEstadoFormulario() => JsonSerializer.Serialize(new
+    {
+        Nombre = modelo?.Nombre,
+        DNI = modelo?.DNI,
+        FechaNacimiento = modelo?.FechaNacimiento,
+        TieneCud = modelo?.TieneCud,
+        TipoObraSocialId = modelo?.TipoObraSocialId,
+        TipoDiagnosticoId = modelo?.TipoDiagnosticoId,
+        Domicilio = modelo?.Domicilio,
+        Telefonos = modelo?.Telefonos.Select(t => new { t.Etiqueta, t.Numero }).ToList()
+    });
+
+    private void AntesDeNavegar(LocationChangingContext contexto)
+    {
+        if (!TieneCambios) return;
+        contexto.PreventNavigation();
+        destinoPendiente = contexto.TargetLocation;
+        StateHasChanged();
+    }
+
+    private void SeguirEditando() => destinoPendiente = null;
+
+    private void SalirSinGuardar()
+    {
+        if (destinoPendiente == null) return;
+        var destino = destinoPendiente;
+        destinoPendiente = null;
+        permitirSalida = true;
+        Nav.NavigateTo(destino);
+    }
+
+    private string ContextoRegreso => !string.IsNullOrWhiteSpace(VolverA)
+        && (VolverA == "/pacientes" || VolverA.StartsWith("/pacientes?", StringComparison.Ordinal))
+            ? VolverA
+            : $"/pacientes?detalle={Id}";
+
+
 
     [Parameter]
     public int Id { get; set; }
@@ -743,6 +832,7 @@
             Mensaje = respPaciente.ObtenerError();
         }
 
+        estadoInicial = ObtenerEstadoFormulario();
         cargando = false;
     }
 
@@ -906,6 +996,7 @@
             return;
 
         Mensaje = string.Empty;
+        MensajeDni = string.Empty;
         MensajeTelefonos = string.Empty;
 
         if (modelo.FechaNacimiento.HasValue &&
@@ -952,13 +1043,15 @@
 
         if (!resp.Error)
         {
-            Nav.NavigateTo(
-                $"/pacientes/detalle/{Id}?estado=actualizado"
-            );
+            permitirSalida = true;
+            Nav.NavigateTo(ContextoRegreso + (ContextoRegreso.Contains('?') ? "&" : "?") + "estado=actualizado");
         }
         else
         {
             Mensaje = resp.ObtenerError();
+            if (Mensaje.Contains("DNI", StringComparison.OrdinalIgnoreCase)
+                && Mensaje.Contains("Ya existe", StringComparison.OrdinalIgnoreCase))
+                MensajeDni = "Ya existe un paciente con ese DNI. Revisá el número ingresado.";
         }
     }
 
@@ -991,6 +1084,7 @@
         if (!resp.Error)
         {
             mostrarConfirmacionEliminar = false;
+            permitirSalida = true;
 
             Nav.NavigateTo(
                 "/pacientes?estado=eliminado"
@@ -1004,15 +1098,11 @@
 
     private void Cancelar()
     {
-        Nav.NavigateTo(
-            $"/pacientes/detalle/{Id}"
-        );
+        Nav.NavigateTo(ContextoRegreso);
     }
 
     private void Volver()
     {
-        Nav.NavigateTo(
-            $"/pacientes/detalle/{Id}"
-        );
+        Nav.NavigateTo(ContextoRegreso);
     }
 }
