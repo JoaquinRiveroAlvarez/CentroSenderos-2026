@@ -406,8 +406,8 @@
 
                             <label>
                                 Pacientes @(RequierePacientes
-                                                                    ? "(obligatorio)"
-                                                                    : "(opcional)")
+                                                                                                    ? "(obligatorio)"
+                                                                                                    : "(opcional)")
                             </label>
 
                             <div class="selector-desplegable">
@@ -862,55 +862,190 @@
 
             </div>
 
+
             @if (!string.IsNullOrWhiteSpace(horaSeleccionada))
             {
-                <section class="resumen-turno">
+                <details class="resumen-turno">
 
-                    <div class="resumen-header">
-
+                    <summary class="resumen-header">
                         <i class="bi bi-calendar-check"></i>
 
-                        <div>
+                        <div class="resumen-header-texto">
                             <h2>Resumen del turno</h2>
-                            <p>Revisá los datos antes de guardar.</p>
+                            <p>Hacé clic para consultar los detalles del turno.</p>
+                        </div>
+
+                        <span class="resumen-estado">
+                            <i class="bi bi-clock-history"></i>
+                            Reservado
+                        </span>
+
+                        <i class="bi bi-chevron-down resumen-flecha"></i>
+                    </summary>
+
+                    <div class="resumen-contenido">
+
+
+                        <div class="resumen-grid">
+
+                            <div class="resumen-item">
+                                <span class="resumen-label">Fecha</span>
+                                <strong>@FormatearFecha(modelo.Fecha)</strong>
+                            </div>
+
+                            <div class="resumen-item">
+                                <span class="resumen-label">Horario</span>
+                                <strong>@horaSeleccionada - @CalcularHoraFin()</strong>
+                            </div>
+
+                            <div class="resumen-item">
+                                <span class="resumen-label">Duración</span>
+                                <strong>@ObtenerDuracionSeleccionada() minutos</strong>
+                            </div>
+
+                            <div class="resumen-item">
+                                <span class="resumen-label">Consultorio</span>
+                                <strong>@ObtenerNombreConsultorio()</strong>
+                            </div>
+
+                            <div class="resumen-item">
+                                <span class="resumen-label">Tipo de turno</span>
+                                <strong>@ObtenerNombreTipoTurno()</strong>
+                            </div>
+
+                        </div>
+
+                        <div class="resumen-seccion">
+                            <div class="resumen-seccion-header">
+                                <h3>
+                                    <i class="bi bi-person-badge"></i>
+                                    Profesionales
+                                </h3>
+                                <span>@modelo.ProfesionalIds.Count seleccionados</span>
+                            </div>
+
+                            <div class="resumen-personas-grid">
+                                @foreach (var profesionalId in modelo.ProfesionalIds)
+                                {
+                                    var profesional = profesionales.FirstOrDefault(
+                                        p => p.Id == profesionalId
+                                    );
+
+                                    if (profesional is not null)
+                                    {
+                                        var prestacionId =
+                                            ObtenerPrestacionSeleccionada(profesional.Id);
+
+                                        var indicePrestacion =
+                                            profesional.TipoPrestacionIds.IndexOf(prestacionId);
+
+                                        var nombrePrestacion =
+                                            indicePrestacion >= 0 &&
+                                            indicePrestacion < profesional.TipoPrestacionNombres.Count
+                                                ? profesional.TipoPrestacionNombres[indicePrestacion]
+                                                : "Sin prestación asignada";
+
+                                        <div class="resumen-persona">
+                                            <strong>@profesional.Nombre</strong>
+
+                                            <span class="resumen-persona-secundario">
+                                                @(string.IsNullOrWhiteSpace(profesional.Area)
+                                                    ? "Sin área registrada"
+                                                    : profesional.Area)
+                                            </span>
+
+                                            <div class="resumen-persona-detalle">
+                                                <span>Prestación</span>
+                                                <strong>@nombrePrestacion</strong>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+
+                        <div class="resumen-seccion">
+                            <div class="resumen-seccion-header">
+                                <h3>
+                                    <i class="bi bi-people"></i>
+                                    Pacientes
+                                </h3>
+                                <span>@modelo.PacienteIds.Count seleccionados</span>
+                            </div>
+
+                            @if (modelo.PacienteIds.Count == 0)
+                            {
+                                <p class="resumen-sin-personas">
+                                    No hay pacientes seleccionados.
+                                </p>
+                            }
+                            else
+                            {
+                                <div class="resumen-personas-grid">
+                                    @foreach (var pacienteId in modelo.PacienteIds)
+                                    {
+                                        var paciente = pacientes.FirstOrDefault(
+                                            p => p.Id == pacienteId
+                                        );
+
+                                        if (paciente is not null)
+                                        {
+                                            <div class="resumen-persona">
+                                                <strong>@paciente.Nombre</strong>
+
+                                                <div class="resumen-persona-detalle">
+                                                    <span>Diagnóstico</span>
+                                                    <strong>@MostrarDiagnostico(paciente)</strong>
+                                                </div>
+
+                                                <div class="resumen-persona-detalle">
+                                                    <span>Obra social</span>
+                                                    <strong>
+                                                        @(string.IsNullOrWhiteSpace(
+                                                            paciente.TipoObraSocialNombre)
+                                                            ? "Sin obra social registrada"
+                                                            : paciente.TipoObraSocialNombre)
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <div class="resumen-recurrencia">
+                            <i class="bi bi-arrow-repeat"></i>
+
+                            <div>
+                                <strong>Repetición</strong>
+
+                                @if (!EsRecurrente)
+                                {
+                                    <span>Turno único, sin repetición.</span>
+                                }
+                                else if (!RecurrenciaValida)
+                                {
+                                    <span>Falta completar la configuración de repetición.</span>
+                                }
+                                else
+                                {
+                                    <span>
+                                        @modelo.FrecuenciaRecurrencia
+                                        hasta el
+                                        @modelo.FechaHastaRecurrencia?.ToString("dd/MM/yyyy")
+                                    </span>
+
+                                    <span>
+                                        @ObtenerFechasRecurrenciaVistaPrevia().Count
+                                        fechas previstas en la recurrencia.
+                                    </span>
+                                }
+                            </div>
                         </div>
 
                     </div>
-
-                    <div class="resumen-grid">
-
-                        <div class="resumen-item">
-                            <span class="resumen-label">Fecha</span>
-                            <strong>@FormatearFecha(modelo.Fecha)</strong>
-                        </div>
-
-                        <div class="resumen-item">
-                            <span class="resumen-label">Horario</span>
-                            <strong>
-                                @horaSeleccionada - @CalcularHoraFin()
-                            </strong>
-                        </div>
-
-                        <div class="resumen-item">
-                            <span class="resumen-label">Duración</span>
-                            <strong>
-                                @ObtenerDuracionSeleccionada() minutos
-                            </strong>
-                        </div>
-
-                        <div class="resumen-item">
-                            <span class="resumen-label">Consultorio</span>
-                            <strong>@ObtenerNombreConsultorio()</strong>
-                        </div>
-
-                        <div class="resumen-item">
-                            <span class="resumen-label">Tipo de turno</span>
-                            <strong>@ObtenerNombreTipoTurno()</strong>
-                        </div>
-
-                    </div>
-
-                </section>
+                </details>
             }
 
             @if (!string.IsNullOrWhiteSpace(Mensaje))

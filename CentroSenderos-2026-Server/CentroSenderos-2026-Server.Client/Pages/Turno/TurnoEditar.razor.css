@@ -1996,3 +1996,768 @@ select.control-formulario {
 }
 
 /* #endregion */
+
+/* #region Resumen del turno desplegable */
+
+/* El resumen ocupa ambas columnas, igual que en Crear turno. */
+.editar-contenido > .resumen-turno {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+}
+
+
+.resumen-turno {
+    margin-top: 18px;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #cfd9cc;
+    border-radius: 12px;
+    background-color: #f3f6f1;
+}
+
+.resumen-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 17px 20px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+    .resumen-header::-webkit-details-marker {
+        display: none;
+    }
+
+    .resumen-header::marker {
+        content: "";
+    }
+
+    .resumen-header:hover {
+        background-color: #eaf0e7;
+    }
+
+    .resumen-header:focus-visible {
+        outline: 2px solid #647b5b;
+        outline-offset: -3px;
+    }
+
+    .resumen-header > i:first-child {
+        color: #556f4f;
+        font-size: 22px;
+    }
+
+.resumen-header-texto {
+    flex: 1;
+    min-width: 0;
+}
+
+.resumen-header h2 {
+    margin: 0;
+    color: #40583b;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.resumen-header p {
+    margin: 4px 0 0;
+    color: #778573;
+    font-size: 11px;
+}
+
+.resumen-header .resumen-flecha {
+    flex-shrink: 0;
+    color: #647b5b;
+    font-size: 14px;
+    transition: transform 0.2s ease;
+}
+
+.resumen-turno[open] .resumen-flecha {
+    transform: rotate(180deg);
+}
+
+.resumen-contenido {
+    padding: 18px 20px 20px;
+    border-top: 1px solid #dce5d8;
+}
+
+.resumen-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #e3ecdf;
+    color: #496543;
+    font-size: 11px;
+    font-weight: 650;
+}
+
+.resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.resumen-item {
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid #e1e8dd;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.resumen-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #859080;
+    font-size: 10px;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.resumen-item strong {
+    display: block;
+    color: #3f493c;
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.5;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+.resumen-seccion {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid #dce5d8;
+}
+
+.resumen-seccion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+    .resumen-seccion-header h3 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        color: #40583b;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+        .resumen-seccion-header h3 i {
+            color: #647b5b;
+            font-size: 16px;
+        }
+
+    .resumen-seccion-header > span {
+        color: #7b8876;
+        font-size: 11px;
+    }
+
+.resumen-personas-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.resumen-persona {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid #e0e7dc;
+    border-radius: 11px;
+    background: #fff;
+}
+
+    .resumen-persona > strong {
+        color: #40583b;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.4;
+        overflow-wrap: break-word;
+    }
+
+.resumen-persona-secundario {
+    color: #7c8877;
+    font-size: 11px;
+}
+
+.resumen-persona-detalle {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+    .resumen-persona-detalle > span {
+        color: #8b9487;
+        font-size: 10px;
+        font-weight: 500;
+    }
+
+    .resumen-persona-detalle > strong {
+        color: #4c5847;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.45;
+        overflow-wrap: break-word;
+    }
+
+.resumen-sin-personas {
+    margin: 0;
+    color: #7b8876;
+    font-size: 12px;
+}
+
+.resumen-recurrencia {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid #d8e2d4;
+    border-radius: 10px;
+    background: #eaf0e7;
+}
+
+    .resumen-recurrencia > i {
+        color: #556f4f;
+        font-size: 19px;
+    }
+
+    .resumen-recurrencia > div {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .resumen-recurrencia strong {
+        color: #40583b;
+        font-size: 12px;
+    }
+
+    .resumen-recurrencia span {
+        color: #697a64;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+/* #endregion */
+
+/* #region Adaptación responsive del resumen */
+@media (max-width: 1100px) {
+    .resumen-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .resumen-personas-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .resumen-grid, .resumen-personas-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .resumen-header {
+        flex-wrap: wrap;
+        padding: 14px;
+    }
+
+    .resumen-contenido {
+        padding: 14px;
+    }
+}
+/* #endregion */
+
+/* #region Unificación visual con Crear turno */
+.campo:has(.selector-multiple-seleccionados) {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+}
+
+.selector-multiple-chip.paciente-chip {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 12px 14px;
+    border: 1px solid #dfe5d9;
+    border-radius: 11px;
+    background: #f5f7f2;
+}
+
+.paciente-chip-datos {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+    .paciente-chip-datos strong {
+        display: block;
+        color: #43563c;
+        font-size: 12px;
+        font-weight: 650;
+        line-height: 1.4;
+        white-space: normal;
+        overflow-wrap: break-word;
+    }
+
+    .paciente-chip-datos > span {
+        display: block;
+        color: #7b8474;
+        font-size: 11px;
+        font-weight: 400;
+        line-height: 1.45;
+        white-space: normal;
+        overflow-wrap: break-word;
+    }
+
+.selector-multiple-chip.paciente-chip > button {
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 0;
+    color: #87927e;
+}
+
+    .selector-multiple-chip.paciente-chip > button:hover {
+        background: #e5ebdf;
+        color: #43563c;
+    }
+
+
+.alcance-edicion {
+    margin: 0 0 14px;
+    padding: 10px 12px;
+}
+
+    .alcance-edicion legend {
+        margin-bottom: 7px;
+    }
+
+.alcance-opciones-compactas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+    .alcance-opciones-compactas .alcance-opcion {
+        min-height: 0;
+        margin: 0;
+        padding: 9px 10px;
+        align-items: center;
+    }
+
+        .alcance-opciones-compactas .alcance-opcion + .alcance-opcion {
+            margin-top: 0;
+        }
+
+        .alcance-opciones-compactas .alcance-opcion input {
+            margin: 0;
+        }
+
+        .alcance-opciones-compactas .alcance-opcion strong {
+            font-size: 12px;
+        }
+
+.alcance-nota {
+    margin: 8px 0 0;
+    font-size: 11px;
+    color: #748071;
+}
+
+@media (max-width: 520px) {
+    .alcance-opciones-compactas {
+        grid-template-columns: 1fr;
+    }
+}
+/* #endregion */
+
+/* #region Profesionales: mismo diseño de Crear turno */
+.profesionales-prestaciones-lista {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 14px;
+    width: 100%;
+    margin-top: 12px;
+}
+
+.profesional-prestacion-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    padding: 15px;
+    border: 1px solid #dfe5dc;
+    border-radius: 12px;
+    background: #fafbf9;
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+    .profesional-prestacion-card:hover {
+        border-color: #bdc9b8;
+        box-shadow: 0 4px 12px rgba(64,88,59,.07);
+    }
+
+.profesional-prestacion-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e9e2;
+}
+
+.profesional-prestacion-identidad {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 10px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.profesional-prestacion-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    border-radius: 9px;
+    background: #e5ece2;
+    color: #556f4f;
+}
+
+    .profesional-prestacion-icono i {
+        font-size: 15px;
+    }
+
+.profesional-prestacion-identidad > div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+    padding-top: 1px;
+}
+
+.profesional-prestacion-identidad strong {
+    display: block;
+    max-width: 100%;
+    color: #383c36;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+.profesional-prestacion-identidad > div > span {
+    display: block;
+    max-width: 100%;
+    color: #7b8178;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+.profesional-prestacion-quitar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 26px;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #8a8f87;
+    cursor: pointer;
+}
+
+    .profesional-prestacion-quitar:hover {
+        background: #f8e8e8;
+        color: #b54747;
+    }
+
+    .profesional-prestacion-quitar i {
+        font-size: 13px;
+    }
+
+.profesional-prestacion-cuerpo {
+    min-width: 0;
+    margin-top: auto;
+}
+
+    .profesional-prestacion-cuerpo > label {
+        display: block;
+        margin-bottom: 7px;
+    }
+
+    .profesional-prestacion-cuerpo select,
+    .profesional-prestacion-cuerpo .form-select {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        min-height: 43px;
+        font-size: 12px;
+    }
+
+.prestacion-automatica,
+.profesional-sin-prestaciones {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 43px;
+    padding: 10px 11px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.45;
+    overflow-wrap: break-word;
+}
+
+.prestacion-automatica {
+    border: 1px solid #ccd9c7;
+    background: #edf3eb;
+    color: #40583b;
+}
+
+    .prestacion-automatica i {
+        flex: 0 0 auto;
+        color: #647b5b;
+        font-size: 14px;
+    }
+
+.profesional-sin-prestaciones {
+    border: 1px solid #ead8bd;
+    background: #fff8ed;
+    color: #8a6531;
+}
+
+    .profesional-sin-prestaciones i {
+        flex: 0 0 auto;
+        margin-top: 2px;
+        font-size: 14px;
+    }
+
+/* Menú múltiple en celulares */
+@media (max-width: 560px) {
+    .selector-desplegable-menu {
+        position: static;
+        margin-top: 7px;
+        box-shadow: 0 8px 20px rgba(48,52,46,.12);
+    }
+
+    .selector-desplegable-opciones {
+        max-height: 220px;
+    }
+}
+
+
+
+
+.profesionales-prestaciones-lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 800px) {
+    .profesionales-prestaciones-lista {
+        grid-template-columns: 1fr;
+    }
+}
+/* #endregion */
+
+/* #region Ajustes finales: participantes y estados */
+.editar-lateral .estados-lista {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.editar-lateral .estado-opcion:last-child {
+    grid-column: auto;
+}
+
+.editar-lateral .estado-opcion {
+    min-width: 0;
+    width: 100%;
+    font-size: 11px;
+    padding: 7px 6px;
+}
+
+.profesionales-prestaciones-lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.profesional-prestacion-card {
+    padding: 12px;
+    gap: 10px;
+}
+
+.profesional-prestacion-header {
+    align-items: center;
+}
+
+.profesional-prestacion-identidad {
+    min-width: 0;
+}
+
+    .profesional-prestacion-identidad > div {
+        min-width: 0;
+    }
+
+    .profesional-prestacion-identidad strong {
+        overflow-wrap: anywhere;
+    }
+
+.profesional-prestacion-cuerpo {
+    margin-top: 0;
+}
+
+.pacientes-asistencia-unificada {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.paciente-asistencia-card {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #dfe5dc;
+    border-radius: 10px;
+    background: #fafbf9;
+}
+
+.paciente-asistencia-info {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+
+.paciente-asistencia-icono {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    border-radius: 8px;
+    background: #e5ece2;
+    color: #556f4f;
+}
+
+.paciente-asistencia-identidad {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+    .paciente-asistencia-identidad strong {
+        font-size: 12px;
+        color: #334333;
+        overflow-wrap: anywhere;
+    }
+
+    .paciente-asistencia-identidad small {
+        font-size: 11px;
+        color: #758174;
+        overflow-wrap: anywhere;
+    }
+
+.paciente-asistencia-quitar {
+    display: grid;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    color: #7c887a;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.paciente-asistencia-card .editar-asistencia-opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.paciente-asistencia-card .editar-asistencia-opcion {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 6px 7px;
+    font-size: 11px;
+}
+
+.paciente-asistencia-pendiente {
+    color: #7d755e;
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+@media (max-width: 760px) {
+    .profesionales-prestaciones-lista, .pacientes-asistencia-unificada {
+        grid-template-columns: 1fr;
+    }
+}
+/* #endregion */
+
+/* #region Grillas de participantes: tres tarjetas por fila */
+.profesionales-prestaciones-lista,
+.pacientes-asistencia-unificada {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.profesional-prestacion-card,
+.paciente-asistencia-card {
+    min-width: 0;
+}
+
+@media (max-width: 1050px) {
+    .profesionales-prestaciones-lista,
+    .pacientes-asistencia-unificada {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .profesionales-prestaciones-lista,
+    .pacientes-asistencia-unificada {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+/* #endregion */

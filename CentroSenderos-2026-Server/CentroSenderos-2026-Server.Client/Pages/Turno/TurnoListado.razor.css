@@ -3229,3 +3229,273 @@
     }
 
 /* #endregion */
+
+/* #region Detalle de turno - coherencia con Crear y Editar */
+/* Agregar al FINAL de TurnoListado.razor.css, reemplazando el bloque anterior
+   "Mejora visual del detalle de turno" si se agregó previamente. */
+.detalle-turno-modal {
+    width: min(940px, calc(100vw - 32px));
+    max-width: 940px;
+    background: #faf8f5;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: normal;
+}
+
+    .detalle-turno-modal :is(button, input, select) {
+        font-family: inherit;
+    }
+
+.detalle-nuevo-encabezado {
+    padding: 20px 24px;
+}
+
+.detalle-nuevo-identidad > div > span {
+    font-size: 12px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.detalle-nuevo-identidad > div > strong {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: normal;
+}
+/* Orden como en el resumen de Crear: datos generales, profesionales, pacientes. */
+.detalle-nuevo-contenido {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 22px 24px 10px;
+}
+
+.detalle-nuevo-contexto {
+    order: -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0;
+}
+
+.detalle-nuevo-contexto-item {
+    min-width: 0;
+    padding: 15px 17px;
+    background: #fff;
+    border: 1px solid #e7e3dc;
+    border-radius: 12px;
+}
+
+    .detalle-nuevo-contexto-item + .detalle-nuevo-contexto-item {
+        border: 1px solid #e7e3dc;
+    }
+
+    .detalle-nuevo-contexto-item > span {
+        display: block;
+        color: #717a70;
+        font-size: 12px;
+        font-weight: 400;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+
+    .detalle-nuevo-contexto-item > strong,
+    .detalle-nuevo-contexto-item:first-child strong {
+        display: block;
+        margin-top: 5px;
+        color: #2d392e;
+        font-size: 16px;
+        font-weight: 500;
+        letter-spacing: normal;
+    }
+
+    .detalle-nuevo-contexto-item:first-child strong {
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+.detalle-nuevo-principal {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin: 0;
+}
+
+    .detalle-nuevo-principal > .detalle-nuevo-panel:nth-child(2) {
+        order: -1;
+    }
+
+.detalle-nuevo-panel {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    padding: 18px;
+    background: #fff;
+    border: 1px solid #e7e3dc;
+    border-radius: 13px;
+}
+
+.detalle-nuevo-panel-titulo {
+    color: #425c42;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+    .detalle-nuevo-panel-titulo :is(span, strong) {
+        font-weight: 600;
+    }
+
+.detalle-nuevo-paciente,
+.detalle-nuevo-atencion-relacion {
+    min-width: 0;
+    margin: 0;
+    padding: 14px;
+    border: 1px solid #e7e3dc;
+    border-radius: 11px;
+    background: #faf8f5;
+    overflow-wrap: anywhere;
+}
+
+    .detalle-nuevo-paciente + .detalle-nuevo-paciente,
+    .detalle-nuevo-atencion-relacion + .detalle-nuevo-atencion-relacion {
+        margin-top: 10px;
+    }
+
+    .detalle-nuevo-paciente > strong,
+    .detalle-nuevo-atencion-relacion > strong,
+    .detalle-nuevo-atencion-relacion strong {
+        color: #303c31;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: normal;
+    }
+
+    .detalle-nuevo-paciente > span,
+    .detalle-nuevo-atencion-relacion > span,
+    .asistencia-ayuda,
+    .detalle-nuevo-recurrencia,
+    .detalle-estado-ayuda {
+        color: #707970;
+        font-size: 12px;
+        font-weight: 400;
+        letter-spacing: normal;
+    }
+
+.detalle-estado-titulo {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: normal;
+}
+
+.detalle-estado-opcion,
+.detalle-estado-guardar,
+.detalle-btn-editar,
+.detalle-btn-cerrar,
+.asistencia-selector button {
+    font-weight: 500;
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+.detalle-cambio-estado {
+    margin: 8px 24px 18px;
+}
+
+.detalle-turno-modal .detalle-nuevo-acciones {
+    margin: 0 24px 24px;
+}
+
+@media (max-width: 700px) {
+    .detalle-turno-modal {
+        width: calc(100vw - 20px);
+    }
+
+    .detalle-nuevo-encabezado {
+        padding: 16px;
+    }
+
+    .detalle-nuevo-contenido {
+        padding: 16px 16px 8px;
+        gap: 12px;
+    }
+
+    .detalle-nuevo-contexto {
+        grid-template-columns: 1fr;
+    }
+
+    .detalle-nuevo-panel {
+        padding: 14px;
+    }
+
+    .detalle-cambio-estado {
+        margin: 8px 16px 16px;
+    }
+
+    .detalle-turno-modal .detalle-nuevo-acciones {
+        margin: 0 16px 16px;
+    }
+}
+/* #endregion */
+
+/* #region DETALLE - GRILLAS DE PACIENTES Y PROFESIONALES
+   Mantiene tres tarjetas por fila en escritorio y adapta la distribución
+   en pantallas más pequeñas. */
+
+.detalle-turno-modal .detalle-panel-pacientes,
+.detalle-turno-modal .detalle-panel-atencion {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 12px;
+}
+
+    .detalle-turno-modal .detalle-panel-pacientes > .detalle-nuevo-panel-titulo,
+    .detalle-turno-modal .detalle-panel-atencion > .detalle-nuevo-panel-titulo,
+    .detalle-turno-modal .detalle-panel-pacientes > .asistencia-ayuda {
+        grid-column: 1 / -1;
+        margin: 0;
+    }
+
+    .detalle-turno-modal .detalle-panel-pacientes > .detalle-nuevo-paciente,
+    .detalle-turno-modal .detalle-panel-atencion > .detalle-nuevo-atencion-relacion {
+        min-width: 0;
+        height: 100%;
+        margin: 0;
+        padding: 13px;
+    }
+
+    .detalle-turno-modal .detalle-panel-atencion > .detalle-nuevo-atencion-relacion {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+        .detalle-turno-modal .detalle-panel-atencion > .detalle-nuevo-atencion-relacion > span {
+            display: none;
+        }
+
+        .detalle-turno-modal .detalle-panel-atencion > .detalle-nuevo-atencion-relacion > strong:last-child {
+            color: #647b5b;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+@media (max-width: 850px) {
+    .detalle-turno-modal .detalle-panel-pacientes,
+    .detalle-turno-modal .detalle-panel-atencion {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .detalle-turno-modal .detalle-panel-pacientes,
+    .detalle-turno-modal .detalle-panel-atencion {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* #endregion */

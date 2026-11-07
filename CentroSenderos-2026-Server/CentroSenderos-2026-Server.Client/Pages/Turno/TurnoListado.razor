@@ -844,7 +844,7 @@
 
                 <section class="detalle-nuevo-principal">
 
-                    <article class="detalle-nuevo-panel">
+                    <article class="detalle-nuevo-panel detalle-panel-pacientes">
 
                         <div class="detalle-nuevo-panel-titulo">
                             <i class="bi bi-people"></i>
@@ -920,7 +920,7 @@
 
                     </article>
 
-                    <article class="detalle-nuevo-panel">
+                    <article class="detalle-nuevo-panel detalle-panel-atencion">
 
                         <div class="detalle-nuevo-panel-titulo">
                             <i class="bi bi-briefcase"></i>
@@ -1048,10 +1048,11 @@
                     {
                         var nombre = estado switch
                         {
-                            EnumEstadoTurno.reservado => "Pendiente",
+                            EnumEstadoTurno.reservado => "Reservado",
                             EnumEstadoTurno.atendido => "Completado",
                             EnumEstadoTurno.cancelado => "Cancelado",
-                            _ => "Ausente"
+                            EnumEstadoTurno.ausente => "Faltó",
+                            _ => "Sin especificar"
                         };
 
                         var icono = estado switch
@@ -1067,10 +1068,10 @@
                                 aria-pressed="@(estadoSeleccionado == estado ? "true" : "false")"
                                 disabled="@GuardandoDetalle"
                                 @onclick="() =>
-                                                            {
-                                                                estadoSeleccionado = estado;
-                                                                mensajeEstado = string.Empty;
-                                                            }">
+                                                                                        {
+                                                                                            estadoSeleccionado = estado;
+                                                                                            mensajeEstado = string.Empty;
+                                                                                        }">
 
                             <i class="bi @icono" aria-hidden="true"></i>
                             <span>@nombre</span>

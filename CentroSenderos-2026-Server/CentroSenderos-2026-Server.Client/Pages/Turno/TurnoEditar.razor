@@ -92,52 +92,26 @@
 
                     @if (modelo.SerieTurnoId.HasValue)
                     {
-                        <fieldset class="alcance-edicion"
-                                  disabled="@OperacionEnCurso">
-
-                            <legend>¿Qué turnos querés modificar?</legend>
-
-                            <label class="alcance-opcion">
-
-                                <input type="radio"
-                                       name="alcanceEdicion"
-                                       checked="@(!modelo.ModificarTodaLaSerie)"
-                                       @onchange="SeleccionarEdicionIndividual" />
-
-                                <span class="alcance-opcion-contenido">
-
-                                    <strong>Solo este turno</strong>
-
-                                    <small>
-                                        Los demás turnos de la serie no se modificarán.
-                                    </small>
-
-                                </span>
-
-                            </label>
-
-                            <label class="alcance-opcion">
-
-                                <input type="radio"
-                                       name="alcanceEdicion"
-                                       checked="@modelo.ModificarTodaLaSerie"
-                                       @onchange="SeleccionarEdicionSerie" />
-
-                                <span class="alcance-opcion-contenido">
-
-                                    <strong>
-                                        Todos los turnos futuros de la serie
-                                    </strong>
-
-                                    <small>
-                                        Se actualizarán las ocurrencias de hoy en adelante.
-                                        Los turnos anteriores conservarán sus datos.
-                                    </small>
-
-                                </span>
-
-                            </label>
-
+                        <fieldset class="alcance-edicion" disabled="@OperacionEnCurso">
+                            <legend>Alcance de la edición</legend>
+                            <div class="alcance-opciones-compactas">
+                                <label class="alcance-opcion">
+                                    <input type="radio" name="alcanceEdicion"
+                                           checked="@(!modelo.ModificarTodaLaSerie)"
+                                           @onchange="SeleccionarEdicionIndividual" />
+                                    <span class="alcance-opcion-contenido"><strong>Solo este turno</strong></span>
+                                </label>
+                                <label class="alcance-opcion">
+                                    <input type="radio" name="alcanceEdicion"
+                                           checked="@modelo.ModificarTodaLaSerie"
+                                           @onchange="SeleccionarEdicionSerie" />
+                                    <span class="alcance-opcion-contenido"><strong>Turnos futuros de la serie</strong></span>
+                                </label>
+                            </div>
+                            @if (modelo.ModificarTodaLaSerie)
+                            {
+                                <p class="alcance-nota">Se modifican los turnos futuros; los anteriores conservan sus datos y fechas.</p>
+                            }
                         </fieldset>
                     }
 
@@ -573,7 +547,13 @@
                                                         disabled="@OperacionEnCurso"
                                                         @onclick="() => AlternarPaciente(paciente.Id)">
 
-                                                    <span>@paciente.Nombre</span>
+                                                    <span class="paciente-opcion-datos">
+                                                        <span class="paciente-opcion-cabecera">
+                                                            <strong>@paciente.Nombre</strong>
+                                                            <small>DNI @paciente.DNI</small>
+                                                        </span>
+                                                        <span class="paciente-diagnostico">@MostrarDiagnostico(paciente)</span>
+                                                    </span>
 
                                                     @if (estaSeleccionado)
                                                     {
@@ -593,133 +573,61 @@
 
                         @if (modelo.PacienteIds.Count > 0)
                         {
-                            <div class="selector-multiple-seleccionados">
-
+                            <div class="pacientes-asistencia-unificada">
                                 @foreach (var pacienteId in modelo.PacienteIds)
                                 {
-                                    <span class="selector-multiple-chip">
+                                    var pacienteGuardado = pacientesGuardados.Contains(pacienteId);
+                                    var asistenciaActual = asistenciasGuardadas.GetValueOrDefault(pacienteId);
 
-                                        @ObtenerNombrePaciente(pacienteId)
-
-                                        <button type="button"
-                                                title="Quitar paciente"
-                                                disabled="@OperacionEnCurso"
-                                                @onclick="() => QuitarPaciente(pacienteId)">
-                                            <i class="bi bi-x"></i>
-                                        </button>
-
-                                    </span>
-                                }
-
-                            </div>
-                        }
-
-                    </div>
-
-                    <div class="campo campo-completo editar-asistencia">
-
-                        <div class="editar-asistencia-encabezado">
-
-                            <strong>Asistencia por paciente</strong>
-
-                            <p>
-                                Se guarda al seleccionar una opción y corresponde
-                                únicamente al turno #@id.
-                                Cancelar no revierte la asistencia ya guardada.
-                            </p>
-
-                        </div>
-
-                        @if (modelo.ModificarTodaLaSerie)
-                        {
-                            <p class="editar-asistencia-aviso">
-                                La asistencia no se aplica a los demás turnos de la serie.
-                            </p>
-                        }
-
-                        @if (modelo.PacienteIds.Count == 0)
-                        {
-                            <p class="editar-asistencia-vacio">
-                                No hay pacientes asignados.
-                            </p>
-                        }
-                        else
-                        {
-                            <div class="editar-asistencia-lista">
-
-                                @foreach (var pacienteId in modelo.PacienteIds)
-                                {
-                                    var pacienteGuardado =
-                                        pacientesGuardados.Contains(pacienteId);
-
-                                    var asistenciaActual =
-                                        asistenciasGuardadas.GetValueOrDefault(
-                                            pacienteId
-                                        );
-
-                                    <article class="editar-asistencia-paciente">
-
-                                        <strong>
-                                            @ObtenerNombrePaciente(pacienteId)
-                                        </strong>
-
-                                        @if (pacienteGuardado)
-                                        {
-                                            <div class="editar-asistencia-opciones"
-                                                 role="group"
-                                                 aria-label="@($"Asistencia de {ObtenerNombrePaciente(pacienteId)}")"
-                                                 aria-busy="@(pacienteGuardandoAsistencia == pacienteId)">
-
-                                                @foreach (var asistencia in OpcionesAsistencia)
-                                                {
-                                                    <button type="button"
-                                                            class="@($"{ObtenerClaseAsistencia(asistencia)} {(asistenciaActual == asistencia ? "activa" : "")}")"
-                                                            disabled="@OperacionEnCurso"
-                                                            aria-pressed="@(asistenciaActual == asistencia ? "true" : "false")"
-                                                            @onclick="() => GuardarAsistenciaPaciente(pacienteId, asistencia)">
-
-                                                        @ObtenerTextoAsistencia(asistencia)
-
-                                                    </button>
-                                                }
-
+                                    <article class="paciente-asistencia-card">
+                                        <div class="paciente-asistencia-info">
+                                            <span class="paciente-asistencia-icono"><i class="bi bi-person"></i></span>
+                                            <div class="paciente-asistencia-identidad">
+                                                <strong>@ObtenerNombrePaciente(pacienteId)</strong>
+                                                <small>@ObtenerDiagnosticoPaciente(pacienteId)</small>
                                             </div>
-
-                                            @if (pacienteGuardandoAsistencia == pacienteId)
+                                            <button type="button" class="paciente-asistencia-quitar"
+                                                    title="Quitar paciente" disabled="@OperacionEnCurso"
+                                                    @onclick="() => QuitarPaciente(pacienteId)">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                        <div class="editar-asistencia-opciones" role="group"
+                                             aria-label="@($"Asistencia de {ObtenerNombrePaciente(pacienteId)}")"
+                                             aria-busy="@(pacienteGuardandoAsistencia == pacienteId)">
+                                            @foreach (var asistencia in OpcionesAsistencia)
                                             {
-                                                <p class="editar-asistencia-mensaje"
-                                                   role="status">
-                                                    Guardando...
-                                                </p>
+                                                <button type="button"
+                                                        class="@($"{ObtenerClaseAsistencia(asistencia)} {(asistenciaActual == asistencia ? "activa" : "")}")"
+                                                        disabled="@OperacionEnCurso"
+                                                        aria-pressed="@(asistenciaActual == asistencia ? "true" : "false")"
+                                                        @onclick="() => GuardarAsistenciaPaciente(pacienteId, asistencia)">
+                                                    @ObtenerTextoAsistencia(asistencia)
+                                                </button>
                                             }
-                                            else if (
-                                                pacienteMensajeAsistencia == pacienteId &&
-                                                !string.IsNullOrWhiteSpace(mensajeAsistencia))
-                                            {
-                                                <p class="editar-asistencia-mensaje @(errorAsistencia ? "es-error" : "")"
-                                                   role="status">
-                                                    @mensajeAsistencia
-                                                </p>
-                                            }
-                                        }
-                                        else
+                                        </div>
+                                        @if (!pacienteGuardado)
                                         {
-                                            <p class="editar-asistencia-aviso">
-                                                Guardá los cambios del turno y volvé a abrir
-                                                Editar para registrar la asistencia
-                                                de este paciente nuevo.
-                                            </p>
+                                            <small class="paciente-asistencia-pendiente">La asistencia se registrará al guardar los cambios.</small>
                                         }
-
+                                        @if (pacienteGuardandoAsistencia == pacienteId)
+                                        {
+                                            <small class="editar-asistencia-mensaje">Guardando asistencia...</small>
+                                        }
+                                        else if (pacienteMensajeAsistencia == pacienteId && !string.IsNullOrWhiteSpace(mensajeAsistencia))
+                                        {
+                                            <small class="editar-asistencia-mensaje @(errorAsistencia ? "es-error" : "")">@mensajeAsistencia</small>
+                                        }
                                     </article>
                                 }
-
                             </div>
+                            @if (modelo.ModificarTodaLaSerie)
+                            {
+                                <p class="editar-asistencia-aviso">La asistencia corresponde únicamente a este turno, no a toda la serie.</p>
+                            }
                         }
-
-                    </div>
-
-                </section>
+                        </div>
+                        </section>
 
                 <aside class="editar-lateral">
 
@@ -859,52 +767,172 @@
 
                 </aside>
 
-                <section class="editar-card resumen-card resumen-card-inferior">
+                <details class="resumen-turno">
 
-                    <div class="seccion-encabezado resumen-encabezado">
+    <summary class="resumen-header">
+        <i class="bi bi-calendar-check"></i>
 
-                        <span class="seccion-numero">04</span>
+        <div class="resumen-header-texto">
+            <h2>Resumen del turno</h2>
+            <p>Hacé clic para consultar los detalles del turno.</p>
+        </div>
 
-                        <div>
-                            <h2>Resumen</h2>
-                            <p>Revisá los cambios antes de guardar.</p>
-                        </div>
+        <span class="resumen-estado">
+            <i class="bi bi-clock-history"></i>
+            @ObtenerNombreEstado(modelo.EstadoTurno)
+        </span>
 
-                    </div>
+        <i class="bi bi-chevron-down resumen-flecha"></i>
+    </summary>
 
-                    <div class="resumen-datos">
+    <div class="resumen-contenido">
 
-                        <div class="resumen-fila">
-                            <span>Fecha</span>
+
+                    <div class="resumen-grid">
+
+                        <div class="resumen-item">
+                            <span class="resumen-label">Fecha</span>
                             <strong>@TextoFechaResumen</strong>
                         </div>
 
-                        <div class="resumen-fila">
-                            <span>Horario</span>
+                        <div class="resumen-item">
+                            <span class="resumen-label">Horario</span>
                             <strong>@TextoHorarioResumen</strong>
                         </div>
 
-                        <div class="resumen-fila">
-                            <span>Tipo</span>
-                            <strong>@NombreTipoTurno</strong>
+                        <div class="resumen-item">
+                            <span class="resumen-label">Duración</span>
+                            <strong>@ObtenerDuracionSeleccionada() minutos</strong>
                         </div>
 
-                        <div class="resumen-fila">
-                            <span>Consultorio</span>
+                        <div class="resumen-item">
+                            <span class="resumen-label">Consultorio</span>
                             <strong>@NombreConsultorio</strong>
                         </div>
 
-                        <div class="resumen-fila">
-                            <span>Estado</span>
-                            <strong class="resumen-estado">
-                                @ObtenerNombreEstado(modelo.EstadoTurno)
-                            </strong>
+                        <div class="resumen-item">
+                            <span class="resumen-label">Tipo de turno</span>
+                            <strong>@NombreTipoTurno</strong>
                         </div>
 
                     </div>
 
-                </section>
+                    <div class="resumen-seccion">
+                        <div class="resumen-seccion-header">
+                            <h3>
+                                <i class="bi bi-person-badge"></i>
+                                Profesionales
+                            </h3>
+                            <span>@modelo.ProfesionalIds.Count seleccionados</span>
+                        </div>
 
+                        <div class="resumen-personas-grid">
+                            @foreach (var profesionalId in modelo.ProfesionalIds)
+                            {
+                                var profesional = profesionales.FirstOrDefault(
+                                    p => p.Id == profesionalId
+                                );
+
+                                if (profesional is not null)
+                                {
+                                    var prestacionId =
+                                        ObtenerPrestacionSeleccionada(profesional.Id);
+
+                                    var indicePrestacion =
+                                        profesional.TipoPrestacionIds.IndexOf(prestacionId);
+
+                                    var nombrePrestacion =
+                                        indicePrestacion >= 0 &&
+                                        indicePrestacion < profesional.TipoPrestacionNombres.Count
+                                            ? profesional.TipoPrestacionNombres[indicePrestacion]
+                                            : "Sin prestación asignada";
+
+                                    <div class="resumen-persona">
+                                        <strong>@profesional.Nombre</strong>
+
+                                        <span class="resumen-persona-secundario">
+                                            @(string.IsNullOrWhiteSpace(profesional.Area)
+                                                ? "Sin área registrada"
+                                                : profesional.Area)
+                                        </span>
+
+                                        <div class="resumen-persona-detalle">
+                                            <span>Prestación</span>
+                                            <strong>@nombrePrestacion</strong>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="resumen-seccion">
+                        <div class="resumen-seccion-header">
+                            <h3>
+                                <i class="bi bi-people"></i>
+                                Pacientes
+                            </h3>
+                            <span>@modelo.PacienteIds.Count seleccionados</span>
+                        </div>
+
+                        @if (modelo.PacienteIds.Count == 0)
+                        {
+                            <p class="resumen-sin-personas">
+                                No hay pacientes seleccionados.
+                            </p>
+                        }
+                        else
+                        {
+                            <div class="resumen-personas-grid">
+                                @foreach (var pacienteId in modelo.PacienteIds)
+                                {
+                                    var paciente = pacientes.FirstOrDefault(
+                                        p => p.Id == pacienteId
+                                    );
+
+                                    if (paciente is not null)
+                                    {
+                                        <div class="resumen-persona">
+                                            <strong>@paciente.Nombre</strong>
+
+                                            <div class="resumen-persona-detalle">
+                                                <span>Diagnóstico</span>
+                                                <strong>@(string.IsNullOrWhiteSpace(paciente.TipoDiagnosticoNombre) ? "Sin diagnóstico registrado" : paciente.TipoDiagnosticoNombre)</strong>
+                                            </div>
+
+                                            <div class="resumen-persona-detalle">
+                                                <span>Obra social</span>
+                                                <strong>
+                                                    @(string.IsNullOrWhiteSpace(
+                                                        paciente.TipoObraSocialNombre)
+                                                        ? "Sin obra social registrada"
+                                                        : paciente.TipoObraSocialNombre)
+                                                </strong>
+                                            </div>
+                                            <div class="resumen-persona-detalle">
+                                                <span>Asistencia</span>
+                                                <strong>@ObtenerTextoAsistencia(asistenciasGuardadas.GetValueOrDefault(pacienteId))</strong>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <div class="resumen-recurrencia">
+                        <i class="bi bi-arrow-repeat"></i>
+
+                        <div>
+                            <strong>Alcance de la edición</strong>
+                            <span>@(modelo.SerieTurnoId.HasValue
+                                ? (modelo.ModificarTodaLaSerie ? "Todos los turnos futuros de la serie" : "Solo este turno de la serie")
+                                : "Turno individual, sin serie asociada")</span>
+                        </div>
+                    </div>
+
+                    </div>
+                </details>
             </div>
 
             @if (!string.IsNullOrWhiteSpace(Mensaje))
@@ -1143,6 +1171,7 @@
     private bool mostrarSelectorPacientes;
 
     private HashSet<int> pacientesGuardados = new();
+    private Dictionary<int, EnumAsistenciaPaciente?> asistenciasPendientes = new();
 
     private Dictionary<int, EnumAsistenciaPaciente?>
         asistenciasGuardadas = new();
@@ -1480,6 +1509,17 @@
         )?.NombrePaciente ?? "Paciente";
     }
 
+    private static string MostrarDiagnostico(PacienteResumenDTO paciente) =>
+        string.IsNullOrWhiteSpace(paciente.TipoDiagnosticoNombre)
+            ? "Sin diagnóstico registrado"
+            : paciente.TipoDiagnosticoNombre;
+
+    private string ObtenerDiagnosticoPaciente(int pacienteId)
+    {
+        var paciente = pacientes.FirstOrDefault(item => item.Id == pacienteId);
+        return paciente is null ? "Sin diagnóstico registrado" : MostrarDiagnostico(paciente);
+    }
+
     private static string ObtenerTextoAsistencia(
         EnumAsistenciaPaciente? asistencia)
     {
@@ -1511,10 +1551,18 @@
         EnumAsistenciaPaciente? asistencia)
     {
         if (OperacionEnCurso ||
-            !pacientesGuardados.Contains(pacienteId) ||
             !modelo.PacienteIds.Contains(pacienteId) ||
             asistenciasGuardadas.GetValueOrDefault(pacienteId) == asistencia)
         {
+            return;
+        }
+
+        if (!pacientesGuardados.Contains(pacienteId))
+        {
+            asistenciasPendientes[pacienteId] = asistencia;
+            asistenciasGuardadas[pacienteId] = asistencia;
+            pacienteMensajeAsistencia = pacienteId;
+            mensajeAsistencia = string.Empty;
             return;
         }
 
@@ -1619,6 +1667,7 @@
         if (modelo.PacienteIds.Contains(pacienteId))
         {
             modelo.PacienteIds.Remove(pacienteId);
+            asistenciasPendientes.Remove(pacienteId);
         }
         else
         {
@@ -1638,6 +1687,7 @@
         }
 
         modelo.PacienteIds.Remove(pacienteId);
+        asistenciasPendientes.Remove(pacienteId);
 
         SincronizarPacienteAnterior();
 
@@ -2072,7 +2122,7 @@
         return estado switch
         {
             EnumEstadoTurno.disponible => "Pendiente",
-            EnumEstadoTurno.reservado => "Pendiente",
+            EnumEstadoTurno.reservado => "Reservado",
             EnumEstadoTurno.atendido => "Completado",
             EnumEstadoTurno.cancelado => "Cancelado",
             EnumEstadoTurno.ausente => "Ausente",
@@ -2555,6 +2605,27 @@
                 );
 
                 return;
+            }
+
+            pacientesGuardados = modelo.PacienteIds.ToHashSet();
+
+            // Primero se actualiza la relación turno-paciente; después, su asistencia.
+            foreach (var pendiente in asistenciasPendientes.ToList())
+            {
+                var dtoAsistencia = new TurnoPacienteAsistenciaDTO
+                {
+                    Asistencia = pendiente.Value
+                };
+                var respuestaAsistencia = await Http.Put<TurnoPacienteAsistenciaDTO, RespuestaDTO>(
+                    $"api/turno/{id}/pacientes/{pendiente.Key}/asistencia",
+                    dtoAsistencia);
+
+                if (respuestaAsistencia.Error)
+                {
+                    Mensaje = $"El turno se actualizó, pero no se pudo registrar la asistencia de {ObtenerNombrePaciente(pendiente.Key)}. Volvé a intentarlo desde esta pantalla.";
+                    return;
+                }
+                asistenciasPendientes.Remove(pendiente.Key);
             }
 
             operacionExitosa = true;
