@@ -1,75 +1,138 @@
-/* #region Página */
-
-/* Usa la misma distribución general que Crear paciente. */
+/* #region Página y cabecera */
 .crear-planilla-page {
     width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 8px 0 24px;
     box-sizing: border-box;
+    color: #384235;
 }
 
-    .crear-planilla-page h1 {
-        margin: 0 0 20px;
-        color: #556f4f;
-        font-size: 28px;
-        font-weight: 500;
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+    padding: 6px 0;
+    border: 0;
+    background: transparent;
+    color: #657461;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+    .back-button:hover:not(:disabled) {
+        color: #3e5739;
     }
 
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 26px;
+}
+
+.page-heading-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    border: 1px solid #dce5d7;
+    border-radius: 15px;
+    background: #eaf0e6;
+    color: #556f4f;
+    font-size: 23px;
+}
+
+.page-header h1 {
+    margin: 0 0 5px;
+    color: #435b3d;
+    font-size: 28px;
+    font-weight: 650;
+    line-height: 1.2;
+}
+
+.page-header p {
+    margin: 0;
+    color: #72796d;
+    font-size: 14px;
+    line-height: 1.5;
+}
 /* #endregion */
 
-
 /* #region Formulario y secciones */
-
-/* Tarjeta principal de ancho completo. */
 .planilla-form {
     width: 100%;
     box-sizing: border-box;
-    padding: 22px 24px;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid #e4e1dc;
-    border-radius: 22px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+    padding: 28px 30px 22px;
+    border: 1px solid #e7e3dc;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 5px 22px rgba(54, 65, 48, .035);
 }
 
 .form-section {
-    margin-bottom: 28px;
+    margin: 0 0 26px;
+    padding-bottom: 26px;
+    border-bottom: 1px solid #eeece6;
 }
 
-/* Encabezado numerado de cada grupo de campos. */
-.section-title {
+    .form-section:last-of-type {
+        margin-bottom: 0;
+        padding-bottom: 24px;
+        border-bottom: 0;
+    }
+
+.section-title, .section-title-content {
     display: flex;
     align-items: center;
-    gap: 13px;
-    margin-bottom: 16px;
-    color: #9b7163;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    gap: 11px;
+}
+
+.section-title {
+    margin-bottom: 22px;
+    color: #475742;
+    font-size: 15px;
+    font-weight: 650;
+    line-height: 1.4;
+}
+
+.section-title-actions {
+    justify-content: space-between;
+    gap: 16px;
 }
 
 .section-number {
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
     flex-shrink: 0;
-    background: #f8e8df;
-    border-radius: 50%;
-    color: #9a6553;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    background: #f1eee7;
+    color: #87705c;
     font-size: 12px;
     font-weight: 700;
 }
 
-/* #endregion */
-
-
-/* #region Datos de la planilla */
-
-/* Distribuye nombre y tipo en dos columnas; descripción ocupa ambas. */
 .form-grid {
     display: grid;
+    gap: 22px 20px;
+}
+
+.form-grid-3 {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.form-grid-2, .form-grid-medical {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
+}
+
+.contact-address {
+    grid-template-columns: 1fr;
+    margin-top: 22px;
 }
 
 .field-group {
@@ -78,292 +141,506 @@
     min-width: 0;
 }
 
-    .field-group.full-width {
-        grid-column: 1 / -1;
-    }
-
-    .field-group label {
-        margin: 0 0 7px 6px;
-        color: #656565;
+    .field-group > label {
+        margin: 0 0 8px;
+        color: #5b6357;
         font-size: 13px;
         font-weight: 600;
-        text-transform: uppercase;
+        line-height: 1.5;
     }
+/* #endregion */
 
-.form-input,
-.form-textarea {
+/* #region Campos y validaciones */
+.form-input {
     width: 100%;
+    height: 45px;
+    min-width: 0;
     box-sizing: border-box;
-    padding: 0 16px;
-    background: #ffffff;
-    border: 1px solid #d9ddd6;
-    border-radius: 22px;
-    color: #444444;
-    font-family: inherit;
+    padding: 0 13px;
+    border: 1px solid #dcded5;
+    border-radius: 10px;
+    background: #fff;
+    color: #384235;
+    font: inherit;
     font-size: 14px;
     outline: none;
+    transition: border-color .18s, box-shadow .18s;
 }
 
-.form-input {
-    height: 42px;
-}
+    .form-input::placeholder {
+        color: #93978e;
+        opacity: 1;
+    }
 
-.form-textarea {
-    min-height: 100px;
-    padding-top: 12px;
-    padding-bottom: 12px;
-    resize: vertical;
-}
+    .form-input:hover {
+        border-color: #b6c2af;
+    }
 
-    .form-input:focus,
-    .form-textarea:focus {
+    .form-input:focus {
         border-color: #789175;
-        box-shadow: 0 0 0 3px rgba(120, 145, 117, 0.12);
+        box-shadow: 0 0 0 3px rgba(100, 123, 91, .12);
     }
 
-    .form-input::placeholder,
-    .form-textarea::placeholder {
-        color: #999999;
+    .form-input.invalid {
+        border-color: #c77a71;
     }
 
+select.form-input {
+    padding-right: 28px;
+    cursor: pointer;
+}
+
+input[type="date"].form-input {
+    color-scheme: light;
+}
+
+.validation-message, .phone-validation {
+    margin: 7px 0 0;
+    color: #aa4b43;
+    font-size: 12px;
+    line-height: 1.5;
+}
+/* #endregion */
+
+/* #region Acciones y estados */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid #eeece6;
+}
+
+.cancel-button, .save-button {
+    min-height: 44px;
+    padding: 10px 22px;
+    border-radius: 10px;
+}
+
+.cancel-button {
+    min-width: 110px;
+    border: 1px solid #dbded4;
+    background: #fff;
+    color: #636e5d;
+}
+
+    .cancel-button:hover:not(:disabled) {
+        background: #f5f6f1;
+        border-color: #b8c1b0;
+    }
+
+.save-button {
+    min-width: 170px;
+    border: 1px solid #647b5b;
+    background: #647b5b;
+    color: #fff;
+}
+
+    .save-button:hover:not(:disabled) {
+        background: #52694a;
+        border-color: #52694a;
+    }
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+button:focus-visible {
+    outline: 3px solid #a4b89a;
+    outline-offset: 3px;
+}
+
+.form-message {
+    margin: 0 0 18px;
+    padding: 13px 16px;
+    border: 1px solid #efd0cc;
+    border-radius: 10px;
+    background: #fdf2f0;
+    color: #a94b44;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.crear-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 180px;
+    padding: 24px;
+    border: 1px solid #e7e3dc;
+    border-radius: 18px;
+    background: #fff;
+    color: #657461;
+    font-size: 14px;
+}
+
+.loading-spinner {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    border: 3px solid #e2e8dc;
+    border-top-color: #647b5b;
+    border-radius: 50%;
+    animation: girar .8s linear infinite;
+}
+
+@keyframes girar {
+    to {
+        transform: rotate(360deg);
+    }
+}
+/* #endregion */
+
+/* #region Adaptación a pantallas pequeñas */
+@media (max-width: 900px) {
+    .planilla-form {
+        padding: 24px;
+    }
+
+    .form-grid-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+        .form-grid-3 > .field-group:first-child {
+            grid-column: 1 / -1;
+        }
+}
+
+@media (max-width: 650px) {
+    .page-header {
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+        .page-header h1 {
+            font-size: 24px;
+        }
+
+        .page-header p {
+            font-size: 13px;
+        }
+
+    .page-heading-icon {
+        width: 43px;
+        height: 43px;
+        font-size: 20px;
+    }
+
+    .planilla-form {
+        padding: 20px 16px;
+        border-radius: 15px;
+    }
+
+    .form-grid-3, .form-grid-2, .form-grid-medical {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        gap: 18px;
+    }
+
+    .section-title {
+        font-size: 14px;
+        margin-bottom: 18px;
+    }
+
+    .section-title-actions {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .phone-row {
+        grid-template-columns: minmax(0, 1fr) 42px;
+        padding: 13px;
+        gap: 12px;
+    }
+
+        .phone-row > .field-group:first-child {
+            grid-column: 1 / -1;
+        }
+
+    .form-actions {
+        flex-wrap: wrap;
+    }
+
+    .cancel-button, .save-button {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 380px) {
+    .page-heading-icon {
+        display: none;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, .form-input {
+        transition: none;
+    }
+
+    .loading-spinner {
+        animation-duration: 2s;
+    }
+}
 /* #endregion */
 
 
-/* #region Selección del PDF */
+/* #region Campos propios de Planillas */
+.full-width {
+    grid-column: 1 / -1;
+}
 
-/* Agrupa el ícono, las instrucciones y el selector de archivo. */
+.form-textarea {
+    height: auto;
+    min-height: 110px;
+    padding: 12px 13px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.optional {
+    color: #7c8574;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.field-help, .field-counter {
+    margin: 7px 0 0;
+    color: #77806f;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.field-counter {
+    text-align: right;
+}
+
+.validation-message:empty {
+    display: none;
+}
+
+.cancel-button, .save-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .18s,border-color .18s;
+}
+/* #endregion */
+
+/* #region Archivo PDF: mismo tratamiento que los bloques de contacto */
 .file-field {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
-    padding: 20px;
-    background: #fafbf9;
-    border: 1px dashed #b9c8b5;
-    border-radius: 16px;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid #e5e8df;
+    border-radius: 13px;
+    background: #fafbf8;
 }
 
 .file-icon {
-    display: flex;
-    width: 46px;
-    height: 46px;
+    display: grid;
+    place-items: center;
     flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    background: #dfe5dc;
-    color: #556f4f;
+    width: 42px;
+    height: 45px;
+    border: 1px solid #dfe5d9;
+    border-radius: 10px;
+    background: #f2f6ee;
+    color: #647b5b;
     font-size: 22px;
 }
 
 .file-content {
     display: flex;
+    flex: 1;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 7px;
+    gap: 6px;
     min-width: 0;
 }
 
     .file-content strong {
-        color: #4f5f4b;
+        color: #4e6047;
         font-size: 14px;
+        font-weight: 600;
     }
 
     .file-content > span {
-        color: #777c74;
-        font-size: 13px;
+        color: #747d6f;
+        font-size: 12px;
+        line-height: 1.45;
     }
 
-::deep .file-input {
+.file-picker {
+    position: relative;
+    display: inline-flex;
+    align-self: flex-start;
     max-width: 100%;
-    color: #555;
-    font-family: inherit;
+    min-height: 36px;
+    box-sizing: border-box;
+    overflow: hidden;
+    margin: 6px 0 0;
+    padding: 7px 13px;
+    border: 1px solid #d6dfcf;
+    border-radius: 9px;
+    background: #f2f6ee;
+    color: #556f4f;
     font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
 }
 
-    ::deep .file-input::file-selector-button {
-        margin-right: 12px;
-        padding: 8px 12px;
-        border: 1px solid #cbd5c7;
-        border-radius: 16px;
-        background: #eef2ec;
-        color: #486243;
-        font-family: inherit;
-        font-weight: 600;
+    .file-picker:hover {
+        background: #e7eedf;
+        border-color: #b6c6ab;
+    }
+
+    .file-picker:focus-within {
+        outline: 3px solid #a4b89a;
+        outline-offset: 3px;
+    }
+
+    .file-picker ::deep input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
         cursor: pointer;
     }
 
-/* Muestra el archivo elegido y permite quitarlo antes de guardar. */
 .selected-file {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    max-width: 100%;
-    margin-top: 4px;
-    padding: 8px 10px;
-    border: 1px solid #cbd5c7;
+    padding: 10px 12px;
+    margin-top: 8px;
+    border: 1px solid #dfe5d9;
     border-radius: 10px;
-    background: #f4f7f2;
-    color: #486243;
+    background: #fff;
+    color: #475742;
+    font-size: 13px;
 }
 
-    .selected-file span {
+    .selected-file > span {
         min-width: 0;
         overflow-wrap: anywhere;
-        font-size: 13px;
+        line-height: 1.5;
     }
 
-        .selected-file span i {
-            margin-right: 5px;
-        }
+    .selected-file .bi-check-circle {
+        color: #647b5b;
+    }
 
 .remove-file-button {
-    width: 28px;
-    height: 28px;
-    display: inline-flex;
+    display: grid;
+    place-items: center;
     flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
+    width: 36px;
+    height: 36px;
     padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: #a8443d;
+    border: 1px solid #e8dcd6;
+    border-radius: 9px;
+    background: #fff;
+    color: #a9675d;
     cursor: pointer;
 }
 
-    .remove-file-button:hover {
-        background: #f9e7e4;
+    .remove-file-button:hover:not(:disabled) {
+        background: #fdf0ed;
+        border-color: #dca79c;
     }
 
-/* #endregion */
-
-
-/* #region Acciones y mensajes */
-
-/* Mantiene los botones alineados como en Crear paciente. */
-.form-actions {
+.current-file {
     display: flex;
-    justify-content: flex-end;
     align-items: center;
-    gap: 14px;
-    margin-top: 16px;
-}
-
-.cancel-button,
-.save-button {
-    min-height: 42px;
-    padding: 0 22px;
-    border-radius: 22px;
-    font-family: inherit;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.cancel-button {
-    min-width: 120px;
-    background: #ffffff;
-    border: 1px solid #9d9d96;
-    color: #555555;
-}
-
-.save-button {
-    min-width: 155px;
-    background: #647b5b;
-    border: none;
-    color: #ffffff;
-    font-weight: 600;
-}
-
-    .save-button:disabled {
-        cursor: not-allowed;
-        opacity: 0.55;
-    }
-
-/* Presenta problemas al cargar tipos o seleccionar un archivo. */
-.form-message {
-    margin-top: 12px;
-    padding: 12px 16px;
-    background: #fdf2f0;
-    border: 1px solid #efd0cc;
+    gap: 12px;
+    min-height: 68px;
+    padding: 12px 15px;
+    border: 1px solid #dfe5d9;
     border-radius: 12px;
-    color: #a94b44;
-    font-size: 14px;
+    background: #f7f9f4;
 }
 
-/* #endregion */
-
-
-/* #region Navegación */
-
-/* Botón de regreso situado antes del título. */
-.back-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 14px;
-    padding: 0;
-    background: transparent;
-    border: none;
-    color: #6f786a;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-}
-
-    .back-button:hover {
-        color: #556f4f;
+    .current-file > i {
+        color: #71866a;
+        font-size: 22px;
     }
 
-.loading-message {
-    padding: 30px;
-    color: #657461;
-    font-size: 14px;
-}
-
-/* #endregion */
-
-
-/* #region Pantallas pequeñas */
-
-/* Apila los campos y botones en dispositivos angostos. */
-@media (max-width: 700px) {
-    .crear-planilla-page h1 {
-        font-size: 25px;
-    }
-
-    .planilla-form {
-        padding: 20px;
-        border-radius: 16px;
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .field-group.full-width {
-        grid-column: auto;
-    }
-}
-
-@media (max-width: 500px) {
-    .planilla-form {
-        padding: 18px 15px;
-    }
-
-    .file-field {
+    .current-file > div {
+        display: flex;
+        flex: 1;
         flex-direction: column;
+        gap: 4px;
+        min-width: 0;
     }
 
-    .form-actions {
-        flex-direction: column-reverse;
+    .current-file strong {
+        color: #4e6047;
+        font-size: 14px;
+        font-weight: 600;
     }
 
-    .cancel-button,
-    .save-button {
-        width: 100%;
+    .current-file span {
+        color: #747d6f;
+        font-size: 12px;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
     }
+
+    .current-file a {
+        color: #556f4f;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    .current-file + .field-help {
+        margin-bottom: 16px;
+    }
+/* #endregion */
+
+/* #region Ajustes de archivo en celular */
+@media(max-width:650px) {
+    .file-field {
+        padding: 13px;
+        gap: 12px;
+    }
+
+    .file-icon {
+        width: 36px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .current-file {
+        flex-wrap: wrap;
+    }
+
+        .current-file > div {
+            flex-basis: calc(100% - 40px);
+        }
+
+        .current-file a {
+            margin-left: 34px;
+        }
 }
-
 /* #endregion */

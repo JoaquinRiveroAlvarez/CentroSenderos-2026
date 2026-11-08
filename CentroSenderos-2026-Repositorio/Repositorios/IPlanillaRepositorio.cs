@@ -18,6 +18,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             string nombreOriginal,
             byte[] contenido);
 
+        Task<ListadoPlanillasDTO?> ObtenerDetalle(int id);
+        Task<bool> EditarPlanilla(int id, string nombre, string descripcion,
+            int tipoPlanillaId, string? nombreNuevo, byte[]? nuevoContenido);
+
         Task<bool> DeletePlanilla(int id);
     }
 }

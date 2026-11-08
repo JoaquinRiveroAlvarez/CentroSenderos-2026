@@ -1,4 +1,5 @@
 ﻿@page "/planillas/crear"
+@using System.Linq
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Forms
@@ -17,12 +18,21 @@
         <span>Volver</span>
     </button>
 
-    <h1>Nueva planilla</h1>
+    <header class="page-header">
+        <div class="page-heading-icon" aria-hidden="true">
+            <i class="bi bi-file-earmark-plus"></i>
+        </div>
+        <div>
+            <h1>Crear planilla</h1>
+            <p>Registrá los datos y cargá el archivo de la planilla.</p>
+        </div>
+    </header>
 
     @if (cargando)
     {
-        <div class="loading-message">
-            Cargando tipos de planilla...
+        <div class="crear-loading" role="status">
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <span>Cargando datos del formulario...</span>
         </div>
     }
     else
@@ -35,27 +45,28 @@
                     <span>Información de la planilla</span>
                 </div>
 
-                <div class="form-grid">
+                <div class="form-grid form-grid-2">
                     <div class="field-group">
                         <label for="nombrePlanilla">Nombre</label>
 
                         <input id="nombrePlanilla"
-                               class="form-input"
+                               class="form-input @(ErrorNombre.Length > 0 ? "invalid" : "")" aria-invalid="@(ErrorNombre.Length > 0)" aria-describedby="error-nombre"
                                type="text"
                                maxlength="150"
                                disabled="@guardando"
                                placeholder="Ej.: Ficha de ingreso"
                                @bind="nombre"
-                               @bind:event="oninput" />
+                               @bind:event="oninput" @bind:after="ValidarNombre" />
+                        <p id="error-nombre" class="validation-message" role="alert">@ErrorNombre</p>
                     </div>
 
                     <div class="field-group">
                         <label for="tipoPlanilla">Tipo de planilla</label>
 
                         <select id="tipoPlanilla"
-                                class="form-input"
+                                class="form-input @(ErrorTipo.Length > 0 ? "invalid" : "")" aria-invalid="@(ErrorTipo.Length > 0)" aria-describedby="error-tipo"
                                 disabled="@guardando"
-                                @bind="tipoPlanillaId">
+                                @bind="tipoPlanillaId" @bind:after="ValidarTipo">
                             <option value="0">Seleccione un tipo</option>
 
                             @foreach (var tipo in tiposPlanilla)
@@ -63,18 +74,21 @@
                                 <option value="@tipo.Id">@tipo.Tipo</option>
                             }
                         </select>
+                        <p id="error-tipo" class="validation-message" role="alert">@ErrorTipo</p>
                     </div>
 
                     <div class="field-group full-width">
-                        <label for="descripcionPlanilla">Descripción</label>
+                        <label for="descripcionPlanilla">Descripción <span class="optional">(opcional)</span></label>
 
                         <textarea id="descripcionPlanilla"
-                                  class="form-textarea"
+                                  class="form-input form-textarea"
                                   maxlength="1000"
                                   disabled="@guardando"
                                   placeholder="Describí para qué se utiliza esta planilla"
                                   @bind="descripcion"
-                                  @bind:event="oninput"></textarea>
+                                  @bind:event="oninput" @bind:after="ValidarDescripcion"></textarea>
+                        <p class="field-counter">@descripcion.Length/1000 caracteres</p>
+                        <p class="validation-message" role="alert">@ErrorDescripcion</p>
                     </div>
                 </div>
             </section>
@@ -82,7 +96,7 @@
             <section class="form-section">
                 <div class="section-title">
                     <span class="section-number">02</span>
-                    <span>Archivo PDF</span>
+                    <span>Archivo de la planilla</span>
                 </div>
 
                 <div class="file-field">
@@ -91,21 +105,24 @@
                     </div>
 
                     <div class="file-content">
-                        <strong>Seleccioná la planilla base</strong>
+                        <strong>Seleccionar archivo PDF</strong>
                         <span>Archivo PDF de hasta 20 MB</span>
 
-                        <InputFile @key="versionArchivo"
-                                   OnChange="SeleccionarArchivo"
-                                   accept=".pdf,application/pdf"
-                                   disabled="@guardando"
-                                   class="file-input" />
+                        <label class="file-picker">
+                            <span><i class="bi bi-upload"></i> Seleccionar PDF</span>
+                            <InputFile @key="versionArchivo"
+                                       OnChange="SeleccionarArchivo"
+                                       accept=".pdf,application/pdf"
+                                       disabled="@guardando"
+                                       class="file-input" aria-label="Seleccionar archivo PDF" />
+                        </label>
 
                         @if (archivo != null)
                         {
                             <div class="selected-file">
                                 <span>
                                     <i class="bi bi-check-circle"></i>
-                                    @archivo.Name
+                                    @archivo.Name · @Tamano(archivo.Size)
                                 </span>
 
                                 <button type="button"
@@ -123,7 +140,7 @@
 
                 @if (!string.IsNullOrWhiteSpace(MensajeArchivo))
                 {
-                    <div class="form-message" role="alert">
+                    <div class="validation-message" role="alert">
                         @MensajeArchivo
                     </div>
                 }
@@ -147,7 +164,7 @@
                 <button type="button"
                         class="save-button"
                         disabled="@(guardando || tiposPlanilla.Count == 0)"
-                        @onclick="Guardar">
+                        @onclick="SolicitarGuardar">
                     @if (guardando)
                     {
                         <span class="spinner-border spinner-border-sm"></span>
@@ -165,6 +182,28 @@
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "volver")] public string? VolverUrl { get; set; }
+    private string Regreso => VolverUrl != null && (VolverUrl == "/planillas" || VolverUrl.StartsWith("/planillas?", StringComparison.Ordinal)) ? VolverUrl : "/planillas";
+    private bool validacionSolicitada;
+    private string ErrorNombre = "", ErrorTipo = "", ErrorDescripcion = "";
+
+    private void ValidarNombre() { if (validacionSolicitada) ErrorNombre = string.IsNullOrWhiteSpace(nombre) ? "Ingresá un nombre para la planilla." : nombre.Trim().Length > 150 ? "El nombre no puede superar los 150 caracteres." : ""; }
+    private void ValidarTipo() { if (validacionSolicitada) ErrorTipo = tiposPlanilla.Any(t => t.Id == tipoPlanillaId) ? "" : "Seleccioná un tipo de planilla disponible."; }
+    private void ValidarDescripcion() { if (validacionSolicitada) ErrorDescripcion = descripcion.Trim().Length > 1000 ? "La descripción no puede superar los 1000 caracteres." : ""; }
+    private bool Validar()
+    {
+        validacionSolicitada = true;
+        ValidarNombre(); ValidarTipo(); ValidarDescripcion();
+        MensajeArchivo = archivo == null ? "Seleccioná el PDF que querés guardar." : "";
+        return ErrorNombre.Length == 0 && ErrorTipo.Length == 0 && ErrorDescripcion.Length == 0 && MensajeArchivo.Length == 0;
+    }
+    private async Task SolicitarGuardar()
+    {
+        if (guardando || !Validar()) return;
+        await Guardar();
+    }
+    private static string Tamano(long bytes) => bytes >= 1024 * 1024 ? $"{bytes / (1024d * 1024d):0.#} MB" : $"{bytes / 1024d:0.#} KB";
+
     private const long LimiteArchivoBytes = 20 * 1024 * 1024;
 
     private List<TipoListadoDTO> tiposPlanilla = new();
@@ -182,8 +221,15 @@
     private string Mensaje = string.Empty;
     private string MensajeArchivo = string.Empty;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        cargando = true;
+        nombre = descripcion = Mensaje = MensajeArchivo = string.Empty;
+        tipoPlanillaId = 0;
+        archivo = null;
+        versionArchivo++;
+        validacionSolicitada = false;
+        ErrorNombre = ErrorTipo = ErrorDescripcion = string.Empty;
         try
         {
             var resp = await Http.Get<List<TipoListadoDTO>>(
@@ -269,54 +315,15 @@
             return;
 
         Mensaje = string.Empty;
-        MensajeArchivo = string.Empty;
-
+        if (!Validar()) return;
         var nombreLimpio = nombre.Trim();
         var descripcionLimpia = descripcion.Trim();
-
-        if (string.IsNullOrWhiteSpace(nombreLimpio))
-        {
-            Mensaje = "Ingresá un nombre para la planilla.";
-            return;
-        }
-
-        if (nombreLimpio.Length > 150)
-        {
-            Mensaje = "El nombre no puede superar los 150 caracteres.";
-            return;
-        }
-
-        if (!tiposPlanilla.Any(t => t.Id == tipoPlanillaId))
-        {
-            Mensaje = "Seleccioná un tipo de planilla disponible.";
-            return;
-        }
-
-        if (descripcionLimpia.Length > 1000)
-        {
-            Mensaje = "La descripción no puede superar los 1000 caracteres.";
-            return;
-        }
-
         var archivoSeleccionado = archivo;
-
-        if (archivoSeleccionado == null)
-        {
-            MensajeArchivo = "Seleccioná el PDF que querés guardar.";
-            return;
-        }
 
         guardando = true;
 
         try
         {
-            // Leemos el archivo antes de enviarlo a la API.
-            using var stream = archivoSeleccionado.OpenReadStream(
-                LimiteArchivoBytes);
-
-            using var ms = new System.IO.MemoryStream();
-            await stream.CopyToAsync(ms);
-
             using var contenido =
                 new System.Net.Http.MultipartFormDataContent();
 
@@ -334,17 +341,15 @@
                         System.Globalization.CultureInfo.InvariantCulture)),
                 "tipoPlanillaId");
 
-            var contenidoArchivo =
-                new System.Net.Http.ByteArrayContent(ms.ToArray());
-
-            contenidoArchivo.Headers.ContentType =
-                new System.Net.Http.Headers.MediaTypeHeaderValue(
-                    "application/pdf");
-
-            contenido.Add(
-                contenidoArchivo,
-                "archivo",
-                archivoSeleccionado.Name);
+            if (archivoSeleccionado != null)
+            {
+                using var stream = archivoSeleccionado.OpenReadStream(LimiteArchivoBytes);
+                using var ms = new System.IO.MemoryStream();
+                await stream.CopyToAsync(ms);
+                var contenidoArchivo = new System.Net.Http.ByteArrayContent(ms.ToArray());
+                contenidoArchivo.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
+                contenido.Add(contenidoArchivo, "archivo", archivoSeleccionado.Name);
+            }
 
             var resp = await Http.PostMultipart<int>(
                 "api/planillas",
@@ -356,7 +361,7 @@
                 return;
             }
 
-            Nav.NavigateTo("/planillas");
+            Nav.NavigateTo(Regreso + (Regreso.Contains('?') ? "&" : "?") + "estado=" + "creado");
         }
         catch
         {
@@ -372,12 +377,12 @@
     private void Cancelar()
     {
         if (!guardando)
-            Nav.NavigateTo("/planillas");
+            Nav.NavigateTo(Regreso);
     }
 
     private void Volver()
     {
         if (!guardando)
-            Nav.NavigateTo("/planillas");
+            Nav.NavigateTo(Regreso);
     }
 }

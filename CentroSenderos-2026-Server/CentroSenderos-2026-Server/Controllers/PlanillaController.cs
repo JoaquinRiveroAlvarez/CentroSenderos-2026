@@ -83,6 +83,44 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> Detalle(int id)
+        {
+            var detalle = await repositorio.ObtenerDetalle(id);
+            if (detalle == null) return NotFound(new { mensaje = "No se encontró la planilla." });
+            return Ok(detalle);
+        }
+
+        [HttpPost("{id:int}/editar")]
+        [RequestSizeLimit(22 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 22 * 1024 * 1024)]
+        public async Task<IActionResult> Editar(int id, [FromForm] string nombre,
+            [FromForm] int tipoPlanillaId, [FromForm] string descripcion = "", [FromForm] IFormFile? archivo = null)
+        {
+            if (archivo != null && (archivo.Length == 0 || archivo.Length > 20 * 1024 * 1024))
+                return BadRequest(new { mensaje = "Seleccioná un PDF con contenido de hasta 20 MB." });
+            try
+            {
+                byte[]? contenido = null;
+                if (archivo != null)
+                {
+                    using var ms = new MemoryStream();
+                    await archivo.CopyToAsync(ms);
+                    contenido = ms.ToArray();
+                }
+                var actualizado = await repositorio.EditarPlanilla(id, nombre, descripcion,
+                    tipoPlanillaId, archivo?.FileName, contenido);
+                if (!actualizado) return NotFound(new { mensaje = "No se encontró la planilla." });
+                return Ok(id);
+            }
+            catch (ApplicationException ex) { return BadRequest(new { mensaje = ex.Message }); }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error al editar una planilla.");
+                return StatusCode(500, new { mensaje = "No se pudo actualizar la planilla. Intentá nuevamente." });
+            }
+        }
+
         [HttpGet("ver/{id:int}")]
         public async Task<IActionResult> Ver(int id)
         {
