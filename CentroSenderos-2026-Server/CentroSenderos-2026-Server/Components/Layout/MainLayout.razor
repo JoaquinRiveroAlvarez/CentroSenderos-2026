@@ -1,39 +1,99 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="layout">
+<AuthorizeView Context="layoutContext">
 
-    <NavMenu />
+    <Authorized>
 
-    <main class="main-content">
+        <div class="layout layout-private">
 
-        <div class="top-row">
+            <NavMenu />
 
-            <div class="topbar-identity">
+            <main class="main-content">
 
-                <span class="topbar-brand-name">
-                    SENDEROS
-                </span>
+                <header class="top-row">
 
-                <span class="topbar-divider"></span>
+                    <div class="topbar-identity">
 
-                <span class="topbar-subtitle">
-                    Espacio Terapéutico Integral
-                </span>
+                        <span class="topbar-brand-name">
+                            SENDEROS
+                        </span>
 
-            </div>
+                        <span class="topbar-divider"
+                              aria-hidden="true"></span>
+
+                        <span class="topbar-subtitle">
+                            Espacio Terapéutico Integral
+                        </span>
+
+                    </div>
+
+                    <NavLink href="Account/Manage"
+                             class="topbar-account"
+                             title="Mi cuenta"
+                             aria-label="Mi cuenta">
+
+                        <i class="bi bi-person-circle"
+                           aria-hidden="true"></i>
+
+                        <span>Mi cuenta</span>
+
+                    </NavLink>
+
+                </header>
+
+                <div class="page-content">
+                    @Body
+                </div>
+
+            </main>
 
         </div>
 
-        <div class="page-content">
-            @Body
+    </Authorized>
+
+    <NotAuthorized>
+
+        <div class="layout layout-public">
+
+            <main class="main-content">
+
+                <header class="top-row">
+
+                    <div class="topbar-identity">
+
+                        <img src="/imagenes/logo-senderos-sin-fondo.png"
+                             alt=""
+                             class="topbar-logo" />
+
+                        <span class="topbar-brand-name">
+                            SENDEROS
+                        </span>
+
+                        <span class="topbar-divider"
+                              aria-hidden="true"></span>
+
+                        <span class="topbar-subtitle">
+                            Espacio Terapéutico Integral
+                        </span>
+
+                    </div>
+
+                </header>
+
+                <div class="page-content">
+                    @Body
+                </div>
+
+            </main>
+
         </div>
 
-    </main>
+    </NotAuthorized>
 
-</div>
+</AuthorizeView>
 
 <div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
+    Ocurrió un error inesperado.
+    <a href="." class="reload">Recargar</a>
     <span class="dismiss">🗙</span>
 </div>

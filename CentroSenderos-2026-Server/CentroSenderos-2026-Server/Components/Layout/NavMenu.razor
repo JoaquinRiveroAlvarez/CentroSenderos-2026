@@ -1,80 +1,102 @@
 ﻿@implements IDisposable
 @inject NavigationManager NavigationManager
 
+<aside class="sidebar" aria-label="Navegación del sistema">
 
-<div class="sidebar">
-
-    <!-- Header -->
     <div class="sidebar-header">
-            <img src="imagenes/logo-senderos-sin-fondo.png" alt="Logo Senderos" />
 
-@* <div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="turnos">Centro Integral Senderos</a>
+        <a href="/turnos"
+           class="sidebar-brand"
+           aria-label="Centro Senderos — Ir a Turnos">
+
+            <img src="/imagenes/logo-senderos-sin-fondo.png"
+                 alt="Centro Senderos" />
+
+        </a>
+
     </div>
-</div> *@
-    </div>
 
-@* <input type="checkbox" title="Navigation menu" class="navbar-toggler" /> *@
+    <nav class="sidebar-nav" aria-label="Menú principal">
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-
-        @*      <div class="nav-item px-3">
-                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-                </NavLink>
-            </div> *@
-
-        @* <div class="nav-item px-3">
-            <NavLink class="nav-link" href="turnos">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Turnos
-            </NavLink>
-        </div> *@
-
-    </nav>
-</div>
-
-    <!-- Menú -->
-    <nav class="sidebar-nav">
-
-        <AuthorizeView>
+        <AuthorizeView Context="menuContext">
 
             <Authorized>
 
-                <NavLink href="turnos" class="sidebar-link">
-                    <i class="bi bi-calendar"></i>
+                <NavLink href="turnos"
+                         class="sidebar-link"
+                         title="Turnos">
+
+                    <i class="bi bi-calendar"
+                       aria-hidden="true"></i>
+
                     <span>Turnos</span>
+
                 </NavLink>
 
-                <NavLink href="profesionales" class="sidebar-link">
-                    <i class="bi bi-person-workspace"></i>
+                <NavLink href="profesionales"
+                         class="sidebar-link"
+                         title="Profesionales">
+
+                    <i class="bi bi-person-workspace"
+                       aria-hidden="true"></i>
+
                     <span>Profesionales</span>
+
                 </NavLink>
 
-                <NavLink href="pacientes" class="sidebar-link">
-                    <i class="bi bi-people"></i>
+                <NavLink href="pacientes"
+                         class="sidebar-link"
+                         title="Pacientes">
+
+                    <i class="bi bi-people"
+                       aria-hidden="true"></i>
+
                     <span>Pacientes</span>
+
                 </NavLink>
 
-                <NavLink href="gastos" class="sidebar-link">
-                    <i class="bi bi-wallet2"></i>
+                <NavLink href="gastos"
+                         class="sidebar-link"
+                         title="Caja">
+
+                    <i class="bi bi-wallet2"
+                       aria-hidden="true"></i>
+
                     <span>Caja</span>
+
                 </NavLink>
 
-                <NavLink href="liquidaciones" class="sidebar-link">
-                    <i class="bi bi-receipt"></i>
+                <NavLink href="liquidaciones"
+                         class="sidebar-link"
+                         title="Liquidaciones">
+
+                    <i class="bi bi-receipt"
+                       aria-hidden="true"></i>
+
                     <span>Liquidaciones</span>
+
                 </NavLink>
 
-                <NavLink href="planillas" class="sidebar-link">
-                    <i class="bi bi-table"></i>
+                <NavLink href="planillas"
+                         class="sidebar-link"
+                         title="Planillas">
+
+                    <i class="bi bi-table"
+                       aria-hidden="true"></i>
+
                     <span>Planillas</span>
+
                 </NavLink>
 
-                <NavLink href="admin" class="sidebar-link">
-                    <i class="bi bi-shield-lock"></i>
+                <NavLink href="admin"
+                         class="sidebar-link"
+                         title="Administración">
+
+                    <i class="bi bi-shield-lock"
+                       aria-hidden="true"></i>
+
                     <span>Administración</span>
+
                 </NavLink>
 
             </Authorized>
@@ -83,22 +105,11 @@
 
     </nav>
 
-    <!-- Footer -->
-
     <div class="sidebar-footer">
 
-        <AuthorizeView>
+        <AuthorizeView Context="accountContext">
 
             <Authorized>
-
-                <NavLink href="Account/Manage"
-                         class="sidebar-link">
-
-                    <i class="bi bi-person-circle"></i>
-
-                    @* <span>@context.User.Identity?.Name</span> *@
-
-                </NavLink>
 
                 <form action="Account/Logout" method="post">
 
@@ -109,11 +120,13 @@
                            value="@currentUrl" />
 
                     <button type="submit"
-                            class="sidebar-link logout-button">
+                            class="sidebar-link logout-button"
+                            title="Cerrar sesión">
 
-                        <i class="bi bi-box-arrow-left"></i>
+                        <i class="bi bi-box-arrow-left"
+                           aria-hidden="true"></i>
 
-                        @* <span>Cerrar sesión</span> *@
+                        <span>Salir</span>
 
                     </button>
 
@@ -121,46 +134,30 @@
 
             </Authorized>
 
-            <NotAuthorized>
-@* 
-                <NavLink href="Account/Login"
-                         class="sidebar-link">
-
-                    <i class="bi bi-box-arrow-in-right"></i>
-
-                    <span>Ingresar</span>
-
-                </NavLink> *@
-@* 
-                <NavLink href="Account/Register"
-                         class="sidebar-link">
-
-                    <i class="bi bi-person-plus"></i>
-
-                    <span>Registrarse</span>
-
-                </NavLink> *@
-
-            </NotAuthorized>
-
         </AuthorizeView>
 
     </div>
 
-</div>
+</aside>
 
 @code {
     private string? currentUrl;
 
     protected override void OnInitialized()
     {
-        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        currentUrl = NavigationManager.ToBaseRelativePath(
+            NavigationManager.Uri);
+
         NavigationManager.LocationChanged += OnLocationChanged;
     }
 
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    private void OnLocationChanged(
+        object? sender,
+        LocationChangedEventArgs e)
     {
-        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        currentUrl = NavigationManager.ToBaseRelativePath(
+            e.Location);
+
         StateHasChanged();
     }
 
@@ -169,4 +166,3 @@
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }
-

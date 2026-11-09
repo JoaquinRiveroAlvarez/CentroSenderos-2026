@@ -1,261 +1,358 @@
-/* CSS for Register component */
-/* ===========================================
-   PÁGINA REGISTER
-=========================================== */
+/* #region Página y distribución */
 
 .register-page {
-    width: calc(100% + 70px);
-    min-height: calc(100% + 70px);
-    margin: -35px;
-    background-image: url('/imagenes/fondo-iniciosesion.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 30px;
+    position: fixed;
+    inset: 64px 0 0 100px;
+    z-index: 100;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 28px 20px;
     box-sizing: border-box;
+    display: flex;
+    overflow-y: auto;
+    background: linear-gradient( rgba(250, 248, 245, 0.25), rgba(250, 248, 245, 0.45) ), url('/imagenes/fondo-iniciosesion.png') center / cover no-repeat;
+    color: #303b30;
+    font-family: inherit;
 }
-
-
-/* ===========================================
-   CONTENEDOR
-=========================================== */
 
 .register-content {
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
+    margin: auto;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-
-/* ===========================================
-   LOGO
-=========================================== */
-
-.register-logo {
-    width: 170px;
-    height: auto;
-    object-fit: contain;
-    margin-bottom: 30px;
-}
+/* #endregion */
 
 
-/* ===========================================
-   TARJETA
-=========================================== */
+/* #region Tarjeta y encabezado */
 
 .register-card {
     width: 100%;
-    padding: 28px 36px;
+    padding: 34px 32px;
     box-sizing: border-box;
-    background: rgba(255, 255, 255, 0.93);
-    border: 1px solid #d9d9d9;
+    background: #faf8f5;
+    border: 1px solid #e7e3dc;
+    border-top: 4px solid #647b5b;
     border-radius: 18px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 12px 36px rgba(55, 67, 48, 0.08), 0 2px 6px rgba(55, 67, 48, 0.04);
 }
 
+.register-heading {
+    margin-bottom: 28px;
+}
 
-/* ===========================================
-   CAMPOS
-=========================================== */
+.register-brand {
+    display: inline-block;
+    margin-bottom: 18px;
+    padding: 6px 12px;
+    background: #dfe5dc;
+    border: 1px solid #d3dccf;
+    border-radius: 8px;
+    color: #556f4f;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.register-heading h1 {
+    margin: 0 0 9px;
+    color: #3e5039;
+    font-family: inherit;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: normal;
+}
+
+.register-heading p {
+    margin: 0;
+    color: #77796f;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* #endregion */
+
+
+/* #region Campos e iconos */
 
 .register-field {
+    margin-bottom: 20px;
+}
+
+    .register-field > label {
+        display: block;
+        margin-bottom: 8px;
+        color: #424d3f;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+.register-input-wrap {
     position: relative;
-    width: 100%;
-    margin-bottom: 14px;
 }
 
+    .register-input-wrap ::deep .register-input {
+        display: block;
+        width: 100%;
+        height: 48px;
+        padding: 0 14px 0 42px;
+        box-sizing: border-box;
+        border: 1px solid #dcded5;
+        border-radius: 10px;
+        background: #fff;
+        color: #303b30;
+        font-family: inherit;
+        font-size: 15px;
+        line-height: 1.4;
+        transition: border-color 0.18s, box-shadow 0.18s;
+    }
 
-/* ===========================================
-   INPUTS
-=========================================== */
-
-::deep input.register-input {
-    width: 100% !important;
-    height: 44px !important;
-    box-sizing: border-box !important;
-    padding-left: 42px !important;
-    padding-right: 14px !important;
-    background: #ffffff !important;
-    border: 1px solid #d8ddd7 !important;
-    border-radius: 8px !important;
-    color: #234b27 !important;
-    font-size: 13px !important;
-    outline: none !important;
-    transition: border-color 0.2s, box-shadow 0.2s;
+.password-field ::deep .register-input {
+    padding-right: 48px;
 }
 
+.register-input-wrap ::deep .register-input::placeholder {
+    color: #93988e;
+    opacity: 1;
+}
 
-    /* Placeholder */
-
-    ::deep input.register-input::placeholder {
-        color: #668069 !important;
-        opacity: 1;
-    }
-
-
-    /* Focus */
-
-    ::deep input.register-input:focus {
-        border-color: #729474 !important;
-        box-shadow: 0 0 0 3px rgba(114, 148, 116, 0.15) !important;
-    }
-
-
-/* ===========================================
-   ICONOS IZQUIERDOS
-=========================================== */
+.register-input-wrap ::deep .register-input:focus {
+    outline: none;
+    border-color: #647b5b;
+    box-shadow: 0 0 0 3px rgba(100, 123, 91, 0.15);
+}
 
 .field-icon-left {
     position: absolute;
-    top: 14px;
-    left: 14px;
-    font-size: 16px;
-    color: #668069;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    color: #7c8975;
+    font-size: 17px;
     pointer-events: none;
-    z-index: 5;
 }
-
-
-/* ===========================================
-   CONTRASEÑAS
-=========================================== */
 
 .password-icon {
     position: absolute;
-    top: 14px;
-    right: 14px;
-    z-index: 5;
+    right: 3px;
+    top: 3px;
+    width: 42px;
+    height: 42px;
     padding: 0;
+    display: grid;
+    place-items: center;
     border: 0;
+    border-radius: 8px;
     background: transparent;
-    color: #668069;
-    font-size: 16px;
-    line-height: 1;
+    color: #718269;
+    font-family: inherit;
+    font-size: 18px;
     cursor: pointer;
 }
 
     .password-icon:hover {
-        color: #315d34;
+        color: #354b32;
+        background: #f0f3ed;
     }
 
-.password-field ::deep input.register-input {
-    padding-right: 42px !important;
-}
+    .password-icon:focus-visible {
+        outline: 2px solid #647b5b;
+        outline-offset: -2px;
+    }
 
-/* ===========================================
-   BOTÓN
-=========================================== */
+/* #endregion */
+
+
+/* #region Botón principal */
 
 .register-button {
     width: 100%;
-    height: 44px;
+    min-height: 48px;
+    margin-top: 4px;
+    padding: 12px 16px;
     box-sizing: border-box;
-    margin-top: 2px;
-    border: none;
-    border-radius: 8px;
-    background: #729474;
-    color: white;
-    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: #556f4f;
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
     font-weight: 600;
+    line-height: 1.4;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
+    transition: background 0.18s, box-shadow 0.18s;
 }
 
     .register-button:hover {
-        background: #5f8061;
+        background: #455d40;
+        box-shadow: 0 4px 12px rgba(69, 93, 64, 0.16);
     }
 
-    .register-button:active {
-        transform: scale(0.99);
+    .register-button:focus-visible {
+        outline: 3px solid #abbca2;
+        outline-offset: 3px;
     }
 
+/* #endregion */
 
-/* ===========================================
-   LINK A LOGIN
-=========================================== */
+
+/* #region Enlace a inicio de sesión */
 
 .register-login {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 5px;
-    margin-top: 18px;
-    color: #668069;
-    font-size: 12px;
+    margin-top: 24px;
+    padding-top: 22px;
+    border-top: 1px solid #eae7df;
+    color: #74776e;
+    font-size: 13px;
+    line-height: 1.6;
 }
 
     .register-login a {
-        color: #315d34;
+        color: #556f4f;
+        font-size: 13px;
         font-weight: 600;
-        text-decoration: underline;
+        text-decoration: none;
     }
 
         .register-login a:hover {
-            color: #0f420b;
+            color: #354b32;
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
 
+        .register-login a:focus-visible {
+            outline: 2px solid #647b5b;
+            outline-offset: 4px;
+            border-radius: 3px;
+        }
 
-/* ===========================================
-   VALIDACIONES
-=========================================== */
+/* #endregion */
 
-.validation-message {
+
+/* #region Validaciones y mensajes */
+
+.register-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    border: 1px solid #edc8c3;
+    border-radius: 10px;
+    background: #fff2f0;
+    color: #a4352d;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+    .register-alert i {
+        flex-shrink: 0;
+    }
+
+.register-field ::deep .validation-message {
     display: block;
-    margin-top: 4px;
-    color: #c0392b;
-    font-size: 11px;
-}
-
-.validation-summary {
-    margin-bottom: 10px;
-    color: #c0392b;
+    margin-top: 7px;
+    color: #b23d33;
     font-size: 12px;
+    line-height: 1.45;
 }
 
+.register-input-wrap ::deep .register-input.invalid {
+    border-color: #c75a4f;
+}
 
-/* ===========================================
-   RESPONSIVE
-=========================================== */
+    .register-input-wrap ::deep .register-input.invalid:focus {
+        box-shadow: 0 0 0 3px rgba(199, 90, 79, 0.12);
+    }
+
+/* #endregion */
+
+
+/* #region Responsive - Tablet */
 
 @media (max-width: 768px) {
-
     .register-page {
-        padding: 20px;
-    }
-
-    .register-content {
-        max-width: 380px;
-    }
-
-    .register-logo {
-        width: 150px;
-        margin-bottom: 24px;
-    }
-
-    .register-card {
-        padding: 26px 28px;
-    }
-}
-
-
-@media (max-width: 480px) {
-
-    .register-page {
-        padding: 16px;
-    }
-
-    .register-logo {
-        width: 135px;
-        margin-bottom: 20px;
-    }
-
-    .register-card {
+        /* Menú superior de 72px y encabezado de 60px. */
+        inset: 132px 0 0;
         padding: 24px 20px;
-        border-radius: 14px;
     }
 }
+
+/* #endregion */
+
+
+/* #region Responsive - Celular */
+
+@media (max-width: 520px) {
+    .register-page {
+        /* Menú superior de 72px y encabezado de 62px. */
+        inset: 134px 0 0;
+        padding: 24px 16px;
+    }
+
+    .register-card {
+        padding: 26px 22px;
+    }
+
+    .register-heading h1 {
+        font-size: 24px;
+    }
+
+    .register-input-wrap ::deep .register-input {
+        font-size: 16px;
+    }
+}
+
+/* #endregion */
+
+
+/* #region Movimiento reducido */
+
+@media (prefers-reduced-motion: reduce) {
+    .register-input-wrap ::deep .register-input,
+    .register-button {
+        transition: none;
+    }
+}
+
+/* #endregion */
+
+/* #region Distribución sin menú lateral */
+
+.login-page,
+.register-page {
+    inset: 64px 0 0;
+}
+
+@media (max-width: 768px) {
+    .login-page,
+    .register-page {
+        inset: 60px 0 0;
+    }
+}
+
+@media (max-width: 520px) {
+    .login-page,
+    .register-page {
+        inset: 62px 0 0;
+    }
+}
+
+/* #endregion */

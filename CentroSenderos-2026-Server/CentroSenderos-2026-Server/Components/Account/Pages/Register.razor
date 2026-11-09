@@ -15,21 +15,42 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Registrarse</PageTitle>
-
-<PageTitle>Registrarse</PageTitle>
+<PageTitle>Registrarse | Centro Senderos</PageTitle>
 
 <div class="register-page">
 
     <div class="register-content">
 
-        <img src="/imagenes/logo-senderos.png"
-             alt="Senderos"
-             class="register-logo" />
+        <section class="register-card"
+                 aria-labelledby="register-title">
 
-        <section class="register-card">
+            <header class="register-heading">
 
-            <StatusMessage Message="@Message" />
+                @* <span class="register-brand">
+                    Centro Senderos
+                </span> *@
+
+                <h1 id="register-title">
+                    Crear una cuenta
+                </h1>
+
+               @*  <p>
+                    Completá tus datos para registrarte en el sistema.
+                </p> *@
+
+            </header>
+
+            @if (!string.IsNullOrWhiteSpace(Message))
+            {
+                <div class="register-alert" role="alert">
+
+                    <i class="bi bi-exclamation-circle"
+                       aria-hidden="true"></i>
+
+                    <span>@Message</span>
+
+                </div>
+            }
 
             <EditForm Model="Input"
                       method="post"
@@ -38,75 +59,120 @@
 
                 <DataAnnotationsValidator />
 
-                <ValidationSummary class="text-danger validation-summary"
-                                   role="alert" />
+                <div class="register-field">
+
+                    <label for="Input.Email">
+                        Correo electrónico
+                    </label>
+
+                    <div class="register-input-wrap">
+
+                        <i class="bi bi-envelope field-icon-left"
+                           aria-hidden="true"></i>
+
+                        <InputText @bind-Value="Input.Email"
+                                   id="Input.Email"
+                                   class="form-control register-input"
+                                   autocomplete="username"
+                                   aria-required="true"
+                                   aria-describedby="email-validation"
+                                   placeholder="nombre@ejemplo.com" />
+
+                    </div>
+
+                    <div id="email-validation">
+
+                        <ValidationMessage For="() => Input.Email"
+                                           class="validation-message" />
+
+                    </div>
+
+                </div>
 
                 <div class="register-field">
 
-                    <i class="bi bi-envelope field-icon-left"></i>
+                    <label for="Input.Password">
+                        Contraseña
+                    </label>
 
-                    <InputText @bind-Value="Input.Email"
-                               id="Input.Email"
-                               class="form-control register-input"
-                               autocomplete="username"
-                               aria-required="true"
-                               placeholder="Correo electrónico" />
+                    <div class="register-input-wrap password-field">
 
-                    <ValidationMessage For="() => Input.Email"
-                                       class="text-danger validation-message" />
+                        <i class="bi bi-lock field-icon-left"
+                           aria-hidden="true"></i>
+
+                        <InputText type="password"
+                                   @bind-Value="Input.Password"
+                                   id="Input.Password"
+                                   class="form-control register-input"
+                                   autocomplete="new-password"
+                                   aria-required="true"
+                                   aria-describedby="password-validation"
+                                   placeholder="Ingresá una contraseña" />
+
+                        <button type="button"
+                                class="password-icon"
+                                onclick="togglePassword('Input.Password', this)"
+                                aria-label="Mostrar contraseña">
+
+                            <i class="bi bi-eye"
+                               aria-hidden="true"></i>
+
+                        </button>
+
+                    </div>
+
+                    <div id="password-validation">
+
+                        <ValidationMessage For="() => Input.Password"
+                                           class="validation-message" />
+
+                    </div>
 
                 </div>
 
-                <div class="register-field password-field">
+                <div class="register-field">
 
-                    <i class="bi bi-lock field-icon-left"></i>
+                    <label for="Input.ConfirmPassword">
+                        Confirmar contraseña
+                    </label>
 
-                    <InputText type="@(mostrarPassword ? "text" : "password")"
-                               @bind-Value="Input.Password"
-                               id="Input.Password"
-                               class="form-control register-input"
-                               autocomplete="new-password"
-                               aria-required="true"
-                               placeholder="Contraseña" />
+                    <div class="register-input-wrap password-field">
 
-                    <button type="button"
-                            class="password-icon"
-                            onclick="togglePassword('Input.Password', this)"
-                            aria-label="Mostrar contraseña">
-                        <i class="bi bi-eye"></i>
-                    </button>
+                        <i class="bi bi-shield-lock field-icon-left"
+                           aria-hidden="true"></i>
 
-                    <ValidationMessage For="() => Input.Password"
-                                       class="text-danger validation-message" />
+                        <InputText type="password"
+                                   @bind-Value="Input.ConfirmPassword"
+                                   id="Input.ConfirmPassword"
+                                   class="form-control register-input"
+                                   autocomplete="new-password"
+                                   aria-required="true"
+                                   aria-describedby="confirmation-validation"
+                                   placeholder="Repetí la contraseña" />
 
-                </div>
+                        <button type="button"
+                                class="password-icon"
+                                onclick="togglePassword('Input.ConfirmPassword', this)"
+                                aria-label="Mostrar confirmación de contraseña">
 
-                <div class="register-field password-field">
+                            <i class="bi bi-eye"
+                               aria-hidden="true"></i>
 
-                    <i class="bi bi-shield-lock field-icon-left"></i>
+                        </button>
 
-                    <InputText type="@(mostrarConfirmacion ? "text" : "password")"
-                               @bind-Value="Input.ConfirmPassword"
-                               id="Input.ConfirmPassword"
-                               class="form-control register-input"
-                               autocomplete="new-password"
-                               aria-required="true"
-                               placeholder="Confirmar contraseña" />
+                    </div>
 
-                    <button type="button"
-                            class="password-icon"
-                            onclick="togglePassword('Input.ConfirmPassword', this)"
-                            aria-label="Mostrar confirmación de contraseña">
-                        <i class="bi bi-eye"></i>
-                    </button>
+                    <div id="confirmation-validation">
 
-                    <ValidationMessage For="() => Input.ConfirmPassword"
-                                       class="text-danger validation-message" />
+                        <ValidationMessage For="() => Input.ConfirmPassword"
+                                           class="validation-message" />
+
+                    </div>
 
                 </div>
 
                 <button type="submit" class="register-button">
-                    Registrarse
+                    Crear cuenta
                 </button>
 
                 <div class="register-login">
@@ -114,7 +180,7 @@
                     <span>¿Ya tenés una cuenta?</span>
 
                     <a href="Account/Login">
-                        Iniciar sesión
+                        Iniciá sesión
                     </a>
 
                 </div>
@@ -129,8 +195,6 @@
 
 @code {
     private IEnumerable<IdentityError>? identityErrors;
-    private bool mostrarPassword;
-    private bool mostrarConfirmacion;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = default!;
@@ -140,7 +204,7 @@
 
     private string? Message => identityErrors is null
         ? null
-        : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
+        : string.Join(" ", identityErrors.Select(error => error.Description));
 
     protected override void OnInitialized()
     {
@@ -151,12 +215,21 @@
     {
         var user = CreateUser();
 
-        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+        await UserStore.SetUserNameAsync(
+            user,
+            Input.Email,
+            CancellationToken.None);
 
         var emailStore = GetEmailStore();
-        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
-        var result = await UserManager.CreateAsync(user, Input.Password);
+        await emailStore.SetEmailAsync(
+            user,
+            Input.Email,
+            CancellationToken.None);
+
+        var result = await UserManager.CreateAsync(
+            user,
+            Input.Password);
 
         if (!result.Succeeded)
         {
@@ -164,15 +237,20 @@
             return;
         }
 
-        Logger.LogInformation("User created a new account with password.");
+        Logger.LogInformation(
+            "User created a new account with password.");
 
         var userId = await UserManager.GetUserIdAsync(user);
-        var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
 
-        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var code = await UserManager
+            .GenerateEmailConfirmationTokenAsync(user);
+
+        code = WebEncoders.Base64UrlEncode(
+            Encoding.UTF8.GetBytes(code));
 
         var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-            NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+            NavigationManager.ToAbsoluteUri(
+                "Account/ConfirmEmail").AbsoluteUri,
             new Dictionary<string, object?>
             {
                 ["userId"] = userId,
@@ -189,7 +267,11 @@
         {
             RedirectManager.RedirectTo(
                 "Account/RegisterConfirmation",
-                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
+                new()
+                {
+                    ["email"] = Input.Email,
+                    ["returnUrl"] = ReturnUrl
+                });
         }
         else
         {
@@ -207,7 +289,8 @@
         {
             throw new InvalidOperationException(
                 $"Can't create an instance of '{nameof(MiUsuario)}'. " +
-                $"Ensure that '{nameof(MiUsuario)}' is not an abstract class and has a parameterless constructor.");
+                $"Ensure that '{nameof(MiUsuario)}' is not an abstract " +
+                "class and has a parameterless constructor.");
         }
     }
 
@@ -224,20 +307,25 @@
 
     private sealed class InputModel
     {
-        [Required]
-        [EmailAddress]
-        [Display(Name = "Email")]
+        [Required(ErrorMessage = "Ingresá tu correo electrónico.")]
+        [EmailAddress(ErrorMessage = "Ingresá un correo electrónico válido.")]
+        [Display(Name = "Correo electrónico")]
         public string Email { get; set; } = "";
 
-        [Required]
-        [StringLength(100, ErrorMessage = "La contraseña debe tener al menos {2} caracteres.", MinimumLength = 6)]
+        [Required(ErrorMessage = "Ingresá una contraseña.")]
+        [StringLength(
+            100,
+            ErrorMessage = "La contraseña debe tener entre {2} y {1} caracteres.",
+            MinimumLength = 6)]
         [DataType(DataType.Password)]
-        [Display(Name = "Password")]
+        [Display(Name = "Contraseña")]
         public string Password { get; set; } = "";
 
         [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "La contraseña y su confirmación no coinciden.")]
+        [Display(Name = "Confirmar contraseña")]
+        [Compare(
+            "Password",
+            ErrorMessage = "La contraseña y su confirmación no coinciden.")]
         public string ConfirmPassword { get; set; } = "";
     }
 }

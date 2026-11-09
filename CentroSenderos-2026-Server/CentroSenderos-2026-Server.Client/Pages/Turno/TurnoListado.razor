@@ -1966,9 +1966,9 @@
     {
         return turno.EstadoTurno switch
         {
-            EnumEstadoTurno.disponible => "Pendiente",
-            EnumEstadoTurno.reservado => "Pendiente",
-            EnumEstadoTurno.atendido => "Completado",
+            EnumEstadoTurno.disponible => "Disponible",
+            EnumEstadoTurno.reservado => "Reservado",
+            EnumEstadoTurno.atendido => "Atendido",
             EnumEstadoTurno.cancelado => "Cancelado",
             EnumEstadoTurno.ausente => "Ausente",
             _ => "Sin estado"
