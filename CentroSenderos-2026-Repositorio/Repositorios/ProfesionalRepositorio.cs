@@ -231,8 +231,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .Select(tipoPrestacionId =>
                             new ProfesionalTipoPrestacion
                             {
-                                TipoPrestacionId =
-                                    tipoPrestacionId
+                                TipoPrestacionId = tipoPrestacionId,
+                                EstadoRegistro = EnumEstadoRegistro.activo
                             })
                         .ToList()
             };
@@ -359,18 +359,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
 
             var nuevasPrestaciones =
-                dto.TipoPrestacionIds
-                    .Distinct()
-                    .Select(tipoPrestacionId =>
-                        new ProfesionalTipoPrestacion
-                        {
-                            ProfesionalId =
-                                profesional.Id,
-
-                            TipoPrestacionId =
-                                tipoPrestacionId
-                        })
-                    .ToList();
+            dto.TipoPrestacionIds
+                .Distinct()
+                .Select(tipoPrestacionId =>
+                    new ProfesionalTipoPrestacion
+                    {
+                        ProfesionalId = profesional.Id,
+                        TipoPrestacionId = tipoPrestacionId,
+                        EstadoRegistro = EnumEstadoRegistro.activo
+                    })
+                .ToList();
 
             context.ProfesionalTipoPrestaciones
                 .AddRange(nuevasPrestaciones);
