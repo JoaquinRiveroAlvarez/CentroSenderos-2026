@@ -117,15 +117,15 @@
                     </div>
 
                     <div class="field-group">
-                        <label>RETENCIÓN CENTRO (%)</label>
+                        <label>% RETENCIÓN CENTRO</label>
                         <div class="money-input-group">
                             <InputNumber class="money-input"
                                          @bind-Value="modelo.PorcentajeRetencion"
                                          step="1" min="0" max="100" />
-                            <span class="money-prefix">%</span>
+                            <span class="money-suffix">%</span>
                         </div>
-                        <small class="text-muted" style="font-size: 11px;">
-                            20% habitual para prestaciones clínicas | 100% para módulos, consultorio por hora o talleres.
+                        <small class="helper-text">
+                            20% habitual para prestaciones clínicas | 100% para módulos o talleres.
                         </small>
                         <ValidationMessage For="@(() => modelo.PorcentajeRetencion)" />
                     </div>
@@ -388,7 +388,8 @@
             Tipo = string.Empty,
             Descripcion = string.Empty,
             Cod = string.Empty,
-            MontoSesion = 0
+            MontoSesion = 0,
+            PorcentajeRetencion = 20
         };
     }
 

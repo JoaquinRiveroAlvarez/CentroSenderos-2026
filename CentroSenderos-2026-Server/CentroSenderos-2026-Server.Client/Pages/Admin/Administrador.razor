@@ -8,7 +8,7 @@
 
     <div class="admin-header">
         <div>
-            <h1>Panel de Administración</h1>
+            <h1>Panel de Administrador</h1>
             <p>Gestioná la configuración general y los catálogos del sistema.</p>
         </div>
     </div>
@@ -31,6 +31,16 @@
             <div class="admin-card-content">
                 <h2>Tipos de Prestación</h2>
                 <p>Administrá las prestaciones, códigos y montos por sesión.</p>
+            </div>
+            <div class="admin-card-arrow"><i class="bi bi-chevron-right"></i></div>
+        </button>
+
+        <!-- Tipos de Diagnóstico -->
+        <button type="button" class="admin-card" @onclick="IrADiagnosticos">
+            <div class="admin-card-icon"><i class="bi bi-file-medical"></i></div>
+            <div class="admin-card-content">
+                <h2>Tipos de Diagnóstico</h2>
+                <p>Gestioná los diagnósticos y patologías disponibles para los pacientes.</p>
             </div>
             <div class="admin-card-arrow"><i class="bi bi-chevron-right"></i></div>
         </button>
@@ -128,6 +138,7 @@
     private void IrAConsultorios() => Nav.NavigateTo("/tipoconsultorio");
     private void IrAAreas() => Nav.NavigateTo("/tipoarea");
     private void IrATiposGasto() => Nav.NavigateTo("/tipogasto");
+    private void IrADiagnosticos() => Nav.NavigateTo("/tipodiagnostico");
 
     // Nuevo método para Roles
     private void IrARoles() => Nav.NavigateTo("/roles");

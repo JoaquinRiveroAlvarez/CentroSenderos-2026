@@ -84,21 +84,28 @@
 
 
                 <div class="field-group">
-
                     <label>MONTO POR SESIÓN</label>
-
                     <div class="money-input-group">
-
                         <span class="money-prefix">$</span>
-
                         <InputNumber class="money-input"
                                      @bind-Value="modelo.MontoSesion"
                                      step="0.01" />
-
                     </div>
-
                     <ValidationMessage For="@(() => modelo.MontoSesion)" />
+                </div>
 
+                <div class="field-group">
+                    <label>% RETENCIÓN CENTRO</label>
+                    <div class="money-input-group">
+                        <InputNumber class="money-input"
+                                     @bind-Value="modelo.PorcentajeRetencion"
+                                     step="1" min="0" max="100" />
+                        <span class="money-suffix">%</span>
+                    </div>
+                    <small class="helper-text">
+                        20% habitual para prestaciones clínicas | 100% para módulos o talleres.
+                    </small>
+                    <ValidationMessage For="@(() => modelo.PorcentajeRetencion)" />
                 </div>
 
             </div>
@@ -153,7 +160,8 @@
         Tipo = string.Empty,
         Descripcion = string.Empty,
         Cod = string.Empty,
-        MontoSesion = 0
+        MontoSesion = 0,
+        PorcentajeRetencion = 20
     };
 
     private string Mensaje = string.Empty;

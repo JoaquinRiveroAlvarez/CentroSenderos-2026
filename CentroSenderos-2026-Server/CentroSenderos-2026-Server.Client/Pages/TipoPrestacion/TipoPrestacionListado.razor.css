@@ -114,7 +114,7 @@
         flex: 1;
         min-width: 0;
         background: transparent;
-        color: #454a43;
+        color: #41453f;
         border: none;
         outline: none;
         font-family: inherit;
@@ -184,7 +184,7 @@
 
 
 /* =====================================================
-   LISTADO
+   LISTADO (6 COLUMNAS PERFECTAMENTE ALINEADAS)
 ===================================================== */
 
 .list-card {
@@ -199,7 +199,7 @@
 .list-header {
     min-height: 48px;
     display: grid;
-    grid-template-columns: minmax(210px, 1fr) minmax(260px, 1.5fr) minmax(110px, .65fr) minmax(130px, .75fr) 35px;
+    grid-template-columns: minmax(180px, 1.2fr) minmax(210px, 1.4fr) minmax(90px, .6fr) minmax(120px, .75fr) minmax(140px, .85fr) 35px;
     align-items: center;
     gap: 20px;
     padding: 0 24px;
@@ -218,7 +218,7 @@
 .prestacion-row {
     min-height: 74px;
     display: grid;
-    grid-template-columns: minmax(210px, 1fr) minmax(260px, 1.5fr) minmax(110px, .65fr) minmax(130px, .75fr) 35px;
+    grid-template-columns: minmax(180px, 1.2fr) minmax(210px, 1.4fr) minmax(90px, .6fr) minmax(120px, .75fr) minmax(140px, .85fr) 35px;
     align-items: center;
     gap: 20px;
     padding: 0 24px;
@@ -288,6 +288,35 @@
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
+}
+
+.prestacion-retencion {
+    display: flex;
+    align-items: center;
+}
+
+.retencion-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    white-space: nowrap;
+}
+
+.retencion-badge-normal {
+    background: #e8efe6;
+    color: #4b6b44;
+    border: 1px solid #d0ded0;
+}
+
+.retencion-badge-completa {
+    background: #fef3e2;
+    color: #925c15;
+    border: 1px solid #fae1b8;
 }
 
 .sin-dato {
@@ -584,7 +613,7 @@
 
 
 /* =====================================================
-   MONTO INPUT
+   MONTO / RETENCIÓN INPUT
 ===================================================== */
 
 .money-input-group {
@@ -619,6 +648,19 @@
     font-weight: 600;
 }
 
+.money-suffix {
+    width: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #f3f1ed;
+    color: #647b5b;
+    border-left: 1px solid #d9ddd6;
+    font-size: 14px;
+    font-weight: 600;
+}
+
 ::deep .money-input {
     flex: 1;
     min-width: 0;
@@ -632,6 +674,14 @@
     box-shadow: none !important;
     font-family: inherit;
     font-size: 14px;
+}
+
+.helper-text {
+    display: block;
+    margin-top: 6px;
+    color: #8c9088;
+    font-size: 11.5px;
+    line-height: 1.4;
 }
 
 
@@ -665,7 +715,7 @@
 
 
 /* =====================================================
-   MONTO DETALLE
+   MONTO / RETENCIÓN DETALLE
 ===================================================== */
 
 .detail-money {
@@ -701,6 +751,39 @@
     color: #41453f;
     font-size: 14px;
 }
+
+.detail-retencion {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    background: #fffefa;
+    border: 1px solid #d9ddd6;
+    border-radius: 10px;
+}
+
+.retencion-profesional {
+    color: #6f746d;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.split-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 2px 4px;
+    color: #60685c;
+    font-size: 12px;
+}
+
+    .split-info strong {
+        color: #384235;
+    }
 
 
 /* =====================================================
@@ -1004,7 +1087,7 @@
 
     .list-header,
     .prestacion-row {
-        min-width: 900px;
+        min-width: 960px;
     }
 }
 

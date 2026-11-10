@@ -223,6 +223,26 @@
     font-weight: 600;
 }
 
+.money-suffix {
+    width: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #f3f1ed;
+    color: #647b5b;
+    border-left: 1px solid #d9ddd6;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.helper-text {
+    display: block;
+    margin-top: 6px;
+    color: #8c9088;
+    font-size: 11.5px;
+    line-height: 1.4;
+}
 
 /* INPUT */
 

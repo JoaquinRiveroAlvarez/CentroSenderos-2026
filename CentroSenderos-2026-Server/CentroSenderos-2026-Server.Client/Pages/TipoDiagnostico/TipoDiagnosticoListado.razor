@@ -1,0 +1,902 @@
+﻿@page "/tipodiagnostico"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+@inject NavigationManager Nav
+@rendermode InteractiveAuto
+
+<div class="diagnosticos-page">
+
+    <div class="page-header">
+
+        <div class="header-title">
+
+            <button type="button"
+                    class="back-button"
+                    @onclick="Volver">
+
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver</span>
+
+            </button>
+
+            <h1>Tipos de Diagnóstico</h1>
+
+            <p>
+                Gestioná los diagnósticos y patologías disponibles para los pacientes.
+            </p>
+
+        </div>
+
+        <div class="header-actions">
+
+            <div class="search-box">
+
+                <i class="bi bi-search"></i>
+
+                <input type="text"
+                       placeholder="Buscar por nombre o descripción..."
+                       @bind="textoBusqueda"
+                       @bind:event="oninput" />
+
+            </div>
+
+            <button type="button"
+                    class="btn-nueva"
+                    @onclick="AbrirCrear">
+
+                <i class="bi bi-plus-lg"></i>
+                Nuevo Diagnóstico
+
+            </button>
+
+        </div>
+
+    </div>
+
+    @if (cargando)
+    {
+        <div class="estado-card">
+
+            <div class="spinner-border spinner-border-sm"
+                 role="status">
+            </div>
+
+            <span>Cargando diagnósticos...</span>
+
+        </div>
+    }
+    else if (lista.Count == 0)
+    {
+        <div class="estado-card">
+
+            <div class="estado-icon">
+                <i class="bi bi-file-medical"></i>
+            </div>
+
+            <h2>No hay tipos de diagnóstico registrados</h2>
+
+            <p>
+                Creá un nuevo tipo de diagnóstico para comenzar.
+            </p>
+
+            <button type="button"
+                    class="btn-nueva-estado"
+                    @onclick="AbrirCrear">
+
+                <i class="bi bi-plus-lg"></i>
+                Nuevo Diagnóstico
+
+            </button>
+
+        </div>
+    }
+    else if (!DiagnosticosFiltrados.Any())
+    {
+        <div class="estado-card">
+
+            <div class="estado-icon">
+                <i class="bi bi-search"></i>
+            </div>
+
+            <h2>No encontramos resultados</h2>
+
+            <p>
+                No hay diagnósticos que coincidan con
+                "@textoBusqueda".
+            </p>
+
+        </div>
+    }
+    else
+    {
+        <div class="list-card">
+
+            <div class="list-header">
+
+                <div>DIAGNÓSTICO</div>
+                <div>DESCRIPCIÓN</div>
+                <div></div>
+
+            </div>
+
+            <div class="list-body">
+
+                @foreach (var item in DiagnosticosFiltrados)
+                {
+                    <div class="diagnostico-row"
+                         @onclick="() => AbrirDetalle(item.Id)">
+
+                        <div class="diagnostico-info">
+
+                            <div class="diagnostico-icon">
+                                <i class="bi bi-file-medical"></i>
+                            </div>
+
+                            <div class="diagnostico-nombre">
+                                @MostrarValor(item.Tipo)
+                            </div>
+
+                        </div>
+
+                        <div class="diagnostico-descripcion">
+
+                            @if (string.IsNullOrWhiteSpace(item.Descripcion))
+                            {
+                                <span class="sin-descripcion">
+                                    Sin descripción
+                                </span>
+                            }
+                            else
+                            {
+                                @item.Descripcion
+                            }
+
+                        </div>
+
+                        <div class="diagnostico-action">
+                            <i class="bi bi-chevron-right"></i>
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+            <div class="list-footer">
+
+                <span>
+                    Mostrando @DiagnosticosFiltrados.Count()
+                    de @lista.Count
+                    @(lista.Count == 1 ? "diagnóstico" : "diagnósticos")
+                </span>
+
+            </div>
+
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Mensaje) &&
+         modalActual == ModalDiagnostico.Ninguno)
+    {
+        <div class="mensaje-error">
+
+            <i class="bi bi-exclamation-circle"></i>
+            <span>@Mensaje</span>
+
+        </div>
+    }
+
+</div>
+
+@* Modal de detalle *@
+
+@if (modalActual == ModalDiagnostico.Detalle)
+{
+    <div class="admin-modal-overlay">
+
+        <div class="admin-modal">
+
+            @if (cargandoDetalle)
+            {
+                <div class="modal-loading">
+
+                    <div class="spinner-border"
+                         role="status">
+                    </div>
+
+                    <span>Cargando diagnóstico...</span>
+
+                </div>
+            }
+            else
+            {
+                <div class="modal-header">
+
+                    <div>
+
+                        <h2>Detalle Diagnóstico</h2>
+
+                        <p>
+                            Información del tipo de diagnóstico seleccionado.
+                        </p>
+
+                    </div>
+
+                    <button type="button"
+                            class="close-button"
+                            title="Cerrar"
+                            @onclick="CerrarModal">
+
+                        <i class="bi bi-x-lg"></i>
+
+                    </button>
+
+                </div>
+
+                <div class="field-group">
+
+                    <label>DIAGNÓSTICO</label>
+
+                    <div class="detail-value">
+                        @MostrarValor(modelo.Tipo)
+                    </div>
+
+                </div>
+
+                <div class="field-group">
+
+                    <label>DESCRIPCIÓN</label>
+
+                    <div class="detail-value detail-value-large">
+
+                        @if (string.IsNullOrWhiteSpace(modelo.Descripcion))
+                        {
+                            <span class="sin-descripcion">
+                                Sin descripción
+                            </span>
+                        }
+                        else
+                        {
+                            @modelo.Descripcion
+                        }
+
+                    </div>
+
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>@Mensaje</span>
+
+                    </div>
+                }
+
+                <div class="modal-actions detail-actions">
+
+                    <button type="button"
+                            class="btn-cerrar"
+                            @onclick="CerrarModal">
+
+                        Cerrar
+
+                    </button>
+
+                    <button type="button"
+                            class="btn-editar"
+                            @onclick="AbrirEditar">
+
+                        <i class="bi bi-pencil-square"></i>
+                        Editar
+
+                    </button>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+}
+
+@* Modal de creación *@
+
+@if (modalActual == ModalDiagnostico.Crear)
+{
+    <div class="admin-modal-overlay">
+
+        <div class="admin-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>Nuevo Diagnóstico</h2>
+
+                    <p>
+                        Complete los datos del diagnóstico.
+                    </p>
+
+                </div>
+
+                <button type="button"
+                        class="close-button"
+                        title="Cerrar"
+                        disabled="@guardando"
+                        @onclick="CerrarModal">
+
+                    <i class="bi bi-x-lg"></i>
+
+                </button>
+
+            </div>
+
+            <EditForm Model="@modelo"
+                      OnValidSubmit="CrearDiagnostico">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+                <div class="field-group">
+
+                    <label>DIAGNÓSTICO</label>
+
+                    <InputText class="senderos-input"
+                               @bind-Value="modelo.Tipo"
+                               placeholder="Ingresar nombre del diagnóstico" />
+
+                    <ValidationMessage For="@(() => modelo.Tipo)" />
+
+                </div>
+
+                <div class="field-group">
+
+                    <label>DESCRIPCIÓN</label>
+
+                    <InputTextArea class="senderos-textarea"
+                                   @bind-Value="modelo.Descripcion"
+                                   placeholder="Ingresar una descripción" />
+
+                    <ValidationMessage For="@(() => modelo.Descripcion)" />
+
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>@Mensaje</span>
+
+                    </div>
+                }
+
+                <div class="modal-actions">
+
+                    <button type="button"
+                            class="btn-cancelar"
+                            disabled="@guardando"
+                            @onclick="CerrarModal">
+
+                        Cancelar
+
+                    </button>
+
+                    <button type="submit"
+                            class="btn-guardar"
+                            disabled="@guardando">
+
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar</span>
+                        }
+
+                    </button>
+
+                </div>
+
+            </EditForm>
+
+        </div>
+
+    </div>
+}
+
+@* Modal de edición *@
+
+@if (modalActual == ModalDiagnostico.Editar)
+{
+    <div class="admin-modal-overlay">
+
+        <div class="admin-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>Editar Diagnóstico</h2>
+
+                    <p>
+                        Modifique los datos del diagnóstico.
+                    </p>
+
+                </div>
+
+                <button type="button"
+                        class="close-button"
+                        title="Volver al detalle"
+                        disabled="@(guardando || eliminando)"
+                        @onclick="CancelarEdicion">
+
+                    <i class="bi bi-x-lg"></i>
+
+                </button>
+
+            </div>
+
+            <EditForm Model="@modelo"
+                      OnValidSubmit="GuardarCambios">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary class="validation-summary" />
+
+                <div class="field-group">
+
+                    <label>DIAGNÓSTICO</label>
+
+                    <InputText class="senderos-input"
+                               @bind-Value="modelo.Tipo"
+                               placeholder="Ingresar nombre del diagnóstico" />
+
+                    <ValidationMessage For="@(() => modelo.Tipo)" />
+
+                </div>
+
+                <div class="field-group">
+
+                    <label>DESCRIPCIÓN</label>
+
+                    <InputTextArea class="senderos-textarea"
+                                   @bind-Value="modelo.Descripcion"
+                                   placeholder="Ingresar una descripción" />
+
+                    <ValidationMessage For="@(() => modelo.Descripcion)" />
+
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Mensaje))
+                {
+                    <div class="form-message">
+
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>@Mensaje</span>
+
+                    </div>
+                }
+
+                <div class="modal-actions edit-actions">
+
+                    <button type="button"
+                            class="btn-eliminar"
+                            disabled="@(guardando || eliminando)"
+                            @onclick="AbrirConfirmacionEliminar">
+
+                        <i class="bi bi-trash3"></i>
+                        Eliminar
+
+                    </button>
+
+                    <div class="right-actions">
+
+                        <button type="button"
+                                class="btn-cancelar"
+                                disabled="@(guardando || eliminando)"
+                                @onclick="CancelarEdicion">
+
+                            Cancelar
+
+                        </button>
+
+                        <button type="submit"
+                                class="btn-guardar"
+                                disabled="@(guardando || eliminando)">
+
+                            @if (guardando)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                <span>Guardando...</span>
+                            }
+                            else
+                            {
+                                <span>Guardar Cambios</span>
+                            }
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </EditForm>
+
+        </div>
+
+    </div>
+}
+
+@* Confirmación de eliminación *@
+
+@if (mostrarConfirmacionEliminar)
+{
+    <div class="delete-modal-overlay">
+
+        <div class="delete-modal">
+
+            <div class="delete-warning-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+            <h2>
+                ¿Estás seguro que querés eliminar este diagnóstico?
+            </h2>
+
+            <p>
+                Esta acción no se puede deshacer.
+                El diagnóstico será eliminado definitivamente. Si está asignado a pacientes activos, no se podrá eliminar.
+            </p>
+
+            <div class="delete-modal-actions">
+
+                <button type="button"
+                        class="confirm-delete-button"
+                        disabled="@eliminando"
+                        @onclick="ConfirmarEliminar">
+
+                    @if (eliminando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Eliminando...</span>
+                    }
+                    else
+                    {
+                        <span>Eliminar</span>
+                    }
+
+                </button>
+
+                <button type="button"
+                        class="modal-cancel-button"
+                        disabled="@eliminando"
+                        @onclick="CerrarConfirmacionEliminar">
+
+                    Cancelar
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+@code {
+
+    private enum ModalDiagnostico
+    {
+        Ninguno,
+        Detalle,
+        Crear,
+        Editar
+    }
+
+    private List<TipoListadoDTO> lista = new();
+    private TipoDTO modelo = CrearModeloVacio();
+
+    private ModalDiagnostico modalActual = ModalDiagnostico.Ninguno;
+
+    private int? idSeleccionado;
+
+    private bool cargando = true;
+    private bool cargandoDetalle;
+    private bool guardando;
+    private bool eliminando;
+    private bool mostrarConfirmacionEliminar;
+
+    private string Mensaje = string.Empty;
+    private string textoBusqueda = string.Empty;
+
+    private IEnumerable<TipoListadoDTO> DiagnosticosFiltrados =>
+        lista.Where(x =>
+            string.IsNullOrWhiteSpace(textoBusqueda)
+            ||
+            (x.Tipo?.Contains(
+                textoBusqueda,
+                StringComparison.OrdinalIgnoreCase) ?? false)
+            ||
+            (x.Descripcion?.Contains(
+                textoBusqueda,
+                StringComparison.OrdinalIgnoreCase) ?? false)
+        );
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargar();
+    }
+
+    private async Task Cargar()
+    {
+        cargando = true;
+
+        var resp = await Http.Get<List<TipoListadoDTO>>(
+            "api/tipodiagnostico/ListaTipoDiagnostico"
+        );
+
+        lista = resp.Error
+            ? new()
+            : resp.Respuesta ?? new();
+
+        Mensaje = resp.Error
+            ? resp.ObtenerError()
+            : string.Empty;
+
+        cargando = false;
+    }
+
+    private async Task AbrirDetalle(int id)
+    {
+        Mensaje = string.Empty;
+        idSeleccionado = id;
+        modelo = CrearModeloVacio();
+
+        modalActual = ModalDiagnostico.Detalle;
+        cargandoDetalle = true;
+
+        var resp = await Http.Get<TipoDTO>(
+            $"api/tipodiagnostico/{id}"
+        );
+
+        if (!resp.Error && resp.Respuesta is not null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+            modalActual = ModalDiagnostico.Ninguno;
+        }
+
+        cargandoDetalle = false;
+    }
+
+    private void AbrirCrear()
+    {
+        Mensaje = string.Empty;
+        idSeleccionado = null;
+        modelo = CrearModeloVacio();
+        modalActual = ModalDiagnostico.Crear;
+    }
+
+    private async Task CrearDiagnostico()
+    {
+        if (guardando)
+        {
+            return;
+        }
+
+        guardando = true;
+        Mensaje = string.Empty;
+
+        var resp = await Http.Post<TipoDTO, int>(
+            "api/tipodiagnostico",
+            modelo
+        );
+
+        guardando = false;
+
+        if (!resp.Error)
+        {
+            modalActual = ModalDiagnostico.Ninguno;
+            modelo = CrearModeloVacio();
+
+            await Cargar();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+    private void AbrirEditar()
+    {
+        Mensaje = string.Empty;
+        modalActual = ModalDiagnostico.Editar;
+    }
+
+    private async Task CancelarEdicion()
+    {
+        if (guardando ||
+            eliminando ||
+            idSeleccionado is null)
+        {
+            return;
+        }
+
+        Mensaje = string.Empty;
+        cargandoDetalle = true;
+        modalActual = ModalDiagnostico.Detalle;
+
+        var resp = await Http.Get<TipoDTO>(
+            $"api/tipodiagnostico/{idSeleccionado.Value}"
+        );
+
+        if (!resp.Error && resp.Respuesta is not null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+            modalActual = ModalDiagnostico.Editar;
+        }
+
+        cargandoDetalle = false;
+    }
+
+    private async Task GuardarCambios()
+    {
+        if (idSeleccionado is null ||
+            guardando ||
+            eliminando)
+        {
+            return;
+        }
+
+        guardando = true;
+        Mensaje = string.Empty;
+
+        var resp = await Http.Put<TipoDTO, RespuestaDTO>(
+            $"api/tipodiagnostico/{idSeleccionado.Value}",
+            modelo
+        );
+
+        guardando = false;
+
+        if (!resp.Error)
+        {
+            await Cargar();
+            await RecargarDetalle();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+        }
+    }
+
+    private void AbrirConfirmacionEliminar()
+    {
+        if (!guardando && !eliminando)
+        {
+            mostrarConfirmacionEliminar = true;
+        }
+    }
+
+    private void CerrarConfirmacionEliminar()
+    {
+        if (!eliminando)
+        {
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+    private async Task ConfirmarEliminar()
+    {
+        if (idSeleccionado is null || eliminando)
+        {
+            return;
+        }
+
+        eliminando = true;
+        Mensaje = string.Empty;
+
+        var resp = await Http.Delete(
+            $"api/tipodiagnostico/{idSeleccionado.Value}"
+        );
+
+        eliminando = false;
+
+        if (!resp.Error)
+        {
+            mostrarConfirmacionEliminar = false;
+            modalActual = ModalDiagnostico.Ninguno;
+            idSeleccionado = null;
+            modelo = CrearModeloVacio();
+
+            await Cargar();
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+            mostrarConfirmacionEliminar = false;
+        }
+    }
+
+    private async Task RecargarDetalle()
+    {
+        if (idSeleccionado is null)
+        {
+            return;
+        }
+
+        cargandoDetalle = true;
+        modalActual = ModalDiagnostico.Detalle;
+
+        var resp = await Http.Get<TipoDTO>(
+            $"api/tipodiagnostico/{idSeleccionado.Value}"
+        );
+
+        if (!resp.Error && resp.Respuesta is not null)
+        {
+            modelo = resp.Respuesta;
+        }
+        else
+        {
+            Mensaje = resp.ObtenerError();
+            modalActual = ModalDiagnostico.Ninguno;
+        }
+
+        cargandoDetalle = false;
+    }
+
+    private void CerrarModal()
+    {
+        if (guardando || eliminando)
+        {
+            return;
+        }
+
+        modalActual = ModalDiagnostico.Ninguno;
+        idSeleccionado = null;
+        modelo = CrearModeloVacio();
+        Mensaje = string.Empty;
+    }
+
+    private static TipoDTO CrearModeloVacio()
+    {
+        return new TipoDTO
+        {
+            Tipo = string.Empty,
+            Descripcion = string.Empty
+        };
+    }
+
+    private static string MostrarValor(object? valor)
+    {
+        if (valor is null)
+        {
+            return "—";
+        }
+
+        var texto = valor.ToString();
+
+        return string.IsNullOrWhiteSpace(texto)
+            ? "—"
+            : texto;
+    }
+
+    private void Volver()
+    {
+        Nav.NavigateTo("/admin");
+    }
+}

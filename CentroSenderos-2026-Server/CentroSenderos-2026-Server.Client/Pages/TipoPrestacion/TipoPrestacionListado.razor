@@ -212,7 +212,7 @@
                         </div>
 
                         <div class="prestacion-retencion">
-                            <span class="badge @(item.PorcentajeRetencion >= 100 ? "bg-warning text-dark" : "bg-success text-white")" style="font-weight: 700; padding: 4px 8px; border-radius: 6px;">
+                            <span class="retencion-badge @(item.PorcentajeRetencion >= 100 ? "retencion-badge-completa" : "retencion-badge-normal")">
                                 @item.PorcentajeRetencion.ToString("0.##")%
                             </span>
                         </div>
@@ -353,21 +353,35 @@
 
 
                     <div class="field-group">
-
                         <label>MONTO POR SESIÓN</label>
-
                         <div class="detail-money">
-
-                            <span class="detail-money-prefix">
-                                $
-                            </span>
-
+                            <span class="detail-money-prefix">$</span>
                             <span class="detail-money-value">
                                 @FormatearMontoSinSigno(modelo.MontoSesion)
                             </span>
-
                         </div>
+                    </div>
 
+                    <div class="field-group">
+                        <label>% RETENCIÓN CENTRO</label>
+                        <div class="detail-retencion">
+                            <span class="retencion-badge @(modelo.PorcentajeRetencion >= 100 ? "retencion-badge-completa" : "retencion-badge-normal")">
+                                @modelo.PorcentajeRetencion.ToString("0.##")% Retención
+                            </span>
+                            <span class="retencion-profesional">
+                                (@((100 - modelo.PorcentajeRetencion).ToString("0.##"))% Profesional)
+                            </span>
+                        </div>
+                        @if (modelo.MontoSesion > 0)
+                        {
+                            var retencionPesos = modelo.MontoSesion * (modelo.PorcentajeRetencion / 100m);
+                            var cobroProfPesos = modelo.MontoSesion - retencionPesos;
+                            <div class="split-info">
+                                <span>Centro: <strong>$@FormatearMontoSinSigno(retencionPesos)</strong></span>
+                                <span> • </span>
+                                <span>Profesional: <strong>$@FormatearMontoSinSigno(cobroProfPesos)</strong></span>
+                            </div>
+                        }
                     </div>
 
                 </div>
@@ -487,23 +501,28 @@
 
 
                     <div class="field-group">
-
                         <label>MONTO POR SESIÓN</label>
-
                         <div class="money-input-group">
-
-                            <span class="money-prefix">
-                                $
-                            </span>
-
+                            <span class="money-prefix">$</span>
                             <InputNumber class="money-input"
                                          @bind-Value="modelo.MontoSesion"
                                          step="0.01" />
-
                         </div>
-
                         <ValidationMessage For="@(() => modelo.MontoSesion)" />
+                    </div>
 
+                    <div class="field-group">
+                        <label>% RETENCIÓN CENTRO</label>
+                        <div class="money-input-group">
+                            <InputNumber class="money-input"
+                                         @bind-Value="modelo.PorcentajeRetencion"
+                                         step="1" min="0" max="100" />
+                            <span class="money-suffix">%</span>
+                        </div>
+                        <small class="helper-text">
+                            20% habitual para prestaciones clínicas | 100% para módulos o talleres.
+                        </small>
+                        <ValidationMessage For="@(() => modelo.PorcentajeRetencion)" />
                     </div>
 
                 </div>
@@ -644,23 +663,28 @@
 
 
                     <div class="field-group">
-
                         <label>MONTO POR SESIÓN</label>
-
                         <div class="money-input-group">
-
-                            <span class="money-prefix">
-                                $
-                            </span>
-
+                            <span class="money-prefix">$</span>
                             <InputNumber class="money-input"
                                          @bind-Value="modelo.MontoSesion"
                                          step="0.01" />
-
                         </div>
-
                         <ValidationMessage For="@(() => modelo.MontoSesion)" />
+                    </div>
 
+                    <div class="field-group">
+                        <label>% RETENCIÓN CENTRO</label>
+                        <div class="money-input-group">
+                            <InputNumber class="money-input"
+                                         @bind-Value="modelo.PorcentajeRetencion"
+                                         step="1" min="0" max="100" />
+                            <span class="money-suffix">%</span>
+                        </div>
+                        <small class="helper-text">
+                            20% habitual para prestaciones clínicas | 100% para módulos o talleres.
+                        </small>
+                        <ValidationMessage For="@(() => modelo.PorcentajeRetencion)" />
                     </div>
 
                 </div>
@@ -1204,7 +1228,8 @@
             Tipo = string.Empty,
             Descripcion = string.Empty,
             Cod = string.Empty,
-            MontoSesion = 0
+            MontoSesion = 0,
+            PorcentajeRetencion = 20
         };
     }
 
