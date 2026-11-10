@@ -168,7 +168,15 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpGet("Disponibles")]
-        public async Task<ActionResult<List<string>>> GetDisponibles(DateOnly fecha,int tipoTurnoId,int consultorioId,[FromQuery] List<int>? profesionalIds = null,[FromQuery] List<int>? pacienteIds = null,int? turnoIdExcluir = null)
+        public async Task<ActionResult<List<string>>> GetDisponibles(
+            DateOnly fecha,
+            int tipoTurnoId,
+            int consultorioId,
+            [FromQuery] List<int>? profesionalIds = null,
+            [FromQuery] List<int>? pacienteIds = null,
+            int? turnoIdExcluir = null,
+            [FromQuery] int intervaloMinutos = 5
+        )
         {
             try
             {
@@ -179,7 +187,8 @@ namespace CentroSenderos_2026_Server.Controllers
                         consultorioId,
                         profesionalIds,
                         pacienteIds,
-                        turnoIdExcluir
+                        turnoIdExcluir,
+                        intervaloMinutos
                     );
 
                 var lista = horarios
@@ -210,6 +219,49 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
+        [HttpGet("VerificarDisponibilidad")]
+        public async Task<ActionResult<bool>> VerificarDisponibilidad(
+            DateOnly fecha,
+            TimeOnly hora,
+            int tipoTurnoId,
+            int consultorioId,
+            [FromQuery] List<int>? profesionalIds = null,
+            [FromQuery] List<int>? pacienteIds = null,
+            int? turnoIdExcluir = null
+        )
+        {
+            try
+            {
+                var disponible = await repositorio.EsHorarioDisponible(
+                    fecha,
+                    hora,
+                    tipoTurnoId,
+                    consultorioId,
+                    profesionalIds,
+                    pacienteIds,
+                    turnoIdExcluir
+                );
+
+                return Ok(disponible);
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(
+                    new RespuestaDTO
+                    {
+                        mensaje = ex.Message
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return ErrorInterno(
+                    ex,
+                    "verificar disponibilidad del horario",
+                    "No pudimos verificar el horario. Intentá nuevamente."
+                );
+            }
+        }
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

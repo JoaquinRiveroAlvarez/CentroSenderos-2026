@@ -806,7 +806,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
         }
 
-        public async Task<List<TimeOnly>> HorariosDisponibles(DateOnly fecha,int tipoTurnoId,int consultorioId,List<int>? profesionalIds = null,List<int>? pacienteIds = null,int? turnoIdExcluir = null)
+        public async Task<List<TimeOnly>> HorariosDisponibles(DateOnly fecha, int tipoTurnoId, int consultorioId, List<int>? profesionalIds = null, List<int>? pacienteIds = null, int? turnoIdExcluir = null, int intervaloMinutos = 5)
         {
             profesionalIds ??= new List<int>();
             pacienteIds ??= new List<int>();
@@ -856,10 +856,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .ToListAsync();
 
             var horariosDisponibles = new List<TimeOnly>();
-            var horaActual = horaInicioDia;
+            var minutosInicioDia = horaInicioDia.Hour * 60 + horaInicioDia.Minute;
+            var minutosFinDia = horaFinDia.Hour * 60 + horaFinDia.Minute;
 
-            while (horaActual.AddMinutes(duracionMinutos) <= horaFinDia)
+            // Paso configurable: 1, 5, 10, 15 (default), 30, 45, 60 min
+            var paso = intervaloMinutos > 0 ? intervaloMinutos : 5;
+
+            for (var m = minutosInicioDia; m + duracionMinutos <= minutosFinDia; m += paso)
             {
+                var horaActual = new TimeOnly(m / 60, m % 60);
+
                 var fechaInicioTurnoUtc = DateTime.SpecifyKind(
                     fecha.ToDateTime(horaActual),
                     DateTimeKind.Utc
@@ -877,11 +883,56 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 {
                     horariosDisponibles.Add(horaActual);
                 }
-
-                horaActual = horaActual.AddMinutes(duracionMinutos);
             }
 
             return horariosDisponibles;
+        }
+
+        public async Task<bool> EsHorarioDisponible(DateOnly fecha, TimeOnly hora, int tipoTurnoId, int consultorioId, List<int>? profesionalIds = null, List<int>? pacienteIds = null, int? turnoIdExcluir = null)
+        {
+            profesionalIds ??= new List<int>();
+            pacienteIds ??= new List<int>();
+
+            var tipoTurno = await context.TipoTurnos
+                .FirstOrDefaultAsync(tipo => tipo.Id == tipoTurnoId);
+
+            if (tipoTurno is null) return false;
+
+            var duracionMinutos = tipoTurno.DuracionMinutos;
+            var horaInicioDia = new TimeOnly(8, 0);
+            var horaFinDia = new TimeOnly(20, 0);
+
+            var minutosHora = hora.Hour * 60 + hora.Minute;
+            var minutosInicioDia = horaInicioDia.Hour * 60 + horaInicioDia.Minute;
+            var minutosFinDia = horaFinDia.Hour * 60 + horaFinDia.Minute;
+
+            if (minutosHora < minutosInicioDia || minutosHora + duracionMinutos > minutosFinDia)
+            {
+                return false;
+            }
+
+            var fechaInicioTurnoUtc = DateTime.SpecifyKind(
+                fecha.ToDateTime(hora),
+                DateTimeKind.Utc
+            );
+            var fechaFinTurnoUtc = fechaInicioTurnoUtc.AddMinutes(duracionMinutos);
+
+            var turnosQueBloquean = await ConsultarTurnosQueBloquean(
+                    consultorioId,
+                    profesionalIds,
+                    pacienteIds
+                )
+                .Where(turno =>
+                    !turnoIdExcluir.HasValue ||
+                    turno.Id != turnoIdExcluir.Value
+                )
+                .Where(turno =>
+                    turno.FechaInicio < fechaFinTurnoUtc &&
+                    turno.FechaFin > fechaInicioTurnoUtc
+                )
+                .AnyAsync();
+
+            return !turnosQueBloquean;
         }
 
         public async Task<bool> ActualizarTurno(int id, TurnoDTO dto)
