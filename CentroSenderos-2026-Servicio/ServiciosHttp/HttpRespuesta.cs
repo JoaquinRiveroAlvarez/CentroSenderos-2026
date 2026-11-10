@@ -12,14 +12,17 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
         public T? Respuesta { get; }
         public bool Error { get; }
         public HttpResponseMessage HttpResponseMessage { get; set; }
+        public string? MensajeErrorServidor { get; set; }
 
         public HttpRespuesta(T? respuesta,
                              bool error,
-                             HttpResponseMessage httpResponseMessage)
+                             HttpResponseMessage httpResponseMessage,
+                             string? mensajeErrorServidor = null)
         {
             Respuesta = respuesta;
             Error = error;
             HttpResponseMessage = httpResponseMessage;
+            MensajeErrorServidor = mensajeErrorServidor;
         }
 
         public string ObtenerError()
@@ -28,23 +31,26 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
             {
                 return string.Empty;
             }
-            else
-            {
-                var statuscode = HttpResponseMessage.StatusCode;
 
-                switch (statuscode)
-                {
-                    case HttpStatusCode.NotFound:
-                        return "No hay datos disponibles.";
-                    case HttpStatusCode.Unauthorized:
-                        return "No está logueado.";
-                    case HttpStatusCode.Forbidden:
-                        return "No tiene autorización a ejecutar este proceso.";
-                    case HttpStatusCode.BadRequest:
-                        return "No se pudo procesar la información.";
-                    default:
-                        return $"Error en la llamada HTTP. Código de estado: {statuscode}";
-                }
+            if (!string.IsNullOrWhiteSpace(MensajeErrorServidor))
+            {
+                return MensajeErrorServidor;
+            }
+
+            var statuscode = HttpResponseMessage.StatusCode;
+
+            switch (statuscode)
+            {
+                case HttpStatusCode.NotFound:
+                    return "No hay datos disponibles.";
+                case HttpStatusCode.Unauthorized:
+                    return "No está logueado.";
+                case HttpStatusCode.Forbidden:
+                    return "No tiene autorización a ejecutar este proceso.";
+                case HttpStatusCode.BadRequest:
+                    return "No se pudo procesar la información.";
+                default:
+                    return $"Error en la llamada HTTP. Código de estado: {statuscode}";
             }
         }
     }

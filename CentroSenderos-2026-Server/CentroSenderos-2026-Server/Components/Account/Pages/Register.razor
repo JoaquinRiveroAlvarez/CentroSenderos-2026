@@ -213,6 +213,26 @@
 
     public async Task RegisterUser(EditContext editContext)
     {
+        var existingUser = await UserManager.FindByEmailAsync(Input.Email);
+        if (existingUser != null)
+        {
+            var hasPassword = await UserManager.HasPasswordAsync(existingUser);
+            if (!hasPassword)
+            {
+                var addPasswordResult = await UserManager.AddPasswordAsync(existingUser, Input.Password);
+                if (addPasswordResult.Succeeded)
+                {
+                    Logger.LogInformation("Usuario activó su contraseña.");
+                    RedirectManager.RedirectTo("Account/Login");
+                    return;
+                }
+                else
+                {
+                    identityErrors = addPasswordResult.Errors;
+                    return;
+                }
+            }
+        }
         var user = CreateUser();
 
         await UserStore.SetUserNameAsync(

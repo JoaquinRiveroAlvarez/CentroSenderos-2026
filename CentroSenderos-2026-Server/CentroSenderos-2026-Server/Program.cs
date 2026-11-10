@@ -110,9 +110,9 @@ builder.Services.AddIdentityCore<MiUsuario>(options =>
 // Políticas de autorización
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("EsAdmin", policy => policy.RequireRole("admin"));
-    options.AddPolicy("EsEquipo", policy => policy.RequireRole("equipo", "admin"));
-    options.AddPolicy("EsProfesional", policy => policy.RequireRole("profesional", "equipo", "admin"));
+    options.AddPolicy("EsAdmin", policy => policy.RequireRole("admin", "AdministradorEquipo"));
+    options.AddPolicy("EsEquipo", policy => policy.RequireRole("equipo", "admin", "AdministradorEquipo"));
+    options.AddPolicy("EsProfesional", policy => policy.RequireRole("profesional", "equipo", "admin", "AdministradorEquipo"));
 });
 
 builder.Services.AddSingleton<IEmailSender<MiUsuario>, IdentityNoOpEmailSender>();

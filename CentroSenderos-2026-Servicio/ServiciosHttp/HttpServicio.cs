@@ -25,7 +25,8 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
             }
             else
             {
-                return new HttpRespuesta<T>(default, true, response);
+                var errorStr = await ExtraerError(response);
+                return new HttpRespuesta<T>(default, true, response, errorStr);
             }
         }
         public async Task<HttpRespuesta<TResp>> Post<T, TResp>(string url, T entidad)
@@ -43,7 +44,8 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
             }
             else
             {
-                return new HttpRespuesta<TResp>(default, true, response);
+                var errorStr = await ExtraerError(response);
+                return new HttpRespuesta<TResp>(default, true, response, errorStr);
             }
         }
         public async Task<HttpRespuesta<TResp>> Put<T, TResp>(string url, T entidad)
@@ -82,16 +84,19 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
                     // si no es JSON, lo dejamos como default
                 }
 
-                return new HttpRespuesta<TResp>(errorObj, true, response);
+                var errorStr = LimpiarError(contenidoError);
+                return new HttpRespuesta<TResp>(errorObj, true, response, errorStr);
             }
         }
 
         public async Task<HttpRespuesta<object>> Delete(string url)
         {
             var respuesta = await http.DeleteAsync(url);
+            var errorStr = !respuesta.IsSuccessStatusCode ? await ExtraerError(respuesta) : null;
             return new HttpRespuesta<object>(null,
                                              !respuesta.IsSuccessStatusCode,
-                                             respuesta);
+                                             respuesta,
+                                             errorStr);
         }
 
         public async Task<HttpRespuesta<TResp>> PostMultipart<TResp>(string url, MultipartFormDataContent contenido)
@@ -105,10 +110,34 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
             }
             else
             {
-                return new HttpRespuesta<TResp>(default, true, response);
+                var errorStr = await ExtraerError(response);
+                return new HttpRespuesta<TResp>(default, true, response, errorStr);
             }
         }
 
+        private static async Task<string?> ExtraerError(HttpResponseMessage response)
+        {
+            try
+            {
+                var raw = await response.Content.ReadAsStringAsync();
+                return LimpiarError(raw);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static string? LimpiarError(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+            var trimmed = raw.Trim();
+            if (trimmed.StartsWith("\"") && trimmed.EndsWith("\"") && trimmed.Length >= 2)
+            {
+                trimmed = trimmed.Substring(1, trimmed.Length - 2);
+            }
+            return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
+        }
 
         private async Task<T?> DesSerializar<T>(HttpResponseMessage response)
         {
