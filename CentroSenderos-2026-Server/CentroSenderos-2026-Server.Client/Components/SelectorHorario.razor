@@ -1,0 +1,104 @@
+@using CentroSenderos_2026_Shared.DTO
+
+<div class="disponibilidad">
+    <div class="disponibilidad-leyenda" aria-label="Estados de disponibilidad">
+        <span><i class="punto libre"></i>Disponible</span>
+        <span><i class="punto ocupado"></i>Ocupado</span>
+        <span><i class="punto elegido"></i>Seleccionado</span>
+    </div>
+    @if (Horarios.Count == 0)
+    {
+        <p class="disponibilidad-ayuda">No hay horarios para la duración seleccionada.</p>
+    }
+    else
+    {
+        <div class="disponibilidad-grilla" aria-label="Horarios del turno">
+            @foreach (var horario in Visibles)
+            {
+                var elegido = !horario.Ocupado && horario.Hora == HoraSeleccionada;
+                var consultado = horario.Ocupado && horario.Hora == horaConsultada;
+                <button @key="horario.Hora" type="button" class="horario-celda @(horario.Ocupado ? "ocupado" : elegido ? "elegido" : "libre") @(consultado ? "consultado" : "")"
+                        disabled="@Disabled" aria-label="@($"{horario.Hora}, {(horario.Ocupado ? "ocupado, consultar conflicto" : elegido ? "seleccionado" : "disponible")}")"
+                        aria-pressed="@(elegido ? "true" : "false")" aria-expanded="@(horario.Ocupado ? (consultado ? "true" : "false") : null)"
+                        aria-controls="@(horario.Ocupado ? identificadorConflicto : null)" @onclick="() => Consultar(horario)">
+                    <span class="horario-hora">@horario.Hora</span>
+                    <span class="horario-estado"><i class="bi @(horario.Ocupado ? "bi-lock" : elegido ? "bi-check2" : "bi-circle")" aria-hidden="true"></i>@(horario.Ocupado ? "Ocupado" : elegido ? "Elegido" : "Libre")</span>
+                </button>
+            }
+        </div>
+        @if (Paginas > 1)
+        {
+            <nav class="disponibilidad-paginas" aria-label="Páginas de horarios">
+                <button type="button" disabled="@(Disabled || pagina == 0)" aria-label="Horarios anteriores" @onclick="() => CambiarPagina(-1)"><i class="bi bi-chevron-left" aria-hidden="true"></i></button>
+                <span>@Visibles.First().Hora — @Visibles.Last().Hora <small>@(pagina + 1) / @Paginas</small></span>
+                <button type="button" disabled="@(Disabled || pagina >= Paginas - 1)" aria-label="Horarios siguientes" @onclick="() => CambiarPagina(1)"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+            </nav>
+        }
+        @if (ConflictoConsultado is { } consulta)
+        {
+            <section id="@identificadorConflicto" class="conflicto-panel" aria-live="polite" aria-label="Detalle del horario ocupado">
+                <header>
+                    <span class="conflicto-icono"><i class="bi bi-calendar-x" aria-hidden="true"></i></span>
+                    <div><h3>Conflicto a las @consulta.Hora</h3><p>Este inicio se superpone con @(consulta.Conflictos.Count == 1 ? "un turno existente" : "turnos existentes").</p></div>
+                    <button type="button" class="conflicto-cerrar" aria-label="Cerrar detalle del conflicto" @onclick="() => horaConsultada = null"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                </header>
+                @foreach (var conflicto in consulta.Conflictos)
+                {
+                    <article class="conflicto-turno">
+                        <div class="conflicto-rango"><i class="bi bi-clock" aria-hidden="true"></i>@conflicto.Inicio.ToString("HH:mm") — @conflicto.Fin.ToString("HH:mm")</div>
+                        <dl>
+                            <div><dt><i class="bi bi-door-open" aria-hidden="true"></i>Consultorio</dt><dd>@conflicto.Consultorio</dd></div>
+                            <div><dt><i class="bi bi-person-badge" aria-hidden="true"></i>Profesional</dt><dd>@string.Join(", ", conflicto.Profesionales)</dd></div>
+                            <div><dt><i class="bi bi-person" aria-hidden="true"></i>Paciente</dt><dd>@(conflicto.Pacientes.Count == 0 ? "Sin paciente" : string.Join(", ", conflicto.Pacientes))</dd></div>
+                        </dl>
+                        @if (conflicto.Motivos.Any()) { <p class="conflicto-motivos">@string.Join(" · ", conflicto.Motivos)</p> }
+                    </article>
+                }
+                <p class="conflicto-nota">Elegí un horario libre para continuar. Tu selección anterior se conserva.</p>
+            </section>
+        }
+        else
+        {
+            <p class="disponibilidad-ayuda"><i class="bi bi-info-circle" aria-hidden="true"></i>Podés consultar un horario ocupado para ver el motivo.</p>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public IReadOnlyList<HorarioTurnoDTO> Horarios { get; set; } = Array.Empty<HorarioTurnoDTO>();
+    [Parameter] public string HoraSeleccionada { get; set; } = string.Empty;
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback<string> Seleccionado { get; set; }
+    private readonly string identificadorConflicto = $"conflicto-{Guid.NewGuid():N}";
+    private const int PorPagina = 24;
+    private int pagina;
+    private string? horaConsultada;
+    private IReadOnlyList<HorarioTurnoDTO>? anteriores;
+    private IEnumerable<HorarioTurnoDTO> Visibles => Horarios.Skip(pagina * PorPagina).Take(PorPagina);
+    private int Paginas => (int)Math.Ceiling(Horarios.Count / (double)PorPagina);
+    private HorarioTurnoDTO? ConflictoConsultado => Horarios.FirstOrDefault(h => h.Ocupado && h.Hora == horaConsultada);
+
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(anteriores, Horarios)) return;
+        anteriores = Horarios;
+        horaConsultada = null;
+        var indice = Horarios.ToList().FindIndex(h => !h.Ocupado && h.Hora == HoraSeleccionada);
+        pagina = indice < 0 ? 0 : indice / PorPagina;
+    }
+
+    private async Task Consultar(HorarioTurnoDTO horario)
+    {
+        if (Disabled) return;
+        if (horario.Ocupado) { horaConsultada = horaConsultada == horario.Hora ? null : horario.Hora; return; }
+        horaConsultada = null;
+        await Seleccionado.InvokeAsync(horario.Hora);
+    }
+
+    private void CambiarPagina(int cambio)
+    {
+        if (Disabled) return;
+        pagina = Math.Clamp(pagina + cambio, 0, Math.Max(0, Paginas - 1));
+        horaConsultada = null;
+    }
+}

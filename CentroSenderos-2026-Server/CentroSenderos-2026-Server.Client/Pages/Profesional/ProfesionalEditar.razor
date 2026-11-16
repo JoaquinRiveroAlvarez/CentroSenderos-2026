@@ -88,7 +88,8 @@
                     <div class="field-group">
                         <label for="areaProfesional">Área</label>
 
-                        <InputSelect id="areaProfesional"
+                        <div class="catalogo-selector">
+<InputSelect id="areaProfesional"
                                      class="form-input"
                                      @bind-Value="modelo.Area"
                                      @bind-Value:after="AlSeleccionarArea"
@@ -105,7 +106,8 @@
                                 </option>
                             }
                         </InputSelect>
-                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" disabled="@guardando" @onclick="() => tipoareaModal.Abrir()">Crear área</button>
+                    <button type="button" class="catalogo-agregar" disabled="@guardando" aria-label="Crear área" title="Crear área" @onclick="() => tipoareaModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                    </div>
 
                         <ValidationMessage For="@(() => modelo.Area)"
                                            class="validation-message" />
@@ -140,7 +142,8 @@
                     <div class="field-group prestaciones-field">
                         <label for="profesionalPrestaciones">Prestaciones</label>
 
-                        <InputSelect class="form-input"
+                        <div class="catalogo-selector">
+<InputSelect class="form-input"
                                      id="profesionalPrestaciones"
                                      @bind-Value="prestacionSeleccionadaId"
                                      @bind-Value:after="AgregarPrestacion"
@@ -157,7 +160,8 @@
                                 </option>
                             }
                         </InputSelect>
-                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" disabled="@guardando" @onclick="() => tipoprestacionModal.Abrir()">Crear prestación</button>
+                    <button type="button" class="catalogo-agregar" disabled="@guardando" aria-label="Crear prestación" title="Crear prestación" @onclick="() => tipoprestacionModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                    </div>
 
                         @if (modelo.TipoPrestacionIds.Count > 0)
                         {
@@ -168,10 +172,10 @@
 
                                     if (prestacion is not null)
                                     {
-                                        <div class="prestacion-chip">
+                                        <div class="prestacion-chip prestacion-matricula">
                                             <span>@prestacion.Tipo</span>
-                                        <label>Matrícula de @prestacion.Tipo
-                                            <input class="form-input" maxlength="30" value="@modelo.MatriculasPorPrestacion.GetValueOrDefault(prestacionId)"
+                                        <label>Matrícula
+                                            <input class="form-input" aria-label="Matrícula de @prestacion.Tipo" placeholder="Ej.: MP-1234" maxlength="30" value="@modelo.MatriculasPorPrestacion.GetValueOrDefault(prestacionId)"
                                                    @onchange="e => modelo.MatriculasPorPrestacion[prestacionId] = e.Value?.ToString() ?? string.Empty" />
                                         </label>
 

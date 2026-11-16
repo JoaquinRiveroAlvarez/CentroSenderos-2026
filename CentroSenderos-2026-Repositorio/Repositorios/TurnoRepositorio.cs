@@ -857,6 +857,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .Select(turno => new ConflictoTurnoDTO
                 {
                     TurnoId = turno.Id,
+                    ConflictoConsultorio = turno.TipoConsultorioId == consultorioId,
+                    ConflictoProfesional = turno.TurnoProfesionales.Any(x => profesionalIds.Contains(x.ProfesionalId)),
+                    ConflictoPaciente = turno.TurnoPacientes.Any(x => pacienteIds.Contains(x.PacienteId)),
                     Inicio = turno.FechaInicio,
                     Fin = turno.FechaFin,
                     Consultorio = turno.TipoConsultorios!.Tipo,

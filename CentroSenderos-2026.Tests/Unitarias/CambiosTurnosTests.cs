@@ -141,6 +141,8 @@ public class CambiosTurnosTests
         Assert.False(horarios.Single(h => h.Hora == "11:00").Ocupado);
         var conflicto = Assert.Single(horarios.Single(h => h.Hora == "10:00").Conflictos);
         Assert.Equal("Sala 1", conflicto.Consultorio);
+        Assert.True(conflicto.ConflictoConsultorio);
+        Assert.Contains("Consultorio ocupado", conflicto.Motivos);
         Assert.Contains("Ana Prueba", conflicto.Profesionales);
         Assert.Contains("Paciente Prueba", conflicto.Pacientes);
         Assert.True((await repo.HorariosConOcupacion(fecha, tipo.Id, 0, profesionalIds: new() { profesionalId })).Single(h => h.Hora == "10:00").Ocupado);

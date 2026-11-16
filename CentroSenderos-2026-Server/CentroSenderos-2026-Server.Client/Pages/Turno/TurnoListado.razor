@@ -335,12 +335,11 @@
 
             </div>
 
-            <button type="button"
-                    class="btn-restaurar-filtros"
-                    @onclick="RestaurarTodosLosFiltros">
-                <i class="bi bi-arrow-counterclockwise"></i>
-                <span>Restaurar filtros</span>
-            </button>
+            <div class="filtros-acciones">
+                <button type="button" class="btn-limpiar-filtros" @onclick="LimpiarTodosLosFiltros"><i class="bi bi-x-circle" aria-hidden="true"></i>Limpiar filtros</button>
+                <button type="button" class="btn-restaurar-filtros" @onclick="RestaurarTodosLosFiltros"><i class="bi bi-check2-all" aria-hidden="true"></i>Seleccionar todos</button>
+                <p>Sin tildes se muestran todos. Marcá una opción para filtrar.</p>
+            </div>
 
         </aside>
 
@@ -418,7 +417,7 @@
                                                 <span class="turno-consultorio">
                                                     @ObtenerCodigoConsultorio(turno.NombreTipoConsultorio)
                                                 </span>
-                                                <h2 class="turno-hora-destacada">
+                                                <h2 class="turno-hora-destacada"><i class="bi bi-clock" aria-hidden="true"></i>
                                                     @turno.FechaInicio.ToString("HH:mm")
                                                     -
                                                     @turno.FechaFin.ToString("HH:mm")
@@ -582,7 +581,7 @@
 
                                 <span class="turno-grilla-cabecera">
 
-                                    <strong class="turno-hora-destacada">
+                                    <strong class="turno-hora-destacada"><i class="bi bi-clock" aria-hidden="true"></i>
                                         @turno.FechaInicio.ToString("HH:mm")
                                         -
                                         @turno.FechaFin.ToString("HH:mm")
@@ -695,7 +694,7 @@
                             <span class="turno-consultorio">
                                 @ObtenerCodigoConsultorio(turno.NombreTipoConsultorio)
                             </span>
-                            <h2 class="turno-hora-destacada">
+                            <h2 class="turno-hora-destacada"><i class="bi bi-clock" aria-hidden="true"></i>
                                 @turno.FechaInicio.ToString("HH:mm")
                                 -
                                 @turno.FechaFin.ToString("HH:mm")
@@ -811,7 +810,7 @@
 
                     <div class="detalle-nuevo-contexto-item">
                         <span>Horario</span>
-                        <strong>
+                        <strong class="turno-hora-destacada"><i class="bi bi-clock" aria-hidden="true"></i>
                             @turnoSeleccionado.FechaInicio.ToString("HH:mm")
                             <small>—</small>
                             @turnoSeleccionado.FechaFin.ToString("HH:mm")
@@ -1786,6 +1785,14 @@
         }
     }
 
+    private void LimpiarTodosLosFiltros()
+    {
+        consultoriosSeleccionados.Clear();
+        tiposSeleccionados.Clear();
+        profesionalesSeleccionados.Clear();
+        pacientesSeleccionados.Clear();
+    }
+
     private void RestaurarTodosLosFiltros()
     {
         consultoriosSeleccionados = ConsultoriosDisponibles
@@ -2068,7 +2075,7 @@
 
     private void RestaurarFiltrosDesdeUrl()
     {
-        if (!string.IsNullOrWhiteSpace(ConsultoriosDesdeUrl))
+        if (ConsultoriosDesdeUrl is not null)
         {
             consultoriosSeleccionados = ConsultoriosDesdeUrl
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
@@ -2084,7 +2091,7 @@
                 .ToHashSet();
         }
 
-        if (!string.IsNullOrWhiteSpace(TiposDesdeUrl))
+        if (TiposDesdeUrl is not null)
         {
             tiposSeleccionados = TiposDesdeUrl
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
@@ -2098,7 +2105,7 @@
                 .ToHashSet();
         }
 
-        if (!string.IsNullOrWhiteSpace(ProfesionalesDesdeUrl))
+        if (ProfesionalesDesdeUrl is not null)
         {
             profesionalesSeleccionados = ProfesionalesDesdeUrl
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
@@ -2114,7 +2121,7 @@
                 .ToHashSet();
         }
 
-        if (!string.IsNullOrWhiteSpace(PacientesDesdeUrl))
+        if (PacientesDesdeUrl is not null)
         {
             var opcionesValidas = PacientesDisponibles
                 .Select(paciente => paciente.Id)

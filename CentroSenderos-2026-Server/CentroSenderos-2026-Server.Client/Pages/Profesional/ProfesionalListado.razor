@@ -72,7 +72,7 @@
                 <option value="no">No socios</option>
             </select>
         </label>
-        <button type="button" class="filter-button" @onclick="LimpiarFiltros">Limpiar filtros</button>
+        <button type="button" class="filter-button" @onclick="LimpiarFiltros"><i class="bi bi-x-circle" aria-hidden="true"></i> Limpiar filtros</button>
     </section>
     @if (!cargando && listaProfesionales?.Count > 0)
     {

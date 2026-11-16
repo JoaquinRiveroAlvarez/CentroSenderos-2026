@@ -1,4 +1,4 @@
-namespace CentroSenderos_2026_Shared.DTO;
+﻿namespace CentroSenderos_2026_Shared.DTO;
 
 public class HorarioTurnoDTO
 {
@@ -9,6 +9,16 @@ public class HorarioTurnoDTO
 
 public class ConflictoTurnoDTO
 {
+    public bool ConflictoConsultorio { get; set; }
+    public bool ConflictoProfesional { get; set; }
+    public bool ConflictoPaciente { get; set; }
+    public IEnumerable<string> Motivos => new[]
+    {
+        ConflictoConsultorio ? "Consultorio ocupado" : null,
+        ConflictoProfesional ? "Profesional con otro turno" : null,
+        ConflictoPaciente ? "Paciente con otro turno" : null
+    }.OfType<string>();
+
     public int TurnoId { get; set; }
     public DateTime Inicio { get; set; }
     public DateTime Fin { get; set; }

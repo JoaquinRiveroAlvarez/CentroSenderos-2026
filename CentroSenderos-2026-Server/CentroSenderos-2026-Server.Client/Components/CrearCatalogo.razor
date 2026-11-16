@@ -1,33 +1,72 @@
 @using CentroSenderos_2026_Shared.DTO
 @using System.ComponentModel.DataAnnotations
+@implements IAsyncDisposable
 @inject IHttpServicio Http
+@inject IJSRuntime JS
 
 @if (abierto)
 {
-    <div class="catalogo-overlay">
-        <section class="catalogo-dialog" role="dialog" aria-modal="true" aria-label="Crear @Etiqueta">
-            <form @onsubmit="Guardar" @onsubmit:preventDefault>
-            <h3>Crear @Etiqueta</h3>
-            <label>Nombre <input class="form-control" maxlength="50" @bind="nombre" /></label>
-            <label>Descripción <input class="form-control" maxlength="50" @bind="descripcion" /></label>
-            @if (Recurso == "tipoprestacion")
-            {
-                <label>Código <input class="form-control" maxlength="100" @bind="codigo" /></label>
-                <label>Monto por sesión <input class="form-control" type="number" min="0" step="0.01" @bind="monto" /></label>
-                <label>Retención (%) <input class="form-control" type="number" min="0" max="100" @bind="retencion" /></label>
-            }
-            @if (Recurso == "tipoobrasocial")
-            {
-                <label>CUIT <input class="form-control" @bind="cuit" /></label>
-            }
-            @if (!string.IsNullOrEmpty(error)) { <p role="alert" class="text-danger">@error</p> }
-            <div class="mt-3">
-                <button type="button" class="btn btn-secondary" disabled="@guardando" @onclick="() => abierto = false">Cancelar</button>
-                <button type="submit" class="btn btn-primary" disabled="@guardando">@(guardando ? "Guardando…" : "Guardar y seleccionar")</button>
+    <dialog @ref="dialogo" class="catalogo-dialog" aria-labelledby="@($"{identificador}-titulo")" aria-describedby="@($"{identificador}-ayuda")">
+        <form @onsubmit="Guardar" @onsubmit:preventDefault>
+            <header class="catalogo-header">
+                <span class="catalogo-icono" aria-hidden="true"><i class="bi @Icono"></i></span>
+                <div>
+                    <span class="catalogo-eyebrow">Alta rápida</span>
+                    <h2 id="@($"{identificador}-titulo")">Crear @Etiqueta</h2>
+                    <p id="@($"{identificador}-ayuda")">Se agregará a tu selección sin salir de este formulario.</p>
+                </div>
+                <button type="button" class="catalogo-cerrar" aria-label="Cerrar" disabled="@guardando" @onclick="Cerrar"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+            </header>
+            <div class="catalogo-campos">
+                <div class="catalogo-campo">
+                    <label for="@($"{identificador}-nombre")">Nombre <span aria-hidden="true">*</span></label>
+                    <input id="@($"{identificador}-nombre")" autofocus required maxlength="50" placeholder="@PlaceholderNombre" @bind="nombre" disabled="@guardando" />
+                </div>
+                <div class="catalogo-campo">
+                    <label for="@($"{identificador}-descripcion")">Descripción <small>Opcional</small></label>
+                    <textarea id="@($"{identificador}-descripcion")" rows="2" maxlength="50" placeholder="Una breve descripción" @bind="descripcion" disabled="@guardando"></textarea>
+                </div>
+                @if (Recurso == "tipoprestacion")
+                {
+                    <div class="catalogo-campo">
+                        <label for="@($"{identificador}-codigo")">Código <span aria-hidden="true">*</span></label>
+                        <input id="@($"{identificador}-codigo")" required maxlength="100" placeholder="Ej.: PSI-01" @bind="codigo" disabled="@guardando" />
+                    </div>
+                    <div class="catalogo-fila">
+                        <div class="catalogo-campo">
+                            <label for="@($"{identificador}-monto")">Monto por sesión</label>
+                            <div class="catalogo-unidad"><span aria-hidden="true">$</span><input id="@($"{identificador}-monto")" type="number" min="0" step="0.01" @bind="monto" disabled="@guardando" /></div>
+                        </div>
+                        <div class="catalogo-campo">
+                            <label for="@($"{identificador}-retencion")">Retención</label>
+                            <div class="catalogo-unidad"><input id="@($"{identificador}-retencion")" type="number" min="0" max="100" step="0.01" @bind="retencion" disabled="@guardando" /><span aria-hidden="true">%</span></div>
+                        </div>
+                    </div>
+                }
+                @if (Recurso == "tipoobrasocial")
+                {
+                    <div class="catalogo-campo">
+                        <label for="@($"{identificador}-cuit")">CUIT <span aria-hidden="true">*</span></label>
+                        <input id="@($"{identificador}-cuit")" required placeholder="Ej.: 30-12345678-9" @bind="cuit" disabled="@guardando" />
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(error))
+                {
+                    <div role="alert" class="catalogo-error"><i class="bi bi-exclamation-circle" aria-hidden="true"></i><span>@error</span></div>
+                }
             </div>
-            </form>
-        </section>
-    </div>
+            <footer class="catalogo-footer">
+                <span><i class="bi bi-check2-circle" aria-hidden="true"></i> Tu formulario se conserva</span>
+                <div class="catalogo-acciones">
+                    <button type="button" class="catalogo-cancelar" disabled="@guardando" @onclick="Cerrar">Cancelar</button>
+                    <button type="submit" class="catalogo-guardar" disabled="@guardando">
+                        <i class="bi @(guardando ? "bi-hourglass-split" : "bi-plus-lg")" aria-hidden="true"></i>
+                        @(guardando ? "Guardando…" : "Guardar y seleccionar")
+                    </button>
+                </div>
+            </footer>
+        </form>
+    </dialog>
 }
 
 @code {
@@ -35,17 +74,49 @@
     [Parameter] public string Etiqueta { get; set; } = string.Empty;
     [Parameter] public bool Disabled { get; set; }
     [Parameter] public EventCallback<TipoListadoDTO> Creado { get; set; }
-    private bool abierto, guardando;
+    private readonly string identificador = $"catalogo-{Guid.NewGuid():N}";
+    private ElementReference dialogo;
+    private IJSObjectReference? modulo;
+    private DotNetObjectReference<CrearCatalogo>? referencia;
+    private bool abierto, guardando, abrirPendiente;
     private string nombre = "", descripcion = "", codigo = "", cuit = "", error = "";
     private decimal monto, retencion = 20;
+    private string Icono => Recurso switch { "tipoarea" => "bi-grid", "tipoprestacion" => "bi-clipboard2-pulse", "tipoobrasocial" => "bi-shield-plus", _ => "bi-heart-pulse" };
+    private string PlaceholderNombre => Recurso switch { "tipoarea" => "Ej.: Salud mental", "tipoprestacion" => "Ej.: Psicología", "tipoobrasocial" => "Nombre de la obra social", _ => "Nombre del diagnóstico" };
+
     public void Abrir()
     {
+        if (Disabled || guardando) return;
         nombre = descripcion = codigo = cuit = error = "";
-        monto = 0; retencion = 20; abierto = true;
+        monto = 0;
+        retencion = 20;
+        abierto = abrirPendiente = true;
         StateHasChanged();
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!abrirPendiente) return;
+        abrirPendiente = false;
+        modulo ??= await JS.InvokeAsync<IJSObjectReference>("import", "./Components/CrearCatalogo.razor.js");
+        referencia ??= DotNetObjectReference.Create(this);
+        await modulo.InvokeVoidAsync("abrir", dialogo, referencia);
+    }
+
+    [JSInvokable]
+    public Task SolicitarCierre() => InvokeAsync(Cerrar);
+
+    private async Task Cerrar()
+    {
+        if (guardando) return;
+        if (modulo is not null) await modulo.InvokeVoidAsync("cerrar", dialogo);
+        abierto = false;
+        StateHasChanged();
+    }
+
     private async Task Guardar()
     {
+        if (guardando) return;
         guardando = true;
         error = "";
         try
@@ -66,9 +137,20 @@
             var respuesta = await Http.Post<object, int>($"api/{Recurso}", dto);
             if (respuesta.Error) { error = respuesta.ObtenerError(); return; }
             await Creado.InvokeAsync(new TipoListadoDTO { Id = respuesta.Respuesta, Tipo = nombre.Trim(), Descripcion = descripcion.Trim() });
-            abierto = false;
+            guardando = false;
+            await Cerrar();
         }
         catch { error = "No se pudo guardar. Intentá nuevamente."; }
         finally { guardando = false; }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        referencia?.Dispose();
+        if (modulo is not null)
+        {
+            try { await modulo.DisposeAsync(); }
+            catch (JSDisconnectedException) { }
+        }
     }
 }
