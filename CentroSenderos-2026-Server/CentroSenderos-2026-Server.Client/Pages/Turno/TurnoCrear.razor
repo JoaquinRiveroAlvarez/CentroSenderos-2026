@@ -864,6 +864,28 @@
                         </div>
                     }
 
+
+                    @if (horariosConsultados && HorariosOcupados.Any())
+                    {
+                        <details class="horarios-ocupados" open>
+                            <summary>Horarios ocupados (no seleccionables)</summary>
+                            <div class="ocupados-grid">
+                            @foreach (var horario in HorariosOcupados)
+                            {
+                                <div class="horario-ocupado">
+                                    <strong>@horario.Hora · Ocupado</strong>
+                                    @foreach (var conflicto in horario.Conflictos)
+                                    {
+                                        <p>@conflicto.Inicio.ToString("HH:mm")–@conflicto.Fin.ToString("HH:mm")<br />
+                                        Consultorio: @conflicto.Consultorio<br />
+                                        Profesionales: @string.Join(", ", conflicto.Profesionales)<br />
+                                        Pacientes: @string.Join(", ", conflicto.Pacientes)</p>
+                                    }
+                                </div>
+                            }
+                            </div>
+                        </details>
+                    }
                 </section>
 
             </div>
@@ -1143,6 +1165,8 @@
 
     private bool cargando = true;
     private bool consultandoHorarios;
+    private List<HorarioTurnoDTO> horarios = new();
+    private IEnumerable<HorarioTurnoDTO> HorariosOcupados => horarios.Where(h => h.Ocupado);
     private bool horariosConsultados;
     private int versionConsultaHorarios;
     private bool guardando;
@@ -1781,6 +1805,7 @@
 
         Mensaje = string.Empty;
         horasDisponibles.Clear();
+        horarios.Clear();
         paginaHorarios = 0;
         horaSeleccionada = string.Empty;
         modelo.Hora = TimeOnly.MinValue;
@@ -1814,7 +1839,7 @@
         );
 
         var url =
-            "api/turno/Disponibles" +
+            "api/turno/Horarios" +
             $"?fecha={modelo.Fecha:yyyy-MM-dd}" +
             $"&tipoTurnoId={modelo.TipoTurnoId}" +
             $"&consultorioId={modelo.TipoConsultorioId}" +
@@ -1823,7 +1848,7 @@
 
         try
         {
-            var respuesta = await Http.Get<List<string>>(url);
+            var respuesta = await Http.Get<List<HorarioTurnoDTO>>(url);
 
             if (versionActual != versionConsultaHorarios)
             {
@@ -1839,7 +1864,8 @@
             }
 
             horariosConsultados = true;
-            horasDisponibles = respuesta.Respuesta ?? new List<string>();
+            horarios = respuesta.Respuesta ?? new();
+            horasDisponibles = horarios.Where(h => !h.Ocupado).Select(h => h.Hora).ToList();
         }
         catch (TaskCanceledException)
         {

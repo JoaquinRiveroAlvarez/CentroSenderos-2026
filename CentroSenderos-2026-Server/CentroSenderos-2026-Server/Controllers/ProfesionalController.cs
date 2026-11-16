@@ -1,4 +1,6 @@
-﻿using CentroSenderos_2026_BD.Datos.Entity;
+﻿using CentroSenderos_2026_BD;
+using Microsoft.AspNetCore.Identity;
+using CentroSenderos_2026_BD.Datos.Entity;
 using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
@@ -14,9 +16,14 @@ namespace CentroSenderos_2026_Server.Controllers
     {
         private readonly IProfesionalRepositorio repositorio;
 
-        public ProfesionalController(IProfesionalRepositorio repositorio)
+        private readonly ApplicationDbContext context;
+        private readonly UserManager<MiUsuario> usuarios;
+
+        public ProfesionalController(IProfesionalRepositorio repositorio, ApplicationDbContext context, UserManager<MiUsuario> usuarios)
         {
             this.repositorio = repositorio;
+            this.context = context;
+            this.usuarios = usuarios;
         }
 
         [HttpGet("{id:int}")]
@@ -55,7 +62,23 @@ namespace CentroSenderos_2026_Server.Controllers
         {
             try
             {
+                var rol = string.IsNullOrWhiteSpace(dto.RolAsignado) ? "profesional" : dto.RolAsignado;
+                if (rol != "profesional" && !User.IsInRole("admin") && !User.IsInRole("AdministradorEquipo"))
+                    return Forbid();
+                var email = dto.Email.Trim().ToLowerInvariant();
+                if (await usuarios.FindByEmailAsync(email) != null)
+                    return BadRequest(new { mensaje = "Ya existe un usuario con ese email." });
+                await using var transaccion = await context.Database.BeginTransactionAsync();
+                var usuario = new MiUsuario { UserName = email, Email = email, EmailConfirmed = true };
+                // Contraseña inicial solicitada, usando el hash de Identity sin cambiar la política global.
+                usuario.PasswordHash = usuarios.PasswordHasher.HashPassword(usuario, "123456");
+                var creado = await usuarios.CreateAsync(usuario);
+                if (!creado.Succeeded) throw new ApplicationException(string.Join(" ", creado.Errors.Select(e => e.Description)));
+                var asignado = await usuarios.AddToRoleAsync(usuario, rol);
+                if (!asignado.Succeeded) throw new ApplicationException(string.Join(" ", asignado.Errors.Select(e => e.Description)));
+                dto.RolAsignado = rol;
                 int id = await repositorio.InsertarProfesional(dto);
+                await transaccion.CommitAsync();
                 return Ok(id);
             }
             catch (ApplicationException ex)

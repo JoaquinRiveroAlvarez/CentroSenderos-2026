@@ -143,7 +143,10 @@
                                     }
                                 </div>
                             </td>
-                            <td data-label="Matrículas"><div class="datos-apilados"><span><small>M.P.</small> @MostrarValor(profesional.MP)</span><span><small>R.N.P.</small> @MostrarValor(profesional.RNP)</span></div></td>
+                            <td data-label="Matrículas"><div class="datos-apilados">@for (var i = 0; i < profesional.TipoPrestacionIds.Count; i++)
+                                {
+                                    <span><small>@profesional.TipoPrestacionNombres[i]</small> @MostrarValor(profesional.MatriculasPorPrestacion.GetValueOrDefault(profesional.TipoPrestacionIds[i]))</span>
+                                }<span><small>R.N.P.</small> @MostrarValor(profesional.RNP)</span></div></td>
                             <td data-label="CUIT">@MostrarValor(profesional.Cuit)</td>
                             <td data-label="Contacto"><div class="datos-apilados"><span><i class="bi bi-telephone"></i> @MostrarValor(profesional.Telefono)</span><span><i class="bi bi-envelope"></i> @MostrarValor(profesional.Email)</span></div></td>
                         </tr>
@@ -228,7 +231,7 @@
     private bool CoincideBusqueda(ProfesionalListadoDTO p)
     {
         var terminos = Normalizar(textoBusqueda).Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var texto = Normalizar(string.Join(" ", new[] { p.Nombre, p.Area, p.MP, p.RNP, p.Cuit, p.Telefono, p.Email }.Concat(p.TipoPrestacionNombres)));
+        var texto = Normalizar(string.Join(" ", new[] { p.Nombre, p.Area, p.MP, p.RNP, p.Cuit, p.Telefono, p.Email }.Concat(p.TipoPrestacionNombres).Concat(p.MatriculasPorPrestacion.Values)));
         var cuit = new string((p.Cuit ?? "").Where(char.IsDigit).ToArray());
         var consulta = new string(textoBusqueda.Where(char.IsDigit).ToArray());
         var esCuit = consulta.Length > 0 && textoBusqueda.All(c => char.IsDigit(c) || c == '-' || char.IsWhiteSpace(c));

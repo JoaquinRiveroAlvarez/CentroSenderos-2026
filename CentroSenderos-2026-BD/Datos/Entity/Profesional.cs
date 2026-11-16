@@ -8,7 +8,6 @@ using System.Text;
 namespace CentroSenderos_2026_BD.Datos.Entity
 {
     [Index(nameof(Cuit), Name = "Profesional_Cuit_UQ", IsUnique = true)]
-    [Index(nameof(MP), Name = "Profesional_MP_UQ", IsUnique = true)]
     [Index(nameof(RNP), Name = "Profesional_RNP_UQ", IsUnique = true)]
     public class Profesional : EntityBase
     {

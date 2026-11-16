@@ -808,6 +808,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
         public async Task<List<TimeOnly>> HorariosDisponibles(DateOnly fecha, int tipoTurnoId, int consultorioId, List<int>? profesionalIds = null, List<int>? pacienteIds = null, int? turnoIdExcluir = null, int intervaloMinutos = 5)
         {
+            var horarios = await HorariosConOcupacion(fecha, tipoTurnoId, consultorioId, profesionalIds, pacienteIds, turnoIdExcluir, intervaloMinutos);
+            return horarios.Where(h => !h.Ocupado).Select(h => TimeOnly.ParseExact(h.Hora, "HH:mm")).ToList();
+        }
+
+        public async Task<List<HorarioTurnoDTO>> HorariosConOcupacion(DateOnly fecha, int tipoTurnoId, int consultorioId, List<int>? profesionalIds = null, List<int>? pacienteIds = null, int? turnoIdExcluir = null, int intervaloMinutos = 5)
+        {
             profesionalIds ??= new List<int>();
             pacienteIds ??= new List<int>();
 
@@ -848,14 +854,18 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     turno.FechaInicio < fechaFinDiaUtc &&
                     turno.FechaFin > fechaInicioDiaUtc
                 )
-                .Select(turno => new
+                .Select(turno => new ConflictoTurnoDTO
                 {
-                    turno.FechaInicio,
-                    turno.FechaFin
+                    TurnoId = turno.Id,
+                    Inicio = turno.FechaInicio,
+                    Fin = turno.FechaFin,
+                    Consultorio = turno.TipoConsultorios!.Tipo,
+                    Profesionales = turno.TurnoProfesionales.Select(x => x.Profesionales!.Nombre).ToList(),
+                    Pacientes = turno.TurnoPacientes.Select(x => x.Pacientes!.Nombre).ToList()
                 })
                 .ToListAsync();
 
-            var horariosDisponibles = new List<TimeOnly>();
+            var horariosDisponibles = new List<HorarioTurnoDTO>();
             var minutosInicioDia = horaInicioDia.Hour * 60 + horaInicioDia.Minute;
             var minutosFinDia = horaFinDia.Hour * 60 + horaFinDia.Minute;
 
@@ -874,15 +884,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 var fechaFinTurnoUtc =
                     fechaInicioTurnoUtc.AddMinutes(duracionMinutos);
 
-                var ocupado = turnosQueBloquean.Any(turnoExistente =>
-                    turnoExistente.FechaInicio < fechaFinTurnoUtc &&
-                    turnoExistente.FechaFin > fechaInicioTurnoUtc
-                );
-
-                if (!ocupado)
+                horariosDisponibles.Add(new HorarioTurnoDTO
                 {
-                    horariosDisponibles.Add(horaActual);
-                }
+                    Hora = horaActual.ToString("HH:mm"),
+                    Conflictos = turnosQueBloquean.Where(t => t.Inicio < fechaFinTurnoUtc && t.Fin > fechaInicioTurnoUtc).ToList()
+                });
             }
 
             return horariosDisponibles;

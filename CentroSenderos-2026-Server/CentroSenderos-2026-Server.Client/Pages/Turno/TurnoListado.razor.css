@@ -3053,3 +3053,6 @@
 }
 
 /* #endregion */
+
+.turno-tarjeta-horario .turno-hora-destacada,
+.turno-grilla-cabecera .turno-hora-destacada { background:#ede9fe; color:#4c1d95; border:1px solid #c4b5fd; border-radius:6px; padding:3px 7px; width:fit-content; font-weight:700; }

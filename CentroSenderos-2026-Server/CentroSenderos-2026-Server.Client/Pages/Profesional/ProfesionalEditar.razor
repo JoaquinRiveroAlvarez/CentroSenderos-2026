@@ -105,6 +105,7 @@
                                 </option>
                             }
                         </InputSelect>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" disabled="@guardando" @onclick="() => tipoareaModal.Abrir()">Crear área</button>
 
                         <ValidationMessage For="@(() => modelo.Area)"
                                            class="validation-message" />
@@ -124,17 +125,6 @@
                                 desde Administración para poder editar este profesional.
                             </span>
                         }
-                    </div>
-
-                    <div class="field-group">
-                        <label for="profesionalMP">M.P. (Matrícula Profesional)</label>
-
-                        <InputText id="profesionalMP" class="form-input"
-                                   @bind-Value="modelo.MP"
-                                   placeholder="Ingresar M.P." />
-
-                        <ValidationMessage For="@(() => modelo.MP)"
-                                           class="validation-message" />
                     </div>
 
                     <div class="field-group">
@@ -167,6 +157,7 @@
                                 </option>
                             }
                         </InputSelect>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" disabled="@guardando" @onclick="() => tipoprestacionModal.Abrir()">Crear prestación</button>
 
                         @if (modelo.TipoPrestacionIds.Count > 0)
                         {
@@ -179,6 +170,10 @@
                                     {
                                         <div class="prestacion-chip">
                                             <span>@prestacion.Tipo</span>
+                                        <label>Matrícula de @prestacion.Tipo
+                                            <input class="form-input" maxlength="30" value="@modelo.MatriculasPorPrestacion.GetValueOrDefault(prestacionId)"
+                                                   @onchange="e => modelo.MatriculasPorPrestacion[prestacionId] = e.Value?.ToString() ?? string.Empty" />
+                                        </label>
 
                                             <button type="button"
                                                     class="prestacion-chip-remove"
@@ -375,7 +370,26 @@
     </div>
 }
 
+<CrearCatalogo @ref="tipoareaModal" Recurso="tipoarea" Etiqueta="área" Creado="AreaCreada" />
+<CrearCatalogo @ref="tipoprestacionModal" Recurso="tipoprestacion" Etiqueta="prestación" Creado="PrestacionCreada" />
+
 @code {
+    private CrearCatalogo tipoprestacionModal = default!;
+    private CrearCatalogo tipoareaModal = default!;
+    private void AreaCreada(TipoListadoDTO tipo)
+    {
+        listaTipoAreas.Add(tipo);
+        modelo.Area = tipo.Tipo;
+    }
+    private async Task PrestacionCreada(TipoListadoDTO tipo)
+    {
+        var respuesta = await Http.Get<List<TipoPrestacionListadoDTO>>("api/tipoprestacion/ListaTipoPrestacion");
+        if (respuesta.Error) { Mensaje = respuesta.ObtenerError(); return; }
+        listaTipoPrestaciones = respuesta.Respuesta ?? new();
+        prestacionSeleccionadaId = tipo.Id;
+        AgregarPrestacion();
+    }
+
     [SupplyParameterFromQuery(Name = "volver")]
     public string? VolverA { get; set; }
 
@@ -550,6 +564,7 @@
     private void QuitarPrestacion(int prestacionId)
     {
         modelo.TipoPrestacionIds.Remove(prestacionId);
+        modelo.MatriculasPorPrestacion.Remove(prestacionId);
     }
 
     private TipoPrestacionListadoDTO? ObtenerPrestacion(int prestacionId)

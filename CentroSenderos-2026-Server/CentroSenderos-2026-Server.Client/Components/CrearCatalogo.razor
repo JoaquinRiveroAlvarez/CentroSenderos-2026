@@ -1,0 +1,74 @@
+@using CentroSenderos_2026_Shared.DTO
+@using System.ComponentModel.DataAnnotations
+@inject IHttpServicio Http
+
+@if (abierto)
+{
+    <div class="catalogo-overlay">
+        <section class="catalogo-dialog" role="dialog" aria-modal="true" aria-label="Crear @Etiqueta">
+            <form @onsubmit="Guardar" @onsubmit:preventDefault>
+            <h3>Crear @Etiqueta</h3>
+            <label>Nombre <input class="form-control" maxlength="50" @bind="nombre" /></label>
+            <label>Descripción <input class="form-control" maxlength="50" @bind="descripcion" /></label>
+            @if (Recurso == "tipoprestacion")
+            {
+                <label>Código <input class="form-control" maxlength="100" @bind="codigo" /></label>
+                <label>Monto por sesión <input class="form-control" type="number" min="0" step="0.01" @bind="monto" /></label>
+                <label>Retención (%) <input class="form-control" type="number" min="0" max="100" @bind="retencion" /></label>
+            }
+            @if (Recurso == "tipoobrasocial")
+            {
+                <label>CUIT <input class="form-control" @bind="cuit" /></label>
+            }
+            @if (!string.IsNullOrEmpty(error)) { <p role="alert" class="text-danger">@error</p> }
+            <div class="mt-3">
+                <button type="button" class="btn btn-secondary" disabled="@guardando" @onclick="() => abierto = false">Cancelar</button>
+                <button type="submit" class="btn btn-primary" disabled="@guardando">@(guardando ? "Guardando…" : "Guardar y seleccionar")</button>
+            </div>
+            </form>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter] public string Recurso { get; set; } = string.Empty;
+    [Parameter] public string Etiqueta { get; set; } = string.Empty;
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback<TipoListadoDTO> Creado { get; set; }
+    private bool abierto, guardando;
+    private string nombre = "", descripcion = "", codigo = "", cuit = "", error = "";
+    private decimal monto, retencion = 20;
+    public void Abrir()
+    {
+        nombre = descripcion = codigo = cuit = error = "";
+        monto = 0; retencion = 20; abierto = true;
+        StateHasChanged();
+    }
+    private async Task Guardar()
+    {
+        guardando = true;
+        error = "";
+        try
+        {
+            object dto = Recurso switch
+            {
+                "tipoprestacion" => new TipoPrestacionDTO { Tipo = nombre.Trim(), Descripcion = descripcion.Trim(), Cod = codigo.Trim(), MontoSesion = monto, PorcentajeRetencion = retencion },
+                "tipoobrasocial" => new TipoObraSocialDTO { Tipo = nombre.Trim(), Descripcion = descripcion.Trim(), Cuit = cuit.Trim() },
+                _ => new TipoDTO { Tipo = nombre.Trim(), Descripcion = descripcion.Trim() }
+            };
+            var errores = new List<ValidationResult>();
+            if (!Validator.TryValidateObject(dto, new ValidationContext(dto), errores, true) || monto < 0)
+            {
+                error = string.Join(" ", errores.Select(e => e.ErrorMessage));
+                if (monto < 0) error += " El monto no puede ser negativo.";
+                return;
+            }
+            var respuesta = await Http.Post<object, int>($"api/{Recurso}", dto);
+            if (respuesta.Error) { error = respuesta.ObtenerError(); return; }
+            await Creado.InvokeAsync(new TipoListadoDTO { Id = respuesta.Respuesta, Tipo = nombre.Trim(), Descripcion = descripcion.Trim() });
+            abierto = false;
+        }
+        catch { error = "No se pudo guardar. Intentá nuevamente."; }
+        finally { guardando = false; }
+    }
+}

@@ -136,6 +136,7 @@
                             }
 
                         </InputSelect>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" disabled="@guardando" @onclick="() => tipoobrasocialModal.Abrir()">Crear obra social</button>
 
                         <ValidationMessage For="@(() => modelo.TipoObraSocialId)"
                                            class="validation-message" />
@@ -179,6 +180,7 @@
                             }
 
                         </InputSelect>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" disabled="@guardando" @onclick="() => tipodiagnosticoModal.Abrir()">Crear diagnóstico</button>
 
                         <ValidationMessage For="@(() => modelo.TipoDiagnosticoId)"
                                            class="validation-message" />
@@ -674,7 +676,23 @@
     </div>
 }
 
+<CrearCatalogo @ref="tipoobrasocialModal" Recurso="tipoobrasocial" Etiqueta="obra social" Creado="ObraCreada" />
+<CrearCatalogo @ref="tipodiagnosticoModal" Recurso="tipodiagnostico" Etiqueta="diagnóstico" Creado="DiagnosticoCreado" />
+
 @code {
+    private CrearCatalogo tipodiagnosticoModal = default!;
+    private CrearCatalogo tipoobrasocialModal = default!;
+    private void ObraCreada(TipoListadoDTO tipo)
+    {
+        tiposObraSocial.Add(new TipoDTO { Id = tipo.Id, Tipo = tipo.Tipo, Descripcion = tipo.Descripcion });
+        if (modelo is not null) modelo.TipoObraSocialId = tipo.Id;
+    }
+    private void DiagnosticoCreado(TipoListadoDTO tipo)
+    {
+        tiposDiagnostico.Add(new TipoDTO { Id = tipo.Id, Tipo = tipo.Tipo, Descripcion = tipo.Descripcion });
+        if (modelo is not null) modelo.TipoDiagnosticoId = tipo.Id;
+    }
+
 
     [SupplyParameterFromQuery(Name = "volver")]
     public string? VolverA { get; set; }

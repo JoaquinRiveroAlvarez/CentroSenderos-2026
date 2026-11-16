@@ -1300,3 +1300,8 @@ button:focus-visible {
 }
 
 /* #endregion */
+
+.horarios-ocupados { margin-top: 1rem; }
+.ocupados-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.5rem; max-height:360px; overflow:auto; margin-top:.75rem; }
+.horario-ocupado { background:#fff1f2; color:#9f1239; border:1px solid #e11d48; border-radius:8px; padding:.75rem; }
+.horario-ocupado p { margin:.5rem 0 0; font-size:.85rem; }
