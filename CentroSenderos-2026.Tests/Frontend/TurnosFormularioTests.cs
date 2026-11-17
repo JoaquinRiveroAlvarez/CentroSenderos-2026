@@ -173,26 +173,20 @@ public class TurnosFormularioTests
         var consultorio = formulario.Locator("#consultorio");
 
         await Assertions.Expect(tipo)
-            .ToHaveValueAsync("0", new() { Timeout = 10000 });
+            .ToHaveAttributeAsync("data-valor", "0", new() { Timeout = 10000 });
 
         await Assertions.Expect(consultorio)
-            .ToHaveValueAsync("0", new() { Timeout = 10000 });
+            .ToHaveAttributeAsync("data-valor", "0", new() { Timeout = 10000 });
 
         if (escenario == "sinConsultorio")
         {
-            var opcion = tipo.Locator("option").Nth(1);
-
-            await Assertions.Expect(opcion)
-                .ToHaveCountAsync(1, new() { Timeout = 30000 });
-
-            var valor = await opcion.GetAttributeAsync("value");
-
+            await tipo.ClickAsync();
+            var opcion = tipo.Locator("xpath=..").Locator(".selector-opciones button").First;
+            await Assertions.Expect(opcion).ToBeVisibleAsync(new() { Timeout = 30000 });
+            var valor = await opcion.GetAttributeAsync("data-valor");
             Assert.False(string.IsNullOrWhiteSpace(valor));
-
-            await tipo.SelectOptionAsync(valor!);
-
-            await Assertions.Expect(tipo)
-                .ToHaveValueAsync(valor!, new() { Timeout = 10000 });
+            await opcion.ClickAsync();
+            await Assertions.Expect(tipo).ToHaveAttributeAsync("data-valor", valor!, new() { Timeout = 10000 });
         }
 
         var guardar = formulario.Locator(".btn-guardar");

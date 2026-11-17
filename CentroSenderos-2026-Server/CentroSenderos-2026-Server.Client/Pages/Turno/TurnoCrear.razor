@@ -1,9 +1,10 @@
-﻿@page "/turnos/crear"
+@page "/turnos/crear"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
 @using CentroSenderos_2026_Shared.Enum
 @using CentroSenderos_2026_Shared.Recurrencias
+@using CentroSenderos_2026_Shared.Reglas
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
@@ -72,23 +73,7 @@
 
                             <label for="tipoTurno">Tipo de turno</label>
 
-                            <InputSelect id="tipoTurno"
-                                         class="form-select"
-                                         @bind-Value="modelo.TipoTurnoId"
-                                         @bind-Value:after="CargarHorasDisponibles">
-
-                                <option value="0">
-                                    Seleccione un tipo de turno
-                                </option>
-
-                                @foreach (var tipo in tiposTurno)
-                                {
-                                    <option value="@tipo.Id">
-                                        @tipo.Tipo (@tipo.DuracionMinutos min)
-                                    </option>
-                                }
-
-                            </InputSelect>
+                            <SelectorConBusqueda Id="tipoTurno" Etiqueta="Tipo de turno" MostrarEtiqueta="false" Multiple="false" Opciones="OpcionesTipoTurno" Valor="@modelo.TipoTurnoId.ToString()" ValorChanged="CambiarTipoTurno" Placeholder="Seleccioná un tipo de turno" Disabled="@guardando" AlAbrir="CerrarOtrosSelectores" />
 
                         </div>
 
@@ -96,23 +81,7 @@
 
                             <label for="consultorio">Consultorio</label>
 
-                            <InputSelect id="consultorio"
-                                         class="form-select"
-                                         @bind-Value="modelo.TipoConsultorioId"
-                                         @bind-Value:after="CargarHorasDisponibles">
-
-                                <option value="0">
-                                    Seleccione un consultorio
-                                </option>
-
-                                @foreach (var consultorio in consultorios)
-                                {
-                                    <option value="@consultorio.Id">
-                                        @consultorio.Tipo
-                                    </option>
-                                }
-
-                            </InputSelect>
+                            <SelectorConBusqueda Id="consultorio" Etiqueta="Consultorio" MostrarEtiqueta="false" Multiple="false" Opciones="OpcionesConsultorios" Valor="@modelo.TipoConsultorioId.ToString()" ValorChanged="CambiarConsultorio" Placeholder="Seleccioná un consultorio" Disabled="@guardando" AlAbrir="CerrarOtrosSelectores" />
 
                         </div>
 
@@ -414,6 +383,15 @@
                                                                                                     ? "(obligatorio)"
                                                                                                     : "(opcional)")
                             </label>
+                            @if (EsSesionIndividual)
+                            {
+                                <p class="ayuda-paciente-individual" role="status">
+                                    @(modelo.PacienteIds.Count > 1
+                                        ? "Esta sesión tiene varios pacientes. Elegí uno o quitá los demás para poder guardar."
+                                        : "Un solo paciente por sesión. Al elegir otro, se reemplaza el seleccionado.")
+                                </p>
+                            }
+
 
                             <div class="selector-desplegable">
 
@@ -1052,6 +1030,26 @@
 </div>
 
 @code {
+    private IEnumerable<OpcionSelector> OpcionesTipoTurno => tiposTurno.Select(t => new OpcionSelector(t.Id.ToString(), t.Tipo, $"{t.DuracionMinutos} min"));
+    private IEnumerable<OpcionSelector> OpcionesConsultorios => consultorios.Select(c => new OpcionSelector(c.Id.ToString(), c.Tipo));
+    private void CerrarOtrosSelectores()
+    {
+        CerrarSelectores();
+        calendarioAbierto = false;
+    }
+    private async Task CambiarTipoTurno(string valor)
+    {
+        if (guardando) return;
+        modelo.TipoTurnoId = int.TryParse(valor, out var idSeleccionado) ? idSeleccionado : 0;
+        await CargarHorasDisponibles();
+    }
+    private async Task CambiarConsultorio(string valor)
+    {
+        if (guardando) return;
+        modelo.TipoConsultorioId = int.TryParse(valor, out var idSeleccionado) ? idSeleccionado : 0;
+        await CargarHorasDisponibles();
+    }
+
 
     private TurnoDTO modelo = new()
     {
@@ -1117,11 +1115,12 @@
     );
 
 
-    private bool RequierePacientes =>
-        ObtenerTipoSeleccionado()?.RequierePacientes ?? true;
-
-    private bool SeleccionPacientesValida =>
-        !RequierePacientes || modelo.PacienteIds.Count > 0;
+    private TipoTurnoListadoDTO? TipoActual => tiposTurno.FirstOrDefault(t => t.Id == modelo.TipoTurnoId);
+    private bool EsSesionIndividual => ReglasTurno.EsSesionIndividual(TipoActual?.Tipo);
+    private bool RequierePacientes => EsSesionIndividual || (TipoActual?.RequierePacientes ?? true);
+    private string? ErrorPacientes => ReglasTurno.ErrorCantidadPacientes(
+        TipoActual?.Tipo, RequierePacientes, modelo.PacienteIds.Count);
+    private bool SeleccionPacientesValida => ErrorPacientes is null;
 
 
     private List<KeyValuePair<int, string>> PrestacionesDisponibles =>
@@ -1500,7 +1499,7 @@
 
         if (!SeleccionPacientesValida)
         {
-            Mensaje = "Este tipo de turno requiere al menos un paciente.";
+            Mensaje = ErrorPacientes ?? string.Empty;
             return false;
         }
 
@@ -1668,12 +1667,16 @@
 
     private async Task AlternarPaciente(int pacienteId)
     {
-        if (modelo.PacienteIds.Contains(pacienteId))
+        if (modelo.PacienteIds.Contains(pacienteId) && (!EsSesionIndividual || modelo.PacienteIds.Count == 1))
         {
             modelo.PacienteIds.Remove(pacienteId);
         }
         else
         {
+            if (EsSesionIndividual)
+            {
+                modelo.PacienteIds.Clear();
+            }
             modelo.PacienteIds.Add(pacienteId);
         }
 
