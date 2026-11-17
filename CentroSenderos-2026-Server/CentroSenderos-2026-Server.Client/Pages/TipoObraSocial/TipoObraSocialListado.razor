@@ -1,4 +1,4 @@
-﻿@page "/tipoobrasocial"
+@page "/tipoobrasocial"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
@@ -31,16 +31,7 @@
 
         <div class="header-actions">
 
-            <div class="search-box">
-
-                <i class="bi bi-search"></i>
-
-                <input type="text"
-                       placeholder="Buscar por nombre, CUIT o descripción..."
-                       @bind="textoBusqueda"
-                       @bind:event="oninput" />
-
-            </div>
+            <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar por nombre, CUIT o descripción" Placeholder="Buscar por nombre, CUIT o descripción..." />
 
             <button type="button"
                     class="btn-nueva"
@@ -674,13 +665,9 @@
         lista.Where(x =>
             string.IsNullOrWhiteSpace(textoBusqueda)
             ||
-            (x.Tipo?.Contains(
-                textoBusqueda,
-                StringComparison.OrdinalIgnoreCase) ?? false)
+            FiltrosEntidades.ContieneTexto(x.Tipo, textoBusqueda)
             ||
-            (x.Descripcion?.Contains(
-                textoBusqueda,
-                StringComparison.OrdinalIgnoreCase) ?? false)
+            FiltrosEntidades.ContieneTexto(x.Descripcion, textoBusqueda)
             ||
             CoincideCuit(x.Cuit)
         );

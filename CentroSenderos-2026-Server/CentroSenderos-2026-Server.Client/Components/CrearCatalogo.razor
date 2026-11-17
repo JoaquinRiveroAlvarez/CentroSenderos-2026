@@ -1,4 +1,4 @@
-﻿@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.DTO
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
 @implements IAsyncDisposable
@@ -32,16 +32,11 @@
                     <div class="catalogo-campo">
                         <label for="@($"{identificador}-area")">Área <span aria-hidden="true">*</span></label>
                         <div class="catalogo-area-selector">
-                            <select id="@($"{identificador}-area")"
-                                    required
-                                    @bind="areaSeleccionadaId"
-                                    disabled="@(guardando || cargandoAreas)">
-                                <option value="">Seleccioná un área</option>
-                                @foreach (var area in areasDisponibles.OrderBy(area => area.Tipo))
-                                {
-                                    <option value="@area.Id">@area.Tipo</option>
-                                }
-                            </select>
+                            <EntradaConBusqueda id="@($"{identificador}-area")"
+                                                Etiqueta="Área" Placeholder="Seleccioná un área"
+                                                @bind-Value="areaSeleccionadaId"
+                                                Opciones="@(areasDisponibles.OrderBy(area => area.Tipo).Select(area => new OpcionSelector(area.Id.ToString(), area.Tipo)))"
+                                                Disabled="@(guardando || cargandoAreas)" />
                             <button type="button"
                                     class="catalogo-area-agregar"
                                     aria-label="Crear área"

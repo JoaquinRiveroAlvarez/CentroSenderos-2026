@@ -1,4 +1,4 @@
-﻿@page "/tipoturno"
+@page "/tipoturno"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
@@ -29,16 +29,7 @@
 
         <div class="header-actions">
 
-            <div class="search-box">
-
-                <i class="bi bi-search"></i>
-
-                <input type="text"
-                       placeholder="Buscar tipo de turno..."
-                       @bind="textoBusqueda"
-                       @bind:event="oninput" />
-
-            </div>
+            <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar tipo de turno" Placeholder="Buscar tipo de turno..." />
 
             <button type="button"
                     class="btn-nuevo"
@@ -1012,10 +1003,7 @@
     private static bool ContieneTexto(string? valor,string busqueda)
     {
         return !string.IsNullOrWhiteSpace(valor) &&
-            valor.Contains(
-                busqueda,
-                StringComparison.OrdinalIgnoreCase
-            );
+            FiltrosEntidades.ContieneTexto(valor, busqueda);
     }
 
     private static string MostrarValor(string? valor)

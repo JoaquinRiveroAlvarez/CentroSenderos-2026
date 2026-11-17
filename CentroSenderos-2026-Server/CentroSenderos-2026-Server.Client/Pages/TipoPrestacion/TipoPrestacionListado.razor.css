@@ -1253,3 +1253,12 @@
 }
 
 /* #endregion */
+
+/* #region Filtro por área */
+
+.catalogo-filtros {
+    width: min(100%, 360px);
+    margin-bottom: 20px;
+}
+
+/* #endregion */

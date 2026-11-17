@@ -1,4 +1,4 @@
-﻿using CentroSenderos_2026_BD;
+using CentroSenderos_2026_BD;
 using CentroSenderos_2026_BD.Datos.Entity;
 using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
@@ -117,6 +117,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     TipoObraSocialId = p.TipoObraSocialId,
                     TipoObraSocialNombre =
                         p.TipoObraSociales!.Tipo,
+
+                    TiposDocumentos = context.Documentos
+                        .Where(documento => documento.PacienteId == p.Id &&
+                            documento.EstadoRegistro == EnumEstadoRegistro.activo)
+                        .Select(documento => new TipoDTO
+                        {
+                            Id = documento.TipoDocumentoId,
+                            Tipo = documento.TipoDocumentos!.Tipo
+                        })
+                        .ToList(),
 
                     TipoDiagnosticoId = p.TipoDiagnosticoId,
                     TipoDiagnosticoNombre =

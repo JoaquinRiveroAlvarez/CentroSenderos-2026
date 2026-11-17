@@ -1,4 +1,4 @@
-﻿@page "/tipodiagnostico"
+@page "/tipodiagnostico"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
@@ -31,16 +31,7 @@
 
         <div class="header-actions">
 
-            <div class="search-box">
-
-                <i class="bi bi-search"></i>
-
-                <input type="text"
-                       placeholder="Buscar por nombre o descripción..."
-                       @bind="textoBusqueda"
-                       @bind:event="oninput" />
-
-            </div>
+            <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar por nombre o descripción" Placeholder="Buscar por nombre o descripción..." />
 
             <button type="button"
                     class="btn-nueva"
@@ -621,13 +612,9 @@
         lista.Where(x =>
             string.IsNullOrWhiteSpace(textoBusqueda)
             ||
-            (x.Tipo?.Contains(
-                textoBusqueda,
-                StringComparison.OrdinalIgnoreCase) ?? false)
+            FiltrosEntidades.ContieneTexto(x.Tipo, textoBusqueda)
             ||
-            (x.Descripcion?.Contains(
-                textoBusqueda,
-                StringComparison.OrdinalIgnoreCase) ?? false)
+            FiltrosEntidades.ContieneTexto(x.Descripcion, textoBusqueda)
         );
 
     protected override async Task OnInitializedAsync()

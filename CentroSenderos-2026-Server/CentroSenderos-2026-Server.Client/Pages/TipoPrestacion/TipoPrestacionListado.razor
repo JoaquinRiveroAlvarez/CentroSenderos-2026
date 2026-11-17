@@ -1,4 +1,4 @@
-﻿@page "/tipoprestacion"
+@page "/tipoprestacion"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
@@ -34,16 +34,7 @@
 
         <div class="header-actions">
 
-            <div class="search-box">
-
-                <i class="bi bi-search"></i>
-
-                <input type="text"
-                       placeholder="Buscar prestación..."
-                       @bind="textoBusqueda"
-                       @bind:event="oninput" />
-
-            </div>
+            <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar prestación" Placeholder="Buscar prestación..." AlLimpiar="LimpiarFiltrosCatalogo" />
 
 
             <button type="button"
@@ -59,6 +50,10 @@
 
     </div>
 
+
+    <section class="catalogo-filtros" aria-label="Filtros de prestaciones">
+        <SelectorConBusqueda Id="filtroAreasPrestaciones" Etiqueta="Área" Placeholder="Todas las áreas" Opciones="OpcionesAreasFiltro" @bind-Seleccionadas="areasFiltro" VersionLimpieza="versionLimpieza" />
+    </section>
 
     <!-- =====================================================
          LISTADO
@@ -475,28 +470,11 @@
 
                         <label for="areaPrestacion">ÁREA</label>
 
-                        <InputSelect id="areaPrestacion"
-                                     class="senderos-input"
-                                     @bind-Value="modelo.TipoAreaId"
-                                     disabled="@(guardando || !AreasDisponibles)"
-                                     aria-describedby="areaPrestacionAyuda">
-
-                            <option value="">Seleccioná un área</option>
-
-                            @if (modelo.TipoAreaId.HasValue &&
-                                !listaAreas.Any(area => area.Id == modelo.TipoAreaId))
-                            {
-                                <option value="@modelo.TipoAreaId" disabled>
-                                    @MostrarArea(modelo.TipoAreaNombre) (no disponible)
-                                </option>
-                            }
-
-                            @foreach (var area in listaAreas.OrderBy(area => area.Tipo))
-                            {
-                                <option value="@area.Id">@area.Tipo</option>
-                            }
-
-                        </InputSelect>
+                        <EntradaConBusqueda id="areaPrestacion"
+                                            Etiqueta="Área" Placeholder="Seleccioná un área"
+                                            @bind-Value="modelo.TipoAreaId"
+                                            Opciones="OpcionesAreasFormulario"
+                                            Disabled="@(guardando || !AreasDisponibles)" />
 
                         <ValidationMessage For="@(() => modelo.TipoAreaId)" />
 
@@ -697,28 +675,11 @@
 
                         <label for="areaPrestacion">ÁREA</label>
 
-                        <InputSelect id="areaPrestacion"
-                                     class="senderos-input"
-                                     @bind-Value="modelo.TipoAreaId"
-                                     disabled="@(guardando || !AreasDisponibles)"
-                                     aria-describedby="areaPrestacionAyuda">
-
-                            <option value="">Seleccioná un área</option>
-
-                            @if (modelo.TipoAreaId.HasValue &&
-                                !listaAreas.Any(area => area.Id == modelo.TipoAreaId))
-                            {
-                                <option value="@modelo.TipoAreaId" disabled>
-                                    @MostrarArea(modelo.TipoAreaNombre) (no disponible)
-                                </option>
-                            }
-
-                            @foreach (var area in listaAreas.OrderBy(area => area.Tipo))
-                            {
-                                <option value="@area.Id">@area.Tipo</option>
-                            }
-
-                        </InputSelect>
+                        <EntradaConBusqueda id="areaPrestacion"
+                                            Etiqueta="Área" Placeholder="Seleccioná un área"
+                                            @bind-Value="modelo.TipoAreaId"
+                                            Opciones="OpcionesAreasFormulario"
+                                            Disabled="@(guardando || !AreasDisponibles)" />
 
                         <ValidationMessage For="@(() => modelo.TipoAreaId)" />
 
@@ -1051,18 +1012,47 @@
     // FILTRADO
     // =====================================================
 
+    #region Filtros de área
+
+    private HashSet<string> areasFiltro = new();
+    private int versionLimpieza;
+    private IEnumerable<OpcionSelector> OpcionesAreasFormulario => listaAreas
+        .OrderBy(area => area.Tipo)
+        .Select(area => new OpcionSelector(area.Id.ToString(), area.Tipo))
+        .Concat(modelo.TipoAreaId.HasValue && !listaAreas.Any(area => area.Id == modelo.TipoAreaId)
+            ? new[] { new OpcionSelector(modelo.TipoAreaId.Value.ToString(), MostrarArea(modelo.TipoAreaNombre) + " (no disponible)", Deshabilitada: true) }
+            : Array.Empty<OpcionSelector>());
+    private IEnumerable<OpcionSelector> OpcionesAreasFiltro => lista
+        .GroupBy(prestacion => prestacion.TipoAreaId)
+        .Select(grupo => new OpcionSelector(
+            grupo.Key?.ToString() ?? "sin-area",
+            MostrarArea(grupo.First().TipoAreaNombre)))
+        .OrderBy(opcion => opcion.Texto);
+
+    private void LimpiarFiltrosCatalogo()
+    {
+        textoBusqueda = string.Empty;
+        areasFiltro.Clear();
+        versionLimpieza++;
+    }
+
+    #endregion
+
     private IEnumerable<TipoPrestacionListadoDTO> PrestacionesFiltradas
     {
         get
         {
+            var filtradasPorArea = lista.Where(item => areasFiltro.Count == 0 ||
+                areasFiltro.Contains(item.TipoAreaId?.ToString() ?? "sin-area"));
+
             if (string.IsNullOrWhiteSpace(textoBusqueda))
             {
-                return lista;
+                return filtradasPorArea;
             }
 
             var busqueda = textoBusqueda.Trim();
 
-            return lista.Where(item =>
+            return filtradasPorArea.Where(item =>
                 ContieneTexto(item.Tipo, busqueda) ||
                 ContieneTexto(item.Descripcion, busqueda) ||
                 ContieneTexto(item.Cod, busqueda) ||
@@ -1435,10 +1425,7 @@
         string busqueda)
     {
         return !string.IsNullOrWhiteSpace(valor)
-            && valor.Contains(
-                busqueda,
-                StringComparison.OrdinalIgnoreCase
-            );
+            && FiltrosEntidades.ContieneTexto(valor, busqueda);
     }
 
 

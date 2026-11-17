@@ -1,0 +1,44 @@
+<div class="catalogo-busqueda-acciones">
+    <div class="catalogo-busqueda">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input type="search" aria-label="@Etiqueta" placeholder="@Placeholder"
+               value="@Busqueda" @oninput="CambiarBusqueda" />
+    </div>
+    <BotonLimpiarFiltros AlLimpiar="Limpiar" />
+</div>
+
+@code {
+    #region Parámetros
+
+    [Parameter]
+    public string Busqueda { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> BusquedaChanged { get; set; }
+
+    [Parameter]
+    public string Etiqueta { get; set; } = "Buscar en el catálogo";
+
+    [Parameter]
+    public string Placeholder { get; set; } = "Buscar por nombre o descripción…";
+
+    [Parameter]
+    public EventCallback AlLimpiar { get; set; }
+
+    #endregion
+
+    #region Búsqueda y limpieza
+
+    private Task CambiarBusqueda(ChangeEventArgs evento)
+    {
+        return BusquedaChanged.InvokeAsync(evento.Value?.ToString() ?? string.Empty);
+    }
+
+    private async Task Limpiar()
+    {
+        await BusquedaChanged.InvokeAsync(string.Empty);
+        await AlLimpiar.InvokeAsync();
+    }
+
+    #endregion
+}

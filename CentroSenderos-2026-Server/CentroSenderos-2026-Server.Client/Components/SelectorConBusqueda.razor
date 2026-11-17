@@ -37,14 +37,14 @@
                     @if (Multiple)
                     {
                         <label @key="opcion.Valor" class="selector-opcion @(Seleccionadas.Contains(opcion.Valor) ? "activa" : "")">
-                            <input type="checkbox" value="@opcion.Valor" checked="@Seleccionadas.Contains(opcion.Valor)" disabled="@Disabled" @onchange="() => Alternar(opcion.Valor)" />
+                            <input type="checkbox" value="@opcion.Valor" checked="@Seleccionadas.Contains(opcion.Valor)" disabled="@(Disabled || opcion.Deshabilitada)" @onchange="() => Alternar(opcion.Valor)" />
                             <span>@opcion.Texto @if (!string.IsNullOrEmpty(opcion.Detalle)) { <small>@opcion.Detalle</small> }</span>
                         </label>
                     }
                     else
                     {
                         <button @key="opcion.Valor" type="button" class="selector-opcion @(Valor == opcion.Valor ? "activa" : "")"
-                                data-valor="@opcion.Valor" disabled="@Disabled" aria-pressed="@(Valor == opcion.Valor ? "true" : "false")" @onclick="() => Elegir(opcion.Valor)">
+                                data-valor="@opcion.Valor" disabled="@(Disabled || opcion.Deshabilitada)" aria-pressed="@(Valor == opcion.Valor ? "true" : "false")" @onclick="() => Elegir(opcion.Valor)">
                             <span>@opcion.Texto @if (!string.IsNullOrEmpty(opcion.Detalle)) { <small>@opcion.Detalle</small> }</span>
                             @if (Valor == opcion.Valor) { <i class="bi bi-check2" aria-hidden="true"></i> }
                         </button>
@@ -52,7 +52,10 @@
                 }
             </div>
             <footer class="selector-pie">
-                <button type="button" class="selector-limpiar" disabled="@Disabled" @onclick="Limpiar">@(Multiple ? "Limpiar selección" : "Quitar selección")</button>
+                @if (PermitirLimpiar)
+                {
+                    <button type="button" class="selector-limpiar" disabled="@Disabled" @onclick="Limpiar">@(Multiple ? "Limpiar selección" : "Quitar selección")</button>
+                }
                 <span>@(Multiple ? $"{Seleccionadas.Count} seleccionadas" : "Una sola opción")</span>
                 <button type="button" @onclick="() => Cerrar(true)">Cerrar</button>
             </footer>
@@ -66,6 +69,7 @@
     [Parameter] public string Placeholder { get; set; } = "Todas las opciones";
     [Parameter] public bool MostrarEtiqueta { get; set; } = true;
     [Parameter] public bool Multiple { get; set; } = true;
+    [Parameter] public bool PermitirLimpiar { get; set; } = true;
     [Parameter] public bool Disabled { get; set; }
     [Parameter] public IEnumerable<OpcionSelector> Opciones { get; set; } = Array.Empty<OpcionSelector>();
     [Parameter] public HashSet<string> Seleccionadas { get; set; } = new();

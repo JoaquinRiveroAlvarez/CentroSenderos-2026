@@ -1,0 +1,21 @@
+/* #region Campo y validación */
+
+.entrada-buscable {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+}
+
+.entrada-buscable ::deep .selector-buscable-boton {
+    min-height: 46px;
+    font: inherit;
+}
+
+.entrada-buscable.invalid ::deep .selector-buscable-boton {
+    border-color: #dc3545;
+}
+
+/* #endregion */

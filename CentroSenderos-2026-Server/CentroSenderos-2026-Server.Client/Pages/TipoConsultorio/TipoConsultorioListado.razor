@@ -1,4 +1,4 @@
-﻿@page "/tipoconsultorio"
+@page "/tipoconsultorio"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
@@ -30,16 +30,7 @@
 
         <div class="header-actions">
 
-            <div class="search-box">
-
-                <i class="bi bi-search"></i>
-
-                <input type="text"
-                       placeholder="Buscar consultorio..."
-                       @bind="textoBusqueda"
-                       @bind:event="oninput" />
-
-            </div>
+            <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar consultorio" Placeholder="Buscar consultorio..." />
 
 
             <button type="button"
@@ -1105,10 +1096,7 @@
         string busqueda)
     {
         return !string.IsNullOrWhiteSpace(valor)
-            && valor.Contains(
-                busqueda,
-                StringComparison.OrdinalIgnoreCase
-            );
+            && FiltrosEntidades.ContieneTexto(valor, busqueda);
     }
 
 

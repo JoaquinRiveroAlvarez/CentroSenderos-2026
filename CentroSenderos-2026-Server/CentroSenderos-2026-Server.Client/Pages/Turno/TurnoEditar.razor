@@ -1,4 +1,4 @@
-﻿@page "/turnos/editar/{id:int}"
+@page "/turnos/editar/{id:int}"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
@@ -400,34 +400,13 @@
                                                 }
                                                 else
                                                 {
-                                                    <select class="control-formulario"
-                                                            disabled="@OperacionEnCurso"
-                                                            value="@ObtenerPrestacionSeleccionada(profesional.Id)"
-                                                            @onchange="evento => SeleccionarPrestacion(profesional.Id, evento)">
-
-                                                        <option value="0">
-                                                            Seleccioná una prestación
-                                                        </option>
-
-                                                        @for (
-                                                            var indice = 0;
-                                                            indice < profesional.TipoPrestacionIds.Count;
-                                                            indice++)
-                                                        {
-                                                            var prestacionId =
-                                                                profesional.TipoPrestacionIds[indice];
-
-                                                            var nombrePrestacion =
-                                                                indice < profesional.TipoPrestacionNombres.Count
-                                                                    ? profesional.TipoPrestacionNombres[indice]
-                                                                    : "Prestación";
-
-                                                            <option value="@prestacionId">
-                                                                @nombrePrestacion
-                                                            </option>
-                                                        }
-
-                                                    </select>
+                                                    <SelectorConBusqueda Id="@($"prestacion-{profesional.Id}")"
+                                                                             Etiqueta="Prestación" MostrarEtiqueta="false" Multiple="false"
+                                                                             Placeholder="Seleccioná una prestación"
+                                                                             Opciones="@(profesional.TipoPrestacionIds.Select((id, indice) => new OpcionSelector(id.ToString(), indice < profesional.TipoPrestacionNombres.Count ? profesional.TipoPrestacionNombres[indice] : "Prestación")))"
+                                                                             Valor="@ObtenerPrestacionSeleccionada(profesional.Id).ToString()"
+                                                                             ValorChanged="@(valor => SeleccionarPrestacion(profesional.Id, new ChangeEventArgs { Value = string.IsNullOrEmpty(valor) ? "0" : valor }))"
+                                                                             Disabled="@OperacionEnCurso" />
                                                 }
                                                 @if (profesional.MatriculasPorPrestacion.TryGetValue(ObtenerPrestacionSeleccionada(profesional.Id), out var matricula) && !string.IsNullOrWhiteSpace(matricula))
                                                 {

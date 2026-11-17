@@ -1,4 +1,4 @@
-﻿@page "/tipogasto"
+@page "/tipogasto"
 @attribute [Authorize]
 @using CentroSenderos_2026_Shared.DTO
 @using Microsoft.AspNetCore.Authorization
@@ -28,15 +28,7 @@
         </button>
     </div>
 
-    <div class="search-box">
-        <i class="bi bi-search"></i>
-
-        <input type="search"
-               aria-label="Buscar tipos de gasto"
-               placeholder="Buscar por nombre o descripción..."
-               @bind="busqueda"
-               @bind:event="oninput" />
-    </div>
+    <BarraBusquedaCatalogo @bind-Busqueda="busqueda" Etiqueta="Buscar tipos de gasto" Placeholder="Buscar por nombre o descripción..." />
 
     @if (!string.IsNullOrWhiteSpace(MensajeExito))
     {
@@ -150,12 +142,8 @@
         string.IsNullOrWhiteSpace(busqueda)
             ? tiposGasto
             : tiposGasto.Where(tipoGasto =>
-                tipoGasto.Tipo.Contains(
-                    busqueda,
-                    StringComparison.OrdinalIgnoreCase) ||
-                (tipoGasto.Descripcion?.Contains(
-                    busqueda,
-                    StringComparison.OrdinalIgnoreCase) ?? false));
+                FiltrosEntidades.ContieneTexto(tipoGasto.Tipo, busqueda) ||
+                FiltrosEntidades.ContieneTexto(tipoGasto.Descripcion, busqueda));
 
     protected override async Task OnInitializedAsync()
     {

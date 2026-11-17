@@ -1,4 +1,4 @@
-﻿@page "/profesionales/editar/{id:int}"
+@page "/profesionales/editar/{id:int}"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
@@ -107,23 +107,13 @@
                         <label for="profesionalPrestaciones">Prestaciones</label>
 
                         <div class="catalogo-selector">
-<InputSelect class="form-input"
+<EntradaConBusqueda
                                      id="profesionalPrestaciones"
                                      @bind-Value="prestacionSeleccionadaId"
                                      @bind-Value:after="AgregarPrestacion"
-                                     disabled="@(guardando || eliminando)">
-
-                            <option value="">
-                                -- Seleccionar prestación --
-                            </option>
-
-                            @foreach (var prestacion in PrestacionesDisponibles)
-                            {
-                                <option value="@prestacion.Id">
-                                    @prestacion.Tipo — @(prestacion.TipoAreaNombre ?? "Sin área asignada")
-                                </option>
-                            }
-                        </InputSelect>
+                                     Disabled="@(guardando || eliminando)"
+                                     Etiqueta="Prestación" Placeholder="Seleccioná una prestación"
+                                     Opciones="OpcionesPrestacionesFormulario" />
                     <button type="button" class="catalogo-agregar" disabled="@guardando" aria-label="Crear prestación" title="Crear prestación" @onclick="() => tipoprestacionModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
                     </div>
 
@@ -206,31 +196,12 @@
                     <div class="field-group">
                         <label for="profesionalRol">Rol</label>
 
-                        <InputSelect class="form-input"
+                        <EntradaConBusqueda
                                      id="profesionalRol"
                                      @bind-Value="modelo.RolAsignado"
-                                     disabled="@(guardando || eliminando)">
-
-                            <option value="">
-                                -- Seleccionar rol --
-                            </option>
-
-                            <option value="admin">
-                                Administrador
-                            </option>
-
-                            <option value="equipo">
-                                Equipo
-                            </option>
-
-                            <option value="profesional">
-                                Profesional
-                            </option>
-
-                            <option value="AdministradorEquipo">
-                                Administrador/Equipo
-                            </option>
-                        </InputSelect>
+                                     Disabled="@(guardando || eliminando)"
+                                     Etiqueta="Rol" Placeholder="Seleccioná un rol"
+                                     Opciones="OpcionesRoles" />
                     </div>
                 </div>
             </section>
@@ -341,6 +312,23 @@
 <CrearCatalogo @ref="tipoprestacionModal" Recurso="tipoprestacion" Etiqueta="prestación" Creado="PrestacionCreada" />
 
 @code {
+    #region Opciones de los buscadores
+
+    private IEnumerable<OpcionSelector> OpcionesPrestacionesFormulario =>
+        PrestacionesDisponibles
+            .Select(prestacion => new OpcionSelector(prestacion.Id.ToString(), prestacion.Tipo, prestacion.TipoAreaNombre ?? "Sin área asignada"));
+
+    private IEnumerable<OpcionSelector> OpcionesRoles =>
+        new OpcionSelector[]
+        {
+            new OpcionSelector("admin", "Administrador"),
+            new OpcionSelector("equipo", "Equipo"),
+            new OpcionSelector("profesional", "Profesional"),
+            new OpcionSelector("AdministradorEquipo", "Administrador/Equipo")
+        };
+
+    #endregion
+
 
     private IEnumerable<TipoPrestacionListadoDTO> PrestacionesSeleccionadas =>
         listaTipoPrestaciones.Where(prestacion => modelo.TipoPrestacionIds.Contains(prestacion.Id));

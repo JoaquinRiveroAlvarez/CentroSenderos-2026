@@ -3270,3 +3270,49 @@
 }
 
 /* #endregion */
+
+/* #region Búsqueda de opciones en filtros */
+
+.filtro-buscador {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    border: 1px solid #dfe5d6;
+    border-radius: 8px;
+    background: #fafcf6;
+    color: #7b856c;
+}
+
+.filtro-buscador input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+}
+
+.filtro-buscador:focus-within {
+    outline: 2px solid #93a67f;
+    outline-offset: 2px;
+}
+
+.filtro-sin-resultados {
+    margin: 8px 0;
+    color: #7b856c;
+    font-size: 12px;
+}
+
+/* #endregion */
+
+/* #region Filtros de área, prestación y estado */
+
+.filtros-agenda ::deep .selector-buscable {
+    width: auto;
+    margin: 12px 14px;
+}
+
+/* #endregion */
