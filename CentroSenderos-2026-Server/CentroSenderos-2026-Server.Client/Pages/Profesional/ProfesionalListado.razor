@@ -44,34 +44,9 @@
         </div>
     </header>
     <section class="filtros-panel" aria-label="Filtros de profesionales">
-        <label>
-            <span class="filtro-titulo">Área</span>
-            <select @bind="areaFiltro">
-                <option value="">Todas</option>
-                @foreach (var area in Areas)
-                {
-                    <option value="@area">@area</option>
-                }
-            </select>
-        </label>
-        <label>
-            <span class="filtro-titulo">Prestación</span>
-            <select @bind="prestacionFiltro">
-                <option value="">Todas</option>
-                @foreach (var prestacion in Prestaciones)
-                {
-                    <option value="@prestacion">@prestacion</option>
-                }
-            </select>
-        </label>
-        <label>
-            <span class="filtro-titulo">Socio</span>
-            <select @bind="socioFiltro">
-                <option value="">Todos</option>
-                <option value="si">Socios</option>
-                <option value="no">No socios</option>
-            </select>
-        </label>
+        <SelectorConBusqueda Id="filtroAreas" Etiqueta="Área" Placeholder="Todas las áreas" Opciones="OpcionesAreas" @bind-Seleccionadas="areasFiltro" VersionLimpieza="versionLimpieza" />
+        <SelectorConBusqueda Id="filtroPrestaciones" Etiqueta="Prestación" Placeholder="Todas las prestaciones" Opciones="OpcionesPrestaciones" @bind-Seleccionadas="prestacionesFiltro" VersionLimpieza="versionLimpieza" />
+        <SelectorConBusqueda Id="filtroSocios" Etiqueta="Socio" Placeholder="Todos" Opciones="OpcionesSocios" @bind-Seleccionadas="sociosFiltro" VersionLimpieza="versionLimpieza" />
         <button type="button" class="filter-button" @onclick="LimpiarFiltros"><i class="bi bi-x-circle" aria-hidden="true"></i> Limpiar filtros</button>
     </section>
     @if (!cargando && listaProfesionales?.Count > 0)
@@ -167,9 +142,9 @@
     [SupplyParameterFromQuery(Name = "detalle")] public int? DetalleId { get; set; }
     [SupplyParameterFromQuery(Name = "estado")] public string? Estado { get; set; }
     [SupplyParameterFromQuery(Name = "q")] public string? BusquedaUrl { get; set; }
-    [SupplyParameterFromQuery(Name = "area")] public string? AreaUrl { get; set; }
-    [SupplyParameterFromQuery(Name = "prestacion")] public string? PrestacionUrl { get; set; }
-    [SupplyParameterFromQuery(Name = "socio")] public string? SocioUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "area")] public string[]? AreaUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "prestacion")] public string[]? PrestacionUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "socio")] public string[]? SocioUrl { get; set; }
     [SupplyParameterFromQuery(Name = "orden")] public string? OrdenUrl { get; set; }
     [SupplyParameterFromQuery(Name = "desc")] public bool DescendenteUrl { get; set; }
     private string orden = "nombre";
@@ -178,26 +153,36 @@
     private bool cargando = true;
     private string Mensaje = string.Empty;
     private string textoBusqueda = string.Empty;
-    private string areaFiltro = string.Empty;
-    private string prestacionFiltro = string.Empty;
-    private string socioFiltro = string.Empty;
+    private HashSet<string> areasFiltro = new(), prestacionesFiltro = new(), sociosFiltro = new();
+    private int versionLimpieza;
+    private string? ultimaUrlAplicada;
+    private IEnumerable<OpcionSelector> OpcionesAreas => Areas.Select(a => new OpcionSelector(a, a));
+    private IEnumerable<OpcionSelector> OpcionesPrestaciones => Prestaciones.Select(p => new OpcionSelector(p, p));
+    private static readonly OpcionSelector[] OpcionesSocios = { new("si", "Socios"), new("no", "No socios") };
     private int? profesionalSeleccionadoId;
     private IEnumerable<string> Areas => (listaProfesionales ?? new()).Select(p => p.Area).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x);
     private IEnumerable<string> Prestaciones => (listaProfesionales ?? new()).SelectMany(p => p.TipoPrestacionNombres).Distinct().OrderBy(x => x);
-    private bool HayFiltros => !string.IsNullOrWhiteSpace(textoBusqueda) || areaFiltro != "" || prestacionFiltro != "" || socioFiltro != "";
-    private string ContextoListado => "/profesionales?" + string.Join("&", new[] {
-        ("q", textoBusqueda), ("area", areaFiltro), ("prestacion", prestacionFiltro), ("socio", socioFiltro),
-        ("orden", orden), ("desc", descendente.ToString().ToLowerInvariant())
-    }.Where(x => !string.IsNullOrWhiteSpace(x.Item2)).Select(x => x.Item1 + "=" + Uri.EscapeDataString(x.Item2)));
+    private bool HayFiltros => !string.IsNullOrWhiteSpace(textoBusqueda) || areasFiltro.Count > 0 || prestacionesFiltro.Count > 0 || sociosFiltro.Count > 0;
+    private string ContextoListado
+    {
+        get
+        {
+            var parametros = new List<(string Clave, string Valor)> { ("q", textoBusqueda), ("orden", orden), ("desc", descendente.ToString().ToLowerInvariant()) };
+            parametros.AddRange(areasFiltro.OrderBy(v => v).Select(v => ("area", v)));
+            parametros.AddRange(prestacionesFiltro.OrderBy(v => v).Select(v => ("prestacion", v)));
+            parametros.AddRange(sociosFiltro.OrderBy(v => v).Select(v => ("socio", v)));
+            return "/profesionales?" + string.Join("&", parametros.Where(p => !string.IsNullOrWhiteSpace(p.Valor)).Select(p => p.Clave + "=" + Uri.EscapeDataString(p.Valor)));
+        }
+    }
 
     private IEnumerable<ProfesionalListadoDTO> ProfesionalesFiltrados
     {
         get
         {
             var filtrados = (listaProfesionales ?? new())
-                .Where(p => (areaFiltro == "" || p.Area == areaFiltro)
-                    && (prestacionFiltro == "" || p.TipoPrestacionNombres.Contains(prestacionFiltro))
-                    && (socioFiltro == "" || p.EsSocio == (socioFiltro == "si"))
+                .Where(p => (areasFiltro.Count == 0 || areasFiltro.Contains(p.Area))
+                    && (prestacionesFiltro.Count == 0 || p.TipoPrestacionNombres.Any(prestacionesFiltro.Contains))
+                    && (sociosFiltro.Count == 0 || sociosFiltro.Contains(p.EsSocio ? "si" : "no"))
                     && CoincideBusqueda(p));
 
             if (orden == "cuit")
@@ -245,15 +230,17 @@
     protected override async Task OnInitializedAsync() => await CargarProfesionales();
     protected override void OnParametersSet()
     {
+        if (ultimaUrlAplicada == Nav.Uri) return;
+        ultimaUrlAplicada = Nav.Uri;
         textoBusqueda = BusquedaUrl ?? "";
-        areaFiltro = AreaUrl ?? "";
-        prestacionFiltro = PrestacionUrl ?? "";
-        socioFiltro = SocioUrl is "si" or "no" ? SocioUrl : "";
+        areasFiltro = (AreaUrl ?? Array.Empty<string>()).Where(v => !string.IsNullOrWhiteSpace(v)).ToHashSet(StringComparer.Ordinal);
+        prestacionesFiltro = (PrestacionUrl ?? Array.Empty<string>()).Where(v => !string.IsNullOrWhiteSpace(v)).ToHashSet(StringComparer.Ordinal);
+        sociosFiltro = (SocioUrl ?? Array.Empty<string>()).Where(v => v is "si" or "no").ToHashSet();
         orden = OrdenUrl is "area" or "cuit" ? OrdenUrl : "nombre";
         descendente = DescendenteUrl;
         profesionalSeleccionadoId = DetalleId ?? IdRuta;
     }
-    private void LimpiarFiltros() { textoBusqueda = ""; areaFiltro = ""; prestacionFiltro = ""; socioFiltro = ""; }
+    private void LimpiarFiltros() { textoBusqueda = ""; areasFiltro = new(); prestacionesFiltro = new(); sociosFiltro = new(); versionLimpieza++; }
     private void IrADetalle(int id) => Nav.NavigateTo(ContextoListado + (ContextoListado.Contains('?') ? "&" : "?") + $"detalle={id}");
     private void CerrarDetalle() => Nav.NavigateTo(ContextoListado, replace: true);
     private void IrACrear() => Nav.NavigateTo("/profesionales/crear?volver=" + Uri.EscapeDataString(ContextoListado));

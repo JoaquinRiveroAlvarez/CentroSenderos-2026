@@ -64,34 +64,9 @@
     @if (!cargando && listaPacientes.Count > 0)
     {
         <div class="pacientes-filtros" aria-label="Filtros de pacientes">
-            <label>
-                Obra social
-                <select @bind="filtroObra">
-                    <option value="0">Todas</option>
-                    @foreach (var obra in listaPacientes.GroupBy(p => p.TipoObraSocialId).Select(g => g.First()).OrderBy(p => p.TipoObraSocialNombre))
-                    {
-                        <option value="@obra.TipoObraSocialId">@obra.TipoObraSocialNombre</option>
-                    }
-                </select>
-            </label>
-            <label>
-                Diagnóstico
-                <select @bind="filtroDiagnostico">
-                    <option value="0">Todos</option>
-                    @foreach (var diagnostico in listaPacientes.GroupBy(p => p.TipoDiagnosticoId).Select(g => g.First()).OrderBy(p => p.TipoDiagnosticoNombre))
-                    {
-                        <option value="@diagnostico.TipoDiagnosticoId">@diagnostico.TipoDiagnosticoNombre</option>
-                    }
-                </select>
-            </label>
-            <label>
-                CUD
-                <select @bind="filtroCud">
-                    <option value="">Todos</option>
-                    <option value="si">Con CUD</option>
-                    <option value="no">Sin CUD</option>
-                </select>
-            </label>
+            <SelectorConBusqueda Id="filtroObras" Etiqueta="Obra social" Placeholder="Todas las obras sociales" Opciones="OpcionesObras" @bind-Seleccionadas="obrasFiltro" VersionLimpieza="versionLimpieza" />
+            <SelectorConBusqueda Id="filtroDiagnosticos" Etiqueta="Diagnóstico" Placeholder="Todos los diagnósticos" Opciones="OpcionesDiagnosticos" @bind-Seleccionadas="diagnosticosFiltro" VersionLimpieza="versionLimpieza" />
+            <SelectorConBusqueda Id="filtroCud" Etiqueta="CUD" Placeholder="Todos" Opciones="OpcionesCud" @bind-Seleccionadas="cudFiltro" VersionLimpieza="versionLimpieza" />
             <button type="button" class="limpiar-filtros" @onclick="LimpiarFiltros"><i class="bi bi-x-circle" aria-hidden="true"></i> Limpiar filtros</button>
         </div>
     }
@@ -365,36 +340,48 @@
     [SupplyParameterFromQuery(Name = "q")]
     public string? BusquedaUrl { get; set; }
     [SupplyParameterFromQuery(Name = "obra")]
-    public int? ObraUrl { get; set; }
+    public string[]? ObraUrl { get; set; }
     [SupplyParameterFromQuery(Name = "diagnostico")]
-    public int? DiagnosticoUrl { get; set; }
+    public string[]? DiagnosticoUrl { get; set; }
     [SupplyParameterFromQuery(Name = "cud")]
-    public string? CudUrl { get; set; }
+    public string[]? CudUrl { get; set; }
     [SupplyParameterFromQuery(Name = "orden")]
     public string? OrdenUrl { get; set; }
     [SupplyParameterFromQuery(Name = "desc")]
     public bool? DescUrl { get; set; }
 
-    private int filtroObra;
-    private int filtroDiagnostico;
-    private string filtroCud = "";
+    private HashSet<string> obrasFiltro = new(), diagnosticosFiltro = new(), cudFiltro = new();
+    private int versionLimpieza;
+    private IEnumerable<OpcionSelector> OpcionesObras => listaPacientes.GroupBy(p => p.TipoObraSocialId).Select(g => g.First()).OrderBy(p => p.TipoObraSocialNombre).Select(p => new OpcionSelector(p.TipoObraSocialId.ToString(), p.TipoObraSocialNombre));
+    private IEnumerable<OpcionSelector> OpcionesDiagnosticos => listaPacientes.GroupBy(p => p.TipoDiagnosticoId).Select(g => g.First()).OrderBy(p => p.TipoDiagnosticoNombre).Select(p => new OpcionSelector(p.TipoDiagnosticoId.ToString(), p.TipoDiagnosticoNombre));
+    private static readonly OpcionSelector[] OpcionesCud = { new("si", "Con CUD"), new("no", "Sin CUD") };
     private string orden = "nombre";
     private bool descendente;
     private string? ultimaUrlAplicada;
 
-    private string ContextoListado => "/pacientes?q=" + Uri.EscapeDataString(busqueda)
-        + $"&obra={filtroObra}&diagnostico={filtroDiagnostico}"
-        + "&cud=" + Uri.EscapeDataString(filtroCud)
-        + "&orden=" + orden + "&desc=" + descendente.ToString().ToLowerInvariant();
+    private string ContextoListado
+    {
+        get
+        {
+            var parametros = new List<(string Clave, string Valor)> { ("q", busqueda), ("orden", orden), ("desc", descendente.ToString().ToLowerInvariant()) };
+            parametros.AddRange(obrasFiltro.OrderBy(v => v).Select(v => ("obra", v)));
+            parametros.AddRange(diagnosticosFiltro.OrderBy(v => v).Select(v => ("diagnostico", v)));
+            parametros.AddRange(cudFiltro.OrderBy(v => v).Select(v => ("cud", v)));
+            return "/pacientes?" + string.Join("&", parametros.Where(p => !string.IsNullOrWhiteSpace(p.Valor)).Select(p => p.Clave + "=" + Uri.EscapeDataString(p.Valor)));
+        }
+    }
+
+    private static HashSet<string> IdentificadoresUrl(string[]? valores) => (valores ?? Array.Empty<string>())
+        .Select(v => int.TryParse(v, out var id) ? id : 0).Where(id => id > 0).Select(id => id.ToString()).ToHashSet();
 
     protected override void OnParametersSet()
     {
         if (ultimaUrlAplicada == Nav.Uri) return;
         ultimaUrlAplicada = Nav.Uri;
         busqueda = BusquedaUrl ?? "";
-        filtroObra = ObraUrl is > 0 ? ObraUrl.Value : 0;
-        filtroDiagnostico = DiagnosticoUrl is > 0 ? DiagnosticoUrl.Value : 0;
-        filtroCud = CudUrl is "si" or "no" ? CudUrl : "";
+        obrasFiltro = IdentificadoresUrl(ObraUrl);
+        diagnosticosFiltro = IdentificadoresUrl(DiagnosticoUrl);
+        cudFiltro = (CudUrl ?? Array.Empty<string>()).Where(v => v is "si" or "no").ToHashSet();
         orden = OrdenUrl is "dni" or "nacimiento" ? OrdenUrl : "nombre";
         descendente = DescUrl == true;
         pacienteSeleccionadoId = DetallePacienteId is > 0 ? DetallePacienteId : null;
@@ -415,9 +402,9 @@
         get
         {
             var pacientes = listaPacientes.Where(p => CoincideBusqueda(p)
-                && (filtroObra == 0 || p.TipoObraSocialId == filtroObra)
-                && (filtroDiagnostico == 0 || p.TipoDiagnosticoId == filtroDiagnostico)
-                && (filtroCud == "" || p.TieneCud == (filtroCud == "si")));
+                && (obrasFiltro.Count == 0 || obrasFiltro.Contains(p.TipoObraSocialId.ToString()))
+                && (diagnosticosFiltro.Count == 0 || diagnosticosFiltro.Contains(p.TipoDiagnosticoId.ToString()))
+                && (cudFiltro.Count == 0 || cudFiltro.Contains(p.TieneCud ? "si" : "no")));
             IOrderedEnumerable<PacienteResumenDTO> resultado;
             if (orden == "nacimiento")
                 resultado = descendente
@@ -454,9 +441,10 @@
     private void LimpiarFiltros()
     {
         busqueda = "";
-        filtroObra = 0;
-        filtroDiagnostico = 0;
-        filtroCud = "";
+        obrasFiltro = new();
+        diagnosticosFiltro = new();
+        cudFiltro = new();
+        versionLimpieza++;
     }
 
     protected override async Task OnInitializedAsync()

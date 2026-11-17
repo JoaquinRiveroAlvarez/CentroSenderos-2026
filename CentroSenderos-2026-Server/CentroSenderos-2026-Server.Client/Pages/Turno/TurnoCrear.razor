@@ -72,23 +72,7 @@
 
                             <label for="tipoTurno">Tipo de turno</label>
 
-                            <InputSelect id="tipoTurno"
-                                         class="form-select"
-                                         @bind-Value="modelo.TipoTurnoId"
-                                         @bind-Value:after="CargarHorasDisponibles">
-
-                                <option value="0">
-                                    Seleccione un tipo de turno
-                                </option>
-
-                                @foreach (var tipo in tiposTurno)
-                                {
-                                    <option value="@tipo.Id">
-                                        @tipo.Tipo (@tipo.DuracionMinutos min)
-                                    </option>
-                                }
-
-                            </InputSelect>
+                            <SelectorConBusqueda Id="tipoTurno" Etiqueta="Tipo de turno" MostrarEtiqueta="false" Multiple="false" Opciones="OpcionesTipoTurno" Valor="@modelo.TipoTurnoId.ToString()" ValorChanged="CambiarTipoTurno" Placeholder="Seleccioná un tipo de turno" Disabled="@guardando" AlAbrir="CerrarOtrosSelectores" />
 
                         </div>
 
@@ -96,23 +80,7 @@
 
                             <label for="consultorio">Consultorio</label>
 
-                            <InputSelect id="consultorio"
-                                         class="form-select"
-                                         @bind-Value="modelo.TipoConsultorioId"
-                                         @bind-Value:after="CargarHorasDisponibles">
-
-                                <option value="0">
-                                    Seleccione un consultorio
-                                </option>
-
-                                @foreach (var consultorio in consultorios)
-                                {
-                                    <option value="@consultorio.Id">
-                                        @consultorio.Tipo
-                                    </option>
-                                }
-
-                            </InputSelect>
+                            <SelectorConBusqueda Id="consultorio" Etiqueta="Consultorio" MostrarEtiqueta="false" Multiple="false" Opciones="OpcionesConsultorios" Valor="@modelo.TipoConsultorioId.ToString()" ValorChanged="CambiarConsultorio" Placeholder="Seleccioná un consultorio" Disabled="@guardando" AlAbrir="CerrarOtrosSelectores" />
 
                         </div>
 
@@ -1052,6 +1020,26 @@
 </div>
 
 @code {
+    private IEnumerable<OpcionSelector> OpcionesTipoTurno => tiposTurno.Select(t => new OpcionSelector(t.Id.ToString(), t.Tipo, $"{t.DuracionMinutos} min"));
+    private IEnumerable<OpcionSelector> OpcionesConsultorios => consultorios.Select(c => new OpcionSelector(c.Id.ToString(), c.Tipo));
+    private void CerrarOtrosSelectores()
+    {
+        CerrarSelectores();
+        calendarioAbierto = false;
+    }
+    private async Task CambiarTipoTurno(string valor)
+    {
+        if (guardando) return;
+        modelo.TipoTurnoId = int.TryParse(valor, out var idSeleccionado) ? idSeleccionado : 0;
+        await CargarHorasDisponibles();
+    }
+    private async Task CambiarConsultorio(string valor)
+    {
+        if (guardando) return;
+        modelo.TipoConsultorioId = int.TryParse(valor, out var idSeleccionado) ? idSeleccionado : 0;
+        await CargarHorasDisponibles();
+    }
+
 
     private TurnoDTO modelo = new()
     {

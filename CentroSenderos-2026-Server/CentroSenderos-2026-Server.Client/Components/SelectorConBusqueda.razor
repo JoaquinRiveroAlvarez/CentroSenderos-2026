@@ -1,0 +1,171 @@
+@using System.Globalization
+@using System.Text
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<div @ref="raiz" class="selector-buscable" data-abierto="@(abierto ? "true" : "false")">
+    @if (MostrarEtiqueta)
+    {
+        <label class="selector-etiqueta" for="@Id">@Etiqueta</label>
+    }
+    <button id="@Id" type="button" class="selector-buscable-boton" disabled="@Disabled" aria-label="@Etiqueta"
+            aria-expanded="@(abierto ? "true" : "false")" aria-controls="@idMenu" data-valor="@(Multiple ? null : Valor)" @onclick="AlternarMenu">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <span class="selector-resumen">@Resumen</span>
+        @if (Multiple && Seleccionadas.Count > 0) { <span class="selector-cantidad">@Seleccionadas.Count</span> }
+        <i class="bi @(abierto ? "bi-chevron-up" : "bi-chevron-down") selector-chevron" aria-hidden="true"></i>
+    </button>
+    @if (abierto)
+    {
+        <div id="@idMenu" class="selector-buscable-menu">
+            <div class="selector-buscador">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input type="text" placeholder="@($"Buscar en {Etiqueta.ToLowerInvariant()}…")" aria-label="@($"Buscar en {Etiqueta}")"
+                       autocomplete="off" disabled="@Disabled" @bind="busqueda" @bind:event="oninput" />
+                @if (busqueda.Length > 0)
+                {
+                    <button type="button" aria-label="@($"Limpiar búsqueda de {Etiqueta}")" @onclick="() => busqueda = string.Empty"><i class="bi bi-x" aria-hidden="true"></i></button>
+                }
+            </div>
+            <div class="selector-opciones" role="group" aria-label="@($"Opciones de {Etiqueta}")">
+                @if (!Filtradas.Any())
+                {
+                    <p class="selector-vacio">No encontramos opciones para esa búsqueda.</p>
+                }
+                @foreach (var opcion in Filtradas)
+                {
+                    @if (Multiple)
+                    {
+                        <label @key="opcion.Valor" class="selector-opcion @(Seleccionadas.Contains(opcion.Valor) ? "activa" : "")">
+                            <input type="checkbox" value="@opcion.Valor" checked="@Seleccionadas.Contains(opcion.Valor)" disabled="@Disabled" @onchange="() => Alternar(opcion.Valor)" />
+                            <span>@opcion.Texto @if (!string.IsNullOrEmpty(opcion.Detalle)) { <small>@opcion.Detalle</small> }</span>
+                        </label>
+                    }
+                    else
+                    {
+                        <button @key="opcion.Valor" type="button" class="selector-opcion @(Valor == opcion.Valor ? "activa" : "")"
+                                data-valor="@opcion.Valor" disabled="@Disabled" aria-pressed="@(Valor == opcion.Valor ? "true" : "false")" @onclick="() => Elegir(opcion.Valor)">
+                            <span>@opcion.Texto @if (!string.IsNullOrEmpty(opcion.Detalle)) { <small>@opcion.Detalle</small> }</span>
+                            @if (Valor == opcion.Valor) { <i class="bi bi-check2" aria-hidden="true"></i> }
+                        </button>
+                    }
+                }
+            </div>
+            <footer class="selector-pie">
+                <button type="button" class="selector-limpiar" disabled="@Disabled" @onclick="Limpiar">@(Multiple ? "Limpiar selección" : "Quitar selección")</button>
+                <span>@(Multiple ? $"{Seleccionadas.Count} seleccionadas" : "Una sola opción")</span>
+                <button type="button" @onclick="() => Cerrar(true)">Cerrar</button>
+            </footer>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; } = $"selector-{Guid.NewGuid():N}";
+    [Parameter] public string Etiqueta { get; set; } = string.Empty;
+    [Parameter] public string Placeholder { get; set; } = "Todas las opciones";
+    [Parameter] public bool MostrarEtiqueta { get; set; } = true;
+    [Parameter] public bool Multiple { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public IEnumerable<OpcionSelector> Opciones { get; set; } = Array.Empty<OpcionSelector>();
+    [Parameter] public HashSet<string> Seleccionadas { get; set; } = new();
+    [Parameter] public EventCallback<HashSet<string>> SeleccionadasChanged { get; set; }
+    [Parameter] public string Valor { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValorChanged { get; set; }
+    [Parameter] public EventCallback AlAbrir { get; set; }
+    [Parameter] public int VersionLimpieza { get; set; }
+    private int ultimaLimpieza;
+    private string busqueda = string.Empty;
+    private bool abierto, enfocarBusqueda, eliminado;
+    private readonly string idMenu = $"opciones-{Guid.NewGuid():N}";
+    private ElementReference raiz;
+    private IJSObjectReference? modulo, control;
+    private DotNetObjectReference<SelectorConBusqueda>? referencia;
+    private IEnumerable<OpcionSelector> Filtradas => Opciones.Where(o => Normalizar($"{o.Texto} {o.Detalle}").Contains(Normalizar(busqueda.Trim())));
+    private string Resumen => Multiple
+        ? Seleccionadas.Count == 0 ? Placeholder : string.Join(", ", Opciones.Where(o => Seleccionadas.Contains(o.Valor)).Select(o => o.Texto))
+        : Opciones.FirstOrDefault(o => o.Valor == Valor) is { } opcion ? $"{opcion.Texto}{(string.IsNullOrEmpty(opcion.Detalle) ? "" : $" · {opcion.Detalle}")}" : Placeholder;
+
+    protected override void OnParametersSet()
+    {
+        if (ultimaLimpieza != VersionLimpieza)
+        {
+            ultimaLimpieza = VersionLimpieza;
+            busqueda = string.Empty;
+            abierto = false;
+        }
+        if (Disabled) abierto = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            modulo = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/SelectorConBusqueda.razor.js");
+            if (eliminado) { await modulo.DisposeAsync(); return; }
+            referencia = DotNetObjectReference.Create(this);
+            control = await modulo.InvokeAsync<IJSObjectReference>("registrar", raiz, referencia);
+        }
+        if (enfocarBusqueda && abierto && control is not null)
+        {
+            enfocarBusqueda = false;
+            await control.InvokeVoidAsync("enfocarBusqueda");
+        }
+    }
+
+    private async Task AlternarMenu()
+    {
+        if (Disabled) return;
+        abierto = !abierto;
+        enfocarBusqueda = abierto;
+        if (abierto) await AlAbrir.InvokeAsync();
+    }
+
+    private async Task Alternar(string valor)
+    {
+        if (Disabled) return;
+        var nuevas = new HashSet<string>(Seleccionadas, StringComparer.Ordinal);
+        if (!nuevas.Add(valor)) nuevas.Remove(valor);
+        await SeleccionadasChanged.InvokeAsync(nuevas);
+    }
+
+    private async Task Elegir(string valor)
+    {
+        if (Disabled) return;
+        await Cerrar(true);
+        if (Valor != valor) await ValorChanged.InvokeAsync(valor);
+    }
+
+    private async Task Limpiar()
+    {
+        if (Disabled) return;
+        busqueda = string.Empty;
+        if (Multiple) await SeleccionadasChanged.InvokeAsync(new());
+        else await Elegir(string.Empty);
+    }
+
+    [JSInvokable]
+    public async Task Cerrar(bool devolverFoco)
+    {
+        if (eliminado) return;
+        abierto = false;
+        enfocarBusqueda = false;
+        await InvokeAsync(StateHasChanged);
+        if (devolverFoco && control is not null) await control.InvokeVoidAsync("enfocarBoton");
+    }
+
+    private static string Normalizar(string valor) => new string(valor.Normalize(NormalizationForm.FormD)
+        .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark).ToArray()).ToLowerInvariant();
+
+    public async ValueTask DisposeAsync()
+    {
+        eliminado = true;
+        try
+        {
+            if (control is not null) { await control.InvokeVoidAsync("dispose"); await control.DisposeAsync(); }
+            if (modulo is not null) await modulo.DisposeAsync();
+        }
+        catch (JSDisconnectedException) { }
+        referencia?.Dispose();
+    }
+}

@@ -1,0 +1,29 @@
+.selector-buscable { position: relative; width: 100%; min-width: 0; }
+.selector-etiqueta { display: block; margin-bottom: 8px; color: #7b8571; font-size: 11px; font-weight: 600; }
+.selector-buscable-boton { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 43px; padding: 11px 12px; background: #fff; color: #68785a; border: 1px solid #dfe5d6; border-radius: 10px; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+.selector-buscable-boton[aria-expanded=true] { border-color: #9bae8b; background: #fcfdf9; }
+.selector-buscable-boton > .bi-search { color: #9aa68e; font-size: 13px; }
+.selector-resumen { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.selector-chevron { margin-left: auto; font-size: 10px; color: #9ca98e; }
+.selector-cantidad { padding: 2px 6px; border-radius: 6px; background: #edf3e5; color: #71875e; font-size: 10px; }
+.selector-buscable-menu { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 150; padding: 10px; border: 1px solid #e0e6d7; border-radius: 13px; background: #fffdfa; box-shadow: 0 12px 28px #43543819; }
+.selector-buscador { display: flex; align-items: center; gap: 8px; padding: 0 9px; margin-bottom: 8px; color: #9ba68e; border: 1px solid #e4e8dc; border-radius: 8px; background: #fafcf6; }
+.selector-buscador input { width: 100%; min-width: 0; padding: 10px 0; border: 0; outline: 0; background: transparent; color: #60734f; font: inherit; font-size: 11px; }
+.selector-buscador input::placeholder { color: #a3ad96; }
+.selector-buscador:focus-within { border-color: #a7b896; }
+.selector-buscador > i { font-size: 11px; }
+.selector-buscador button { border: 0; padding: 0; background: transparent; color: #9baa8b; cursor: pointer; }
+.selector-opciones { display: grid; gap: 3px; max-height: 210px; overflow-y: auto; overscroll-behavior: contain; }
+.selector-opcion { display: flex; align-items: center; gap: 9px; width: 100%; min-width: 0; box-sizing: border-box; padding: 10px; margin: 0; border: 0; border-radius: 8px; background: transparent; color: #7b856c; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+.selector-opcion > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.selector-opcion small { display: block; margin-top: 4px; font-size: 10px; color: #9da68e; }
+.selector-opcion input { width: 14px; height: 14px; margin: 0; flex-shrink: 0; accent-color: #748b5e; }
+.selector-opcion:hover, .selector-opcion.activa { background: #eff4e8; color: #62784e; }
+.selector-opcion > i { font-size: 13px; color: #738c5b; }
+.selector-vacio { margin: 12px 5px; color: #a1a791; font-size: 11px; line-height: 1.6; }
+.selector-pie { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 7px; padding: 10px 2px 0; margin-top: 8px; border-top: 1px solid #eceee4; }
+.selector-pie button { padding: 0; border: 0; background: transparent; color: #788d62; font: inherit; font-size: 10px; cursor: pointer; }
+.selector-pie > span { color: #a2ab95; font-size: 9px; }
+.selector-buscable button:focus-visible, .selector-opcion input:focus-visible { outline: 2px solid #93a67f; outline-offset: 2px; }
+.selector-buscable button:disabled, .selector-buscable input:disabled { opacity: .5; cursor: default; }
+@media (prefers-reduced-motion: no-preference) { .selector-buscable-menu { animation: abrir-selector .12s ease-out; } @keyframes abrir-selector { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } } }

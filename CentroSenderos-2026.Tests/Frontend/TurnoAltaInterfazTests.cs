@@ -230,11 +230,10 @@ public class TurnoAltaInterfazTests
 
             #region Tipo, consultorio, prestación y paciente
 
-            await pagina.Locator("#tipoTurno")
-                .SelectOptionAsync(tipo.Id.ToString());
-
-            await pagina.Locator("#consultorio")
-                .SelectOptionAsync(consultorioId.ToString());
+            await pagina.Locator("#tipoTurno").ClickAsync();
+            await pagina.Locator("#tipoTurno").Locator("xpath=..").Locator($".selector-opciones button[data-valor='{tipo.Id}']").ClickAsync();
+            await pagina.Locator("#consultorio").ClickAsync();
+            await pagina.Locator("#consultorio").Locator("xpath=..").Locator($".selector-opciones button[data-valor='{consultorioId}']").ClickAsync();
 
             var tarjetaProfesional = pagina.Locator(
                 ".profesional-prestacion-card");
