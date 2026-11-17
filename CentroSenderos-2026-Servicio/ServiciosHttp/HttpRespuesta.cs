@@ -39,6 +39,9 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
 
             var statuscode = HttpResponseMessage.StatusCode;
 
+            if ((int)statuscode >= 500)
+                return "El servidor no pudo completar la solicitud. Intentá nuevamente. Si continúa, avisá a administración.";
+
             switch (statuscode)
             {
                 case HttpStatusCode.NotFound:
