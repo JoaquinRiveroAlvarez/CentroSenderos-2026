@@ -136,6 +136,9 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
             {
                 trimmed = trimmed.Substring(1, trimmed.Length - 2);
             }
+            // Una página de error o de inicio de sesión no es un mensaje de la API.
+            // Se utiliza el mensaje correspondiente al estado HTTP, sin mostrar HTML.
+            if (trimmed.StartsWith("<", StringComparison.Ordinal)) return null;
             return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
         }
 
