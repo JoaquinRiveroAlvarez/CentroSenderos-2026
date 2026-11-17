@@ -281,10 +281,10 @@ public class TurnoAltaInterfazTests
 
             #region Horario y guardado
 
-            var horario = pagina.Locator(".horario-opcion")
+            var horario = pagina.Locator(".horario-celda:not(.ocupado)")
                 .Filter(new()
                 {
-                    HasTextRegex = new Regex(@"^\s*08:00\s*$")
+                    HasTextRegex = new Regex(@"^\s*08:00")
                 });
 
             await Assertions.Expect(horario)
@@ -293,7 +293,7 @@ public class TurnoAltaInterfazTests
             await horario.ClickAsync();
 
             await Assertions.Expect(
-                    pagina.Locator(".horario-opcion.seleccionado"))
+                    pagina.Locator(".horario-celda.elegido"))
                 .ToContainTextAsync("08:00");
 
             await pagina.Locator(".turno-form .btn-guardar")
@@ -432,10 +432,10 @@ public class TurnoAltaInterfazTests
             await Assertions.Expect(formularioEdicion)
                 .ToBeVisibleAsync(new() { Timeout = 30000 });
 
-            var nuevoHorario = pagina.Locator(".horario-opcion")
+            var nuevoHorario = pagina.Locator(".horario-celda:not(.ocupado)")
                 .Filter(new()
                 {
-                    HasTextRegex = new Regex(@"^\s*08:30\s*$")
+                    HasTextRegex = new Regex(@"^\s*08:30")
                 });
 
             await Assertions.Expect(nuevoHorario)
@@ -449,7 +449,7 @@ public class TurnoAltaInterfazTests
                 {
                     await Assertions.Expect(
                             pagina.Locator(
-                                ".horario-opcion.seleccionado"))
+                                ".horario-celda.elegido"))
                         .ToContainTextAsync(
                             "08:30",
                             new() { Timeout = 2000 });

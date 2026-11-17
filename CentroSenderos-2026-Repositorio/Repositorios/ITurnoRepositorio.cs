@@ -20,6 +20,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         //     int? turnoIdExcluir = null
         // );
         Task<List<TimeOnly>> HorariosDisponibles(DateOnly fecha, int tipoTurnoId, int consultorioId, List<int>? profesionalIds = null, List<int>? pacienteIds = null, int? turnoIdExcluir = null, int intervaloMinutos = 5);
+        Task<List<HorarioTurnoDTO>> HorariosConOcupacion(DateOnly fecha, int tipoTurnoId, int consultorioId, List<int>? profesionalIds = null, List<int>? pacienteIds = null, int? turnoIdExcluir = null, int intervaloMinutos = 5, TimeOnly? hora = null);
         Task<bool> EsHorarioDisponible(DateOnly fecha, TimeOnly hora, int tipoTurnoId, int consultorioId, List<int>? profesionalIds = null, List<int>? pacienteIds = null, int? turnoIdExcluir = null);
         Task<bool> DeleteTurno(int id);
         Task<bool> CambiarEstadoTurno(int id,CentroSenderos_2026_Shared.Enum.EnumEstadoTurno estado);

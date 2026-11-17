@@ -1,0 +1,61 @@
+.disponibilidad { container-type: inline-size; }
+.disponibilidad-leyenda { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; color: #7b8472; font-size: 11px; }
+.disponibilidad-leyenda > span { display: inline-flex; align-items: center; gap: 6px; }
+.punto { width: 7px; height: 7px; border-radius: 50%; background: #c5d0ba; }
+.punto.ocupado { background: #c58c80; }
+.punto.elegido { background: #556f4f; }
+.disponibilidad-grilla { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px; }
+.horario-celda { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 66px; padding: 10px 4px; background: #fff; border: 1px solid #dfe5d8; border-radius: 11px; font: inherit; color: #56664d; cursor: pointer; transition: border-color .15s, background .15s; }
+.horario-hora { font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.horario-estado { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #8b9681; }
+.horario-estado i { font-size: 9px; }
+.horario-celda.libre:hover { background: #f1f5ed; border-color: #9eaf92; }
+.horario-celda.ocupado { background: #fcf5f2; border-color: #ead5ce; color: #aa6d5f; }
+.horario-celda.ocupado .horario-estado { color: #bc8b7e; }
+.horario-celda.ocupado:hover, .horario-celda.ocupado.consultado { background: #f8ece6; border-color: #bd8b7a; }
+.horario-celda.elegido { background: #556f4f; border-color: #556f4f; color: #fff; box-shadow: 0 3px 8px #556f4f1a; }
+.horario-celda.elegido .horario-estado { color: #e3ebdd; }
+.horario-celda:focus-visible, .disponibilidad button:focus-visible { outline: 2px solid #73866b; outline-offset: 3px; }
+.disponibilidad button:disabled { opacity: .45; cursor: default; }
+.disponibilidad-paginas { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 16px; }
+.disponibilidad-paginas button { display: grid; place-items: center; width: 30px; height: 30px; background: #fffdfa; color: #728169; border: 1px solid #e4e5da; border-radius: 9px; cursor: pointer; }
+.disponibilidad-paginas > span { color: #7e8774; font-size: 11px; font-variant-numeric: tabular-nums; }
+.disponibilidad-paginas small { margin-left: 10px; color: #a1a68f; font-size: 10px; }
+.disponibilidad-ayuda { display: flex; align-items: flex-start; gap: 7px; margin: 18px 0 0; color: #969b8c; font-size: 11px; line-height: 1.6; }
+.conflicto-panel { margin-top: 20px; border: 1px solid #e8d5cc; border-radius: 14px; background: #fdf9f6; overflow: hidden; }
+.conflicto-panel header { display: flex; align-items: flex-start; gap: 10px; padding: 17px 16px 13px; }
+.conflicto-icono { display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0; border-radius: 10px; color: #af7866; background: #f5e8df; font-size: 15px; }
+.conflicto-panel h3 { margin: 0 0 5px; color: #966652; font-size: 13px; font-weight: 650; }
+.conflicto-panel header p { margin: 0; color: #ac9788; font-size: 11px; line-height: 1.5; }
+.conflicto-cerrar { flex-shrink: 0; margin-left: auto; padding: 2px; background: none; border: 0; color: #ad9587; cursor: pointer; font-size: 12px; }
+.conflicto-turno { margin: 0 16px; padding: 14px 0; border-top: 1px solid #f0e4db; }
+.conflicto-rango { display: flex; align-items: center; gap: 6px; margin-bottom: 13px; color: #9b806b; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.conflicto-turno dl { display: grid; gap: 9px; margin: 0; }
+.conflicto-turno dl > div { display: grid; grid-template-columns: 95px minmax(0, 1fr); gap: 9px; font-size: 11px; }
+.conflicto-turno dt { display: flex; gap: 7px; font-weight: 400; color: #ad9c8d; }
+.conflicto-turno dd { margin: 0; color: #6d6b5b; overflow-wrap: anywhere; line-height: 1.5; }
+.conflicto-motivos { margin: 13px 0 0; color: #ac7864; font-size: 10px; }
+.conflicto-nota { margin: 0; padding: 12px 16px; border-top: 1px solid #f0e4db; color: #aa9787; font-size: 10px; line-height: 1.6; }
+@container (max-width: 520px) { .disponibilidad-grilla { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@container (max-width: 280px) { .disponibilidad-grilla { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .horario-celda { transition: none; } }
+
+.hora-personalizada { margin-bottom: 18px; }
+.hora-personalizada > label { display: block; margin-bottom: 9px; color: #637457; font-size: 12px; font-weight: 600; }
+.hora-personalizada-entrada { display: flex; align-items: center; gap: 10px; border: 1px solid #dce3d4; border-radius: 11px; padding: 0 13px; background: #fff; color: #8a987f; }
+.hora-personalizada-entrada:focus-within { border-color: #91a482; box-shadow: 0 0 0 3px #556f4f0d; }
+.hora-personalizada-entrada input { width: 100%; min-width: 0; padding: 12px 0; background: transparent; border: 0; outline: none; color: #52664a; font: inherit; font-size: 15px; font-variant-numeric: tabular-nums; letter-spacing: .03em; }
+.hora-personalizada-entrada input::placeholder { color: #a1ab96; font-size: 13px; }
+.hora-personalizada > p { margin: 8px 0 0; color: #929b85; font-size: 10px; line-height: 1.6; }
+.hora-personalizada-estado { margin-top: 8px; color: #849577; font-size: 11px; }
+.hora-personalizada-estado:empty { display: none; }
+.hora-personalizada-estado i { margin-right: 6px; }
+.hora-personalizada-error { color: #a46e5b; }
+.hora-personalizada-resultado { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; width: 100%; padding: 14px; margin: 0 0 18px; background: #f2f6ed; border: 1px solid #d7e3cc; border-radius: 12px; color: #617c50; text-align: left; cursor: pointer; font: inherit; }
+.hora-personalizada-hora { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.hora-personalizada-detalle { flex: 1; font-size: 11px; line-height: 1.5; }
+.hora-personalizada-accion { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; }
+.hora-personalizada-resultado.elegido { background: #556f4f; border-color: #556f4f; color: white; }
+.hora-personalizada-resultado.ocupado { background: #fcf4ef; border-color: #e8d0c4; color: #aa7763; }
+.sugerencias-titulo { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px; margin: 0 0 12px; color: #7f8c73; font-size: 11px; font-weight: 600; }
+.sugerencias-titulo > span { color: #a1aa94; font-size: 10px; font-weight: 400; }

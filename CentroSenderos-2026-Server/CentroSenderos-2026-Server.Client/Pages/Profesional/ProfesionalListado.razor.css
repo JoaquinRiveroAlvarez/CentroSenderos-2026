@@ -754,3 +754,6 @@ button:focus-visible {
 }
 
 /* #endregion */
+
+.filter-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; color: #607553; background: #f1f5ec; border: 1px solid #dce5d3; border-radius: 10px; font-size: 12px; }
+.filter-button:hover { background: #e7efdf; border-color: #acbd9a; }

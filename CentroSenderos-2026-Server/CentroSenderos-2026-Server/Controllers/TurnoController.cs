@@ -219,6 +219,54 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
+        [HttpGet("Horarios")]
+        public async Task<ActionResult<List<HorarioTurnoDTO>>> GetHorarios(
+            DateOnly fecha,
+            int tipoTurnoId,
+            int consultorioId,
+            [FromQuery] List<int>? profesionalIds = null,
+            [FromQuery] List<int>? pacienteIds = null,
+            int? turnoIdExcluir = null,
+            [FromQuery] int intervaloMinutos = 5,
+            [FromQuery] TimeOnly? hora = null
+        )
+        {
+            try
+            {
+                var horarios =
+                    await repositorio.HorariosConOcupacion(
+                        fecha,
+                        tipoTurnoId,
+                        consultorioId,
+                        profesionalIds,
+                        pacienteIds,
+                        turnoIdExcluir,
+                        intervaloMinutos,
+                        hora
+                    );
+
+                return Ok(horarios);
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(
+                    new RespuestaDTO
+                    {
+                        mensaje = ex.Message
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return ErrorInterno(
+                    ex,
+                    "consultar los horarios disponibles",
+                    "No pudimos consultar los horarios disponibles. " +
+                    "Intentá nuevamente."
+                );
+            }
+        }
+
         [HttpGet("VerificarDisponibilidad")]
         public async Task<ActionResult<bool>> VerificarDisponibilidad(
             DateOnly fecha,

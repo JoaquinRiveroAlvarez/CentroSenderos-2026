@@ -3053,3 +3053,13 @@
 }
 
 /* #endregion */
+
+.turno-tarjeta-horario .turno-hora-destacada,
+.turno-grilla-cabecera .turno-hora-destacada,
+.detalle-nuevo-contexto-item .turno-hora-destacada { display: inline-flex; align-items: center; gap: 6px; width: fit-content; padding: 5px 8px; color: #5e7180; background: #eff3f5; border: 1px solid #d9e2e7; border-radius: 8px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.turno-hora-destacada i { font-size: .85em; opacity: .7; }
+.filtros-acciones { display: grid; gap: 8px; padding-top: 16px; margin-top: 6px; border-top: 1px solid #e9e8df; }
+.filtros-acciones button { display: flex; justify-content: center; align-items: center; gap: 7px; width: 100%; padding: 10px 12px; margin: 0; border: 1px solid #e1e4d8; border-radius: 9px; color: #7c896f; background: #fafbf7; font: inherit; font-size: 11px; cursor: pointer; }
+.filtros-acciones .btn-limpiar-filtros { background: #f0f4ea; color: #607553; border-color: #dce5d1; }
+.filtros-acciones button:hover { border-color: #acbc9d; background: #eaf0e1; }
+.filtros-acciones p { margin: 2px 0 0; color: #939b88; font-size: 10px; text-align: center; line-height: 1.6; }

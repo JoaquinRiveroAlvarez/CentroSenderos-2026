@@ -24,7 +24,7 @@ namespace CentroSenderos_2026_Shared.DTO
         public required string Cuit { get; set; } = string.Empty;
 
 
-        [Required(ErrorMessage = "Ingresá la Matrícula Profesional.")]
+
         [MaxLength(30,ErrorMessage = "La Matrícula Profesional no puede superar los 30 caracteres.")]
         public required string MP { get; set; } = string.Empty;
 
@@ -38,6 +38,8 @@ namespace CentroSenderos_2026_Shared.DTO
         [MaxLength(30,ErrorMessage = "El teléfono no puede superar los 30 caracteres.")]
         [RegularExpression(@"^[0-9+\-\s()]+$", ErrorMessage = "El teléfono solo puede contener números, espacios, +, -, y paréntesis.")]
         public required string Telefono { get; set; } = string.Empty;
+
+        public Dictionary<int, string> MatriculasPorPrestacion { get; set; } = new();
 
         public List<int> TipoPrestacionIds { get; set; } = new();
         public List<string> TipoPrestacionNombres { get; set; } = new();

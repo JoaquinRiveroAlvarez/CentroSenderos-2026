@@ -1300,3 +1300,5 @@ button:focus-visible {
 }
 
 /* #endregion */
+
+.prestacion-matricula-ayuda { display: flex; align-items: center; gap: 6px; margin-top: 10px; color: #8a957d; font-size: 11px; }
