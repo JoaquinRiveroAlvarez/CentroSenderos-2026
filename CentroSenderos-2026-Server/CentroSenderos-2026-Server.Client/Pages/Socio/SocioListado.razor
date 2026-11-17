@@ -1,4 +1,4 @@
-﻿@page "/socio"
+@page "/socio"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
@@ -23,15 +23,7 @@
         </div>
 
         <div class="header-actions">
-            <div class="search-box">
-                <i class="bi bi-search"></i>
 
-                <input type="text"
-                       placeholder="Buscar socio..."
-                       aria-label="Buscar socio"
-                       @bind="textoBusqueda"
-                       @bind:event="oninput" />
-            </div>
 
             <button type="button"
                     class="btn-nuevo"
@@ -41,6 +33,10 @@
                 <span>Nuevo socio</span>
             </button>
         </div>
+    </div>
+
+    <div class="catalogo-herramientas">
+        <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar socios" Placeholder="Buscar por profesional, área u observación..." />
     </div>
 
     @if (cargando)
@@ -1051,7 +1047,7 @@
     private static bool ContieneTexto(string? valor, string busqueda)
     {
         return !string.IsNullOrWhiteSpace(valor) &&
-            valor.Contains(busqueda, StringComparison.OrdinalIgnoreCase);
+            FiltrosEntidades.ContieneTexto(valor, busqueda);
     }
 
     private static string ObtenerIniciales(string? nombre)

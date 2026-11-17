@@ -1139,3 +1139,13 @@
 }
 
 /* #endregion */
+
+/* #region Buscador alineado con el listado */
+
+.catalogo-herramientas {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto 20px;
+}
+
+/* #endregion */

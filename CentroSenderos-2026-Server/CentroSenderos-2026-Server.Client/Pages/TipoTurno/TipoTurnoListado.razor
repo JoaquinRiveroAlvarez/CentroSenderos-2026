@@ -29,8 +29,6 @@
 
         <div class="header-actions">
 
-            <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar tipo de turno" Placeholder="Buscar tipo de turno..." />
-
             <button type="button"
                     class="btn-nuevo"
                     @onclick="AbrirCrear">
@@ -40,6 +38,10 @@
 
         </div>
 
+    </div>
+
+    <div class="catalogo-herramientas">
+        <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar tipo de turno" Placeholder="Buscar tipo de turno..." />
     </div>
 
     @if (cargando)

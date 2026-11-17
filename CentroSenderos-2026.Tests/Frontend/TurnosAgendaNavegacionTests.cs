@@ -161,8 +161,8 @@ public class TurnosAgendaNavegacionTests
 
         #region Confirmación de interactividad
 
-        var filtroTipos = pagina.Locator(".filtro-bloque").Nth(1);
-        var opcionesTipos = filtroTipos.Locator(".filtro-opciones");
+        var filtroTipos = pagina.Locator(".filtros-campos .selector-buscable").Nth(1);
+        var opcionesTipos = filtroTipos.Locator(".selector-opciones");
 
         for (var intento = 0; intento < 5; intento++)
         {
@@ -171,7 +171,7 @@ public class TurnosAgendaNavegacionTests
                 break;
             }
 
-            await filtroTipos.Locator(".filtro-titulo").ClickAsync();
+            await filtroTipos.Locator(".selector-buscable-boton").ClickAsync();
 
             try
             {

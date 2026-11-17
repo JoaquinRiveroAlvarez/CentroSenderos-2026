@@ -28,9 +28,17 @@ No requiere migraciones. Se agregan metadatos a las respuestas de los listados: 
 1. En crear y editar, abrir cada desplegable, buscar sin tildes, seleccionar, quitar y volver a seleccionar. Verificar las validaciones obligatorias y los botones +.
 2. En Pacientes, combinar edad y documento; probar un paciente sin documentos y otro sin fecha de nacimiento.
 3. En Profesionales, combinar área, prestación y rol; seleccionar más de una opción del mismo grupo y limpiar.
-4. En Turnos, combinar área, prestación y estado en las vistas diaria y semanal. Verificar que «Limpiar filtros» destilda y que «Seleccionar todos» restaura los grupos.
+4. En Turnos, combinar área, prestación y estado en las vistas diaria y semanal. Verificar que «Limpiar filtros» vuelve a «Todos» y cierra los menús. Cada grupo permite restablecerse con «Ver todos».
 5. Abrir un registro desde un listado filtrado y volver. Comprobar que se conservan los nuevos filtros.
 6. En cada tabla tipo, buscar por nombre o descripción sin tildes y limpiar. En Prestaciones, combinar varias áreas con búsqueda por código y comprobar el área en crear/editar.
 7. Repetir la selección y limpieza en móvil. Los menús tienen altura limitada y desplazamiento interno.
 
 Las pruebas unitarias nuevas cubren los límites de edad y cumpleaños, los documentos activos mediante SQLite, la combinación de filtros de pacientes, la correspondencia de área/prestación del turno y la búsqueda sin tildes. Se mantienen las pruebas de regresión de documentos, áreas y sesión individual.
+
+## Presentación unificada de Administración y Turnos
+
+Los buscadores de Obras Sociales, Prestaciones, Diagnósticos, Tipos de Turno, Socios y Consultorios se ubican debajo del encabezado, como los otros catálogos. Socios utiliza también la barra compartida de búsqueda y limpieza.
+
+En Turnos, los siete filtros utilizan el mismo selector con búsqueda y arrancan cerrados. «Todos» es un estado explícito sin restricciones: no hace falta tildar cada profesional o paciente. Al marcar opciones, se muestran solo las seleccionadas. «Ver todos» restablece un grupo y «Limpiar filtros» restablece todos. Marcar todas las opciones también equivale a «Todos». Los enlaces anteriores que guardaban la selección completa se reconocen como ese mismo estado.
+
+La barra lateral permite que los menús se desplieguen sin recortes. Se conserva la selección cuando se recargan los turnos después de una operación.

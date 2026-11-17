@@ -31,8 +31,6 @@
 
         <div class="header-actions">
 
-            <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar por nombre o descripción" Placeholder="Buscar por nombre o descripción..." />
-
             <button type="button"
                     class="btn-nueva"
                     @onclick="AbrirCrear">
@@ -44,6 +42,10 @@
 
         </div>
 
+    </div>
+
+    <div class="catalogo-herramientas">
+        <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar por nombre o descripción" Placeholder="Buscar por nombre o descripción..." />
     </div>
 
     @if (cargando)
