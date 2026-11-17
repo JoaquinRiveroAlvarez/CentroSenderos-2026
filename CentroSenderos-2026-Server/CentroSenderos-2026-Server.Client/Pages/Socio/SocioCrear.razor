@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Presentacion
 @using CentroSenderos_2026_Shared.Enum
 @inject IHttpServicio Http
 @inject NavigationManager Nav
@@ -104,11 +105,18 @@
                             @foreach (var profesional in profesionales)
                             {
                                 <option value="@profesional.Id">
-                                    @profesional.Nombre (@profesional.Area)
+                                    @profesional.Nombre (@PresentacionProfesional.ObtenerResumenAreas(profesional.Areas))
                                 </option>
                             }
 
                         </InputSelect>
+                        @if (modelo.ProfesionalId is > 0)
+                        {
+                            <div class="socio-areas-profesional">
+                                <AreasProfesional Areas="AreasSeleccionadas" />
+                            </div>
+                        }
+
 
                         <ValidationMessage For="@(() => modelo.ProfesionalId)" />
                     </div>
@@ -173,6 +181,11 @@
 </div>
 
 @code {
+    private IEnumerable<string> AreasSeleccionadas =>
+        profesionales.FirstOrDefault(profesional => profesional.Id == modelo.ProfesionalId)
+            ?.Areas.AsEnumerable() ?? Enumerable.Empty<string>();
+
+
     private SocioDTO modelo = new()
     {
         ProfesionalId = null,

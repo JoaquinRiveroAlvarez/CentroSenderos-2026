@@ -12,7 +12,7 @@ Las prestaciones anteriores sin área no se clasifican automáticamente. Crear/E
 
 La colección `Areas` contiene exclusivamente áreas de las prestaciones vinculadas; el servidor ignora un área manual enviada por el cliente. Las consultas por ID, CUIT y listado calculan la colección en base a la relación, por lo que renombrar un área o reasignar una prestación se refleja sin volver a editar los profesionales.
 
-Se mantiene temporalmente `Profesionales.Area` en la BD. Al guardar se conserva allí una primera área derivada para compatibilidad; si las prestaciones siguen sin clasificar se preserva el dato anterior. El DTO conserva `Area` como resumen de las áreas calculadas para consumidores que todavía muestran ese texto (por ejemplo Turnos y Socios); si aún no hay áreas calculadas, conserva el texto legado. Ese texto no se usa para las etiquetas ni para el filtro nuevo de Profesionales. La retirada definitiva del campo pertenece a una entrega posterior.
+Se mantiene temporalmente `Profesionales.Area` en la BD. Al guardar se conserva allí una primera área derivada para compatibilidad; si las prestaciones siguen sin clasificar se preserva el dato anterior. El DTO conserva `Area` como resumen de las áreas calculadas para clientes anteriores; las pantallas actuales de Turnos y Socios ya usan la colección `Areas`; si aún no hay áreas calculadas, conserva el texto legado. Ese texto no se usa para las etiquetas ni para el filtro nuevo de Profesionales. La retirada definitiva del campo pertenece a una entrega posterior.
 
 ## Verificación
 

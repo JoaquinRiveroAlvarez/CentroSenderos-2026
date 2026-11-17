@@ -11,11 +11,11 @@ La migración es `20261117170152_RelacionOpcionalPrestacionArea`. Su `Up` solo a
 | Parte | Uso actual y trabajo pendiente |
 |---|---|
 | Entidad y DTO de Profesional | `Area` sigue siendo un texto obligatorio. Se conserva durante la transición. |
-| `ProfesionalRepositorio` | Lee, ordena y valida el área del profesional; al cambiar de etapa deberá obtener áreas desde sus prestaciones. |
+| `ProfesionalRepositorio` | Obtiene las áreas desde las prestaciones y conserva temporalmente el campo legado para compatibilidad. |
 | `TipoAreaRepositorio` | Renombra el texto legado y bloquea bajas de áreas usadas; ahora también protege prestaciones vinculadas. |
-| Crear, Editar, Detalle y Listado de Profesionales | Selector, búsqueda, filtros y ordenamiento por el área actual. No se cambian en esta etapa. |
-| Crear y Editar Turno | Muestran el área en los selectores y resúmenes de profesionales. No se cambian en esta etapa. |
-| Crear, Editar y Listado de Socios | Muestran o consultan el área del profesional asociado. Deben contemplarse al adaptar las pantallas. |
+| Crear, Editar, Detalle y Listado de Profesionales | Áreas automáticas en los formularios; listado, detalle, búsqueda y filtros usan la colección derivada. |
+| Crear y Editar Turno | Muestran las áreas derivadas en opciones, tarjetas y resúmenes; la búsqueda admite áreas y prestaciones. |
+| Crear, Editar y Listado de Socios | Usan las áreas derivadas del profesional asociado; Caja se presenta sin áreas. |
 | Prestaciones y alta rápida | Administración ya permite seleccionar un área activa; el alta rápida también permite seleccionar o crear un área. |
 | Reportes y liquidaciones | La búsqueda de referencias directas a `.Area` no encontró usos adicionales aquí. Se deberán comprobar los consumidores indirectos del DTO al cambiar su contrato. |
 
@@ -43,7 +43,7 @@ Pruebas con SQLite en memoria para la relación opcional, las altas y ediciones 
 ## Etapas siguientes
 
 2. Administración ya incluye selección de área al crear y editar prestaciones, y muestra las que faltan clasificar. Completar las asignaciones desde ahí. El alta rápida ya permite seleccionar o crear el área. Resolver los conflictos, incluyendo prestaciones inactivas o borradas antes de exigir `NOT NULL`.
-3. Profesionales ya obtiene áreas desde las prestaciones en formularios, listado, detalle y filtros; el DTO mantiene un resumen compatible para Turnos y Socios. Se conserva el dato legado para prestaciones sin clasificar. Ver `profesionales-areas-derivadas.md`. Falta terminar la revisión de los consumidores antes de retirar ese campo.
+3. Profesionales ya obtiene áreas desde las prestaciones en formularios, listado, detalle y filtros; el DTO mantiene un resumen compatible para Turnos y Socios. Se conserva el dato legado para prestaciones sin clasificar. Ver `profesionales-areas-derivadas.md`. Turnos y Socios ya muestran y buscan sobre la colección de áreas; no queda uso directo de `.Area` en las páginas. Ver `areas-turnos-socios.md`. Falta completar la clasificación y revisar los consumidores externos antes de retirar ese campo.
 4. Cuando todas las prestaciones tengan área y los flujos estén verificados, hacer obligatorio `TipoAreaId` y retirar la selección independiente del profesional.
 5. Eliminar `Profesionales.Area` en una entrega posterior, después de comprobar que ya no tenga consumidores y de preservar el dato legado.
 

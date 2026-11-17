@@ -1,4 +1,4 @@
-/* CSS for SocioEditar component */
+﻿/* CSS for SocioEditar component */
 .socio-form-page {
     width: 100%;
     padding: 34px 36px 40px;
@@ -639,3 +639,11 @@
         width: 100%;
     }
 }
+/* #region Áreas del profesional seleccionado */
+
+.socio-areas-profesional {
+    margin-top: 8px;
+    min-width: 0;
+}
+
+/* #endregion */

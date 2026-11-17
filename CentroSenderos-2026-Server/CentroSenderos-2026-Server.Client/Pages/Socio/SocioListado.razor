@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Presentacion
 @using CentroSenderos_2026_Shared.Enum
 @inject IHttpServicio Http
 @inject NavigationManager Nav
@@ -123,7 +124,12 @@
                             </div>
 
                             <div class="socio-nombre">
-                                @NombreSocio(item)
+                                <span>@NombreSocio(item)</span>
+                                @if (!item.EsCaja)
+                                {
+                                    <AreasProfesional Areas="ObtenerAreasSocio(item)"
+                                                       TextoVacio="@(profesionalesCargados ? "Sin área asignada" : "Áreas no disponibles")" />
+                                }
                             </div>
                         </div>
 
@@ -223,11 +229,18 @@
                             @foreach (var prof in profesionales)
                             {
                                 <option value="@prof.Id">
-                                    @prof.Nombre (@prof.Area)
+                                    @prof.Nombre (@PresentacionProfesional.ObtenerResumenAreas(prof.Areas))
                                 </option>
                             }
 
                         </InputSelect>
+                        @if (modelo.ProfesionalId is > 0)
+                        {
+                            <div class="socio-areas-profesional">
+                                <AreasProfesional Areas="AreasSeleccionadas" />
+                            </div>
+                        }
+
 
                         <ValidationMessage For="@(() => modelo.ProfesionalId)" />
                     </div>
@@ -337,9 +350,9 @@
                         <div class="detail-profesional-text">
                             <strong>@ObtenerNombreProfesional()</strong>
 
-                            @if (!string.IsNullOrWhiteSpace(ObtenerAreaProfesional()))
+                            @if (!modelo.EsCaja)
                             {
-                                <span>@ObtenerAreaProfesional()</span>
+                                <AreasProfesional Areas="AreasSeleccionadas" />
                             }
                         </div>
                     </div>
@@ -467,11 +480,18 @@
                                 @foreach (var prof in profesionales)
                                 {
                                     <option value="@prof.Id">
-                                        @prof.Nombre (@prof.Area)
+                                        @prof.Nombre (@PresentacionProfesional.ObtenerResumenAreas(prof.Areas))
                                     </option>
                                 }
 
                             </InputSelect>
+                            @if (modelo.ProfesionalId is > 0)
+                            {
+                                <div class="socio-areas-profesional">
+                                    <AreasProfesional Areas="AreasSeleccionadas" />
+                                </div>
+                            }
+
 
                             <ValidationMessage For="@(() => modelo.ProfesionalId)" />
                         </div>
@@ -589,6 +609,19 @@
 }
 
 @code {
+    private IEnumerable<string> ObtenerAreasSocio(SocioListadoDTO socio)
+    {
+        if (socio.EsCaja)
+            return Enumerable.Empty<string>();
+
+        return profesionales.FirstOrDefault(profesional => profesional.Id == socio.ProfesionalId)
+            ?.Areas.AsEnumerable() ?? Enumerable.Empty<string>();
+    }
+
+    private IEnumerable<string> AreasSeleccionadas =>
+        ObtenerProfesionalSeleccionado()?.Areas.AsEnumerable() ?? Enumerable.Empty<string>();
+
+
     private enum ModalSocio
     {
         Ninguno,
@@ -620,13 +653,14 @@
             ? lista
             : lista.Where(item =>
                 ContieneTexto(NombreSocio(item), textoBusqueda.Trim()) ||
-                ContieneTexto(item.Observacion, textoBusqueda.Trim()));
+                ContieneTexto(item.Observacion, textoBusqueda.Trim()) ||
+                ObtenerAreasSocio(item).Any(area => ContieneTexto(area, textoBusqueda.Trim())));
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            await Cargar();
+            await Task.WhenAll(Cargar(), CargarProfesionales());
         }
         finally
         {
@@ -992,13 +1026,6 @@
         return string.IsNullOrWhiteSpace(modelo.Profesional)
             ? "Sin profesional"
             : modelo.Profesional;
-    }
-
-    private string ObtenerAreaProfesional()
-    {
-        return modelo.EsCaja
-            ? string.Empty
-            : ObtenerProfesionalSeleccionado()?.Area ?? string.Empty;
     }
 
     private static SocioDTO CrearModeloVacio()

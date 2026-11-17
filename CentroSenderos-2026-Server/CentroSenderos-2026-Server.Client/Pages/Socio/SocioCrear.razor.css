@@ -1,4 +1,4 @@
-/* #region Página */
+﻿/* #region Página */
 
 .socio-form-page {
     width: 100%;
@@ -444,6 +444,15 @@
     .btn-guardar {
         width: 100%;
     }
+}
+
+/* #endregion */
+
+/* #region Áreas del profesional seleccionado */
+
+.socio-areas-profesional {
+    margin-top: 8px;
+    min-width: 0;
 }
 
 /* #endregion */

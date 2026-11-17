@@ -1,7 +1,8 @@
-@page "/turnos/crear"
+﻿@page "/turnos/crear"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Presentacion
 @using CentroSenderos_2026_Shared.Enum
 @using CentroSenderos_2026_Shared.Recurrencias
 @using CentroSenderos_2026_Shared.Reglas
@@ -197,6 +198,7 @@
                                                    class="buscador-selector-input"
                                                    placeholder="Buscar profesional..."
                                                    autocomplete="off"
+                                                   aria-label="Buscar profesional por nombre, área o prestación"
                                                    @bind="busquedaProfesional"
                                                    @bind:event="oninput" />
 
@@ -225,9 +227,10 @@
                                                                 : "selector-desplegable-opcion")"
                                                             @onclick="() => AlternarProfesional(profesional.Id)">
 
-                                                        <span>
-                                                            @profesional.Nombre
-                                                        </span>
+                                                        <div class="profesional-opcion-info">
+                                                            <span>@profesional.Nombre</span>
+                                                            <AreasProfesional Areas="profesional.Areas" />
+                                                        </div>
 
                                                         @if (estaSeleccionado)
                                                         {
@@ -277,12 +280,7 @@
                                                                 @profesional.Nombre
                                                             </strong>
 
-                                                            @if (!string.IsNullOrWhiteSpace(profesional.Area))
-                                                            {
-                                                                <span>
-                                                                    @profesional.Area
-                                                                </span>
-                                                            }
+                                                            <AreasProfesional Areas="profesional.Areas" />
 
                                                         </div>
 
@@ -885,11 +883,9 @@
                                         <div class="resumen-persona">
                                             <strong>@profesional.Nombre</strong>
 
-                                            <span class="resumen-persona-secundario">
-                                                @(string.IsNullOrWhiteSpace(profesional.Area)
-                                                    ? "Sin área registrada"
-                                                    : profesional.Area)
-                                            </span>
+                                            <div class="resumen-persona-secundario">
+                                                <AreasProfesional Areas="profesional.Areas" />
+                                            </div>
 
                                             <div class="resumen-persona-detalle">
                                                 <span>Prestación</span>
@@ -1182,16 +1178,9 @@
     }
 
     private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
-        string.IsNullOrWhiteSpace(busquedaProfesional)
-            ? profesionales
-            : profesionales
-                .Where(profesional =>
-                    profesional.Nombre.Contains(
-                        busquedaProfesional,
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                )
-                .ToList();
+        profesionales.Where(profesional =>
+                PresentacionProfesional.CoincideBusqueda(profesional, busquedaProfesional))
+            .ToList();
 
     private List<PacienteResumenDTO> PacientesFiltrados =>
         string.IsNullOrWhiteSpace(busquedaPaciente)
