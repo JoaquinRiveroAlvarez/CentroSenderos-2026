@@ -64,15 +64,24 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
         public async Task<int> InsertarTipoDocumento(TipoDocumentoDTO dto)
         {
+            var nombre = dto.Tipo?.Trim() ?? string.Empty;
+            var descripcion = dto.Descripcion?.Trim() ?? string.Empty;
+            if (string.IsNullOrEmpty(nombre) || nombre.Length > 50 || descripcion.Length > 50)
+                throw new ApplicationException("Ingresá un nombre y una descripción de hasta 50 caracteres.");
+            if (await context.TipoDocumentos.AnyAsync(t => t.Tipo.ToLower() == nombre.ToLower()))
+                throw new ApplicationException("Ya existe un tipo de documento con ese nombre.");
+
             var entidad = new TipoDocumento
             {
-                Tipo = dto.Tipo,
-                Descripcion = dto.Descripcion!,
+                Tipo = nombre,
+                Descripcion = descripcion,
                 EstadoRegistro = EnumEstadoRegistro.activo
             };
 
             context.TipoDocumentos.Add(entidad);
-            await context.SaveChangesAsync();
+            try { await context.SaveChangesAsync(); }
+            catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("TipoDocumento_Tipo_UQ", StringComparison.OrdinalIgnoreCase) == true)
+            { throw new ApplicationException("Ya existe un tipo de documento con ese nombre."); }
 
             return entidad.Id;
         }

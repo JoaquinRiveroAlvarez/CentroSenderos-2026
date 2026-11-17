@@ -323,13 +323,16 @@
                         <label style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #8c8275; margin-bottom: 6px; font-weight: 600;">
                             Tipo de documento
                         </label>
-                        <InputSelect @bind-Value="nuevoDocumento.TipoDocumentoId" class="form-input" style="height: 52px; border-radius: 12px;">
+                        <div class="catalogo-selector">
+                            <InputSelect @bind-Value="nuevoDocumento.TipoDocumentoId" disabled="@(guardando || eliminando || subiendoDocumento || eliminandoDocumento)" class="form-input" style="height: 52px; border-radius: 12px;">
                             <option value="0">-- Seleccione tipo --</option>
                             @foreach (var tipo in tiposDocumentos)
                             {
                                 <option value="@tipo.Id">@tipo.Tipo</option>
                             }
                         </InputSelect>
+                            <button type="button" class="catalogo-agregar" aria-label="Crear tipo de documento" title="Crear tipo de documento" disabled="@(guardando || eliminando || subiendoDocumento || eliminandoDocumento)" @onclick="() => tipodocumentoModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                        </div>
                     </div>
 
                     <!-- Tarjeta/Botón de subida de archivo estilo Drive -->
@@ -683,7 +686,16 @@
 <CrearCatalogo @ref="tipoobrasocialModal" Recurso="tipoobrasocial" Etiqueta="obra social" Creado="ObraCreada" />
 <CrearCatalogo @ref="tipodiagnosticoModal" Recurso="tipodiagnostico" Etiqueta="diagnóstico" Creado="DiagnosticoCreado" />
 
+<CrearCatalogo @ref="tipodocumentoModal" Recurso="tipodocumento" Etiqueta="tipo de documento" Creado="TipoDocumentoCreado" />
+
 @code {
+    private CrearCatalogo tipodocumentoModal = default!;
+    private void TipoDocumentoCreado(TipoListadoDTO tipo)
+    {
+        tiposDocumentos.Add(new TipoDocumentoDTO { Id = tipo.Id, Tipo = tipo.Tipo, Descripcion = tipo.Descripcion });
+        nuevoDocumento.TipoDocumentoId = tipo.Id;
+    }
+
     private CrearCatalogo tipodiagnosticoModal = default!;
     private CrearCatalogo tipoobrasocialModal = default!;
     private void ObraCreada(TipoListadoDTO tipo)
