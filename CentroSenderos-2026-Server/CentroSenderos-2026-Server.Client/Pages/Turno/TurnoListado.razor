@@ -1,4 +1,4 @@
-﻿@page "/turnos"
+@page "/turnos"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
@@ -410,63 +410,7 @@
 
                                     @foreach (var turno in turnosDia)
                                     {
-                                        <article class="turno-card turno-card-clickeable"
-                                                 @onclick="() => AbrirDetalle(turno)">
-
-                                            <div class="turno-tarjeta-horario">
-                                                <span class="turno-consultorio">
-                                                    @ObtenerCodigoConsultorio(turno.NombreTipoConsultorio)
-                                                </span>
-                                                <h2 class="turno-hora-destacada"><i class="bi bi-clock" aria-hidden="true"></i>
-                                                    @turno.FechaInicio.ToString("HH:mm")
-                                                    -
-                                                    @turno.FechaFin.ToString("HH:mm")
-                                                </h2>
-                                                @if (turno.SerieTurnoId.HasValue)
-                                                {
-                                                    <span class="turno-recurrencia"
-                                                          title="Este turno pertenece a una serie recurrente">
-                                                        <i class="bi bi-arrow-repeat"></i>
-                                                        @ObtenerTextoRecurrencia(turno)
-                                                    </span>
-                                                }
-                                            </div>
-
-                                            <div class="turno-informacion">
-                                                <strong class="turno-pacientes-principal">
-                                                    <i class="bi bi-person me-1" aria-hidden="true"></i>
-                                                    @ObtenerResumenPersonas(turno.NombresPacientes, "Sin paciente")
-                                                </strong>
-                                                <div class="turno-atencion-secundaria">
-                                                    <span class="turno-profesional">
-                                                        <i class="bi bi-person-badge me-1" aria-hidden="true"></i>
-                                                        @ObtenerResumenPersonas(turno.NombresProfesionales, "Sin profesional")
-                                                    </span>
-                                                    <span class="turno-prestacion">
-                                                        @ObtenerTextoPrestaciones(turno)
-                                                    </span>
-                                                </div>
-                                                <span class="turno-tipo-secundario">
-                                                    @(string.IsNullOrWhiteSpace(turno.NombreTipoTurno)
-                                                        ? "Turno"
-                                                        : turno.NombreTipoTurno)
-                                                </span>
-                                            </div>
-
-                                            <div class="turno-estado">
-                                                <span class="@ObtenerClaseEstado(turno)">
-                                                    @ObtenerTextoEstado(turno)
-                                                </span>
-                                            </div>
-
-                                            <button type="button"
-                                                    class="btn-editar-turno"
-                                                    title="Editar turno"
-                                                    @onclick:stopPropagation="true"
-                                                    @onclick="() => IrAEditar(turno.Id)">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                        </article>
+                                        @TarjetaTurno(turno)
                                     }
 
                                 </div>
@@ -687,62 +631,7 @@
 
                 @foreach (var turno in TurnosDelDia)
                 {
-                    <article class="turno-card turno-card-clickeable"
-                             @onclick="() => AbrirDetalle(turno)">
-
-                        <div class="turno-tarjeta-horario">
-                            <span class="turno-consultorio">
-                                @ObtenerCodigoConsultorio(turno.NombreTipoConsultorio)
-                            </span>
-                            <h2 class="turno-hora-destacada"><i class="bi bi-clock" aria-hidden="true"></i>
-                                @turno.FechaInicio.ToString("HH:mm")
-                                -
-                                @turno.FechaFin.ToString("HH:mm")
-                            </h2>
-                            @if (turno.SerieTurnoId.HasValue)
-                            {
-                                <span class="turno-recurrencia"
-                                      title="Este turno pertenece a una serie recurrente">
-                                    <i class="bi bi-arrow-repeat"></i>
-                                    @ObtenerTextoRecurrencia(turno)
-                                </span>
-                            }
-                        </div>
-
-                        <div class="turno-informacion">
-                            <strong class="turno-pacientes-principal">
-                                <i class="bi bi-person me-1" aria-hidden="true"></i>
-                                @ObtenerResumenPersonas(turno.NombresPacientes, "Sin paciente")
-                            </strong>
-                            <span class="turno-profesional">
-                                <i class="bi bi-person-badge me-1" aria-hidden="true"></i>
-                                @ObtenerResumenPersonas(turno.NombresProfesionales, "Sin profesional")
-                            </span>
-                                <span class="turno-prestacion">
-                                    @ObtenerTextoPrestaciones(turno)
-                                </span>
-                           
-                            <span class="turno-tipo-secundario">
-                                @(string.IsNullOrWhiteSpace(turno.NombreTipoTurno)
-                                    ? "Turno"
-                                    : turno.NombreTipoTurno)
-                            </span>
-                        </div>
-
-                        <div class="turno-estado">
-                            <span class="@ObtenerClaseEstado(turno)">
-                                @ObtenerTextoEstado(turno)
-                            </span>
-                        </div>
-
-                        <button type="button"
-                                class="btn-editar-turno"
-                                title="Editar turno"
-                                @onclick:stopPropagation="true"
-                                @onclick="() => IrAEditar(turno.Id)">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                    </article>
+                    @TarjetaTurno(turno)
                 }
 
             </div>
@@ -1182,6 +1071,53 @@
 }
 
 @code {
+
+    private RenderFragment<TurnoListadoDTO> TarjetaTurno => turno => @<article class="turno-card turno-card-clickeable" @onclick="() => AbrirDetalle(turno)">
+        <div class="turno-tarjeta-horario">
+            <h2 class="turno-hora-destacada" aria-label="@($"De {turno.FechaInicio:HH:mm} a {turno.FechaFin:HH:mm}")">
+                <span class="turno-hora-inicio"><i class="bi bi-clock" aria-hidden="true"></i>@turno.FechaInicio.ToString("HH:mm")</span>
+                <span class="turno-hora-fin">@turno.FechaFin.ToString("HH:mm")</span>
+            </h2>
+            @if (turno.SerieTurnoId.HasValue)
+            {
+                <span class="turno-recurrencia" title="Este turno pertenece a una serie recurrente"><i class="bi bi-arrow-repeat" aria-hidden="true"></i>@ObtenerTextoRecurrencia(turno)</span>
+            }
+        </div>
+        <span class="turno-consultorio" title="@turno.NombreTipoConsultorio" aria-label="@($"Consultorio: {turno.NombreTipoConsultorio}")">
+            <i class="bi bi-door-open" aria-hidden="true"></i>@ObtenerCodigoConsultorio(turno.NombreTipoConsultorio)
+        </span>
+        <div class="turno-informacion turno-paciente-bloque">
+            <span class="turno-avatar" aria-hidden="true"><i class="bi @(turno.NombresPacientes.Count > 1 ? "bi-people" : "bi-person")"></i></span>
+            <div class="turno-paciente-datos">
+                <button type="button" class="turno-pacientes-principal" @onclick:stopPropagation="true" @onclick="() => AbrirDetalle(turno)" aria-label="@($"Ver turno de {ObtenerTextoPacientes(turno)} a las {turno.FechaInicio:HH:mm}")">
+                    @ObtenerResumenPersonas(turno.NombresPacientes, "Sin paciente")
+                </button>
+                <span class="turno-tipo-secundario">@(string.IsNullOrWhiteSpace(turno.NombreTipoTurno) ? "Turno" : turno.NombreTipoTurno)</span>
+            </div>
+        </div>
+        <div class="turno-atencion-secundaria">
+            @if (turno.ProfesionalPrestaciones.Count > 0)
+            {
+                @foreach (var atencion in turno.ProfesionalPrestaciones)
+                {
+                    <div class="turno-atencion-profesional">
+                        <span class="turno-profesional"><i class="bi bi-person-badge" aria-hidden="true"></i>@(string.IsNullOrWhiteSpace(atencion.NombreProfesional) ? "Sin profesional" : atencion.NombreProfesional)</span>
+                        <span class="turno-prestacion">@(string.IsNullOrWhiteSpace(atencion.NombreTipoPrestacion) ? "Sin prestación" : atencion.NombreTipoPrestacion)</span>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="turno-atencion-profesional">
+                    <span class="turno-profesional"><i class="bi bi-person-badge" aria-hidden="true"></i>@ObtenerResumenPersonas(turno.NombresProfesionales, "Sin profesional")</span>
+                    <span class="turno-prestacion">@ObtenerTextoPrestaciones(turno)</span>
+                </div>
+            }
+        </div>
+        <div class="turno-estado"><span class="@ObtenerClaseEstado(turno)">@ObtenerTextoEstado(turno)</span></div>
+        <button type="button" class="btn-editar-turno" title="Editar turno" aria-label="@($"Editar turno de las {turno.FechaInicio:HH:mm}")" @onclick:stopPropagation="true" @onclick="() => IrAEditar(turno.Id)"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+    </article>;
+
 
     private List<TurnoListadoDTO> listaTurnos = new();
     private List<TipoConsultorioListadoDTO> consultorios = new();
