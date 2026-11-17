@@ -30,6 +30,42 @@
                 @if (Recurso == "tipoprestacion")
                 {
                     <div class="catalogo-campo">
+                        <label for="@($"{identificador}-area")">Área <span aria-hidden="true">*</span></label>
+                        <div class="catalogo-area-selector">
+                            <select id="@($"{identificador}-area")"
+                                    required
+                                    @bind="areaSeleccionadaId"
+                                    disabled="@(guardando || cargandoAreas)">
+                                <option value="">Seleccioná un área</option>
+                                @foreach (var area in areasDisponibles.OrderBy(area => area.Tipo))
+                                {
+                                    <option value="@area.Id">@area.Tipo</option>
+                                }
+                            </select>
+                            <button type="button"
+                                    class="catalogo-area-agregar"
+                                    aria-label="Crear área"
+                                    disabled="@guardando"
+                                    @onclick="() => areaNuevaModal.Abrir()">
+                                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        @if (cargandoAreas)
+                        {
+                            <small>Cargando áreas…</small>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(errorAreas))
+                        {
+                            <p class="catalogo-error" role="alert">@errorAreas</p>
+                            <button type="button" class="catalogo-area-reintentar" @onclick="CargarAreas">Reintentar</button>
+                        }
+                        else if (areasDisponibles.Count == 0)
+                        {
+                            <small>No hay áreas activas. Podés crear una con el botón +.</small>
+                        }
+                    </div>
+
+                    <div class="catalogo-campo">
                         <label for="@($"{identificador}-codigo")">Código <span aria-hidden="true">*</span></label>
                         <input id="@($"{identificador}-codigo")" required maxlength="100" placeholder="Ej.: PSI-01" @bind="codigo" disabled="@guardando" />
                     </div>
@@ -60,7 +96,7 @@
                 <span><i class="bi bi-check2-circle" aria-hidden="true"></i> Tu formulario se conserva</span>
                 <div class="catalogo-acciones">
                     <button type="button" class="catalogo-cancelar" disabled="@guardando" @onclick="Cerrar">Cancelar</button>
-                    <button type="submit" class="catalogo-guardar" disabled="@guardando">
+                    <button type="submit" class="catalogo-guardar" disabled="@(guardando || (Recurso == "tipoprestacion" && cargandoAreas))">
                         <i class="bi @(guardando ? "bi-hourglass-split" : "bi-plus-lg")" aria-hidden="true"></i>
                         @(guardando ? "Guardando…" : "Guardar y seleccionar")
                     </button>
@@ -68,6 +104,14 @@
             </footer>
         </form>
     </dialog>
+}
+
+@if (Recurso == "tipoprestacion")
+{
+    <CrearCatalogo @ref="areaNuevaModal"
+                   Recurso="tipoarea"
+                   Etiqueta="área"
+                   Creado="AreaCreada" />
 }
 
 @code {
@@ -82,6 +126,43 @@
     private bool abierto, guardando, abrirPendiente;
     private string nombre = "", descripcion = "", codigo = "", cuit = "", error = "";
     private decimal monto, retencion = 20;
+
+    private CrearCatalogo areaNuevaModal = default!;
+    private List<TipoListadoDTO> areasDisponibles = new();
+    private int? areaSeleccionadaId;
+    private bool cargandoAreas;
+    private string errorAreas = string.Empty;
+
+    private void AreaCreada(TipoListadoDTO area)
+    {
+        areasDisponibles.Add(area);
+        areaSeleccionadaId = area.Id;
+        errorAreas = string.Empty;
+    }
+
+    private async Task CargarAreas()
+    {
+        cargandoAreas = true;
+        errorAreas = string.Empty;
+
+        try
+        {
+            var respuesta = await Http.Get<List<TipoListadoDTO>>("api/tipoarea/ListaTipoArea");
+            if (respuesta.Error)
+                errorAreas = "No pudimos cargar las áreas. Intentá nuevamente.";
+            else
+                areasDisponibles = respuesta.Respuesta ?? new();
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            errorAreas = "No pudimos conectarnos para cargar las áreas.";
+        }
+        finally
+        {
+            cargandoAreas = false;
+        }
+    }
+
     private string Icono => Recurso switch { "tipoarea" => "bi-grid", "tipoprestacion" => "bi-clipboard2-pulse", "tipoobrasocial" => "bi-shield-plus", "tipodocumento" => "bi-file-earmark-plus", _ => "bi-heart-pulse" };
     private string PlaceholderNombre => Recurso switch { "tipoarea" => "Ej.: Salud mental", "tipoprestacion" => "Ej.: Psicología", "tipoobrasocial" => "Nombre de la obra social", "tipodocumento" => "Ej.: Informe médico", _ => "Nombre del diagnóstico" };
 
@@ -91,6 +172,10 @@
         nombre = descripcion = codigo = cuit = error = "";
         monto = 0;
         retencion = 20;
+        areaSeleccionadaId = null;
+        areasDisponibles = new();
+        errorAreas = string.Empty;
+        cargandoAreas = Recurso == "tipoprestacion";
         abierto = abrirPendiente = true;
         StateHasChanged();
     }
@@ -102,6 +187,11 @@
         modulo ??= await JS.InvokeAsync<IJSObjectReference>("import", "./Components/CrearCatalogo.razor.js");
         referencia ??= DotNetObjectReference.Create(this);
         await modulo.InvokeVoidAsync("abrir", dialogo, referencia);
+        if (Recurso == "tipoprestacion")
+        {
+            await CargarAreas();
+            StateHasChanged();
+        }
     }
 
     [JSInvokable]
@@ -118,13 +208,27 @@
     private async Task Guardar()
     {
         if (guardando) return;
+        if (Recurso == "tipoprestacion" &&
+            (cargandoAreas || !areasDisponibles.Any(area => area.Id == areaSeleccionadaId)))
+        {
+            error = "Seleccioná un área activa para la prestación.";
+            return;
+        }
         guardando = true;
         error = "";
         try
         {
             object dto = Recurso switch
             {
-                "tipoprestacion" => new TipoPrestacionDTO { Tipo = nombre.Trim(), Descripcion = descripcion.Trim(), Cod = codigo.Trim(), MontoSesion = monto, PorcentajeRetencion = retencion },
+                "tipoprestacion" => new TipoPrestacionDTO
+                {
+                    Tipo = nombre.Trim(),
+                    Descripcion = descripcion.Trim(),
+                    Cod = codigo.Trim(),
+                    MontoSesion = monto,
+                    PorcentajeRetencion = retencion,
+                    TipoAreaId = areaSeleccionadaId
+                },
                 "tipoobrasocial" => new TipoObraSocialDTO { Tipo = nombre.Trim(), Descripcion = descripcion.Trim(), Cuit = cuit.Trim() },
                 "tipodocumento" => new TipoDocumentoDTO { Tipo = nombre.Trim(), Descripcion = descripcion.Trim() },
                 _ => new TipoDTO { Tipo = nombre.Trim(), Descripcion = descripcion.Trim() }

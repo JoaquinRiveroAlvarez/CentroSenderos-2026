@@ -14,9 +14,9 @@ namespace CentroSenderos_2026_Shared.DTO
         public required string Nombre { get; set; } = string.Empty;
 
 
-        [Required(ErrorMessage = "Ingresá el área profesional.")]
-        [MaxLength(100,ErrorMessage = "El área no puede superar los 100 caracteres.")]
-        public required string Area { get; set; } = string.Empty;
+        public string Area { get; set; } = string.Empty;
+
+        public List<string> Areas { get; set; } = new();
 
 
         [Required(ErrorMessage = "Ingresá el CUIT.")]

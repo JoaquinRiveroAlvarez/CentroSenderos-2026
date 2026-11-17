@@ -57,9 +57,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 })
                 .FirstOrDefaultAsync();
             if (resultado is not null)
+            {
                 resultado.MatriculasPorPrestacion = await context.ProfesionalTipoPrestaciones
                     .Where(p => p.ProfesionalId == resultado.Id)
                     .ToDictionaryAsync(p => p.TipoPrestacionId, p => p.Matricula);
+
+                var areas = await ObtenerAreasProfesionales(new[] { resultado.Id });
+                resultado.Areas = areas.GetValueOrDefault(resultado.Id) ?? new();
+                if (resultado.Areas.Count > 0)
+                    resultado.Area = string.Join(", ", resultado.Areas);
+            }
             return resultado;
         }
 
@@ -112,9 +119,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 })
                 .FirstOrDefaultAsync();
             if (resultado is not null)
+            {
                 resultado.MatriculasPorPrestacion = await context.ProfesionalTipoPrestaciones
                     .Where(p => p.ProfesionalId == resultado.Id)
                     .ToDictionaryAsync(p => p.TipoPrestacionId, p => p.Matricula);
+
+                var areas = await ObtenerAreasProfesionales(new[] { resultado.Id });
+                resultado.Areas = areas.GetValueOrDefault(resultado.Id) ?? new();
+                if (resultado.Areas.Count > 0)
+                    resultado.Area = string.Join(", ", resultado.Areas);
+            }
             return resultado;
         }
 
@@ -157,10 +171,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var matriculas = await context.ProfesionalTipoPrestaciones
                 .Where(p => ids.Contains(p.ProfesionalId))
                 .Select(p => new { p.ProfesionalId, p.TipoPrestacionId, p.Matricula }).ToListAsync();
+            var areas = await ObtenerAreasProfesionales(ids);
             foreach (var profesional in resultado)
+            {
                 profesional.MatriculasPorPrestacion = matriculas.Where(p => p.ProfesionalId == profesional.Id)
                     .ToDictionary(p => p.TipoPrestacionId, p => p.Matricula);
-            return resultado;
+                profesional.Areas = areas.GetValueOrDefault(profesional.Id) ?? new();
+                if (profesional.Areas.Count > 0)
+                    profesional.Area = string.Join(", ", profesional.Areas);
+            }
+            return resultado.OrderBy(p => p.Area).ThenBy(p => p.Nombre).ToList();
         }
         public async Task<int> InsertarProfesional(ProfesionalDTO dto)
         {
@@ -168,7 +188,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 NormalizarTexto(dto.Nombre);
 
             var areaLimpia =
-                await ObtenerAreaActiva(dto.Area);
+                await ObtenerPrimeraArea(dto.TipoPrestacionIds);
 
             var cuitLimpio =
                 NormalizarCuit(dto.Cuit);
@@ -284,7 +304,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 NormalizarTexto(dto.Nombre);
 
             var areaLimpia =
-                await ObtenerAreaActiva(dto.Area);
+                await ObtenerPrimeraArea(dto.TipoPrestacionIds);
 
             var cuitLimpio =
                 NormalizarCuit(dto.Cuit);
@@ -333,7 +353,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
 
             profesional.Nombre = nombreLimpio;
-            profesional.Area = areaLimpia;
+            // El texto legado se conserva hasta retirar sus consumidores anteriores.
+            if (!string.IsNullOrWhiteSpace(areaLimpia))
+                profesional.Area = areaLimpia;
             profesional.Cuit = cuitLimpio;
             profesional.MP = mpLimpia;
             profesional.RNP = rnpLimpio;
@@ -418,31 +440,39 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return resultado;
         }
 
-        private async Task<string> ObtenerAreaActiva(string? area)
+        private async Task<Dictionary<int, List<string>>> ObtenerAreasProfesionales(IEnumerable<int> profesionalIds)
         {
-            var nombreBuscado = area?.Trim();
+            var ids = profesionalIds.ToList();
+            var relaciones = await context.ProfesionalTipoPrestaciones
+                .Where(relacion => ids.Contains(relacion.ProfesionalId) &&
+                    relacion.EstadoRegistro == EnumEstadoRegistro.activo &&
+                    relacion.TipoPrestacion.TipoAreaId != null)
+                .Select(relacion => new
+                {
+                    relacion.ProfesionalId,
+                    Nombre = relacion.TipoPrestacion.TipoArea!.Tipo
+                })
+                .ToListAsync();
 
-            if (string.IsNullOrWhiteSpace(nombreBuscado))
-            {
-                throw new ApplicationException(
-                    "Seleccioná un área profesional.");
-            }
-
-            var nombreEnCatalogo = await context.TipoAreas
-                .Where(tipoArea =>
-                    tipoArea.EstadoRegistro == EnumEstadoRegistro.activo &&
-                    tipoArea.Tipo.ToLower() == nombreBuscado.ToLower())
-                .Select(tipoArea => tipoArea.Tipo)
-                .FirstOrDefaultAsync();
-
-            if (nombreEnCatalogo is null)
-            {
-                throw new ApplicationException(
-                    "El área seleccionada no existe o ya no está disponible.");
-            }
-
-            return nombreEnCatalogo;
+            return relaciones.GroupBy(relacion => relacion.ProfesionalId)
+                .ToDictionary(grupo => grupo.Key, grupo => grupo
+                    .Select(relacion => relacion.Nombre)
+                    .Distinct()
+                    .OrderBy(nombre => nombre)
+                    .ToList());
         }
+
+        private async Task<string> ObtenerPrimeraArea(IEnumerable<int> prestacionIds)
+        {
+            var ids = prestacionIds.Distinct().ToList();
+            // Solo mantiene compatible la columna anterior: la lista completa se calcula al consultar.
+            return await context.TipoPrestaciones
+                .Where(prestacion => ids.Contains(prestacion.Id) && prestacion.TipoAreaId != null)
+                .Select(prestacion => prestacion.TipoArea!.Tipo)
+                .OrderBy(nombre => nombre)
+                .FirstOrDefaultAsync() ?? string.Empty;
+        }
+
         private static void ValidarCuit(string cuit)
         {
             if (!CuitValidador.EsValido(cuit))

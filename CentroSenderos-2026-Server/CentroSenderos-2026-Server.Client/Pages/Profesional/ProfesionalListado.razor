@@ -105,7 +105,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td data-label="Área">@MostrarValor(profesional.Area)</td>
+                            <td data-label="Áreas"><AreasProfesional Areas="profesional.Areas" /></td>
                             <td data-label="Prestaciones" class="prestaciones-cell">
                                 <div class="prestaciones-listado">
                                     @foreach (var prestacion in profesional.TipoPrestacionNombres)
@@ -160,7 +160,11 @@
     private IEnumerable<OpcionSelector> OpcionesPrestaciones => Prestaciones.Select(p => new OpcionSelector(p, p));
     private static readonly OpcionSelector[] OpcionesSocios = { new("si", "Socios"), new("no", "No socios") };
     private int? profesionalSeleccionadoId;
-    private IEnumerable<string> Areas => (listaProfesionales ?? new()).Select(p => p.Area).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x);
+    private IEnumerable<string> Areas => (listaProfesionales ?? new())
+        .SelectMany(profesional => profesional.Areas)
+        .Where(area => !string.IsNullOrWhiteSpace(area))
+        .Distinct()
+        .OrderBy(area => area);
     private IEnumerable<string> Prestaciones => (listaProfesionales ?? new()).SelectMany(p => p.TipoPrestacionNombres).Distinct().OrderBy(x => x);
     private bool HayFiltros => !string.IsNullOrWhiteSpace(textoBusqueda) || areasFiltro.Count > 0 || prestacionesFiltro.Count > 0 || sociosFiltro.Count > 0;
     private string ContextoListado
@@ -180,7 +184,7 @@
         get
         {
             var filtrados = (listaProfesionales ?? new())
-                .Where(p => (areasFiltro.Count == 0 || areasFiltro.Contains(p.Area))
+                .Where(p => (areasFiltro.Count == 0 || p.Areas.Any(areasFiltro.Contains))
                     && (prestacionesFiltro.Count == 0 || p.TipoPrestacionNombres.Any(prestacionesFiltro.Contains))
                     && (sociosFiltro.Count == 0 || sociosFiltro.Contains(p.EsSocio ? "si" : "no"))
                     && CoincideBusqueda(p));
@@ -192,7 +196,7 @@
                     .ThenBy(p => Normalizar(p.Nombre)).ThenBy(p => p.Id);
 
             Func<ProfesionalListadoDTO, string> clave = orden == "area"
-                ? p => Normalizar(p.Area) : p => Normalizar(p.Nombre);
+                ? p => Normalizar(string.Join(", ", p.Areas)) : p => Normalizar(p.Nombre);
             return (descendente ? filtrados.OrderByDescending(clave) : filtrados.OrderBy(clave))
                 .ThenBy(p => Normalizar(p.Nombre)).ThenBy(p => p.Id);
         }
@@ -216,7 +220,7 @@
     private bool CoincideBusqueda(ProfesionalListadoDTO p)
     {
         var terminos = Normalizar(textoBusqueda).Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var texto = Normalizar(string.Join(" ", new[] { p.Nombre, p.Area, p.MP, p.RNP, p.Cuit, p.Telefono, p.Email }.Concat(p.TipoPrestacionNombres).Concat(p.MatriculasPorPrestacion.Values)));
+        var texto = Normalizar(string.Join(" ", new[] { p.Nombre, string.Join(" ", p.Areas), p.MP, p.RNP, p.Cuit, p.Telefono, p.Email }.Concat(p.TipoPrestacionNombres).Concat(p.MatriculasPorPrestacion.Values)));
         var cuit = new string((p.Cuit ?? "").Where(char.IsDigit).ToArray());
         var consulta = new string(textoBusqueda.Where(char.IsDigit).ToArray());
         var esCuit = consulta.Length > 0 && textoBusqueda.All(c => char.IsDigit(c) || c == '-' || char.IsWhiteSpace(c));

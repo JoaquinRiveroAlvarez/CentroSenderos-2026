@@ -1,0 +1,40 @@
+/* #region Áreas derivadas de las prestaciones */
+
+.areas-profesional {
+    min-width: 0;
+}
+
+.areas-etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.area-etiqueta {
+    padding: 4px 8px;
+    border: 1px solid #dce5d4;
+    border-radius: 8px;
+    background: #eef3ec;
+    color: #526c4d;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.areas-vacias, .areas-ayuda, .areas-pendientes {
+    color: #707970;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.areas-ayuda, .areas-pendientes {
+    margin: 8px 0 0;
+}
+
+.areas-pendientes {
+    color: #867767;
+}
+
+/* #endregion */

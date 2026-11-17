@@ -1,4 +1,4 @@
-using CentroSenderos_2026.Tests.Infraestructura;
+﻿using CentroSenderos_2026.Tests.Infraestructura;
 using CentroSenderos_2026_Shared.Enum;
 using CentroSenderos_2026_Shared.Validaciones;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +33,13 @@ public class ProfesionalCircuitoCompletoTests
         // CrearContexto también valida el host autorizado para testing.
         await using var db = BaseDePruebas.CrearContexto();
 
+        var prestacion = await db.TipoPrestaciones.AsNoTracking()
+            .Where(item => item.EstadoRegistro == EnumEstadoRegistro.activo &&
+                item.TipoAreaId.HasValue && item.TipoArea!.EstadoRegistro == EnumEstadoRegistro.activo)
+            .Select(item => new { item.Id, item.Tipo, Area = item.TipoArea!.Tipo })
+            .FirstOrDefaultAsync();
+        Assert.NotNull(prestacion);
+
         string cuit;
         do { cuit = GenerarCuit(); }
         while (await db.Profesionales.AnyAsync(p => p.Cuit == cuit));
@@ -46,7 +53,7 @@ public class ProfesionalCircuitoCompletoTests
         {
             await ConListado("/profesionales/crear", async pagina =>
             {
-                var entradaNombre = pagina.GetByPlaceholder("Insertar nombre completo", new() { Exact = true });
+                var entradaNombre = pagina.Locator("#profesionalNombre");
                 // Confirmar interactividad mediante validación local.
                 for (var intento = 0; intento < 5; intento++)
                 {
@@ -63,40 +70,39 @@ public class ProfesionalCircuitoCompletoTests
                     catch (PlaywrightException) when (intento < 4) { }
                 }
                 await EscribirConsulta(entradaNombre, nombre);
-                await pagina.GetByPlaceholder("Ej: 20-12345678-9", new() { Exact = true }).FillAsync(cuit);
-                await Assertions.Expect(pagina.Locator("#areaProfesional")).ToBeEnabledAsync(new() { Timeout = 30000 });
-                var area = await pagina.Locator("#areaProfesional option").Nth(1).GetAttributeAsync("value");
-                Assert.False(string.IsNullOrWhiteSpace(area), "Se requiere un área activa existente.");
-                await pagina.Locator("#areaProfesional").SelectOptionAsync(area!);
-                await pagina.GetByPlaceholder("Ingresar M.P.", new() { Exact = true }).FillAsync(mp);
+                await pagina.Locator("#profesionalCuit").FillAsync(cuit);
+                await Assertions.Expect(pagina.Locator("#areaProfesional")).ToHaveCountAsync(0);
+                await pagina.Locator("#profesionalPrestaciones").SelectOptionAsync(prestacion.Id.ToString());
+                await Assertions.Expect(pagina.Locator(".area-etiqueta"))
+                    .ToHaveTextAsync(prestacion.Area, new() { Timeout = 30000 });
+                await pagina.GetByRole(AriaRole.Textbox, new() { Name = $"Matrícula de {prestacion.Tipo}", Exact = true })
+                    .FillAsync(mp);
                 await pagina.GetByPlaceholder("Ingresar R.N.P.", new() { Exact = true }).FillAsync(rnp);
-                await pagina.GetByPlaceholder("Ej: +54 351 1234567", new() { Exact = true }).FillAsync("3510000000");
-                var email = pagina.GetByPlaceholder("Ej: profesional@senderos.com", new() { Exact = true });
+                await pagina.Locator("#profesionalTelefono").FillAsync("3510000000");
+                var email = pagina.Locator("#profesionalEmail");
                 await email.FillAsync(correo);
                 await email.PressAsync("Tab");
-                // Rol y prestaciones quedan vacíos: no se asignan accesos ni se prueba FUN-001 aquí.
+                // La prestación aporta el área; la matrícula sigue vinculada a ella.
                 await pagina.Locator(".profesional-form .save-button").ClickAsync();
                 await Assertions.Expect(pagina).ToHaveURLAsync(
-                    new Regex(@"/profesionales/detalle/[1-9][0-9]*(?:[?#].*)?$"), new() { Timeout = 30000 });
-                var campoNombre = pagina.Locator(".detalle-profesional-page .field-group")
-                    .Filter(new() { Has = pagina.GetByText("Nombre completo", new() { Exact = true }) })
-                    .Locator(".form-value");
+                    new Regex(@"/profesionales\?[^#]*detalle=[1-9][0-9]*(?:[&#].*)?$"), new() { Timeout = 30000 });
+                var campoNombre = pagina.Locator("#profesional-titulo");
                 await Assertions.Expect(campoNombre).ToHaveTextAsync(nombre, new() { Timeout = 30000 });
                 var creado = await db.Profesionales.AsNoTracking().SingleAsync(p => p.Cuit == cuit);
                 Assert.Equal(nombre, creado.Nombre);
                 Assert.Equal(EnumEstadoRegistro.activo, creado.EstadoRegistro);
                 Assert.Equal(correo, creado.Email);
-                Assert.Equal(area, creado.Area);
+                Assert.Equal(prestacion.Area, creado.Area);
                 Assert.Equal(mp, creado.MP);
                 Assert.Equal(rnp, creado.RNP);
 
-                await pagina.Locator(".detalle-profesional-page .edit-button").ClickAsync();
+                await pagina.Locator(".detalle-btn-editar").ClickAsync();
                 var editarNombre = pagina.GetByPlaceholder("Nombre completo", new() { Exact = true });
                 await Assertions.Expect(editarNombre).ToHaveValueAsync(nombre, new() { Timeout = 30000 });
                 await EscribirConsulta(editarNombre, editado);
                 await pagina.Locator(".profesional-form .save-button").ClickAsync();
                 await Assertions.Expect(pagina).ToHaveURLAsync(
-                    new Regex(@"/profesionales/detalle/" + creado.Id + @"(?:[?#].*)?$"), new() { Timeout = 30000 });
+                    new Regex(@"/profesionales\?[^#]*detalle=" + creado.Id + @"(?:[&#].*)?$"), new() { Timeout = 30000 });
                 await Assertions.Expect(campoNombre).ToHaveTextAsync(editado, new() { Timeout = 30000 });
                 var actualizado = await db.Profesionales.AsNoTracking().SingleAsync(p => p.Id == creado.Id);
                 Assert.Equal(editado, actualizado.Nombre);
@@ -104,7 +110,7 @@ public class ProfesionalCircuitoCompletoTests
                 Assert.Equal(mp, actualizado.MP);
                 Assert.Equal(rnp, actualizado.RNP);
 
-                await pagina.Locator(".detalle-profesional-page .edit-button").ClickAsync();
+                await pagina.Locator(".detalle-btn-editar").ClickAsync();
                 await Assertions.Expect(editarNombre).ToHaveValueAsync(editado, new() { Timeout = 30000 });
                 await pagina.Locator(".profesional-form .delete-button").ClickAsync();
                 var modal = pagina.Locator(".delete-modal");
@@ -117,7 +123,7 @@ public class ProfesionalCircuitoCompletoTests
                 var borrado = await db.Profesionales.AsNoTracking().SingleAsync(p => p.Id == creado.Id);
                 Assert.Equal(EnumEstadoRegistro.borrado, borrado.EstadoRegistro);
                 await Assertions.Expect(pagina).ToHaveURLAsync(
-                    new Uri(new Uri(pagina.Url), "/profesionales").AbsoluteUri, new() { Timeout = 30000 });
+                    new Regex(@"/profesionales(?:[?#].*)?$"), new() { Timeout = 30000 });
                 await EscribirConsulta(pagina.GetByPlaceholder("Buscar profesional...", new() { Exact = true }), cuit);
                 await Assertions.Expect(pagina.Locator("table tbody tr")).ToHaveCountAsync(0);
             });

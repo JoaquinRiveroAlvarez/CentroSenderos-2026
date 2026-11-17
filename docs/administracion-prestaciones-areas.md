@@ -4,7 +4,7 @@ En Administración → Tipo Prestación, Crear y Editar incorporan el selector d
 
 La API devuelve `TipoAreaId` y `TipoAreaNombre` en las consultas por identificador, código y listado. Si se envía un área, el servidor comprueba que exista y esté activa. El nombre mostrado se consulta mediante la relación; no se guarda una copia ni se confía en el nombre enviado por el cliente.
 
-Los contratos anteriores siguen siendo compatibles mientras se adaptan el alta rápida y el resto del sistema: el área continúa opcional en el DTO y en la BD. Un alta anterior sin área se permite y queda pendiente de clasificación. Una edición que omite `TipoAreaId` conserva la asignación existente; no permite borrarla accidentalmente. Esto es una transición: la obligatoriedad del formulario de Administración todavía no es una obligación global de todas las API.
+Los contratos anteriores siguen siendo compatibles mientras se completa la clasificación del catálogo y se retira el campo legado: el área continúa opcional en el DTO y en la BD. El alta rápida de prestaciones ya exige área; un cliente anterior que omita el dato sigue siendo compatible y queda pendiente de clasificación. Una edición que omite `TipoAreaId` conserva la asignación existente; no permite borrarla accidentalmente. Esto es una transición: la obligatoriedad del formulario de Administración todavía no es una obligación global de todas las API.
 
 Si no hay áreas activas, se informa dónde crearlas y se bloquea Guardar. Si falla la carga, se ofrece reintentar. Un área asignada que ya no esté disponible se sigue mostrando al editar, pero debe elegirse una activa para guardar desde Administración.
 
