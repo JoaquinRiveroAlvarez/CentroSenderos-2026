@@ -1,5 +1,6 @@
-@using CentroSenderos_2026_Shared.DTO
+﻿@using CentroSenderos_2026_Shared.DTO
 @using System.ComponentModel.DataAnnotations
+@using System.Text.Json
 @implements IAsyncDisposable
 @inject IHttpServicio Http
 @inject IJSRuntime JS
@@ -81,8 +82,8 @@
     private bool abierto, guardando, abrirPendiente;
     private string nombre = "", descripcion = "", codigo = "", cuit = "", error = "";
     private decimal monto, retencion = 20;
-    private string Icono => Recurso switch { "tipoarea" => "bi-grid", "tipoprestacion" => "bi-clipboard2-pulse", "tipoobrasocial" => "bi-shield-plus", _ => "bi-heart-pulse" };
-    private string PlaceholderNombre => Recurso switch { "tipoarea" => "Ej.: Salud mental", "tipoprestacion" => "Ej.: Psicología", "tipoobrasocial" => "Nombre de la obra social", _ => "Nombre del diagnóstico" };
+    private string Icono => Recurso switch { "tipoarea" => "bi-grid", "tipoprestacion" => "bi-clipboard2-pulse", "tipoobrasocial" => "bi-shield-plus", "tipodocumento" => "bi-file-earmark-plus", _ => "bi-heart-pulse" };
+    private string PlaceholderNombre => Recurso switch { "tipoarea" => "Ej.: Salud mental", "tipoprestacion" => "Ej.: Psicología", "tipoobrasocial" => "Nombre de la obra social", "tipodocumento" => "Ej.: Informe médico", _ => "Nombre del diagnóstico" };
 
     public void Abrir()
     {
@@ -125,6 +126,7 @@
             {
                 "tipoprestacion" => new TipoPrestacionDTO { Tipo = nombre.Trim(), Descripcion = descripcion.Trim(), Cod = codigo.Trim(), MontoSesion = monto, PorcentajeRetencion = retencion },
                 "tipoobrasocial" => new TipoObraSocialDTO { Tipo = nombre.Trim(), Descripcion = descripcion.Trim(), Cuit = cuit.Trim() },
+                "tipodocumento" => new TipoDocumentoDTO { Tipo = nombre.Trim(), Descripcion = descripcion.Trim() },
                 _ => new TipoDTO { Tipo = nombre.Trim(), Descripcion = descripcion.Trim() }
             };
             var errores = new List<ValidationResult>();
@@ -135,7 +137,18 @@
                 return;
             }
             var respuesta = await Http.Post<object, int>($"api/{Recurso}", dto);
-            if (respuesta.Error) { error = respuesta.ObtenerError(); return; }
+            if (respuesta.Error)
+            {
+                error = respuesta.ObtenerError();
+                try
+                {
+                    using var json = JsonDocument.Parse(error);
+                    if (json.RootElement.ValueKind == JsonValueKind.Object && json.RootElement.TryGetProperty("mensaje", out var mensaje) && mensaje.ValueKind == JsonValueKind.String)
+                        error = mensaje.GetString() ?? error;
+                }
+                catch (JsonException) { }
+                return;
+            }
             await Creado.InvokeAsync(new TipoListadoDTO { Id = respuesta.Respuesta, Tipo = nombre.Trim(), Descripcion = descripcion.Trim() });
             guardando = false;
             await Cerrar();

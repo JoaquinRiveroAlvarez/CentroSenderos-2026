@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Routing
 @using System.Text.Json
+@using CentroSenderos_2026_Shared.Reglas
 @using CentroSenderos_2026_Shared.DTO
 @inject IHttpServicio Http
 @inject NavigationManager Nav
@@ -14,7 +15,7 @@
 
     <button type="button"
             class="back-button"
-            disabled="@guardando"
+            disabled="@(guardando || leyendoDocumentos)"
             @onclick="Volver">
         <i class="bi bi-arrow-left"></i>
         <span>Volver</span>
@@ -135,7 +136,7 @@
                             }
 
                         </InputSelect>
-                    <button type="button" class="catalogo-agregar" disabled="@guardando" aria-label="Crear obra social" title="Crear obra social" @onclick="() => tipoobrasocialModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                    <button type="button" class="catalogo-agregar" disabled="@(guardando || leyendoDocumentos)" aria-label="Crear obra social" title="Crear obra social" @onclick="() => tipoobrasocialModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
                     </div>
 
                         <ValidationMessage For="@(() => modelo.TipoObraSocialId)"
@@ -186,7 +187,7 @@
                             }
 
                         </InputSelect>
-                    <button type="button" class="catalogo-agregar" disabled="@guardando" aria-label="Crear diagnóstico" title="Crear diagnóstico" @onclick="() => tipodiagnosticoModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                    <button type="button" class="catalogo-agregar" disabled="@(guardando || leyendoDocumentos)" aria-label="Crear diagnóstico" title="Crear diagnóstico" @onclick="() => tipodiagnosticoModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
                     </div>
 
                         <ValidationMessage For="@(() => modelo.TipoDiagnosticoId)"
@@ -232,7 +233,7 @@
 
                     <button type="button"
                             class="add-phone-button"
-                            disabled="@guardando"
+                            disabled="@(guardando || leyendoDocumentos)"
                             @onclick="AgregarTelefono">
                         <i class="bi bi-plus-lg"></i>
                         Agregar teléfono
@@ -309,6 +310,59 @@
 
             </section>
 
+            <section class="form-section documentos-seccion" aria-labelledby="documentos-titulo">
+                <div class="section-title">
+                    <span class="section-number">04</span>
+                    <span id="documentos-titulo">Documentos y estudios</span>
+                    <span class="documentos-opcional">Opcional</span>
+                </div>
+                <p class="documentos-ayuda">Podés adjuntar estudios, recetas, CUD u otros documentos. Se guardarán junto con el paciente.</p>
+                <div class="documentos-controles">
+                        <div class="field-group">
+                            <label for="tipoDocumentoNuevo">Tipo de documento</label>
+                            <div class="catalogo-selector">
+                                <InputSelect id="tipoDocumentoNuevo" class="form-input" @bind-Value="tipoDocumentoSeleccionado" disabled="@(guardando || leyendoDocumentos || tiposDocumentos.Count == 0)">
+                                <option value="0">Seleccioná un tipo</option>
+                                @foreach (var tipo in tiposDocumentos.OrderBy(t => t.Tipo))
+                                {
+                                    <option value="@tipo.Id">@tipo.Tipo</option>
+                                }
+                            </InputSelect>
+                                <button type="button" class="catalogo-agregar" aria-label="Crear tipo de documento" title="Crear tipo de documento" disabled="@(guardando || leyendoDocumentos)" @onclick="() => tipodocumentoModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                            </div>
+                        </div>
+                        <label class="documentos-carga @((tipoDocumentoSeleccionado <= 0 || guardando || leyendoDocumentos || documentosPendientes.Count >= ReglasDocumentosPaciente.MaximoArchivos) ? "deshabilitada" : "")">
+                            <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+                            <span><strong>@(leyendoDocumentos ? "Preparando archivos…" : "Adjuntar documentos")</strong><small>PDF, fotos, estudios y otros archivos</small></span>
+                            <InputFile multiple OnChange="AgregarDocumentos" aria-label="Adjuntar documentos del paciente"
+                                       disabled="@(guardando || leyendoDocumentos || tipoDocumentoSeleccionado <= 0 || documentosPendientes.Count >= ReglasDocumentosPaciente.MaximoArchivos)" />
+                        </label>
+                    </div>
+                    <p class="documentos-limite">Primero elegí un tipo. Hasta 10 archivos, 20 MB por archivo y 30 MB en total.</p>
+                @if (tiposDocumentos.Count == 0)
+                {
+                    <p class="documentos-ayuda">Creá un tipo con el botón + para adjuntar documentos, o continuá sin archivos.</p>
+                    <button type="button" class="documentos-reintentar" @onclick="CargarTiposDocumentos" disabled="@(guardando || leyendoDocumentos)">Volver a cargar tipos</button>
+                }
+                @if (documentosPendientes.Count > 0)
+                {
+                    <div class="documentos-pendientes" aria-label="Documentos para guardar">
+                        @foreach (var doc in documentosPendientes)
+                        {
+                            <article @key="doc.Clave" class="documento-pendiente">
+                                <span class="documento-icono"><i class="bi @(doc.Nombre.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? "bi-file-earmark-pdf" : "bi-file-earmark")" aria-hidden="true"></i></span>
+                                <div class="documento-datos"><strong>@doc.Nombre</strong><span>@doc.Tipo · @FormatearTamano(doc.Contenido.LongLength) · Pendiente de guardar</span></div>
+                                <button type="button" class="documento-quitar" aria-label="Quitar @doc.Nombre" title="Quitar documento" disabled="@(guardando || leyendoDocumentos)" @onclick="() => documentosPendientes.Remove(doc)"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                            </article>
+                        }
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(mensajeDocumentos))
+                {
+                    <p class="documentos-error" role="alert">@mensajeDocumentos</p>
+                }
+            </section>
+
             @if (!string.IsNullOrWhiteSpace(Mensaje))
             {
                 <div class="form-message">
@@ -320,14 +374,14 @@
 
                 <button type="button"
                         class="cancel-button"
-                        disabled="@guardando"
+                        disabled="@(guardando || leyendoDocumentos)"
                         @onclick="Cancelar">
                     Cancelar
                 </button>
 
                 <button type="submit"
                         class="save-button"
-                        disabled="@guardando">
+                        disabled="@(guardando || leyendoDocumentos)">
 
                     @if (guardando)
                     {
@@ -368,7 +422,17 @@
 <CrearCatalogo @ref="tipoobrasocialModal" Recurso="tipoobrasocial" Etiqueta="obra social" Creado="ObraCreada" />
 <CrearCatalogo @ref="tipodiagnosticoModal" Recurso="tipodiagnostico" Etiqueta="diagnóstico" Creado="DiagnosticoCreado" />
 
+<CrearCatalogo @ref="tipodocumentoModal" Recurso="tipodocumento" Etiqueta="tipo de documento" Creado="TipoDocumentoCreado" />
+
 @code {
+    private CrearCatalogo tipodocumentoModal = default!;
+    private void TipoDocumentoCreado(TipoListadoDTO tipo)
+    {
+        tiposDocumentos.Add(new TipoDocumentoDTO { Id = tipo.Id, Tipo = tipo.Tipo, Descripcion = tipo.Descripcion });
+        tipoDocumentoSeleccionado = tipo.Id;
+        mensajeDocumentos = string.Empty;
+    }
+
     private CrearCatalogo tipodiagnosticoModal = default!;
     private CrearCatalogo tipoobrasocialModal = default!;
     private void ObraCreada(TipoListadoDTO tipo)
@@ -392,7 +456,7 @@
     private string MensajeDni = string.Empty;
 
     private bool TieneCambios => !permitirSalida && !cargando && estadoInicial != null
-        && estadoInicial != ObtenerEstadoFormulario();
+        && (leyendoDocumentos || estadoInicial != ObtenerEstadoFormulario());
 
     private string ObtenerEstadoFormulario() => JsonSerializer.Serialize(new
     {
@@ -403,7 +467,8 @@
         TipoObraSocialId = modelo?.TipoObraSocialId,
         TipoDiagnosticoId = modelo?.TipoDiagnosticoId,
         Domicilio = modelo?.Domicilio,
-        Telefonos = modelo?.Telefonos.Select(t => new { t.Etiqueta, t.Numero }).ToList()
+        Telefonos = modelo?.Telefonos.Select(t => new { t.Etiqueta, t.Numero }).ToList(),
+        Documentos = documentosPendientes.Select(d => new { d.Clave, d.TipoDocumentoId, d.Nombre }).ToList()
     });
 
     private void AntesDeNavegar(LocationChangingContext contexto)
@@ -494,6 +559,7 @@
             Mensaje = respDiagnostico.ObtenerError();
         }
 
+        await CargarTiposDocumentos();
         estadoInicial = ObtenerEstadoFormulario();
         cargando = false;
     }
@@ -530,8 +596,77 @@
         MensajeTelefonos = string.Empty;
     }
 
+    private List<TipoDocumentoDTO> tiposDocumentos = new();
+    private List<DocumentoPendiente> documentosPendientes = new();
+    private int tipoDocumentoSeleccionado;
+    private bool leyendoDocumentos;
+    private string mensajeDocumentos = string.Empty;
+    private sealed record DocumentoPendiente(Guid Clave, int TipoDocumentoId, string Tipo, string Nombre, string ContentType, byte[] Contenido);
+
+    private async Task CargarTiposDocumentos()
+    {
+        try
+        {
+            var respuesta = await Http.Get<List<TipoDocumentoDTO>>("api/documento/tipos");
+            tiposDocumentos = respuesta.Error ? new() : respuesta.Respuesta ?? new();
+            mensajeDocumentos = respuesta.Error ? "No pudimos cargar los tipos de documento. Podés guardar el paciente sin adjuntos." : string.Empty;
+        }
+        catch { mensajeDocumentos = "No pudimos cargar los tipos de documento. Podés guardar el paciente sin adjuntos."; }
+    }
+
+    private async Task AgregarDocumentos(InputFileChangeEventArgs evento)
+    {
+        if (guardando || leyendoDocumentos) return;
+        var tipo = tiposDocumentos.FirstOrDefault(t => t.Id == tipoDocumentoSeleccionado);
+        if (tipo is null) { mensajeDocumentos = "Seleccioná un tipo de documento antes de adjuntar."; return; }
+        mensajeDocumentos = string.Empty;
+        leyendoDocumentos = true;
+        try
+        {
+            var archivos = evento.GetMultipleFiles(ReglasDocumentosPaciente.MaximoArchivos);
+            if (archivos.Count + documentosPendientes.Count > ReglasDocumentosPaciente.MaximoArchivos)
+            { mensajeDocumentos = "Podés adjuntar hasta 10 archivos."; return; }
+            if (archivos.Any(a => a.Size <= 0 || a.Size > ReglasDocumentosPaciente.MaximoBytesPorArchivo))
+            { mensajeDocumentos = "Los archivos no pueden estar vacíos ni superar los 20 MB cada uno."; return; }
+            if (archivos.Sum(a => a.Size) + documentosPendientes.Sum(d => d.Contenido.LongLength) > ReglasDocumentosPaciente.MaximoBytesTotal)
+            { mensajeDocumentos = "Los documentos adjuntos no pueden superar los 30 MB en total."; return; }
+            var nuevos = new List<DocumentoPendiente>();
+            foreach (var archivo in archivos)
+            {
+                using var memoria = new MemoryStream();
+                await using var entrada = archivo.OpenReadStream(ReglasDocumentosPaciente.MaximoBytesPorArchivo);
+                await entrada.CopyToAsync(memoria);
+                nuevos.Add(new(Guid.NewGuid(), tipo.Id, tipo.Tipo, archivo.Name, archivo.ContentType, memoria.ToArray()));
+            }
+            documentosPendientes.AddRange(nuevos);
+        }
+        catch { mensajeDocumentos = "No pudimos preparar los archivos. Seleccioná hasta 10 archivos de 20 MB como máximo e intentá nuevamente."; }
+        finally { leyendoDocumentos = false; }
+    }
+
+    private static string FormatearTamano(long bytes) => bytes >= 1024 * 1024
+        ? $"{bytes / (1024d * 1024d):0.#} MB" : $"{Math.Max(1, bytes / 1024d):0.#} KB";
+
+    private async Task<HttpRespuesta<int>> GuardarPaciente()
+    {
+        if (documentosPendientes.Count == 0)
+            return await Http.Post<PacienteCrearDTO, int>("api/paciente/insertar", modelo);
+        using var contenido = new MultipartFormDataContent();
+        contenido.Add(new StringContent(JsonSerializer.Serialize(modelo)), "pacienteJson");
+        foreach (var doc in documentosPendientes)
+        {
+            var archivo = new ByteArrayContent(doc.Contenido);
+            archivo.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.TryParse(doc.ContentType, out var tipo)
+                ? tipo : new("application/octet-stream");
+            contenido.Add(archivo, "archivos", doc.Nombre);
+            contenido.Add(new StringContent(doc.TipoDocumentoId.ToString()), "tipoDocumentoIds");
+        }
+        return await Http.PostMultipart<int>("api/paciente/insertar-con-documentos", contenido);
+    }
+
     private async Task Grabar()
     {
+        if (guardando || leyendoDocumentos) return;
         Mensaje = string.Empty;
         MensajeDni = string.Empty;
         MensajeTelefonos = string.Empty;
@@ -568,12 +703,14 @@
 
         guardando = true;
 
-        var resp = await Http.Post<PacienteCrearDTO, int>(
-            "api/paciente/insertar",
-            modelo
-        );
-
-        guardando = false;
+        HttpRespuesta<int> resp;
+        try { resp = await GuardarPaciente(); }
+        catch
+        {
+            Mensaje = "No pudimos confirmar el guardado. Revisá el listado antes de reintentar para evitar duplicar el paciente.";
+            return;
+        }
+        finally { guardando = false; }
 
         if (!resp.Error)
         {
