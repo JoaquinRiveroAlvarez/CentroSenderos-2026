@@ -34,3 +34,9 @@ Los cuatro modales de alta rápida usan la paleta oliva y fondos cálidos del si
 La disponibilidad usa una grilla común de horarios libres, ocupados y seleccionados. Consultar uno ocupado abre el detalle debajo sin elegirlo ni cambiar el horario seleccionado. El detalle distingue conflictos de consultorio, profesional y paciente. El recuadro de la hora en lista, grilla y detalle utiliza un gris azulado con ícono de reloj.
 
 En Turnos, **Limpiar filtros** destilda los cuatro grupos; con cero opciones seleccionadas se muestran todos los turnos, según la regla existente. **Seleccionar todos** vuelve a tildarlos. Los filtros vacíos se conservan al volver desde otra pantalla. Profesionales y Pacientes mantienen **Limpiar filtros**, que reinicia selectores y búsqueda.
+
+## Hora personalizada y grilla breve
+
+Crear y Editar Turno muestran sugerencias cada 30 minutos, con quince opciones por página (hasta cinco filas en pantallas angostas) y flechas para recorrer el día. Encima de la leyenda hay un campo para escribir cualquier minuto en formato `HH:mm`. Tras escribir, se consulta automáticamente; si está libre aparece una opción para elegirla, y si está ocupado se muestra el conflicto sin cambiar la selección anterior.
+
+La consulta reutiliza `GET api/turno/Horarios` con `hora=09:17`, evalúa la duración completa, los límites de atención y la exclusión del propio turno al editar. Cambiar fecha, consultorio o participantes descarta las consultas anteriores. Las horas ya guardadas fuera de la media hora se conservan al editar si continúan disponibles. No requiere migración.

@@ -39,3 +39,23 @@
 @container (max-width: 520px) { .disponibilidad-grilla { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @container (max-width: 280px) { .disponibilidad-grilla { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .horario-celda { transition: none; } }
+
+.hora-personalizada { margin-bottom: 18px; }
+.hora-personalizada > label { display: block; margin-bottom: 9px; color: #637457; font-size: 12px; font-weight: 600; }
+.hora-personalizada-entrada { display: flex; align-items: center; gap: 10px; border: 1px solid #dce3d4; border-radius: 11px; padding: 0 13px; background: #fff; color: #8a987f; }
+.hora-personalizada-entrada:focus-within { border-color: #91a482; box-shadow: 0 0 0 3px #556f4f0d; }
+.hora-personalizada-entrada input { width: 100%; min-width: 0; padding: 12px 0; background: transparent; border: 0; outline: none; color: #52664a; font: inherit; font-size: 15px; font-variant-numeric: tabular-nums; letter-spacing: .03em; }
+.hora-personalizada-entrada input::placeholder { color: #a1ab96; font-size: 13px; }
+.hora-personalizada > p { margin: 8px 0 0; color: #929b85; font-size: 10px; line-height: 1.6; }
+.hora-personalizada-estado { margin-top: 8px; color: #849577; font-size: 11px; }
+.hora-personalizada-estado:empty { display: none; }
+.hora-personalizada-estado i { margin-right: 6px; }
+.hora-personalizada-error { color: #a46e5b; }
+.hora-personalizada-resultado { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; width: 100%; padding: 14px; margin: 0 0 18px; background: #f2f6ed; border: 1px solid #d7e3cc; border-radius: 12px; color: #617c50; text-align: left; cursor: pointer; font: inherit; }
+.hora-personalizada-hora { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.hora-personalizada-detalle { flex: 1; font-size: 11px; line-height: 1.5; }
+.hora-personalizada-accion { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; }
+.hora-personalizada-resultado.elegido { background: #556f4f; border-color: #556f4f; color: white; }
+.hora-personalizada-resultado.ocupado { background: #fcf4ef; border-color: #e8d0c4; color: #aa7763; }
+.sugerencias-titulo { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px; margin: 0 0 12px; color: #7f8c73; font-size: 11px; font-weight: 600; }
+.sugerencias-titulo > span { color: #a1aa94; font-size: 10px; font-weight: 400; }

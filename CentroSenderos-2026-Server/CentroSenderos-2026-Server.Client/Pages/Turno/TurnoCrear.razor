@@ -815,7 +815,7 @@
                     }
                     else
                     {
-                        <SelectorHorario Horarios="@horarios" HoraSeleccionada="@horaSeleccionada" Disabled="@guardando" Seleccionado="SeleccionarHora" />
+                        <SelectorHorario Horarios="@horarios" HoraSeleccionada="@horaSeleccionada" Disabled="@guardando" Seleccionado="SeleccionarHora" ConsultarHora="ConsultarHoraPersonalizada" />
                     }
                 </section>
 
@@ -1095,6 +1095,7 @@
     private bool cargando = true;
     private bool consultandoHorarios;
     private List<HorarioTurnoDTO> horarios = new();
+    private string urlConsultaHorarios = string.Empty;
     private bool horariosConsultados;
     private int versionConsultaHorarios;
     private bool guardando;
@@ -1699,6 +1700,7 @@
         Mensaje = string.Empty;
         horasDisponibles.Clear();
         horarios.Clear();
+        urlConsultaHorarios = string.Empty;
         horaSeleccionada = string.Empty;
         modelo.Hora = TimeOnly.MinValue;
         horariosConsultados = false;
@@ -1732,7 +1734,7 @@
 
         var url =
             "api/turno/Horarios" +
-            $"?fecha={modelo.Fecha:yyyy-MM-dd}" +
+            $"?fecha={modelo.Fecha:yyyy-MM-dd}&intervaloMinutos=30" +
             $"&tipoTurnoId={modelo.TipoTurnoId}" +
             $"&consultorioId={modelo.TipoConsultorioId}" +
             parametrosProfesionales +
@@ -1756,6 +1758,7 @@
             }
 
             horariosConsultados = true;
+            urlConsultaHorarios = url;
             horarios = respuesta.Respuesta ?? new();
             horasDisponibles = horarios.Where(h => !h.Ocupado).Select(h => h.Hora).ToList();
         }
@@ -1799,6 +1802,20 @@
                 consultandoHorarios = false;
             }
         }
+    }
+
+    private async Task<HorarioTurnoDTO?> ConsultarHoraPersonalizada(string hora)
+    {
+        var version = versionConsultaHorarios;
+        var url = urlConsultaHorarios;
+        if (string.IsNullOrEmpty(url)) return null;
+        var respuesta = await Http.Get<List<HorarioTurnoDTO>>($"{url}&hora={Uri.EscapeDataString(hora)}");
+        if (version != versionConsultaHorarios || url != urlConsultaHorarios) return null;
+        if (respuesta.Error) throw new ApplicationException(respuesta.ObtenerError());
+        var resultado = respuesta.Respuesta?.SingleOrDefault();
+        if (resultado is { Ocupado: false } && !horasDisponibles.Contains(resultado.Hora))
+            horasDisponibles.Add(resultado.Hora);
+        return resultado;
     }
 
     private void SeleccionarHora(string hora)

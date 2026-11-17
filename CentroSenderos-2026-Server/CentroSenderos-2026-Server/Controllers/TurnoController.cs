@@ -227,7 +227,8 @@ namespace CentroSenderos_2026_Server.Controllers
             [FromQuery] List<int>? profesionalIds = null,
             [FromQuery] List<int>? pacienteIds = null,
             int? turnoIdExcluir = null,
-            [FromQuery] int intervaloMinutos = 5
+            [FromQuery] int intervaloMinutos = 5,
+            [FromQuery] TimeOnly? hora = null
         )
         {
             try
@@ -240,7 +241,8 @@ namespace CentroSenderos_2026_Server.Controllers
                         profesionalIds,
                         pacienteIds,
                         turnoIdExcluir,
-                        intervaloMinutos
+                        intervaloMinutos,
+                        hora
                     );
 
                 return Ok(horarios);

@@ -692,7 +692,7 @@
                         }
                         else
                     {
-                        <SelectorHorario Horarios="@horarios" HoraSeleccionada="@horaSeleccionada" Disabled="@OperacionEnCurso" Seleccionado="SeleccionarHora" />
+                        <SelectorHorario Horarios="@horarios" HoraSeleccionada="@horaSeleccionada" Disabled="@OperacionEnCurso" Seleccionado="SeleccionarHora" ConsultarHora="ConsultarHoraPersonalizada" />
                     }
                 </section>
 
@@ -1131,6 +1131,7 @@
     private bool eliminando;
     private bool consultandoHorarios;
     private List<HorarioTurnoDTO> horarios = new();
+    private string urlConsultaHorarios = string.Empty;
     private bool horariosConsultados;
     private bool operacionExitosa;
     private bool calendarioAbierto;
@@ -1762,6 +1763,7 @@
         Mensaje = string.Empty;
         horasDisponibles.Clear();
         horarios.Clear();
+        urlConsultaHorarios = string.Empty;
         horariosConsultados = false;
 
         versionConsultaHorarios++;
@@ -1797,6 +1799,7 @@
         Mensaje = string.Empty;
         horasDisponibles.Clear();
         horarios.Clear();
+        urlConsultaHorarios = string.Empty;
         horariosConsultados = false;
 
         if (modelo.TipoTurnoId <= 0 ||
@@ -1825,7 +1828,7 @@
 
         var url =
             "api/turno/Horarios" +
-            $"?fecha={modelo.Fecha:yyyy-MM-dd}" +
+            $"?fecha={modelo.Fecha:yyyy-MM-dd}&intervaloMinutos=30" +
             $"&tipoTurnoId={modelo.TipoTurnoId}" +
             $"&consultorioId={modelo.TipoConsultorioId}" +
             $"&turnoIdExcluir={id}" +
@@ -1858,14 +1861,26 @@
 
             horariosConsultados = true;
 
+            urlConsultaHorarios = url;
             horarios = respuesta.Respuesta ?? new();
             horasDisponibles = horarios.Where(h => !h.Ocupado).Select(h => h.Hora).ToList();
 
-            if (!string.IsNullOrWhiteSpace(horaSeleccionada) &&
-                !horasDisponibles.Contains(horaSeleccionada))
+            if (!string.IsNullOrWhiteSpace(horaSeleccionada) && !horasDisponibles.Contains(horaSeleccionada))
             {
-                horaSeleccionada = string.Empty;
-                modelo.Hora = TimeOnly.MinValue;
+                var horaAnterior = horaSeleccionada;
+                consultandoHorarios = true;
+                var consultado = await ConsultarHoraPersonalizada(horaAnterior);
+                if (versionActual != versionConsultaHorarios) return;
+                consultandoHorarios = false;
+                if (consultado is { Ocupado: false })
+                {
+                    if (!horarios.Any(h => h.Hora == consultado.Hora)) horarios.Add(consultado);
+                }
+                else
+                {
+                    horaSeleccionada = string.Empty;
+                    modelo.Hora = TimeOnly.MinValue;
+                }
             }
         }
         catch (TaskCanceledException)
@@ -1904,6 +1919,20 @@
                     "Intentá nuevamente.";
             }
         }
+    }
+
+    private async Task<HorarioTurnoDTO?> ConsultarHoraPersonalizada(string hora)
+    {
+        var version = versionConsultaHorarios;
+        var url = urlConsultaHorarios;
+        if (string.IsNullOrEmpty(url)) return null;
+        var respuesta = await Http.Get<List<HorarioTurnoDTO>>($"{url}&hora={Uri.EscapeDataString(hora)}");
+        if (version != versionConsultaHorarios || url != urlConsultaHorarios) return null;
+        if (respuesta.Error) throw new ApplicationException(respuesta.ObtenerError());
+        var resultado = respuesta.Respuesta?.SingleOrDefault();
+        if (resultado is { Ocupado: false } && !horasDisponibles.Contains(resultado.Hora))
+            horasDisponibles.Add(resultado.Hora);
+        return resultado;
     }
 
     private void SeleccionarHora(string hora)

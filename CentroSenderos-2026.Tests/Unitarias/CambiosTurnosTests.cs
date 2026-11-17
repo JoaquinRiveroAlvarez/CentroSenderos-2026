@@ -150,6 +150,18 @@ public class CambiosTurnosTests
         Assert.All(await repo.HorariosConOcupacion(fecha, tipo.Id, 0), h => Assert.False(h.Ocupado));
         Assert.DoesNotContain(new TimeOnly(10, 0), await repo.HorariosDisponibles(fecha, tipo.Id, consultorio.Id));
         Assert.All(await repo.HorariosConOcupacion(fecha, tipo.Id, consultorio.Id, turnoIdExcluir: turno.Id), h => Assert.False(h.Ocupado));
+        var sugeridos = await repo.HorariosConOcupacion(fecha, tipo.Id, consultorio.Id, intervaloMinutos: 30);
+        Assert.Equal(24, sugeridos.Count);
+        Assert.All(sugeridos, h => Assert.Equal(0, TimeOnly.Parse(h.Hora).Minute % 30));
+        var libreExacto = Assert.Single(await repo.HorariosConOcupacion(fecha, tipo.Id, consultorio.Id, hora: new TimeOnly(11, 7)));
+        Assert.Equal("11:07", libreExacto.Hora);
+        Assert.False(libreExacto.Ocupado);
+        var ocupadoPorDuracion = Assert.Single(await repo.HorariosConOcupacion(fecha, tipo.Id, consultorio.Id, hora: new TimeOnly(9, 47)));
+        Assert.True(ocupadoPorDuracion.Ocupado);
+        Assert.Equal("Sala 1", Assert.Single(ocupadoPorDuracion.Conflictos).Consultorio);
+        Assert.False(Assert.Single(await repo.HorariosConOcupacion(fecha, tipo.Id, consultorio.Id, turnoIdExcluir: turno.Id, hora: new TimeOnly(10, 17))).Ocupado);
+        foreach (var invalida in new[] { new TimeOnly(7, 59), new TimeOnly(19, 45), new TimeOnly(10, 17, 30) })
+            await Assert.ThrowsAsync<ApplicationException>(() => repo.HorariosConOcupacion(fecha, tipo.Id, consultorio.Id, hora: invalida));
         turno.EstadoTurno = EnumEstadoTurno.cancelado;
         await db.SaveChangesAsync();
         Assert.All(await repo.HorariosConOcupacion(fecha, tipo.Id, consultorio.Id), h => Assert.False(h.Ocupado));

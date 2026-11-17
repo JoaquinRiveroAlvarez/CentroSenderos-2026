@@ -812,7 +812,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return horarios.Where(h => !h.Ocupado).Select(h => TimeOnly.ParseExact(h.Hora, "HH:mm")).ToList();
         }
 
-        public async Task<List<HorarioTurnoDTO>> HorariosConOcupacion(DateOnly fecha, int tipoTurnoId, int consultorioId, List<int>? profesionalIds = null, List<int>? pacienteIds = null, int? turnoIdExcluir = null, int intervaloMinutos = 5)
+        public async Task<List<HorarioTurnoDTO>> HorariosConOcupacion(DateOnly fecha, int tipoTurnoId, int consultorioId, List<int>? profesionalIds = null, List<int>? pacienteIds = null, int? turnoIdExcluir = null, int intervaloMinutos = 5, TimeOnly? hora = null)
         {
             profesionalIds ??= new List<int>();
             pacienteIds ??= new List<int>();
@@ -830,6 +830,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var duracionMinutos = tipoTurno.DuracionMinutos;
             var horaInicioDia = new TimeOnly(8, 0);
             var horaFinDia = new TimeOnly(20, 0);
+            if (duracionMinutos <= 0) throw new ApplicationException("La duración del turno no es válida.");
+            if (hora.HasValue && (hora.Value.Second != 0 || hora.Value.Ticks % TimeSpan.TicksPerMinute != 0 ||
+                hora.Value < horaInicioDia || hora.Value.ToTimeSpan().TotalMinutes + duracionMinutos > 20 * 60))
+                throw new ApplicationException("Elegí una hora desde las 08:00 que permita finalizar el turno a las 20:00 como máximo.");
 
             var fechaInicioDiaUtc = DateTime.SpecifyKind(
                 fecha.ToDateTime(horaInicioDia),
@@ -872,10 +876,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var minutosInicioDia = horaInicioDia.Hour * 60 + horaInicioDia.Minute;
             var minutosFinDia = horaFinDia.Hour * 60 + horaFinDia.Minute;
 
-            // Paso configurable: 1, 5, 10, 15 (default), 30, 45, 60 min
+            // Las sugerencias usan el intervalo; una consulta manual evalúa un único minuto exacto.
             var paso = intervaloMinutos > 0 ? intervaloMinutos : 5;
 
-            for (var m = minutosInicioDia; m + duracionMinutos <= minutosFinDia; m += paso)
+            var primerMinuto = hora.HasValue ? hora.Value.Hour * 60 + hora.Value.Minute : minutosInicioDia;
+            var ultimoMinuto = hora.HasValue ? primerMinuto : minutosFinDia - duracionMinutos;
+            for (var m = primerMinuto; m <= ultimoMinuto; m += paso)
             {
                 var horaActual = new TimeOnly(m / 60, m % 60);
 
