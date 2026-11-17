@@ -1,8 +1,9 @@
-﻿@page "/turnos/editar/{id:int}"
+@page "/turnos/editar/{id:int}"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
 @using CentroSenderos_2026_Shared.Enum
+@using CentroSenderos_2026_Shared.Reglas
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
@@ -450,6 +451,15 @@
                                                             ? "(obligatorio)"
                                                             : "(opcional)")
                         </label>
+                            @if (EsSesionIndividual)
+                            {
+                                <p class="ayuda-paciente-individual" role="status">
+                                    @(modelo.PacienteIds.Count > 1
+                                        ? "Esta sesión tiene varios pacientes. Elegí uno o quitá los demás para poder guardar."
+                                        : "Un solo paciente por sesión. Al elegir otro, se reemplaza el seleccionado.")
+                                </p>
+                            }
+
 
                         <div class="selector-desplegable">
 
@@ -1137,13 +1147,12 @@
         1
     );
 
-    private bool RequierePacientes =>
-        tiposTurno.FirstOrDefault(
-            tipo => tipo.Id == modelo.TipoTurnoId
-        )?.RequierePacientes ?? true;
-
-    private bool SeleccionPacientesValida =>
-        !RequierePacientes || modelo.PacienteIds.Count > 0;
+    private TipoTurnoListadoDTO? TipoActual => tiposTurno.FirstOrDefault(t => t.Id == modelo.TipoTurnoId);
+    private bool EsSesionIndividual => ReglasTurno.EsSesionIndividual(TipoActual?.Tipo);
+    private bool RequierePacientes => EsSesionIndividual || (TipoActual?.RequierePacientes ?? true);
+    private string? ErrorPacientes => ReglasTurno.ErrorCantidadPacientes(
+        TipoActual?.Tipo, RequierePacientes, modelo.PacienteIds.Count);
+    private bool SeleccionPacientesValida => ErrorPacientes is null;
 
     private readonly EnumEstadoTurno[] EstadosDisponibles =
     {
@@ -1591,13 +1600,18 @@
             return;
         }
 
-        if (modelo.PacienteIds.Contains(pacienteId))
+        if (modelo.PacienteIds.Contains(pacienteId) && (!EsSesionIndividual || modelo.PacienteIds.Count == 1))
         {
             modelo.PacienteIds.Remove(pacienteId);
             asistenciasPendientes.Remove(pacienteId);
         }
         else
         {
+            if (EsSesionIndividual)
+            {
+                modelo.PacienteIds.Clear();
+                asistenciasPendientes.Clear();
+            }
             modelo.PacienteIds.Add(pacienteId);
         }
 
@@ -2310,7 +2324,7 @@
 
         if (!SeleccionPacientesValida)
         {
-            Mensaje = "Este tipo de turno requiere al menos un paciente.";
+            Mensaje = ErrorPacientes ?? string.Empty;
             return false;
         }
 

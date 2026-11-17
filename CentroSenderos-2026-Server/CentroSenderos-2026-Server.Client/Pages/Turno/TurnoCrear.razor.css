@@ -1302,3 +1302,22 @@ button:focus-visible {
 /* #endregion */
 
 .prestacion-matricula-ayuda { display: flex; align-items: center; gap: 6px; margin-top: 10px; color: #8a957d; font-size: 11px; }
+
+.ayuda-paciente-individual { margin: 0 0 10px; color: #7b856c; font-size: 12px; line-height: 1.5; }
+
+/* Los selectores con búsqueda conservan la tipografía del resto del formulario. */
+.campo ::deep .selector-buscable-boton {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #303a30;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 8px;
+}
+.campo ::deep .selector-opcion, .campo ::deep .selector-buscador input {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 400;
+}

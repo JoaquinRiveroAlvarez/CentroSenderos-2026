@@ -1,7 +1,8 @@
-﻿using CentroSenderos_2026_BD;
+using CentroSenderos_2026_BD;
 using CentroSenderos_2026_BD.Datos.Entity;
 using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
+using CentroSenderos_2026_Shared.Reglas;
 using Microsoft.EntityFrameworkCore;
 using Modelado2025_1Repositorio.Repositorios;
 using System;
@@ -66,6 +67,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         }
         public async Task<int> InsertarTipoTurno(TipoTurnoDTO dto)
         {
+            if (ReglasTurno.EsSesionIndividual(dto.Tipo))
+            {
+                dto.Tipo = ReglasTurno.NombreSesionIndividual;
+                dto.RequierePacientes = true;
+            }
+
             // Validar que el CUIT no tenga prefijo duplicado
             var codlimpio = dto.Tipo.StartsWith("Tipo: ") ? dto.Tipo.Substring(6) : dto.Tipo;
 
@@ -115,6 +122,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             if (tipoTurno == null)
                 return false;
+
+            if (ReglasTurno.EsSesionIndividual(dto.Tipo))
+            {
+                dto.Tipo = ReglasTurno.NombreSesionIndividual;
+                dto.RequierePacientes = true;
+            }
 
             // Validar que el CUIT no tenga prefijo duplicado
             var codlimpio = dto.Tipo.StartsWith("Cod: ") ? dto.Tipo.Substring(6) : dto.Tipo;

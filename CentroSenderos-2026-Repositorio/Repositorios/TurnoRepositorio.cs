@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +7,7 @@ using CentroSenderos_2026_BD.Datos.Entity;
 using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
 using CentroSenderos_2026_Shared.Recurrencias;
+using CentroSenderos_2026_Shared.Reglas;
 using Microsoft.EntityFrameworkCore;
 using Modelado2025_1Repositorio.Repositorios;
 
@@ -390,11 +391,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            if (tipoTurno.RequierePacientes && pacienteIds.Count == 0)
+            var errorPacientes = ReglasTurno.ErrorCantidadPacientes(
+                tipoTurno.Tipo, tipoTurno.RequierePacientes, pacienteIds.Count);
+            if (errorPacientes is not null)
             {
-                throw new ApplicationException(
-                    "Seleccioná al menos un paciente para este tipo de turno."
-                );
+                throw new ApplicationException(errorPacientes);
             }
 
             if (profesionalPrestaciones.Count != profesionalIds.Count)
@@ -1023,11 +1024,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 );
             }
 
-            if (tipoTurno.RequierePacientes && pacienteIds.Count == 0)
+            var errorPacientes = ReglasTurno.ErrorCantidadPacientes(
+                tipoTurno.Tipo, tipoTurno.RequierePacientes, pacienteIds.Count);
+            if (errorPacientes is not null)
             {
-                throw new ApplicationException(
-                    "Seleccioná al menos un paciente para este tipo de turno."
-                );
+                throw new ApplicationException(errorPacientes);
             }
 
             if (profesionalPrestaciones.Count != profesionalIds.Count)
