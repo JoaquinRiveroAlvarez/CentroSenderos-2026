@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -225,7 +225,7 @@ public class TurnosAgendaFiltrosTests
                 new() { Timeout = 30000 });
 
         var titulosHorarios = tarjetas.Locator(
-            ".turno-horario-fila h2");
+            ".turno-hora-destacada");
 
         // Esperar los títulos, además de sus tarjetas.
         await Assertions.Expect(titulosHorarios)
@@ -233,19 +233,12 @@ public class TurnosAgendaFiltrosTests
                 esperados.Count,
                 new() { Timeout = 30000 });
 
-        // La agenda ordena sus turnos por hora de inicio.
-        var horariosEnOrden = esperados
-            .OrderBy(t => t.FechaInicio)
-            .Select(t =>
-                $"{t.FechaInicio:HH:mm} - {t.FechaFin:HH:mm}")
-            .ToArray();
-
-        // Esta aserción espera y reintenta hasta que
-        // el contenido mostrado coincida.
-        await Assertions.Expect(titulosHorarios)
-            .ToHaveTextAsync(
-                horariosEnOrden,
-                new() { Timeout = 30000 });
+        // Inicio y fin se muestran en dos líneas y conservan el orden cronológico.
+        var ordenados = esperados.OrderBy(t => t.FechaInicio).ToList();
+        await Assertions.Expect(titulosHorarios.Locator(".turno-hora-inicio"))
+            .ToHaveTextAsync(ordenados.Select(t => t.FechaInicio.ToString("HH:mm")).ToArray(), new() { Timeout = 30000 });
+        await Assertions.Expect(titulosHorarios.Locator(".turno-hora-fin"))
+            .ToHaveTextAsync(ordenados.Select(t => t.FechaFin.ToString("HH:mm")).ToArray(), new() { Timeout = 30000 });
 
         await Assertions.Expect(
                 opciones.Locator("input[type='checkbox']:checked"))
