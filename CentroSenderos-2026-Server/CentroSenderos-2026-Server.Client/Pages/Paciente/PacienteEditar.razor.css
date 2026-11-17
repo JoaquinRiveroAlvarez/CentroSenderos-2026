@@ -650,8 +650,6 @@ button:focus-visible {
         background: #dfdcda;
     }
 
-
-
 .form-actions {
     justify-content: space-between;
 }
@@ -819,10 +817,48 @@ button:focus-visible {
 }
 /* #endregion */
 
-/* Alta rápida junto al selector. */
-.catalogo-selector { display: flex; align-items: stretch; gap: 8px; min-width: 0; }
-.catalogo-selector ::deep select { flex: 1; min-width: 0; }
-.catalogo-agregar { display: grid; place-items: center; flex-shrink: 0; width: 42px; min-height: 42px; padding: 0; color: #627b56; background: #f4f7f0; border: 1px solid #dce5d4; border-radius: 10px; cursor: pointer; font-size: 15px; }
-.catalogo-agregar:hover:not(:disabled) { background: #eaf0e3; border-color: #a6b69b; }
-.catalogo-agregar:focus-visible { outline: 2px solid #73866b; outline-offset: 3px; }
-.catalogo-agregar:disabled { opacity: .45; cursor: default; }
+/* #region Alta rápida de catálogos y campos asociados */
+
+.catalogo-selector {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    min-width: 0;
+}
+
+.catalogo-selector ::deep select {
+    flex: 1;
+    min-width: 0;
+}
+
+.catalogo-agregar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 42px;
+    min-height: 42px;
+    padding: 0;
+    color: #627b56;
+    background: #f4f7f0;
+    border: 1px solid #dce5d4;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.catalogo-agregar:hover:not(:disabled) {
+    background: #eaf0e3;
+    border-color: #a6b69b;
+}
+
+.catalogo-agregar:focus-visible {
+    outline: 2px solid #73866b;
+    outline-offset: 3px;
+}
+
+.catalogo-agregar:disabled {
+    opacity: .45;
+    cursor: default;
+}
+
+/* #endregion */
