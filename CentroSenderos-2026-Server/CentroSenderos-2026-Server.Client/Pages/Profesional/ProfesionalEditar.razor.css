@@ -591,8 +591,6 @@ button:focus-visible {
         background: #dfdcda;
     }
 
-
-
 .form-actions {
     justify-content: space-between;
 }
@@ -680,17 +678,110 @@ button:focus-visible {
 }
 /* #endregion */
 
-/* Alta rápida junto al selector. */
-.catalogo-selector { display: flex; align-items: stretch; gap: 8px; min-width: 0; }
-.catalogo-selector ::deep select { flex: 1; min-width: 0; }
-.catalogo-agregar { display: grid; place-items: center; flex-shrink: 0; width: 42px; min-height: 42px; padding: 0; color: #627b56; background: #f4f7f0; border: 1px solid #dce5d4; border-radius: 10px; cursor: pointer; font-size: 15px; }
-.catalogo-agregar:hover:not(:disabled) { background: #eaf0e3; border-color: #a6b69b; }
-.catalogo-agregar:focus-visible { outline: 2px solid #73866b; outline-offset: 3px; }
-.catalogo-agregar:disabled { opacity: .45; cursor: default; }
+/* #region Alta rápida de catálogos y campos asociados */
 
-.prestaciones-seleccionadas { display: grid; gap: 10px; }
-.prestacion-matricula { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 150px) 26px; align-items: center; gap: 14px; padding: 12px 14px; background: #fafbf7; border-color: #e3e7dc; border-radius: 12px; }
-.prestacion-matricula > span { color: #627453; font-weight: 600; }
-.prestacion-matricula label { margin: 0; display: flex; flex-direction: column; gap: 5px; color: #929a85; font-size: 10px; font-weight: 500; }
-.prestacion-matricula input { min-width: 0; width: 100%; padding: 8px 10px; font-size: 12px; background: #fff; border: 1px solid #e1e5d8; border-radius: 8px; }
-@media(max-width: 480px) { .prestacion-matricula { grid-template-columns: minmax(0, 1fr) 26px; } .prestacion-matricula label { grid-column: 1; grid-row: 2; } .prestacion-matricula .prestacion-chip-remove { grid-column: 2; grid-row: 1; } }
+.catalogo-selector {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    min-width: 0;
+}
+
+.catalogo-selector ::deep select {
+    flex: 1;
+    min-width: 0;
+}
+
+.catalogo-agregar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 42px;
+    min-height: 42px;
+    padding: 0;
+    color: #627b56;
+    background: #f4f7f0;
+    border: 1px solid #dce5d4;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.catalogo-agregar:hover:not(:disabled) {
+    background: #eaf0e3;
+    border-color: #a6b69b;
+}
+
+.catalogo-agregar:focus-visible {
+    outline: 2px solid #73866b;
+    outline-offset: 3px;
+}
+
+.catalogo-agregar:disabled {
+    opacity: .45;
+    cursor: default;
+}
+
+.prestaciones-seleccionadas {
+    display: grid;
+    gap: 10px;
+}
+
+/* #endregion */
+
+/* #region Matrículas por prestación */
+
+.prestacion-matricula {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(110px, 150px) 26px;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    background: #fafbf7;
+    border-color: #e3e7dc;
+    border-radius: 12px;
+}
+
+.prestacion-matricula > span {
+    color: #627453;
+    font-weight: 600;
+}
+
+.prestacion-matricula label {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: #929a85;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.prestacion-matricula input {
+    min-width: 0;
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 12px;
+    background: #fff;
+    border: 1px solid #e1e5d8;
+    border-radius: 8px;
+}
+
+@media(max-width: 480px) {
+    .prestacion-matricula {
+        grid-template-columns: minmax(0, 1fr) 26px;
+    }
+
+    .prestacion-matricula label {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .prestacion-matricula .prestacion-chip-remove {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+}
+
+/* #endregion */
