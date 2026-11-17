@@ -1,4 +1,4 @@
-/* =====================================================
+﻿/* =====================================================
    PÁGINA
 ===================================================== */
 
@@ -1192,3 +1192,64 @@
         width: 100%;
     }
 }
+
+/* #region Área de la prestación */
+
+.prestacion-nombre {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.prestacion-area {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 100%;
+    padding: 3px 7px;
+    border: 1px solid #dce5d4;
+    border-radius: 7px;
+    background: #eef3ec;
+    color: #526c4d;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+    .prestacion-area.sin-area {
+        border-color: #e7e3dc;
+        background: #faf8f5;
+        color: #867767;
+    }
+
+.prestacion-area-ayuda {
+    margin: 8px 0 0;
+    color: #707970;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.prestacion-area-error {
+    margin: 8px 0 0;
+    color: #aa4b43;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.prestacion-area-reintentar {
+    align-self: flex-start;
+    margin-top: 8px;
+    padding: 6px 10px;
+    border: 1px solid #dce5d4;
+    border-radius: 8px;
+    background: #eef3ec;
+    color: #526c4d;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* #endregion */

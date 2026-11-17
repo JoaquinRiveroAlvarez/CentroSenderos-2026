@@ -30,6 +30,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Tipo = p.Tipo,
                     Descripcion = p.Descripcion,
                     Cod = p.Cod,
+                    TipoAreaId = p.TipoAreaId,
+                    TipoAreaNombre = p.TipoArea != null ? p.TipoArea.Tipo : null,
                     MontoSesion = p.MontoSesion,
                     PorcentajeRetencion = p.PorcentajeRetencion,
                     EstadoRegistro = p.EstadoRegistro
@@ -46,6 +48,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Tipo = p.Tipo,
                     Descripcion = p.Descripcion,
                     Cod = p.Cod,
+                    TipoAreaId = p.TipoAreaId,
+                    TipoAreaNombre = p.TipoArea != null ? p.TipoArea.Tipo : null,
                     MontoSesion = p.MontoSesion,
                     PorcentajeRetencion = p.PorcentajeRetencion
                 })
@@ -63,6 +67,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     Tipo = p.Tipo,
                     Descripcion = p.Descripcion,
                     Cod = p.Cod,
+                    TipoAreaId = p.TipoAreaId,
+                    TipoAreaNombre = p.TipoArea != null ? p.TipoArea.Tipo : null,
                     MontoSesion = p.MontoSesion,
                     PorcentajeRetencion = p.PorcentajeRetencion
                 })
@@ -73,9 +79,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             var codlimpio = dto.Cod.StartsWith("Cod: ") ? dto.Cod.Substring(6) : dto.Cod;
 
+            await ValidarArea(dto.TipoAreaId);
+
             var tipoPrestacion = new TipoPrestacion
             {
                 Tipo = dto.Tipo,
+                TipoAreaId = dto.TipoAreaId,
                 Descripcion = dto.Descripcion,
                 Cod = codlimpio,
                 MontoSesion = dto.MontoSesion,
@@ -123,6 +132,13 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (cuitExiste)
                 throw new ApplicationException($"Ya existe un tipo de prestación con el código '{codlimpio}'.");
 
+            // Un cliente anterior puede omitir el área: no se pierde una asignación existente.
+            if (dto.TipoAreaId.HasValue)
+            {
+                await ValidarArea(dto.TipoAreaId);
+                tipoPrestacion.TipoAreaId = dto.TipoAreaId;
+            }
+
             tipoPrestacion.Tipo = dto.Tipo;
             tipoPrestacion.Descripcion = dto.Descripcion;
             tipoPrestacion.Cod = codlimpio;
@@ -141,6 +157,22 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     throw new ApplicationException($"Ya existe un tipo de prestación con el código '{codlimpio}'.");
                 throw;
             }
+        }
+
+        private async Task ValidarArea(int? tipoAreaId)
+        {
+            // Se mantiene la compatibilidad con el alta rápida hasta su siguiente etapa.
+            if (!tipoAreaId.HasValue)
+                return;
+
+            var existe = tipoAreaId.Value > 0 &&
+                await context.TipoAreas.AnyAsync(area =>
+                    area.Id == tipoAreaId.Value &&
+                    area.EstadoRegistro == EnumEstadoRegistro.activo);
+
+            if (!existe)
+                throw new ApplicationException(
+                    "El área seleccionada no está activa o ya no existe. Elegí otra área.");
         }
     }
 }

@@ -16,7 +16,7 @@ La migración es `20261117170152_RelacionOpcionalPrestacionArea`. Su `Up` solo a
 | Crear, Editar, Detalle y Listado de Profesionales | Selector, búsqueda, filtros y ordenamiento por el área actual. No se cambian en esta etapa. |
 | Crear y Editar Turno | Muestran el área en los selectores y resúmenes de profesionales. No se cambian en esta etapa. |
 | Crear, Editar y Listado de Socios | Muestran o consultan el área del profesional asociado. Deben contemplarse al adaptar las pantallas. |
-| Prestaciones y alta rápida | En la etapa 2 se agregará la selección y validación de un área activa, con soporte para registros aún sin clasificar. |
+| Prestaciones y alta rápida | Administración ya permite seleccionar un área activa; el alta rápida se mantiene compatible y se adaptará en su siguiente entrega. |
 | Reportes y liquidaciones | La búsqueda de referencias directas a `.Area` no encontró usos adicionales aquí. Se deberán comprobar los consumidores indirectos del DTO al cambiar su contrato. |
 
 ### Prueba sobre una copia de la base
@@ -42,9 +42,9 @@ Pruebas con SQLite en memoria para la relación opcional, las altas y ediciones 
 
 ## Etapas siguientes
 
-2. Agregar selección opcional de área a Crear/Editar prestación y al alta rápida; validar que sea un área activa. Cargar las asignaciones revisadas en la copia y resolver los conflictos, incluyendo prestaciones inactivas o borradas antes de exigir `NOT NULL`.
+2. Administración ya incluye selección de área al crear y editar prestaciones, y muestra las que faltan clasificar. Completar las asignaciones desde ahí. Adaptar el alta rápida en una entrega posterior y resolver los conflictos, incluyendo prestaciones inactivas o borradas antes de exigir `NOT NULL`.
 3. Adaptar profesionales, turnos y socios para obtener áreas desde las prestaciones, sin duplicarlas. Durante la transición se conserva el dato legado y se compara con el resultado nuevo. Probar también búsqueda, orden, filtros y consumidores indirectos.
 4. Cuando todas las prestaciones tengan área y los flujos estén verificados, hacer obligatorio `TipoAreaId` y retirar la selección independiente del profesional.
 5. Eliminar `Profesionales.Area` en una entrega posterior, después de comprobar que ya no tenga consumidores y de preservar el dato legado.
 
-Cada etapa tiene su revisión y validación antes de continuar con la siguiente. Esta rama contiene únicamente la etapa 1.
+Cada etapa tiene su revisión y validación antes de continuar con la siguiente. Esta rama contiene la etapa 1 y la selección de área en Administración. Ver `administracion-prestaciones-areas.md` para el alcance de los formularios.

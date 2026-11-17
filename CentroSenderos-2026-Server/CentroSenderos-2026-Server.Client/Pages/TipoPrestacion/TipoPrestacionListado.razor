@@ -170,6 +170,11 @@
                                     @item.Tipo
                                 }
 
+                                <span class="prestacion-area @(item.TipoAreaId.HasValue ? "" : "sin-area")">
+                                    <i class="bi bi-diagram-3" aria-hidden="true"></i>
+                                    @MostrarArea(item.TipoAreaNombre)
+                                </span>
+
                             </div>
 
                         </div>
@@ -320,6 +325,11 @@
 
 
                     <div class="field-group field-full">
+                        <label>ÁREA</label>
+                        <div class="detail-value">@MostrarArea(modelo.TipoAreaNombre)</div>
+                    </div>
+
+                    <div class="field-group field-full">
 
                         <label>DESCRIPCIÓN</label>
 
@@ -463,6 +473,66 @@
 
                     <div class="field-group field-full">
 
+                        <label for="areaPrestacion">ÁREA</label>
+
+                        <InputSelect id="areaPrestacion"
+                                     class="senderos-input"
+                                     @bind-Value="modelo.TipoAreaId"
+                                     disabled="@(guardando || !AreasDisponibles)"
+                                     aria-describedby="areaPrestacionAyuda">
+
+                            <option value="">Seleccioná un área</option>
+
+                            @if (modelo.TipoAreaId.HasValue &&
+                                !listaAreas.Any(area => area.Id == modelo.TipoAreaId))
+                            {
+                                <option value="@modelo.TipoAreaId" disabled>
+                                    @MostrarArea(modelo.TipoAreaNombre) (no disponible)
+                                </option>
+                            }
+
+                            @foreach (var area in listaAreas.OrderBy(area => area.Tipo))
+                            {
+                                <option value="@area.Id">@area.Tipo</option>
+                            }
+
+                        </InputSelect>
+
+                        <ValidationMessage For="@(() => modelo.TipoAreaId)" />
+
+                        <p id="areaPrestacionAyuda" class="prestacion-area-ayuda">
+                            @(cargandoAreas
+                                ? "Cargando áreas…"
+                                : "Cada prestación pertenece a un área. Seleccionala para guardar desde Administración.")
+                        </p>
+
+                        @if (!string.IsNullOrWhiteSpace(errorAreas))
+                        {
+                            <p class="prestacion-area-error" role="alert">@errorAreas</p>
+
+                            <button type="button"
+                                    class="prestacion-area-reintentar"
+                                    @onclick="CargarAreas">
+                                Reintentar cargar áreas
+                            </button>
+                        }
+                        else if (!cargandoAreas && listaAreas.Count == 0)
+                        {
+                            <p class="prestacion-area-ayuda" role="status">
+                                No hay áreas activas. Creá una desde Administración → Tipo Área.
+                            </p>
+
+                            <button type="button"
+                                    class="prestacion-area-reintentar"
+                                    @onclick="CargarAreas">
+                                Actualizar áreas
+                            </button>
+                        }
+
+                    </div>
+
+                    <div class="field-group field-full">
+
                         <label>TIPO DE PRESTACIÓN</label>
 
                         <InputText class="senderos-input"
@@ -554,7 +624,7 @@
 
                     <button type="submit"
                             class="btn-guardar"
-                            disabled="@guardando">
+                            disabled="@(guardando || !AreasDisponibles)">
 
                         @if (guardando)
                         {
@@ -622,6 +692,66 @@
 
 
                 <div class="form-grid">
+
+                    <div class="field-group field-full">
+
+                        <label for="areaPrestacion">ÁREA</label>
+
+                        <InputSelect id="areaPrestacion"
+                                     class="senderos-input"
+                                     @bind-Value="modelo.TipoAreaId"
+                                     disabled="@(guardando || !AreasDisponibles)"
+                                     aria-describedby="areaPrestacionAyuda">
+
+                            <option value="">Seleccioná un área</option>
+
+                            @if (modelo.TipoAreaId.HasValue &&
+                                !listaAreas.Any(area => area.Id == modelo.TipoAreaId))
+                            {
+                                <option value="@modelo.TipoAreaId" disabled>
+                                    @MostrarArea(modelo.TipoAreaNombre) (no disponible)
+                                </option>
+                            }
+
+                            @foreach (var area in listaAreas.OrderBy(area => area.Tipo))
+                            {
+                                <option value="@area.Id">@area.Tipo</option>
+                            }
+
+                        </InputSelect>
+
+                        <ValidationMessage For="@(() => modelo.TipoAreaId)" />
+
+                        <p id="areaPrestacionAyuda" class="prestacion-area-ayuda">
+                            @(cargandoAreas
+                                ? "Cargando áreas…"
+                                : "Cada prestación pertenece a un área. Seleccionala para guardar desde Administración.")
+                        </p>
+
+                        @if (!string.IsNullOrWhiteSpace(errorAreas))
+                        {
+                            <p class="prestacion-area-error" role="alert">@errorAreas</p>
+
+                            <button type="button"
+                                    class="prestacion-area-reintentar"
+                                    @onclick="CargarAreas">
+                                Reintentar cargar áreas
+                            </button>
+                        }
+                        else if (!cargandoAreas && listaAreas.Count == 0)
+                        {
+                            <p class="prestacion-area-ayuda" role="status">
+                                No hay áreas activas. Creá una desde Administración → Tipo Área.
+                            </p>
+
+                            <button type="button"
+                                    class="prestacion-area-reintentar"
+                                    @onclick="CargarAreas">
+                                Actualizar áreas
+                            </button>
+                        }
+
+                    </div>
 
                     <div class="field-group field-full">
 
@@ -730,7 +860,7 @@
 
                         <button type="submit"
                                 class="btn-guardar"
-                                disabled="@guardando">
+                                disabled="@(guardando || !AreasDisponibles)">
 
                             @if (guardando)
                             {
@@ -820,6 +950,67 @@
 
 @code {
 
+    // =====================================================
+    // ÁREA DE LA PRESTACIÓN
+    // =====================================================
+
+    private List<TipoListadoDTO> listaAreas = new();
+
+    private bool cargandoAreas;
+
+    private string errorAreas = string.Empty;
+
+    private bool AreasDisponibles =>
+        !cargandoAreas &&
+        string.IsNullOrWhiteSpace(errorAreas) &&
+        listaAreas.Count > 0;
+
+    private static string MostrarArea(string? nombre) =>
+        string.IsNullOrWhiteSpace(nombre)
+            ? "Sin área asignada"
+            : nombre;
+
+
+    private async Task CargarAreas()
+    {
+        cargandoAreas = true;
+        errorAreas = string.Empty;
+
+        try
+        {
+            var respuesta =
+                await Http.Get<List<TipoListadoDTO>>(
+                    "api/tipoarea/ListaTipoArea"
+                );
+
+            if (respuesta.Error)
+                errorAreas = "No pudimos cargar las áreas. Reintentá para poder guardar la prestación.";
+            else
+                listaAreas = respuesta.Respuesta ?? new();
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            errorAreas = "No pudimos conectarnos para cargar las áreas. Intentá nuevamente.";
+        }
+        finally
+        {
+            cargandoAreas = false;
+        }
+    }
+
+    private bool ValidarAreaSeleccionada()
+    {
+        if (!AreasDisponibles ||
+            !listaAreas.Any(area => area.Id == modelo.TipoAreaId))
+        {
+            Mensaje = "Seleccioná un área activa para la prestación.";
+            return false;
+        }
+        return true;
+    }
+
+
+
     private enum ModalPrestacion
     {
         Ninguno,
@@ -875,6 +1066,7 @@
                 ContieneTexto(item.Tipo, busqueda) ||
                 ContieneTexto(item.Descripcion, busqueda) ||
                 ContieneTexto(item.Cod, busqueda) ||
+                ContieneTexto(MostrarArea(item.TipoAreaNombre), busqueda) ||
                 item.MontoSesion
                     .ToString()
                     .Contains(
@@ -888,6 +1080,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await CargarAreas();
         await Cargar();
     }
 
@@ -983,6 +1176,9 @@
 
     private async Task CrearPrestacion()
     {
+        if (!ValidarAreaSeleccionada())
+            return;
+
         guardando = true;
 
         Mensaje = string.Empty;
@@ -1067,7 +1263,7 @@
 
     private async Task GuardarCambios()
     {
-        if (idSeleccionado is null)
+        if (idSeleccionado is null || !ValidarAreaSeleccionada())
             return;
 
 
