@@ -74,7 +74,8 @@
                 <div class="field-group">
                     <label for="areaProfesional">Área</label>
 
-                    <InputSelect id="areaProfesional"
+                    <div class="catalogo-selector">
+<InputSelect id="areaProfesional"
                                  class="form-input"
                                  @bind-Value="modelo.Area"
                                  disabled="@(guardando || listaTipoAreas.Count == 0)">
@@ -90,25 +91,16 @@
                             </option>
                         }
                     </InputSelect>
+                    <button type="button" class="catalogo-agregar" disabled="@guardando" aria-label="Crear área" title="Crear área" @onclick="() => tipoareaModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                    </div>
 
                     <ValidationMessage For="@(() => modelo.Area)"
                                        class="validation-message" />
 
                     @if (!cargandoAreas && listaTipoAreas.Count == 0)
                     {
-                        <span class="areas-help">Primero cargá un tipo de área desde Administración.</span>
+                        <span class="areas-help">Creá un área con el botón de este formulario.</span>
                     }
-                </div>
-
-                <div class="field-group">
-                    <label for="profesionalMP">M.P. (Matrícula Profesional)</label>
-
-                    <InputText id="profesionalMP" class="form-input"
-                               @bind-Value="modelo.MP"
-                               placeholder="Ingresar M.P." />
-
-                    <ValidationMessage For="@(() => modelo.MP)"
-                                       class="validation-message" />
                 </div>
 
                 <div class="field-group">
@@ -124,7 +116,8 @@
                 <div class="field-group prestaciones-field">
                     <label for="profesionalPrestaciones">Prestaciones</label>
 
-                    <InputSelect class="form-input"
+                    <div class="catalogo-selector">
+<InputSelect class="form-input"
                                  id="profesionalPrestaciones"
                                  @bind-Value="prestacionSeleccionadaId"
                                  @bind-Value:after="AgregarPrestacion"
@@ -141,6 +134,8 @@
                             </option>
                         }
                     </InputSelect>
+                    <button type="button" class="catalogo-agregar" disabled="@guardando" aria-label="Crear prestación" title="Crear prestación" @onclick="() => tipoprestacionModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                    </div>
 
                     @if (modelo.TipoPrestacionIds.Count > 0)
                     {
@@ -151,8 +146,12 @@
 
                                 if (prestacion is not null)
                                 {
-                                    <div class="prestacion-chip">
+                                    <div class="prestacion-chip prestacion-matricula">
                                         <span>@prestacion.Tipo</span>
+                                        <label>Matrícula
+                                            <input class="form-input" aria-label="Matrícula de @prestacion.Tipo" placeholder="Ej.: MP-1234" maxlength="30" value="@modelo.MatriculasPorPrestacion.GetValueOrDefault(prestacionId)"
+                                                   @onchange="e => modelo.MatriculasPorPrestacion[prestacionId] = e.Value?.ToString() ?? string.Empty" />
+                                        </label>
 
                                         <button type="button"
                                                 class="prestacion-chip-remove"
@@ -212,6 +211,7 @@
                 <span class="section-number">04</span>
                 <span>Usuario del sistema</span>
             </div>
+            <p>Se creará una cuenta con el email registrado y contraseña inicial 123456.</p>
 
             <div class="form-grid form-grid-2">
                 <div class="field-group">
@@ -284,7 +284,24 @@
 
 </div>
 
+<CrearCatalogo @ref="tipoareaModal" Recurso="tipoarea" Etiqueta="área" Creado="AreaCreada" />
+<CrearCatalogo @ref="tipoprestacionModal" Recurso="tipoprestacion" Etiqueta="prestación" Creado="PrestacionCreada" />
+
 @code {
+    private CrearCatalogo tipoprestacionModal = default!;
+    private CrearCatalogo tipoareaModal = default!;
+    private void AreaCreada(TipoListadoDTO tipo)
+    {
+        listaTipoAreas.Add(tipo);
+        modelo.Area = tipo.Tipo;
+    }
+    private async Task PrestacionCreada(TipoListadoDTO tipo)
+    {
+        await CargarTipoPrestaciones();
+        prestacionSeleccionadaId = tipo.Id;
+        AgregarPrestacion();
+    }
+
     [SupplyParameterFromQuery(Name = "volver")]
     public string? VolverA { get; set; }
 
@@ -301,7 +318,7 @@
         RNP = string.Empty,
         Telefono = string.Empty,
         Email = string.Empty,
-        RolAsignado = string.Empty,
+        RolAsignado = "profesional",
         TipoPrestacionIds = new List<int>(),
         TipoPrestacionNombres = new List<string>()
     };
@@ -392,6 +409,7 @@
     private void QuitarPrestacion(int prestacionId)
     {
         modelo.TipoPrestacionIds.Remove(prestacionId);
+        modelo.MatriculasPorPrestacion.Remove(prestacionId);
     }
 
     private TipoPrestacionListadoDTO? ObtenerPrestacion(
@@ -420,28 +438,6 @@
         }
 
         var profesionalId = resp.Respuesta;
-
-        if (!string.IsNullOrWhiteSpace(modelo.RolAsignado))
-        {
-            var rolResp = await Http.Post<RolAsignacionDTO, string>(
-                "api/seguridad/asignarRol",
-                new RolAsignacionDTO
-                {
-                    Email = modelo.Email,
-                    Rol = modelo.RolAsignado
-                }
-            );
-
-            if (rolResp.Error)
-            {
-                Mensaje =
-                    "Profesional creado, pero ocurrió un error " +
-                    $"al asignar el rol: {rolResp.ObtenerError()}";
-
-                guardando = false;
-                return;
-            }
-        }
 
         guardando = false;
 

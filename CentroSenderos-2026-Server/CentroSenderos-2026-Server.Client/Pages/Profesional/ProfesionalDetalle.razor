@@ -28,7 +28,7 @@
                 <div class="detalle-principal">
                     <section class="detalle-panel">
                         <h2 class="panel-titulo"><i class="bi bi-person-vcard"></i>Información profesional</h2>
-                        <div class="dato-tarjeta"><span>Matrícula profesional (M.P.)</span><strong>@Mostrar(modelo.MP)</strong></div>
+
                         <div class="dato-tarjeta"><span>R.N.P.</span><strong>@Mostrar(modelo.RNP)</strong></div>
                         <div class="dato-tarjeta"><span>Rol en el sistema</span><strong>@NombreRol(modelo.RolAsignado)</strong></div>
                         @if (modelo.EsSocio)
@@ -45,9 +45,10 @@
                 <section class="detalle-panel">
                     <h2 class="panel-titulo"><i class="bi bi-clipboard2-check"></i>Prestaciones</h2>
                     <div class="prestaciones-detalle">
-                        @foreach (var prestacion in modelo.TipoPrestacionNombres)
+                        @for (var i = 0; i < modelo.TipoPrestacionIds.Count; i++)
                         {
-                            <span class="prestacion-badge">@prestacion</span>
+                            var prestacionId = modelo.TipoPrestacionIds[i];
+                            <span class="prestacion-badge">@modelo.TipoPrestacionNombres[i] · Matrícula: @modelo.MatriculasPorPrestacion.GetValueOrDefault(prestacionId)</span>
                         }
                         @if (modelo.TipoPrestacionNombres.Count == 0)
                         {

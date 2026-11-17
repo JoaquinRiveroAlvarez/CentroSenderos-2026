@@ -734,9 +734,6 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex(new[] { "Cuit" }, "Profesional_Cuit_UQ")
                         .IsUnique();
 
-                    b.HasIndex(new[] { "MP" }, "Profesional_MP_UQ")
-                        .IsUnique();
-
                     b.HasIndex(new[] { "RNP" }, "Profesional_RNP_UQ")
                         .IsUnique();
 
@@ -753,6 +750,11 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     b.Property<int>("EstadoRegistro")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Matricula")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
 
                     b.Property<string>("Observacion")
                         .IsRequired()

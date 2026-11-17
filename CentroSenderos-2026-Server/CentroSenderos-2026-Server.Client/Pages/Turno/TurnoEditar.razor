@@ -472,6 +472,11 @@
 
                                                     </select>
                                                 }
+                                                @if (profesional.MatriculasPorPrestacion.TryGetValue(ObtenerPrestacionSeleccionada(profesional.Id), out var matricula) && !string.IsNullOrWhiteSpace(matricula))
+                                                {
+                                                    <span class="prestacion-matricula-ayuda"><i class="bi bi-patch-check" aria-hidden="true"></i>Matrícula @matricula</span>
+                                                }
+
 
                                             </div>
 
@@ -654,7 +659,7 @@
                             <span class="seccion-numero">02</span>
 
                             <div>
-                                <h2>Horarios disponibles</h2>
+                                <h2>Disponibilidad de horarios</h2>
                                 <p>Elegí el horario de inicio para el turno.</p>
                             </div>
 
@@ -685,64 +690,11 @@
 
                             </div>
                         }
-                        else if (horasDisponibles.Count == 0)
-                        {
-                            <div class="horarios-vacio">
-
-                                <i class="bi bi-calendar-x"></i>
-
-                                <p>
-                                    No hay horarios disponibles para esta selección.
-                                </p>
-
-                            </div>
-                        }
                         else
-                        {
-                            <div class="@(MostrarNavegacionHorarios
-                                 ? "horarios-navegacion"
-                                 : "horarios-navegacion sin-flechas")">
-
-                                @if (MostrarNavegacionHorarios)
-                                {
-                                    <button type="button"
-                                            class="horarios-flecha"
-                                            title="Horarios anteriores"
-                                            disabled="@(!PuedeRetrocederHorarios || OperacionEnCurso)"
-                                            @onclick="RetrocederHorarios">
-                                        <i class="bi bi-chevron-left"></i>
-                                    </button>
-                                }
-
-                                <div class="horarios-grid">
-
-                                    @foreach (var hora in HorariosVisibles)
-                                    {
-                                        <button type="button"
-                                                class="@ObtenerClaseHorario(hora)"
-                                                disabled="@OperacionEnCurso"
-                                                @onclick="() => SeleccionarHora(hora)">
-                                            @hora
-                                        </button>
-                                    }
-
-                                </div>
-
-                                @if (MostrarNavegacionHorarios)
-                                {
-                                    <button type="button"
-                                            class="horarios-flecha"
-                                            title="Horarios siguientes"
-                                            disabled="@(!PuedeAvanzarHorarios || OperacionEnCurso)"
-                                            @onclick="AvanzarHorarios">
-                                        <i class="bi bi-chevron-right"></i>
-                                    </button>
-                                }
-
-                            </div>
-                        }
-
-                    </section>
+                    {
+                        <SelectorHorario Horarios="@horarios" HoraSeleccionada="@horaSeleccionada" Disabled="@OperacionEnCurso" Seleccionado="SeleccionarHora" ConsultarHora="ConsultarHoraPersonalizada" />
+                    }
+                </section>
 
                     <section class="editar-card estado-card">
 
@@ -1166,8 +1118,6 @@
     private List<TipoConsultorioListadoDTO> consultorios = new();
     private List<string> horasDisponibles = new();
 
-    private const int HorariosPorPagina = 24;
-    private int paginaHorarios;
     private int versionConsultaHorarios;
 
     private string horaSeleccionada = string.Empty;
@@ -1180,6 +1130,8 @@
     private bool guardando;
     private bool eliminando;
     private bool consultandoHorarios;
+    private List<HorarioTurnoDTO> horarios = new();
+    private string urlConsultaHorarios = string.Empty;
     private bool horariosConsultados;
     private bool operacionExitosa;
     private bool calendarioAbierto;
@@ -1305,24 +1257,7 @@
             new System.Globalization.CultureInfo("es-AR")
         );
 
-    private IEnumerable<string> HorariosVisibles =>
-        horasDisponibles
-            .Skip(paginaHorarios * HorariosPorPagina)
-            .Take(HorariosPorPagina);
 
-    private int CantidadPaginasHorarios =>
-        (int)Math.Ceiling(
-            horasDisponibles.Count / (double)HorariosPorPagina
-        );
-
-    private bool MostrarNavegacionHorarios =>
-        CantidadPaginasHorarios > 1;
-
-    private bool PuedeRetrocederHorarios =>
-        paginaHorarios > 0;
-
-    private bool PuedeAvanzarHorarios =>
-        paginaHorarios < CantidadPaginasHorarios - 1;
 
     private List<DiaCalendario> DiasCalendario
     {
@@ -1827,6 +1762,8 @@
     {
         Mensaje = string.Empty;
         horasDisponibles.Clear();
+        horarios.Clear();
+        urlConsultaHorarios = string.Empty;
         horariosConsultados = false;
 
         versionConsultaHorarios++;
@@ -1861,7 +1798,8 @@
 
         Mensaje = string.Empty;
         horasDisponibles.Clear();
-        paginaHorarios = 0;
+        horarios.Clear();
+        urlConsultaHorarios = string.Empty;
         horariosConsultados = false;
 
         if (modelo.TipoTurnoId <= 0 ||
@@ -1889,8 +1827,8 @@
         );
 
         var url =
-            "api/turno/Disponibles" +
-            $"?fecha={modelo.Fecha:yyyy-MM-dd}" +
+            "api/turno/Horarios" +
+            $"?fecha={modelo.Fecha:yyyy-MM-dd}&intervaloMinutos=30" +
             $"&tipoTurnoId={modelo.TipoTurnoId}" +
             $"&consultorioId={modelo.TipoConsultorioId}" +
             $"&turnoIdExcluir={id}" +
@@ -1899,7 +1837,7 @@
 
         try
         {
-            var respuesta = await Http.Get<List<string>>(url);
+            var respuesta = await Http.Get<List<HorarioTurnoDTO>>(url);
 
             if (versionActual != versionConsultaHorarios)
             {
@@ -1923,14 +1861,26 @@
 
             horariosConsultados = true;
 
-            horasDisponibles =
-                respuesta.Respuesta ?? new List<string>();
+            urlConsultaHorarios = url;
+            horarios = respuesta.Respuesta ?? new();
+            horasDisponibles = horarios.Where(h => !h.Ocupado).Select(h => h.Hora).ToList();
 
-            if (!string.IsNullOrWhiteSpace(horaSeleccionada) &&
-                !horasDisponibles.Contains(horaSeleccionada))
+            if (!string.IsNullOrWhiteSpace(horaSeleccionada) && !horasDisponibles.Contains(horaSeleccionada))
             {
-                horaSeleccionada = string.Empty;
-                modelo.Hora = TimeOnly.MinValue;
+                var horaAnterior = horaSeleccionada;
+                consultandoHorarios = true;
+                var consultado = await ConsultarHoraPersonalizada(horaAnterior);
+                if (versionActual != versionConsultaHorarios) return;
+                consultandoHorarios = false;
+                if (consultado is { Ocupado: false })
+                {
+                    if (!horarios.Any(h => h.Hora == consultado.Hora)) horarios.Add(consultado);
+                }
+                else
+                {
+                    horaSeleccionada = string.Empty;
+                    modelo.Hora = TimeOnly.MinValue;
+                }
             }
         }
         catch (TaskCanceledException)
@@ -1971,6 +1921,20 @@
         }
     }
 
+    private async Task<HorarioTurnoDTO?> ConsultarHoraPersonalizada(string hora)
+    {
+        var version = versionConsultaHorarios;
+        var url = urlConsultaHorarios;
+        if (string.IsNullOrEmpty(url)) return null;
+        var respuesta = await Http.Get<List<HorarioTurnoDTO>>($"{url}&hora={Uri.EscapeDataString(hora)}");
+        if (version != versionConsultaHorarios || url != urlConsultaHorarios) return null;
+        if (respuesta.Error) throw new ApplicationException(respuesta.ObtenerError());
+        var resultado = respuesta.Respuesta?.SingleOrDefault();
+        if (resultado is { Ocupado: false } && !horasDisponibles.Contains(resultado.Hora))
+            horasDisponibles.Add(resultado.Hora);
+        return resultado;
+    }
+
     private void SeleccionarHora(string hora)
     {
         if (OperacionEnCurso)
@@ -1983,32 +1947,6 @@
         Mensaje = string.Empty;
     }
 
-    private string ObtenerClaseHorario(string hora)
-    {
-        return hora == horaSeleccionada
-            ? "horario-opcion seleccionado"
-            : "horario-opcion";
-    }
-
-    private void RetrocederHorarios()
-    {
-        if (!PuedeRetrocederHorarios || OperacionEnCurso)
-        {
-            return;
-        }
-
-        paginaHorarios--;
-    }
-
-    private void AvanzarHorarios()
-    {
-        if (!PuedeAvanzarHorarios || OperacionEnCurso)
-        {
-            return;
-        }
-
-        paginaHorarios++;
-    }
 
     private int ObtenerDuracionSeleccionada()
     {

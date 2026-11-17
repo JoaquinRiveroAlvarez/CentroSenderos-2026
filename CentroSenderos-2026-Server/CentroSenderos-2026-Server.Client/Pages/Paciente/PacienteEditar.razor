@@ -125,7 +125,8 @@
 
                         <label for="obraSocial">Obra social / prepaga</label>
 
-                        <InputSelect id="obraSocial" class="form-input"
+                        <div class="catalogo-selector">
+<InputSelect id="obraSocial" class="form-input"
                                      @bind-Value="modelo.TipoObraSocialId">
 
                             @foreach (var obra in tiposObraSocial)
@@ -136,6 +137,8 @@
                             }
 
                         </InputSelect>
+                    <button type="button" class="catalogo-agregar" disabled="@guardando" aria-label="Crear obra social" title="Crear obra social" @onclick="() => tipoobrasocialModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                    </div>
 
                         <ValidationMessage For="@(() => modelo.TipoObraSocialId)"
                                            class="validation-message" />
@@ -168,7 +171,8 @@
 
                         <label for="diagnostico">Diagnóstico / motivo de consulta</label>
 
-                        <InputSelect id="diagnostico" class="form-input"
+                        <div class="catalogo-selector">
+<InputSelect id="diagnostico" class="form-input"
                                      @bind-Value="modelo.TipoDiagnosticoId">
 
                             @foreach (var diagnostico in tiposDiagnostico)
@@ -179,6 +183,8 @@
                             }
 
                         </InputSelect>
+                    <button type="button" class="catalogo-agregar" disabled="@guardando" aria-label="Crear diagnóstico" title="Crear diagnóstico" @onclick="() => tipodiagnosticoModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                    </div>
 
                         <ValidationMessage For="@(() => modelo.TipoDiagnosticoId)"
                                            class="validation-message" />
@@ -674,7 +680,23 @@
     </div>
 }
 
+<CrearCatalogo @ref="tipoobrasocialModal" Recurso="tipoobrasocial" Etiqueta="obra social" Creado="ObraCreada" />
+<CrearCatalogo @ref="tipodiagnosticoModal" Recurso="tipodiagnostico" Etiqueta="diagnóstico" Creado="DiagnosticoCreado" />
+
 @code {
+    private CrearCatalogo tipodiagnosticoModal = default!;
+    private CrearCatalogo tipoobrasocialModal = default!;
+    private void ObraCreada(TipoListadoDTO tipo)
+    {
+        tiposObraSocial.Add(new TipoDTO { Id = tipo.Id, Tipo = tipo.Tipo, Descripcion = tipo.Descripcion });
+        if (modelo is not null) modelo.TipoObraSocialId = tipo.Id;
+    }
+    private void DiagnosticoCreado(TipoListadoDTO tipo)
+    {
+        tiposDiagnostico.Add(new TipoDTO { Id = tipo.Id, Tipo = tipo.Tipo, Descripcion = tipo.Descripcion });
+        if (modelo is not null) modelo.TipoDiagnosticoId = tipo.Id;
+    }
+
 
     [SupplyParameterFromQuery(Name = "volver")]
     public string? VolverA { get; set; }

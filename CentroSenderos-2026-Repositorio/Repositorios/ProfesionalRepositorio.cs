@@ -21,7 +21,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
         public async Task<ProfesionalDTO?> SelectPorId(int id)
         {
-            return await context.Profesionales
+            var resultado = await context.Profesionales
                 .Where(p => p.Id == id)
                 .Select(p => new ProfesionalDTO
                 {
@@ -38,15 +38,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
                     TipoPrestacionIds =
                         p.ProfesionalTipoPrestaciones
+                            .OrderBy(x => x.TipoPrestacion.Tipo).ThenBy(x => x.TipoPrestacionId)
                             .Select(x =>
                                 x.TipoPrestacionId)
                             .ToList(),
 
                     TipoPrestacionNombres =
                         p.ProfesionalTipoPrestaciones
+                            .OrderBy(x => x.TipoPrestacion.Tipo).ThenBy(x => x.TipoPrestacionId)
                             .Select(x =>
                                 x.TipoPrestacion.Tipo)
-                            .OrderBy(nombre => nombre)
                             .ToList(),
 
                     EsSocio = context.Socios.Any(s =>
@@ -55,6 +56,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         EnumEstadoRegistro.activo)
                 })
                 .FirstOrDefaultAsync();
+            if (resultado is not null)
+                resultado.MatriculasPorPrestacion = await context.ProfesionalTipoPrestaciones
+                    .Where(p => p.ProfesionalId == resultado.Id)
+                    .ToDictionaryAsync(p => p.TipoPrestacionId, p => p.Matricula);
+            return resultado;
         }
 
         public async Task<ProfesionalListadoDTO?>SelectByCuit(string cod)
@@ -66,7 +72,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 return null;
             }
 
-            return await context.Profesionales
+            var resultado = await context.Profesionales
                 .Where(p =>
                     p.Cuit
                         .Replace("-", "")
@@ -87,15 +93,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
                     TipoPrestacionIds =
                         p.ProfesionalTipoPrestaciones
+                            .OrderBy(x => x.TipoPrestacion.Tipo).ThenBy(x => x.TipoPrestacionId)
                             .Select(x =>
                                 x.TipoPrestacionId)
                             .ToList(),
 
                     TipoPrestacionNombres =
                         p.ProfesionalTipoPrestaciones
+                            .OrderBy(x => x.TipoPrestacion.Tipo).ThenBy(x => x.TipoPrestacionId)
                             .Select(x =>
                                 x.TipoPrestacion.Tipo)
-                            .OrderBy(nombre => nombre)
                             .ToList(),
 
                     EsSocio = context.Socios.Any(s =>
@@ -104,11 +111,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         EnumEstadoRegistro.activo)
                 })
                 .FirstOrDefaultAsync();
+            if (resultado is not null)
+                resultado.MatriculasPorPrestacion = await context.ProfesionalTipoPrestaciones
+                    .Where(p => p.ProfesionalId == resultado.Id)
+                    .ToDictionaryAsync(p => p.TipoPrestacionId, p => p.Matricula);
+            return resultado;
         }
 
         public async Task<List<ProfesionalListadoDTO>> SelectListaProfesional()
         {
-            return await context.Profesionales
+            var resultado = await context.Profesionales
                 .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
                 .OrderBy(p => p.Area)
                 .ThenBy(p => p.Nombre)
@@ -141,6 +153,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         s.EstadoRegistro == EnumEstadoRegistro.activo)
                 })
                 .ToListAsync();
+            var ids = resultado.Select(p => p.Id).ToList();
+            var matriculas = await context.ProfesionalTipoPrestaciones
+                .Where(p => ids.Contains(p.ProfesionalId))
+                .Select(p => new { p.ProfesionalId, p.TipoPrestacionId, p.Matricula }).ToListAsync();
+            foreach (var profesional in resultado)
+                profesional.MatriculasPorPrestacion = matriculas.Where(p => p.ProfesionalId == profesional.Id)
+                    .ToDictionary(p => p.TipoPrestacionId, p => p.Matricula);
+            return resultado;
         }
         public async Task<int> InsertarProfesional(ProfesionalDTO dto)
         {
@@ -153,8 +173,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var cuitLimpio =
                 NormalizarCuit(dto.Cuit);
 
-            var mpLimpia =
-                NormalizarCodigo(dto.MP);
+            var matriculas = await ValidarMatriculas(dto);
+            var mpLimpia = matriculas.Values.FirstOrDefault() ?? string.Empty;
 
             var rnpLimpio =
                 NormalizarCodigo(dto.RNP);
@@ -178,19 +198,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 throw new ApplicationException(
                     $"Ya existe un profesional con el CUIT " +
                     $"'{CuitValidador.Formatear(cuitLimpio)}'."
-                );
-            }
-
-            var mpExiste =
-                await context.Profesionales
-                    .AnyAsync(p =>
-                        p.MP == mpLimpia);
-
-            if (mpExiste)
-            {
-                throw new ApplicationException(
-                    $"Ya existe un profesional con la " +
-                    $"Matrícula Profesional '{mpLimpia}'."
                 );
             }
 
@@ -232,6 +239,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                             new ProfesionalTipoPrestacion
                             {
                                 TipoPrestacionId = tipoPrestacionId,
+                                Matricula = matriculas[tipoPrestacionId],
                                 EstadoRegistro = EnumEstadoRegistro.activo
                             })
                         .ToList()
@@ -281,8 +289,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var cuitLimpio =
                 NormalizarCuit(dto.Cuit);
 
-            var mpLimpia =
-                NormalizarCodigo(dto.MP);
+            var matriculas = await ValidarMatriculas(dto);
+            var mpLimpia = matriculas.Values.FirstOrDefault() ?? string.Empty;
 
             var rnpLimpio =
                 NormalizarCodigo(dto.RNP);
@@ -307,20 +315,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 throw new ApplicationException(
                     $"Ya existe un profesional con el CUIT " +
                     $"'{CuitValidador.Formatear(cuitLimpio)}'."
-                );
-            }
-
-            var mpExiste =
-                await context.Profesionales
-                    .AnyAsync(p =>
-                        p.Id != id &&
-                        p.MP == mpLimpia);
-
-            if (mpExiste)
-            {
-                throw new ApplicationException(
-                    $"Ya existe un profesional con la " +
-                    $"Matrícula Profesional '{mpLimpia}'."
                 );
             }
 
@@ -352,26 +346,21 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             profesional.RolAsignado =
                 dto.RolAsignado;
 
-            context.ProfesionalTipoPrestaciones
-                .RemoveRange(
-                    profesional
-                        .ProfesionalTipoPrestaciones
-                );
-
-            var nuevasPrestaciones =
-            dto.TipoPrestacionIds
-                .Distinct()
-                .Select(tipoPrestacionId =>
-                    new ProfesionalTipoPrestacion
-                    {
-                        ProfesionalId = profesional.Id,
-                        TipoPrestacionId = tipoPrestacionId,
-                        EstadoRegistro = EnumEstadoRegistro.activo
-                    })
-                .ToList();
-
-            context.ProfesionalTipoPrestaciones
-                .AddRange(nuevasPrestaciones);
+            var ids = dto.TipoPrestacionIds.Distinct().ToHashSet();
+            foreach (var relacion in profesional.ProfesionalTipoPrestaciones.ToList())
+            {
+                if (!ids.Contains(relacion.TipoPrestacionId))
+                    context.ProfesionalTipoPrestaciones.Remove(relacion);
+                else
+                    relacion.Matricula = matriculas[relacion.TipoPrestacionId];
+            }
+            foreach (var prestacionId in ids.Where(x => !profesional.ProfesionalTipoPrestaciones.Any(p => p.TipoPrestacionId == x)))
+                profesional.ProfesionalTipoPrestaciones.Add(new ProfesionalTipoPrestacion
+                {
+                    TipoPrestacionId = prestacionId,
+                    Matricula = matriculas[prestacionId],
+                    EstadoRegistro = EnumEstadoRegistro.activo
+                });
 
             try
             {
@@ -410,6 +399,23 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             await context.SaveChangesAsync();
 
             return true;
+        }
+
+        private async Task<Dictionary<int, string>> ValidarMatriculas(ProfesionalDTO dto)
+        {
+            var ids = dto.TipoPrestacionIds.Distinct().ToList();
+            if (ids.Count == 0) throw new ApplicationException("Seleccioná al menos una prestación.");
+            var activos = await context.TipoPrestaciones.CountAsync(p => ids.Contains(p.Id) && p.EstadoRegistro == EnumEstadoRegistro.activo);
+            if (activos != ids.Count) throw new ApplicationException("Una prestación no existe o está inactiva.");
+            var resultado = new Dictionary<int, string>();
+            foreach (var id in ids)
+            {
+                var matricula = dto.MatriculasPorPrestacion.GetValueOrDefault(id)?.Trim().ToUpperInvariant();
+                if (string.IsNullOrEmpty(matricula) || matricula.Length > 30)
+                    throw new ApplicationException("Ingresá una matrícula de hasta 30 caracteres para cada prestación.");
+                resultado.Add(id, matricula);
+            }
+            return resultado;
         }
 
         private async Task<string> ObtenerAreaActiva(string? area)
@@ -460,16 +466,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 throw new ApplicationException(
                     $"Ya existe un profesional con el CUIT " +
                     $"'{CuitValidador.Formatear(cuit)}'."
-                );
-            }
-
-            if (mensajeInterno.Contains(
-                "Profesional_MP_UQ",
-                StringComparison.OrdinalIgnoreCase))
-            {
-                throw new ApplicationException(
-                    $"Ya existe un profesional con la " +
-                    $"Matrícula Profesional '{mp}'."
                 );
             }
 
