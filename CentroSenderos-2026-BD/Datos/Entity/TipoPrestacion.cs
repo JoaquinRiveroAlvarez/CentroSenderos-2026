@@ -20,6 +20,10 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         [Precision(18, 2)]
         public decimal PorcentajeRetencion { get; set; } = 20;
 
+        // Etapa 1: opcional hasta revisar y completar el catálogo existente.
+        public int? TipoAreaId { get; set; }
+        public TipoArea? TipoArea { get; set; }
+
         public List<ProfesionalTipoPrestacion> ProfesionalTipoPrestaciones { get; set; } = new();
         public List<TurnoTipoPrestacion> TurnoTipoPrestaciones { get; set; } = new();
     }

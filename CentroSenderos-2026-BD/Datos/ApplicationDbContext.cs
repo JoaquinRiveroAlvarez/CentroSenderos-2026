@@ -72,6 +72,14 @@ namespace CentroSenderos_2026_BD
                     "(\"EsCaja\" = FALSE AND \"ProfesionalId\" IS NOT NULL)"
                 ));
 
+            // La relación nueva convive con Profesional.Area durante la transición.
+            modelBuilder.Entity<TipoPrestacion>()
+                .HasOne(prestacion => prestacion.TipoArea)
+                .WithMany(area => area.TipoPrestaciones)
+                .HasForeignKey(prestacion => prestacion.TipoAreaId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<ProfesionalTipoPrestacion>()
                 .HasIndex(x => new
                 {

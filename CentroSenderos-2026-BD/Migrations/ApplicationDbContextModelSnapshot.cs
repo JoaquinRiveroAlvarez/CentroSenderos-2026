@@ -1215,7 +1215,12 @@ namespace CentroSenderos_2026_BD.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("TipoAreaId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TipoAreaId");
 
                     b.HasIndex(new[] { "Cod" }, "TipoPrestacion_Cod_UQ")
                         .IsUnique();
@@ -1934,6 +1939,16 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Navigation("Profesionales");
                 });
 
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoPrestacion", b =>
+                {
+                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.TipoArea", "TipoArea")
+                        .WithMany("TipoPrestaciones")
+                        .HasForeignKey("TipoAreaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("TipoArea");
+                });
+
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Turno", b =>
                 {
                     b.HasOne("CentroSenderos_2026_BD.Datos.Entity.DetalleLiquidacion", "DetalleLiquidacion")
@@ -2211,6 +2226,11 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Navigation("ReintegrosPagados");
 
                     b.Navigation("ReintegrosRecibidos");
+                });
+
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoArea", b =>
+                {
+                    b.Navigation("TipoPrestaciones");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.TipoDiagnostico", b =>
