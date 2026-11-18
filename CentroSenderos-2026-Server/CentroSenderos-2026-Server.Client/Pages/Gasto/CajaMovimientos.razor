@@ -72,13 +72,13 @@
                     <div class="caja-filtro">
                         <label for="caja-busqueda">Buscar</label>
                         <input type="search" id="caja-busqueda"
-                               placeholder="Origen o número de registro"
+                               placeholder="Origen o N.º"
                                @bind="busqueda" @bind:event="oninput" />
                     </div>
 
-                    <button type="button" class="caja-restaurar" @onclick="RestaurarFiltros">
+                    <button type="button" class="caja-restaurar" aria-label="Restaurar filtros" @onclick="RestaurarFiltros">
                         <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
-                        Restaurar filtros
+                        Restaurar
                     </button>
                 </div>
 

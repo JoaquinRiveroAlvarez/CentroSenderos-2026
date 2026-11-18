@@ -94,17 +94,32 @@
 }
 
 .caja-filtros {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     align-items: end;
-    gap: 12px;
-    padding: 20px;
+    gap: 8px;
+    padding: 12px 16px;
     border-bottom: 1px solid #e7e3dc;
     background: #faf8f5;
 }
 
+.caja-filtros ::deep .periodo-campo {
+    flex: 1 0 108px;
+}
+
+.caja-filtros ::deep .periodo-fecha-selector {
+    min-height: 34px;
+    padding: 6px 9px;
+}
+
+.caja-filtros ::deep .periodo-campo .periodo-calendario {
+    right: auto;
+    left: 0;
+}
+
 .caja-filtro {
     display: grid;
+    flex: 1 0 145px;
     min-width: 0;
     gap: 6px;
 }
@@ -120,8 +135,8 @@
 .caja-filtro input {
     width: 100%;
     min-width: 0;
-    height: 38px;
-    padding: 0 12px;
+    height: 34px;
+    padding: 0 9px;
     border: 1px solid #dedbd4;
     border-radius: 20px;
     background: #fff;
@@ -135,11 +150,11 @@
 
 .caja-restaurar {
     display: inline-flex;
-    justify-self: start;
+    flex: 0 0 auto;
     align-items: center;
     gap: 6px;
-    min-height: 38px;
-    padding: 6px 12px;
+    min-height: 34px;
+    padding: 5px 10px;
     border: 1px solid #dedbd4;
     border-radius: 20px;
     background: #fff;
@@ -350,15 +365,17 @@
 
 /* #endregion */
 
-@media (max-width: 500px) {
+@media (max-width: 560px) {
     .caja-filtros {
-        gap: 10px;
-        padding: 16px;
+        padding: 10px 12px;
     }
-}
 
-@media (max-width: 360px) {
-    .caja-filtros {
-        grid-template-columns: minmax(0, 1fr);
+    .caja-filtros ::deep .periodo-campo .periodo-calendario {
+        width: 280px;
+    }
+
+    .caja-filtros ::deep .periodo-campo:nth-child(2) .periodo-calendario {
+        right: 0;
+        left: auto;
     }
 }
