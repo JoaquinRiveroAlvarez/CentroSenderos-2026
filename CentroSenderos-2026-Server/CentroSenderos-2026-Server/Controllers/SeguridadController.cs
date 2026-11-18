@@ -50,7 +50,7 @@ namespace CentroSenderos_2026_Server.Controllers
                         Id = u.Id,
                         Email = u.Email ?? string.Empty,
                         Nombre = u.UserName ?? string.Empty,
-                        Roles = roles.ToList()
+                        Roles = roles.Where(r => BuscarRol(r) is not null).ToList()
                     });
                 }
 
@@ -110,6 +110,22 @@ namespace CentroSenderos_2026_Server.Controllers
             }
 
             return Ok("Rol asignado correctamente.");
+        }
+
+        [HttpPost("restablecerContrasena")]
+        [Authorize(Policy = "GestionaRolesPrivilegiados")]
+        public async Task<IActionResult> RestablecerContrasena([FromBody] RestablecerContrasenaDTO dto)
+        {
+            var usuario = await _userManager.FindByIdAsync(dto.UsuarioId);
+            if (usuario is null)
+                return NotFound("Usuario no encontrado.");
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(usuario);
+            var resultado = await _userManager.ResetPasswordAsync(usuario, token, dto.NuevaContrasena);
+            if (!resultado.Succeeded)
+                return BadRequest(string.Join(" ", resultado.Errors.Select(error => error.Description)));
+
+            return NoContent();
         }
 
         // POST: api/seguridad/removerRol

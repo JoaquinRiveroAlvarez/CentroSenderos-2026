@@ -37,6 +37,30 @@
         <p role="alert">@errorAccion</p>
     }
 
+    @if (!string.IsNullOrWhiteSpace(avisoAccion))
+    {
+        <p role="status">@avisoAccion</p>
+    }
+
+    @if (cuentaRestablecer is not null)
+    {
+        <section class="estado-card" aria-labelledby="titulo-restablecer">
+            <h2 id="titulo-restablecer">Restablecer contraseña de @cuentaRestablecer.Email</h2>
+            <EditForm Model="restablecimiento" OnValidSubmit="RestablecerContrasena">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <label for="nueva-contrasena">Nueva contraseña</label>
+                <InputText id="nueva-contrasena" type="password" autocomplete="new-password"
+                           @bind-Value="restablecimiento.NuevaContrasena" disabled="@guardando" />
+                <label for="confirmacion-contrasena">Confirmá la nueva contraseña</label>
+                <InputText id="confirmacion-contrasena" type="password" autocomplete="new-password"
+                           @bind-Value="restablecimiento.Confirmacion" disabled="@guardando" />
+                <button type="submit" class="btn-rol" disabled="@guardando">Guardar contraseña</button>
+                <button type="button" class="btn-rol" disabled="@guardando" @onclick="CerrarRestablecimiento">Cancelar</button>
+            </EditForm>
+        </section>
+    }
+
     @if (cargando)
     {
         <div class="estado-card">
@@ -109,6 +133,11 @@
                                     </button>
                                 }
                             }
+                            @if (PuedeGestionarPrivilegiados)
+                            {
+                                <button type="button" class="btn-rol" disabled="@guardando"
+                                        @onclick="() => AbrirRestablecimiento(u)">Restablecer contraseña</button>
+                            }
                         </div>
                     </div>
                 }
@@ -131,6 +160,49 @@
     private bool PuedeGestionarPrivilegiados;
     private bool guardando;
     private string errorAccion = string.Empty;
+
+    private string avisoAccion = string.Empty;
+    private UsuarioDTO? cuentaRestablecer;
+    private RestablecerContrasenaDTO restablecimiento = new();
+
+    private void AbrirRestablecimiento(UsuarioDTO cuenta)
+    {
+        errorAccion = string.Empty;
+        avisoAccion = string.Empty;
+        cuentaRestablecer = cuenta;
+        restablecimiento = new() { UsuarioId = cuenta.Id };
+    }
+
+    private void CerrarRestablecimiento()
+    {
+        cuentaRestablecer = null;
+        restablecimiento = new();
+    }
+
+    private async Task RestablecerContrasena()
+    {
+        guardando = true;
+        errorAccion = string.Empty;
+        try
+        {
+            var resultado = await Http.Post<RestablecerContrasenaDTO, string>(
+                "api/seguridad/restablecerContrasena", restablecimiento);
+            if (resultado.Error)
+            {
+                errorAccion = resultado.ObtenerError();
+                return;
+            }
+
+            avisoAccion = $"Se restableció la contraseña de {cuentaRestablecer?.Email}.";
+            CerrarRestablecimiento();
+        }
+        finally
+        {
+            restablecimiento.NuevaContrasena = string.Empty;
+            restablecimiento.Confirmacion = string.Empty;
+            guardando = false;
+        }
+    }
 
     private List<UsuarioDTO> usuarios = new();
     private string textoBusqueda = string.Empty;
