@@ -1,0 +1,9 @@
+<nav class="selector-caja" aria-label="Secciones de Caja">
+    <a href="/gastos" aria-current="@(!EnLiquidacion ? "page" : null)">Gastos</a>
+    <a href="/liquidaciones" aria-current="@(EnLiquidacion ? "page" : null)">Liquidación</a>
+</nav>
+
+@code {
+    [Parameter]
+    public bool EnLiquidacion { get; set; }
+}

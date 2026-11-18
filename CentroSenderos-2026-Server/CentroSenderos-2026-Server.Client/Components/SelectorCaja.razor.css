@@ -1,0 +1,45 @@
+/* #region Selector de sección */
+
+.selector-caja {
+    display: inline-grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px;
+    padding: 4px;
+    border: 1px solid #c4c9bb;
+    border-radius: 28px;
+    background: #efede8;
+}
+
+.selector-caja a {
+    display: grid;
+    min-height: 36px;
+    place-items: center;
+    padding: 6px 14px;
+    border: 1px solid transparent;
+    border-radius: 24px;
+    color: #454a42;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.selector-caja a[aria-current="page"] {
+    border-color: #c4c9bb;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(46 55 40 / 9%);
+    color: #405d36;
+    font-weight: 600;
+}
+
+.selector-caja a:hover {
+    color: #314d2b;
+    text-decoration: underline;
+}
+
+.selector-caja a:focus-visible {
+    outline: 2px solid #556f4f;
+    outline-offset: 1px;
+}
+
+/* #endregion */

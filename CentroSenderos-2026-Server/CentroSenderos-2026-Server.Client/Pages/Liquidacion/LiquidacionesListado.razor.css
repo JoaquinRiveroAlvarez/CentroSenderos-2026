@@ -1,0 +1,12 @@
+/* #region Encabezado de Caja */
+
+.page-header {
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.header-left {
+    flex-wrap: wrap;
+}
+
+/* #endregion */

@@ -56,27 +56,17 @@
 
                 </NavLink>
 
-                <NavLink href="gastos"
-                         class="sidebar-link"
-                         title="Caja">
+                <a href="/gastos"
+                   class="sidebar-link @(EnCaja ? "active" : null)"
+                   aria-current="@(EnCaja ? "true" : null)"
+                   title="Caja">
 
                     <i class="bi bi-wallet2"
                        aria-hidden="true"></i>
 
                     <span>Caja</span>
 
-                </NavLink>
-
-                <NavLink href="liquidaciones"
-                         class="sidebar-link"
-                         title="Liquidaciones">
-
-                    <i class="bi bi-receipt"
-                       aria-hidden="true"></i>
-
-                    <span>Liquidaciones</span>
-
-                </NavLink>
+                </a>
 
                 <NavLink href="planillas"
                          class="sidebar-link"
@@ -143,6 +133,9 @@
 
 @code {
     private string? currentUrl;
+
+    private bool EnCaja =>
+        currentUrl?.Split('/', '?', '#')[0] is "gastos" or "liquidaciones";
 
     protected override void OnInitialized()
     {

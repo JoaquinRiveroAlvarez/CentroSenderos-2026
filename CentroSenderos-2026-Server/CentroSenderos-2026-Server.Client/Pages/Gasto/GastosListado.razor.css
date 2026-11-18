@@ -41,10 +41,9 @@
         font-weight: 600;
         line-height: 1.2;
     }
-    /* Conserva el título centrado sin el texto del período */
-    .gastos-header::after {
-        content: "";
-    }
+.gastos-selector {
+    justify-self: end;
+}
 
 .header-period {
     justify-self: end;
@@ -1174,6 +1173,7 @@
             justify-self: end;
         }
 
+    .gastos-selector,
     .header-period {
         grid-column: 1 / -1;
         justify-self: start;
