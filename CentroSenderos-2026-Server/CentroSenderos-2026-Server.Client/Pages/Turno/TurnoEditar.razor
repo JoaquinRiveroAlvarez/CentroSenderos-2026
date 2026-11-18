@@ -352,6 +352,7 @@
 
                                     if (profesional is not null)
                                     {
+                                        var historica = ObtenerOpcionHistorica(profesional);
                                         <div class="profesional-prestacion-card">
 
                                             <div class="profesional-prestacion-header">
@@ -388,7 +389,13 @@
 
                                                 <label>Prestación</label>
 
-                                                @if (profesional.TipoPrestacionIds.Count == 0)
+                                                @if (historica is not null && profesional.TipoPrestacionIds.Count == 0)
+                                                {
+                                                    <div class="prestacion-automatica">
+                                                        @historica.Texto (histórica)
+                                                    </div>
+                                                }
+                                                else if (profesional.TipoPrestacionIds.Count == 0)
                                                 {
                                                     <div class="profesional-sin-prestaciones">
 
@@ -401,7 +408,7 @@
 
                                                     </div>
                                                 }
-                                                else if (profesional.TipoPrestacionIds.Count == 1)
+                                                else if (historica is null && profesional.TipoPrestacionIds.Count == 1)
                                                 {
                                                     <div class="prestacion-automatica">
 
@@ -420,7 +427,7 @@
                                                     <SelectorConBusqueda Id="@($"prestacion-{profesional.Id}")"
                                                                              Etiqueta="Prestación" MostrarEtiqueta="false" Multiple="false"
                                                                              Placeholder="Seleccioná una prestación"
-                                                                             Opciones="@(profesional.TipoPrestacionIds.Select((id, indice) => new OpcionSelector(id.ToString(), indice < profesional.TipoPrestacionNombres.Count ? profesional.TipoPrestacionNombres[indice] : "Prestación")))"
+                                                                             Opciones="@OpcionesPrestaciones(profesional, historica)"
                                                                              Valor="@ObtenerPrestacionSeleccionada(profesional.Id).ToString()"
                                                                              ValorChanged="@(valor => SeleccionarPrestacion(profesional.Id, new ChangeEventArgs { Value = string.IsNullOrEmpty(valor) ? "0" : valor }))"
                                                                              Disabled="@OperacionEnCurso" />
@@ -775,7 +782,7 @@
                                         indicePrestacion >= 0 &&
                                         indicePrestacion < profesional.TipoPrestacionNombres.Count
                                             ? profesional.TipoPrestacionNombres[indicePrestacion]
-                                            : "Sin prestación asignada";
+                                            : ObtenerOpcionHistorica(profesional)?.Texto ?? "Sin prestación asignada";
 
                                     <div class="resumen-persona">
                                         <strong>@profesional.Nombre</strong>
@@ -1324,6 +1331,9 @@
             }
 
             modelo = respuestaTurno.Respuesta;
+            prestacionesGuardadas = modelo.ProfesionalPrestaciones.ToDictionary(
+                seleccion => seleccion.ProfesionalId,
+                seleccion => (seleccion.TipoPrestacionId, seleccion.NombreTipoPrestacion));
 
             pacientesGuardados = modelo.PacienteIds.ToHashSet();
 
@@ -1372,7 +1382,7 @@
 
             var respuestaProfesionales =
                 await Http.Get<List<ProfesionalListadoDTO>>(
-                    "api/profesional/ListaProfesional"
+                    "api/profesional/ListaProfesional?soloPrestacionesActivas=true"
                 );
 
             if (!respuestaProfesionales.Error &&
@@ -2391,6 +2401,27 @@
         await Grabar();
     }
 
+    private Dictionary<int, (int TipoPrestacionId, string Nombre)> prestacionesGuardadas = new();
+
+    private OpcionSelector? ObtenerOpcionHistorica(ProfesionalListadoDTO profesional)
+    {
+        var prestacionId = ObtenerPrestacionSeleccionada(profesional.Id);
+        if (profesional.TipoPrestacionIds.Contains(prestacionId) ||
+            !prestacionesGuardadas.TryGetValue(profesional.Id, out var guardada) ||
+            guardada.TipoPrestacionId != prestacionId)
+            return null;
+
+        return new OpcionSelector(prestacionId.ToString(), guardada.Nombre, "Histórica", Deshabilitada: true);
+    }
+
+    private IEnumerable<OpcionSelector> OpcionesPrestaciones(ProfesionalListadoDTO profesional, OpcionSelector? historica)
+    {
+        var opciones = profesional.TipoPrestacionIds.Select((id, indice) =>
+            new OpcionSelector(id.ToString(), profesional.TipoPrestacionNombres.ElementAtOrDefault(indice) ?? "Prestación"));
+
+        return historica is null ? opciones : opciones.Prepend(historica);
+    }
+
     private int ObtenerPrestacionSeleccionada(int profesionalId)
     {
         return modelo.ProfesionalPrestaciones
@@ -2486,7 +2517,7 @@
             }
 
             if (!profesional.TipoPrestacionIds.Contains(
-                seleccion.TipoPrestacionId))
+                seleccion.TipoPrestacionId) && ObtenerOpcionHistorica(profesional) is null)
             {
                 Mensaje =
                     "La prestación seleccionada no está asignada a " +

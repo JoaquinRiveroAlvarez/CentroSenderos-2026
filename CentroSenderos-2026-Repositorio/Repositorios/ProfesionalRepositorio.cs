@@ -132,7 +132,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return resultado;
         }
 
-        public async Task<List<ProfesionalListadoDTO>> SelectListaProfesional(bool bajas = false)
+        public async Task<List<ProfesionalListadoDTO>> SelectListaProfesional(bool bajas = false, bool soloPrestacionesActivas = false)
         {
             var estado = bajas ? EnumEstadoRegistro.borrado : EnumEstadoRegistro.activo;
             var resultado = await context.Profesionales
@@ -152,12 +152,18 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     RolAsignado = p.RolAsignado,
 
                     TipoPrestacionIds = p.ProfesionalTipoPrestaciones
+                        .Where(x => !soloPrestacionesActivas ||
+                            (x.EstadoRegistro == EnumEstadoRegistro.activo &&
+                             x.TipoPrestacion.EstadoRegistro == EnumEstadoRegistro.activo))
                         .OrderBy(x => x.TipoPrestacion.Tipo)
                         .ThenBy(x => x.TipoPrestacionId)
                         .Select(x => x.TipoPrestacionId)
                         .ToList(),
 
                     TipoPrestacionNombres = p.ProfesionalTipoPrestaciones
+                        .Where(x => !soloPrestacionesActivas ||
+                            (x.EstadoRegistro == EnumEstadoRegistro.activo &&
+                             x.TipoPrestacion.EstadoRegistro == EnumEstadoRegistro.activo))
                         .OrderBy(x => x.TipoPrestacion.Tipo)
                         .ThenBy(x => x.TipoPrestacionId)
                         .Select(x => x.TipoPrestacion.Tipo)

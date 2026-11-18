@@ -6,7 +6,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 {
     public interface IProfesionalRepositorio : IRepositorio<Profesional>
     {
-        Task<List<ProfesionalListadoDTO>> SelectListaProfesional(bool bajas = false);
+        Task<List<ProfesionalListadoDTO>> SelectListaProfesional(bool bajas = false, bool soloPrestacionesActivas = false);
         Task<ProfesionalListadoDTO?> SelectByCuit(string cod);
         Task<int> InsertarProfesional(ProfesionalDTO dto);
         Task<bool> ActualizarProfesional(int id, ProfesionalDTO dto);

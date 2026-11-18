@@ -1092,21 +1092,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     ))
                     .ToHashSet();
 
-            var existeSeleccionInvalidaActualizacion =
-                profesionalPrestaciones.Any(seleccion =>
-                    !relacionesValidasActualizacion.Contains((
-                        seleccion.ProfesionalId,
-                        seleccion.TipoPrestacionId
-                    ))
-                );
-
-            if (existeSeleccionInvalidaActualizacion)
-            {
-                throw new ApplicationException(
-                    "La prestación seleccionada no está asignada al profesional. " +
-                    "Elegí otra prestación."
-                );
-            }
+            var seleccionesHistoricas = profesionalPrestaciones
+                .Select(seleccion => (seleccion.ProfesionalId, seleccion.TipoPrestacionId))
+                .Where(seleccion => !relacionesValidasActualizacion.Contains(seleccion))
+                .ToHashSet();
 
             var turno = await context.Turnos
                 .Include(t => t.TurnoProfesionales)
@@ -1119,6 +1108,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 return false;
             }
 
+            ValidarPrestacionesHistoricas(turno, seleccionesHistoricas);
+
             var tipoTurnoId = tipoTurno.Id;
             var duracionMinutos = tipoTurno.DuracionMinutos;
 
@@ -1130,6 +1121,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     profesionalIds,
                     pacienteIds,
                     profesionalPrestaciones,
+                    seleccionesHistoricas,
                     tipoTurnoId,
                     duracionMinutos
                 );
@@ -1458,7 +1450,23 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
-        private async Task<bool> ActualizarTodaLaSerie(Turno turnoSeleccionado,TurnoDTO dto,List<int> profesionalIds,List<int> pacienteIds,List<TurnoProfesionalPrestacionDTO> profesionalPrestaciones,int tipoTurnoId,int duracionMinutos)
+        private static void ValidarPrestacionesHistoricas(
+            Turno turno, HashSet<(int ProfesionalId, int TipoPrestacionId)> seleccionesHistoricas)
+        {
+            if (seleccionesHistoricas.Count == 0)
+                return;
+
+            var guardadas = turno.TurnoTipoPrestaciones
+                .Where(relacion => relacion.EstadoRegistro == EnumEstadoRegistro.activo)
+                .Select(relacion => (relacion.ProfesionalId, relacion.TipoPrestacionId));
+
+            if (!seleccionesHistoricas.IsSubsetOf(guardadas))
+                throw new ApplicationException(
+                    "La prestación seleccionada no está asignada al profesional o ya no está activa. " +
+                    "Solo puede conservarse en los turnos donde ya estaba registrada.");
+        }
+
+        private async Task<bool> ActualizarTodaLaSerie(Turno turnoSeleccionado,TurnoDTO dto,List<int> profesionalIds,List<int> pacienteIds,List<TurnoProfesionalPrestacionDTO> profesionalPrestaciones,HashSet<(int ProfesionalId, int TipoPrestacionId)> seleccionesHistoricas,int tipoTurnoId,int duracionMinutos)
         {
             if (!turnoSeleccionado.SerieTurnoId.HasValue)
             {
@@ -1503,6 +1511,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "No hay turnos futuros de esta serie para actualizar."
                 );
             }
+
+            foreach (var turno in turnosSerie)
+                ValidarPrestacionesHistoricas(turno, seleccionesHistoricas);
 
             var turnoIds = turnosSerie
                 .Select(turno => turno.Id)
