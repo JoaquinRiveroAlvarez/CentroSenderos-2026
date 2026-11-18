@@ -157,9 +157,7 @@
                         </div>
 
                         <div class="reintegro-field">
-                            <label for="reintegroFecha">FECHA</label>
-
-                            <InputDate id="reintegroFecha"
+                            <CalendarioGasto Id="reintegroFecha" Etiqueta="Fecha"
                                        @bind-Value="modelo.Fecha"
                                        @bind-Value:after="ActualizarGastos" />
 

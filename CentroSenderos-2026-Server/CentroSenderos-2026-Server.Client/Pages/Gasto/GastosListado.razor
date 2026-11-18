@@ -10,15 +10,6 @@
 @inject IHttpServicio Http
 
 <div class="gastos-page">
-    @if (!string.IsNullOrEmpty(calendarioActivo))
-    {
-        <button type="button"
-                class="periodo-cierre-fondo"
-                aria-label="Cerrar calendario"
-                @onclick="CerrarCalendarioPeriodo">
-        </button>
-    }
-
     <header class="gastos-header">
         <button type="button"
                 class="new-button"
@@ -113,183 +104,12 @@
                         </select>
                     </div>
 
-                    <div class="@ClaseCampoFecha("desde")">
-                        <label id="labelFechaDesde">Desde</label>
+                    <CalendarioGasto Id="fechaFiltroDesde" Etiqueta="Desde" PermiteLimpiar="true"
+                                     AlinearIzquierdaEnMovil="true" @bind-Value="fechaDesde"
+                                     @bind-Value:after="ActualizarConsulta" />
 
-                        <button type="button"
-                                class="periodo-fecha-selector"
-                                aria-labelledby="labelFechaDesde textoFechaDesde"
-                                aria-expanded="@(calendarioActivo == "desde")"
-                                aria-controls="calendarioDesde"
-                                @onclick="AbrirCalendarioDesde">
-                            <span id="textoFechaDesde">
-                                @(fechaDesde?.ToString("dd/MM/yyyy") ?? "Sin límite")
-                            </span>
-
-                            <i class="bi bi-calendar3"></i>
-                        </button>
-
-                        @if (calendarioActivo == "desde")
-                        {
-                            <section id="calendarioDesde"
-                                     class="periodo-calendario"
-                                     aria-label="Calendario Desde">
-                                <div class="periodo-calendario-header">
-                                    <button type="button"
-                                            class="periodo-calendario-nav"
-                                            aria-label="Mes anterior"
-                                            disabled="@EsPrimerMes"
-                                            @onclick="MesAnteriorPeriodo">
-                                        <i class="bi bi-chevron-left"></i>
-                                    </button>
-
-                                    <strong>@TituloMesCalendarioPeriodo</strong>
-
-                                    <button type="button"
-                                            class="periodo-calendario-nav"
-                                            aria-label="Mes siguiente"
-                                            disabled="@EsUltimoMes"
-                                            @onclick="MesSiguientePeriodo">
-                                        <i class="bi bi-chevron-right"></i>
-                                    </button>
-                                </div>
-
-                                <div class="periodo-calendario-semana">
-                                    <span>Lu</span>
-                                    <span>Ma</span>
-                                    <span>Mi</span>
-                                    <span>Ju</span>
-                                    <span>Vi</span>
-                                    <span>Sá</span>
-                                    <span>Do</span>
-                                </div>
-
-                                <div class="periodo-calendario-dias">
-                                    @for (var espacio = 0; espacio < EspaciosCalendarioPeriodo; espacio++)
-                                    {
-                                        <span aria-hidden="true"></span>
-                                    }
-
-                                    @foreach (var dia in DiasCalendarioPeriodo)
-                                    {
-                                        <button type="button"
-                                                class="@ClaseDiaPeriodo(dia)"
-                                                aria-label="@dia.ToString("D", cultura)"
-                                                aria-pressed="@(FechaCalendarioPeriodo?.Date == dia.Date)"
-                                                @onclick="() => SeleccionarFechaPeriodo(dia)">
-                                            @dia.Day
-                                        </button>
-                                    }
-                                </div>
-
-                                <div class="periodo-calendario-footer">
-                                    <button type="button"
-                                            @onclick="LimpiarFechaPeriodo">
-                                        Sin límite
-                                    </button>
-
-                                    <button type="button"
-                                            @onclick="SeleccionarHoyPeriodo">
-                                        Hoy
-                                    </button>
-
-                                    <button type="button"
-                                            @onclick="CerrarCalendarioPeriodo">
-                                        Cerrar
-                                    </button>
-                                </div>
-                            </section>
-                        }
-                    </div>
-
-                    <div class="@ClaseCampoFecha("hasta")">
-                        <label id="labelFechaHasta">Hasta</label>
-
-                        <button type="button"
-                                class="periodo-fecha-selector"
-                                aria-labelledby="labelFechaHasta textoFechaHasta"
-                                aria-expanded="@(calendarioActivo == "hasta")"
-                                aria-controls="calendarioHasta"
-                                @onclick="AbrirCalendarioHasta">
-                            <span id="textoFechaHasta">
-                                @(fechaHasta?.ToString("dd/MM/yyyy") ?? "Sin límite")
-                            </span>
-
-                            <i class="bi bi-calendar3"></i>
-                        </button>
-
-                        @if (calendarioActivo == "hasta")
-                        {
-                            <section id="calendarioHasta"
-                                     class="periodo-calendario"
-                                     aria-label="Calendario Hasta">
-                                <div class="periodo-calendario-header">
-                                    <button type="button"
-                                            class="periodo-calendario-nav"
-                                            aria-label="Mes anterior"
-                                            disabled="@EsPrimerMes"
-                                            @onclick="MesAnteriorPeriodo">
-                                        <i class="bi bi-chevron-left"></i>
-                                    </button>
-
-                                    <strong>@TituloMesCalendarioPeriodo</strong>
-
-                                    <button type="button"
-                                            class="periodo-calendario-nav"
-                                            aria-label="Mes siguiente"
-                                            disabled="@EsUltimoMes"
-                                            @onclick="MesSiguientePeriodo">
-                                        <i class="bi bi-chevron-right"></i>
-                                    </button>
-                                </div>
-
-                                <div class="periodo-calendario-semana">
-                                    <span>Lu</span>
-                                    <span>Ma</span>
-                                    <span>Mi</span>
-                                    <span>Ju</span>
-                                    <span>Vi</span>
-                                    <span>Sá</span>
-                                    <span>Do</span>
-                                </div>
-
-                                <div class="periodo-calendario-dias">
-                                    @for (var espacio = 0; espacio < EspaciosCalendarioPeriodo; espacio++)
-                                    {
-                                        <span aria-hidden="true"></span>
-                                    }
-
-                                    @foreach (var dia in DiasCalendarioPeriodo)
-                                    {
-                                        <button type="button"
-                                                class="@ClaseDiaPeriodo(dia)"
-                                                aria-label="@dia.ToString("D", cultura)"
-                                                aria-pressed="@(FechaCalendarioPeriodo?.Date == dia.Date)"
-                                                @onclick="() => SeleccionarFechaPeriodo(dia)">
-                                            @dia.Day
-                                        </button>
-                                    }
-                                </div>
-
-                                <div class="periodo-calendario-footer">
-                                    <button type="button"
-                                            @onclick="LimpiarFechaPeriodo">
-                                        Sin límite
-                                    </button>
-
-                                    <button type="button"
-                                            @onclick="SeleccionarHoyPeriodo">
-                                        Hoy
-                                    </button>
-
-                                    <button type="button"
-                                            @onclick="CerrarCalendarioPeriodo">
-                                        Cerrar
-                                    </button>
-                                </div>
-                            </section>
-                        }
-                    </div>
+                    <CalendarioGasto Id="fechaFiltroHasta" Etiqueta="Hasta" PermiteLimpiar="true"
+                                     @bind-Value="fechaHasta" @bind-Value:after="ActualizarConsulta" />
 
                     <button type="button"
                             class="filter-order-button"
@@ -663,10 +483,6 @@
                 DateTime.Today.Year,
                 DateTime.Today.Month));
 
-    private DateTime mesCalendarioPeriodo =
-        new(DateTime.Today.Year, DateTime.Today.Month, 1);
-
-    private string calendarioActivo = string.Empty;
     private string busqueda = string.Empty;
     private string mensajeExito = string.Empty;
     private string mensajeError = string.Empty;
@@ -675,35 +491,6 @@
         fechaDesde.HasValue &&
         fechaHasta.HasValue &&
         fechaDesde.Value.Date > fechaHasta.Value.Date;
-
-    private bool EsPrimerMes =>
-        mesCalendarioPeriodo.Year == 1 &&
-        mesCalendarioPeriodo.Month == 1;
-
-    private bool EsUltimoMes =>
-        mesCalendarioPeriodo.Year == 9999 &&
-        mesCalendarioPeriodo.Month == 12;
-
-    private DateTime? FechaCalendarioPeriodo =>
-        calendarioActivo == "desde" ? fechaDesde : fechaHasta;
-
-    private string TituloMesCalendarioPeriodo =>
-        cultura.TextInfo.ToTitleCase(
-            mesCalendarioPeriodo.ToString("MMMM yyyy", cultura));
-
-    private int EspaciosCalendarioPeriodo =>
-        ((int)mesCalendarioPeriodo.DayOfWeek + 6) % 7;
-
-    private IEnumerable<DateTime> DiasCalendarioPeriodo =>
-        Enumerable.Range(
-                1,
-                DateTime.DaysInMonth(
-                    mesCalendarioPeriodo.Year,
-                    mesCalendarioPeriodo.Month))
-            .Select(dia => new DateTime(
-                mesCalendarioPeriodo.Year,
-                mesCalendarioPeriodo.Month,
-                dia));
 
     private IEnumerable<(int Id, string Nombre)> TiposDisponibles =>
         consulta.Tipos.Select(tipo => (tipo.Id, tipo.Tipo));
@@ -754,7 +541,6 @@
     {
         soloSinReparto = false;
         soloConReintegros = true;
-        CerrarCalendarioPeriodo();
         await ActualizarConsulta();
     }
 
@@ -774,7 +560,6 @@
     {
         soloSinReparto = true;
         soloConReintegros = false;
-        CerrarCalendarioPeriodo();
         await ActualizarConsulta();
     }
 
@@ -806,104 +591,6 @@
         busqueda = string.Empty;
         ordenDescendente = true;
 
-        CerrarCalendarioPeriodo();
-        await ActualizarConsulta();
-    }
-
-    private string ClaseCampoFecha(string campo)
-    {
-        return calendarioActivo == campo
-            ? "filter-field periodo-campo calendario-abierto"
-            : "filter-field periodo-campo";
-    }
-
-    private void AbrirCalendarioDesde()
-    {
-        AbrirCalendarioPeriodo("desde");
-    }
-
-    private void AbrirCalendarioHasta()
-    {
-        AbrirCalendarioPeriodo("hasta");
-    }
-
-    private void AbrirCalendarioPeriodo(string campo)
-    {
-        if (calendarioActivo == campo)
-        {
-            CerrarCalendarioPeriodo();
-            return;
-        }
-
-        calendarioActivo = campo;
-
-        var fecha = FechaCalendarioPeriodo ?? DateTime.Today;
-
-        mesCalendarioPeriodo = new DateTime(
-            fecha.Year,
-            fecha.Month,
-            1);
-    }
-
-    private void CerrarCalendarioPeriodo()
-    {
-        calendarioActivo = string.Empty;
-    }
-
-    private void MesAnteriorPeriodo()
-    {
-        if (!EsPrimerMes)
-            mesCalendarioPeriodo = mesCalendarioPeriodo.AddMonths(-1);
-    }
-
-    private void MesSiguientePeriodo()
-    {
-        if (!EsUltimoMes)
-            mesCalendarioPeriodo = mesCalendarioPeriodo.AddMonths(1);
-    }
-
-    private string ClaseDiaPeriodo(DateTime dia)
-    {
-        var clase = "periodo-calendario-dia";
-
-        if (dia.Date == DateTime.Today)
-            clase += " hoy";
-
-        if (FechaCalendarioPeriodo?.Date == dia.Date)
-            clase += " seleccionado";
-
-        return clase;
-    }
-
-    private async Task SeleccionarFechaPeriodo(DateTime fecha)
-    {
-        if (calendarioActivo == "desde")
-        {
-            fechaDesde = fecha.Date;
-        }
-        else if (calendarioActivo == "hasta")
-        {
-            fechaHasta = fecha.Date;
-        }
-
-        CerrarCalendarioPeriodo();
-        await ActualizarConsulta();
-    }
-
-    private Task SeleccionarHoyPeriodo() => SeleccionarFechaPeriodo(DateTime.Today);
-
-    private async Task LimpiarFechaPeriodo()
-    {
-        if (calendarioActivo == "desde")
-        {
-            fechaDesde = null;
-        }
-        else if (calendarioActivo == "hasta")
-        {
-            fechaHasta = null;
-        }
-
-        CerrarCalendarioPeriodo();
         await ActualizarConsulta();
     }
 
@@ -1082,8 +769,6 @@
         mostrarEditar = false;
         mostrarHistorial = false;
         mostrarDetalle = false;
-
-        CerrarCalendarioPeriodo();
     }
 
     private async Task GastoGuardado()

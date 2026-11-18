@@ -47,16 +47,13 @@
             <section class="caja-listado" aria-labelledby="movimientos-periodo">
                 <div class="caja-listado-cabecera">
                     <h2 id="movimientos-periodo">Movimientos del período</h2>
-                    <div class="caja-filtros">
-                        <div class="caja-filtro">
-                            <label for="caja-fecha-desde">Desde</label>
-                            <CalendarioGasto id="caja-fecha-desde" PermiteLimpiar="true" @bind-Value="desde" />
-                        </div>
-                        <div class="caja-filtro">
-                            <label for="caja-fecha-hasta">Hasta</label>
-                            <CalendarioGasto id="caja-fecha-hasta" PermiteLimpiar="true" @bind-Value="hasta" />
-                        </div>
-                    </div>
+                </div>
+
+                <div class="caja-filtros" role="group" aria-label="Filtros de fecha">
+                    <CalendarioGasto Id="caja-fecha-desde" Etiqueta="Desde" PermiteLimpiar="true"
+                                     AlinearIzquierdaEnMovil="true" @bind-Value="desde" />
+                    <CalendarioGasto Id="caja-fecha-hasta" Etiqueta="Hasta" PermiteLimpiar="true"
+                                     @bind-Value="hasta" />
                 </div>
 
                 @if (!periodoValido)
