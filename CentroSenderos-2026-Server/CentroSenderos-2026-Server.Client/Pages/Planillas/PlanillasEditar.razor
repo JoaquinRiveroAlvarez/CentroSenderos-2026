@@ -61,18 +61,20 @@
                     </div>
 
                     <div class="field-group">
-                        <label id="etiqueta-tipo" for="tipoPlanilla">Tipo de planilla</label>
+                        <label for="tipoPlanilla">Tipo de planilla</label>
 
-                        <div class="selector-tipo" role="group" aria-labelledby="etiqueta-tipo" aria-describedby="error-tipo">
-                            <SelectorConBusqueda Id="tipoPlanilla"
-                                                 Etiqueta="Tipo de planilla"
-                                                 MostrarEtiqueta="false"
-                                                 Multiple="false"
-                                                 Placeholder="Seleccioná un tipo"
-                                                 Opciones="OpcionesTiposPlanilla"
-                                                 Valor="@(tipoPlanillaId.ToString())"
-                                                 ValorChanged="SeleccionarTipoPlanilla"
-                                                 Disabled="@(guardando || actual == null)" />
+                        <div class="selector-tipo">
+                            <select id="tipoPlanilla"
+                                    class="form-input @(ErrorTipo.Length > 0 ? "invalid" : "")" aria-invalid="@(ErrorTipo.Length > 0)" aria-describedby="error-tipo"
+                                    disabled="@(guardando || actual == null)"
+                                    @bind="tipoPlanillaId" @bind:after="ValidarTipo">
+                                <option value="0">Seleccione un tipo</option>
+
+                                @foreach (var tipo in tiposPlanilla.OrderBy(tipo => tipo.Tipo))
+                                {
+                                    <option value="@tipo.Id">@tipo.Tipo</option>
+                                }
+                            </select>
                             <button type="button"
                                     class="catalogo-agregar"
                                     aria-label="Crear tipo de planilla"
@@ -219,20 +221,11 @@
 
     private CrearCatalogo tipoPlanillaModal = default!;
 
-    private IEnumerable<OpcionSelector> OpcionesTiposPlanilla =>
-        tiposPlanilla.OrderBy(tipo => tipo.Tipo)
-            .Select(tipo => new OpcionSelector(tipo.Id.ToString(), tipo.Tipo));
-
-    private void SeleccionarTipoPlanilla(string valor)
-    {
-        tipoPlanillaId = int.TryParse(valor, out var id) ? id : 0;
-        ValidarTipo();
-    }
-
     private void TipoPlanillaCreado(TipoListadoDTO tipo)
     {
         tiposPlanilla.Add(tipo);
-        SeleccionarTipoPlanilla(tipo.Id.ToString());
+        tipoPlanillaId = tipo.Id;
+        ValidarTipo();
     }
 
     #endregion
