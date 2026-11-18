@@ -305,7 +305,7 @@
                                @bind="busqueda"
                                @bind:event="oninput"
                                @onkeydown="BuscarConTeclado" />
-                        <button type="button" @onclick="ActualizarConsulta">Buscar</button>
+                        <button type="button" class="buscar-gastos" @onclick="ActualizarConsulta">Buscar</button>
                     </div>
 
                     <button type="button"
@@ -481,10 +481,18 @@
                     <span>@consulta.Cantidad gastos · Página @consulta.Pagina de @consulta.Paginas</span>
                     @if (consulta.Paginas > 1)
                     {
-                        <button type="button" disabled="@(consulta.Pagina == 1)"
-                                @onclick="() => CambiarPagina(-1)">Anterior</button>
-                        <button type="button" disabled="@(consulta.Pagina == consulta.Paginas)"
-                                @onclick="() => CambiarPagina(1)">Siguiente</button>
+                        <nav class="gastos-paginacion" aria-label="Paginación de gastos">
+                            <button type="button" disabled="@(consulta.Pagina == 1)"
+                                    @onclick="() => CambiarPagina(-1)">
+                                <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                                Anterior
+                            </button>
+                            <button type="button" disabled="@(consulta.Pagina == consulta.Paginas)"
+                                    @onclick="() => CambiarPagina(1)">
+                                Siguiente
+                                <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                            </button>
+                        </nav>
                     }
                 </div>
             </section>
@@ -495,7 +503,10 @@
                         <span class="caja-icono"><i class="bi bi-wallet2"></i></span>
                         <div><span class="panel-eyebrow">ESTADO DE GASTOS</span><h2>Caja Senderos</h2></div>
                     </div>
-                    <a href="/gastos/caja">Ver movimientos de Caja</a>
+                    <a class="caja-movimientos-enlace" href="/gastos/caja">
+                        <span>Ver movimientos de Caja</span>
+                        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                    </a>
                     <span class="caja-periodo">@NombrePeriodo</span>
                     <div class="caja-deuda">
                         <span>Pendiente de reintegrar</span>

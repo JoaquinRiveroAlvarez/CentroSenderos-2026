@@ -487,6 +487,11 @@
     }
 
 .list-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     padding: 16px 20px;
     border-top: 1px solid #e7e3dc;
     border-radius: 0 0 20px 20px;
@@ -1614,6 +1619,75 @@ button.panel-filtro:hover, .panel-filtro.activo {
     .caja-deuda > strong {
         font-size: 28px;
     }
+}
+
+/* #endregion */
+
+/* #region Búsqueda, paginación y movimientos de Caja */
+
+.buscar-gastos,
+.gastos-paginacion button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 6px 11px;
+    border: 1px solid #cbdac5;
+    border-radius: 9px;
+    background: #fff;
+    color: #435e3d;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.buscar-gastos {
+    flex-shrink: 0;
+}
+
+.buscar-gastos:hover,
+.gastos-paginacion button:not(:disabled):hover {
+    background: #eaf1e6;
+}
+
+.gastos-paginacion {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.gastos-paginacion button:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.caja-movimientos-enlace {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 9px 11px;
+    border: 1px solid #cbdac5;
+    border-radius: 9px;
+    background: #fff;
+    color: #435e3d;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.caja-movimientos-enlace:hover {
+    background: #f2f4ee;
+    text-decoration: underline;
+}
+
+.buscar-gastos:focus-visible,
+.gastos-paginacion button:focus-visible,
+.caja-movimientos-enlace:focus-visible {
+    outline: 2px solid #556f4f;
+    outline-offset: 2px;
 }
 
 /* #endregion */
