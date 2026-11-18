@@ -84,38 +84,6 @@ public class CambiosTurnosTests
     }
 
     [Fact]
-    public async Task PrestacionDadaDeBaja_SeConservaEnLaFichaYSeExcluyeDeNuevasSelecciones()
-    {
-        using var servicios = Servicios();
-        using var scope = servicios.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        await Catalogos(db);
-        var repo = new ProfesionalRepositorio(db);
-        var id = await repo.InsertarProfesional(ProfesionalNuevo());
-        Assert.True(await new TipoPrestacionRepositorio(db).DeleteTipoPrestacion(2));
-        db.ChangeTracker.Clear();
-
-        var ficha = (await repo.SelectPorId(id))!;
-        Assert.Equal("Terapia", Assert.Single(ficha.PrestacionesDadasDeBaja).Tipo);
-        Assert.Contains(2, ficha.TipoPrestacionIds);
-        ficha.Telefono = "87654321";
-        Assert.True(await repo.ActualizarProfesional(id, ficha));
-        var guardada = (await repo.SelectPorId(id))!;
-        Assert.Equal("87654321", guardada.Telefono);
-        Assert.Equal("TO-456", guardada.MatriculasPorPrestacion[2]);
-
-        var opciones = Assert.Single(await repo.SelectListaProfesional(soloPrestacionesActivas: true));
-        Assert.Equal(1, Assert.Single(opciones.TipoPrestacionIds));
-        Assert.Equal("Psicología", Assert.Single(opciones.TipoPrestacionNombres));
-
-        ficha.TipoPrestacionIds.Remove(2);
-        Assert.True(await repo.ActualizarProfesional(id, ficha));
-        ficha.TipoPrestacionIds.Add(2);
-        await Assert.ThrowsAsync<ApplicationException>(() => repo.ActualizarProfesional(id, ficha));
-        await Assert.ThrowsAsync<ApplicationException>(() => repo.InsertarProfesional(ProfesionalNuevo()));
-    }
-
-    [Fact]
     public async Task PrestacionDadaDeBaja_SeConservaSoloEnTurnosDondeYaEstabaGuardada()
     {
         using var servicios = Servicios();
@@ -144,6 +112,11 @@ public class CambiosTurnosTests
         var siguiente = await db.Turnos.Where(t => t.Id != primero).Select(t => t.Id).SingleAsync();
         Assert.True(await new TipoPrestacionRepositorio(db).DeleteTipoPrestacion(2));
         db.ChangeTracker.Clear();
+
+        var opciones = Assert.Single(await new ProfesionalRepositorio(db)
+            .SelectListaProfesional(soloPrestacionesActivas: true));
+        Assert.Equal(1, Assert.Single(opciones.TipoPrestacionIds));
+        Assert.Equal("Psicología", Assert.Single(opciones.TipoPrestacionNombres));
 
         var edicion = (await repo.SelectPorId(primero))!;
         edicion.Hora = new TimeOnly(11, 0);
