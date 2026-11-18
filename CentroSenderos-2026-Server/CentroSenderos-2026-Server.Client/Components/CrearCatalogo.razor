@@ -158,8 +158,8 @@
         }
     }
 
-    private string Icono => Recurso switch { "tipoarea" => "bi-grid", "tipoprestacion" => "bi-clipboard2-pulse", "tipoobrasocial" => "bi-shield-plus", "tipodocumento" => "bi-file-earmark-plus", _ => "bi-heart-pulse" };
-    private string PlaceholderNombre => Recurso switch { "tipoarea" => "Ej.: Salud mental", "tipoprestacion" => "Ej.: Psicología", "tipoobrasocial" => "Nombre de la obra social", "tipodocumento" => "Ej.: Informe médico", _ => "Nombre del diagnóstico" };
+    private string Icono => Recurso switch { "tipoarea" => "bi-grid", "tipoprestacion" => "bi-clipboard2-pulse", "tipoobrasocial" => "bi-shield-plus", "tipodocumento" or "tipoplanillas" => "bi-file-earmark-plus", _ => "bi-heart-pulse" };
+    private string PlaceholderNombre => Recurso switch { "tipoarea" => "Ej.: Salud mental", "tipoprestacion" => "Ej.: Psicología", "tipoobrasocial" => "Nombre de la obra social", "tipodocumento" => "Ej.: Informe médico", "tipoplanillas" => "Ej.: Formularios de ingreso", _ => "Nombre del diagnóstico" };
 
     public void Abrir()
     {

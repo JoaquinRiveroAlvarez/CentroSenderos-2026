@@ -916,3 +916,44 @@ button:focus-visible {
         }
 }
 /* #endregion */
+
+/* #region Tipo de planilla */
+
+.selector-tipo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.catalogo-agregar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 42px;
+    min-height: 42px;
+    padding: 0;
+    color: #627b56;
+    background: #f4f7f0;
+    border: 1px solid #dce5d4;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.catalogo-agregar:hover:not(:disabled) {
+    background: #eaf0e3;
+    border-color: #a6b69b;
+}
+
+.catalogo-agregar:focus-visible {
+    outline: 2px solid #73866b;
+    outline-offset: 3px;
+}
+
+.catalogo-agregar:disabled {
+    opacity: .45;
+    cursor: default;
+}
+
+/* #endregion */
