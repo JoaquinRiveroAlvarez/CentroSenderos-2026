@@ -16,20 +16,25 @@ internal static class AlcanceProfesional
         if (TieneAccesoCompleto(usuario))
             return profesionales.Select(p => p.Id);
 
-        var cuentaId = usuario.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (usuario.IsInRole("equipo"))
-        {
-            return from profesional in profesionales
-                   join cuenta in context.Users on profesional.Email.ToUpper() equals cuenta.NormalizedEmail
-                   join asignacion in context.UserRoles on cuenta.Id equals asignacion.UserId
-                   join rol in context.Roles on asignacion.RoleId equals rol.Id
-                   where rol.NormalizedName == "EQUIPO"
-                   select profesional.Id;
-        }
+        return usuario.IsInRole("equipo")
+            ? PorRol(context, "EQUIPO")
+            : Propios(context, usuario);
+    }
 
-        return from profesional in profesionales
+    public static IQueryable<int> PorRol(ApplicationDbContext context, string rol) =>
+        from profesional in context.Profesionales
+        join cuenta in context.Users on profesional.Email.ToUpper() equals cuenta.NormalizedEmail
+        join asignacion in context.UserRoles on cuenta.Id equals asignacion.UserId
+        join rolCuenta in context.Roles on asignacion.RoleId equals rolCuenta.Id
+        where profesional.EstadoRegistro == EnumEstadoRegistro.activo && rolCuenta.NormalizedName == rol
+        select profesional.Id;
+
+    public static IQueryable<int> Propios(ApplicationDbContext context, ClaimsPrincipal usuario)
+    {
+        var cuentaId = usuario.FindFirstValue(ClaimTypes.NameIdentifier);
+        return from profesional in context.Profesionales
                join cuenta in context.Users on profesional.Email.ToUpper() equals cuenta.NormalizedEmail
-               where cuenta.Id == cuentaId
+               where cuenta.Id == cuentaId && profesional.EstadoRegistro == EnumEstadoRegistro.activo
                select profesional.Id;
     }
 }
