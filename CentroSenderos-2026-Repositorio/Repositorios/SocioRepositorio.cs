@@ -117,6 +117,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
         public async Task<bool> DeleteSocio(int id)
         {
+            await using var transaccion = await context.Database
+                .BeginTransactionAsync(IsolationLevel.Serializable);
+
             var socio = await context.Socios
                 .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -129,9 +132,35 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "No se puede dar de baja Caja Senderos.");
             }
 
+            var adelantos = await context.Gastos
+                .Where(gasto => gasto.EstadoRegistro == EnumEstadoRegistro.activo)
+                .SelectMany(gasto => gasto.GastoSocios.Where(aporte =>
+                    aporte.SocioId == id && aporte.Monto > 0 &&
+                    aporte.EstadoRegistro == EnumEstadoRegistro.activo))
+                .GroupBy(aporte => aporte.GastoId)
+                .Select(grupo => new { GastoId = grupo.Key, Monto = grupo.Sum(aporte => aporte.Monto) })
+                .ToListAsync();
+
+            var reintegros = await context.ReintegrosSociosDetalles
+                .Where(detalle => detalle.EstadoRegistro == EnumEstadoRegistro.activo &&
+                    detalle.ReintegroSocio!.EstadoRegistro == EnumEstadoRegistro.activo &&
+                    detalle.ReintegroSocio.SocioPagador!.EsCaja &&
+                    detalle.ReintegroSocio.SocioReceptorId == id)
+                .GroupBy(detalle => detalle.GastoId)
+                .Select(grupo => new { GastoId = grupo.Key, Monto = grupo.Sum(detalle => detalle.Monto) })
+                .ToDictionaryAsync(grupo => grupo.GastoId, grupo => grupo.Monto);
+
+            if (adelantos.Any(adelanto =>
+                adelanto.Monto > reintegros.GetValueOrDefault(adelanto.GastoId)))
+            {
+                throw new ApplicationException(
+                    "El socio tiene adelantos pendientes de reintegrar. Revisalos antes de darlo de baja.");
+            }
+
             socio.EstadoRegistro = EnumEstadoRegistro.borrado;
 
             await context.SaveChangesAsync();
+            await transaccion.CommitAsync();
 
             return true;
         }

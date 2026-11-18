@@ -9,6 +9,8 @@ namespace CentroSenderos_2026_Shared.DTO
             ErrorMessage = "El motivo no puede exceder los 500 caracteres.")]
         public string Motivo { get; set; } = string.Empty;
 
+        public bool ImputarACaja { get; set; }
+
         public bool CompletarReparto { get; set; }
 
         public List<int> SocioRepartoIds { get; set; } = new();

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 namespace CentroSenderos_2026_Server.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/gasto")]
     public class GastoController : ControllerBase
     {
@@ -42,6 +43,14 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
+        [HttpGet("consulta")]
+        public async Task<ActionResult<GastosPaginaDTO>> Consultar([FromQuery] FiltroGastosDTO filtro) =>
+            Ok(await repositorio.ConsultarGastos(filtro));
+
+        [HttpGet("reintegrables/{socioId:int}")]
+        public async Task<ActionResult<List<GastoListadoDTO>>> Reintegrables(int socioId) =>
+            Ok(await repositorio.ConsultarGastosReintegrables(socioId));
+
         [HttpPost("insertar")]
         public async Task<ActionResult<int>> InsertarGasto([FromBody] GastoCrearDTO dto)
         {
@@ -69,7 +78,6 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
-        [Authorize]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<GastoCrearDTO>> GetGastoPorId(int id)
         {
@@ -98,7 +106,6 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
-        [Authorize]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> ActualizarGasto(
             int id,
@@ -152,7 +159,6 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
-        [Authorize]
         [HttpGet("{id:int}/historial")]
         public async Task<ActionResult<List<GastoHistorialDTO>>> GetHistorialGasto(int id)
         {
@@ -181,7 +187,6 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
-        [Authorize]
         [HttpGet("{id:int}/detalle")]
         public async Task<ActionResult<GastoListadoDTO>> GetDetalleGasto(int id)
         {

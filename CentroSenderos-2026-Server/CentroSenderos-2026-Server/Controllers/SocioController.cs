@@ -109,12 +109,18 @@ namespace CentroSenderos_2026_Server.Controllers
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var resultado = await repositorio.DeleteSocio(id);
-            if (!resultado)
+            try
             {
-                return BadRequest("Datos no válidos");
+                var resultado = await repositorio.DeleteSocio(id);
+                if (!resultado)
+                    return NotFound();
+
+                return Ok($"El socio con el id: {id} fue eliminado correctamente.");
             }
-            return Ok($"El socio con el id: {id} fue eliminado correctamente.");
+            catch (ApplicationException ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
     }
 }

@@ -272,12 +272,13 @@
     public EventCallback<int> OnHistorial { get; set; }
 
     [Parameter]
+    public int CajaId { get; set; }
+
+    [Parameter]
     public EventCallback<int> OnReintegro { get; set; }
 
     private bool PuedeReintegrar => gasto != null &&
-        gasto.GastoRepartos.Count > 0 &&
-        gasto.GastoRepartos.Sum(parte => parte.Monto) == gasto.Monto &&
-        gasto.GastoSocios.Sum(aporte => aporte.Monto) == gasto.Monto &&
+        gasto.EsCompatibleConCaja(CajaId) &&
         SocioIdsDetalle.Any(socioId => gasto.SaldoSocio(socioId) < 0) &&
         SocioIdsDetalle.Any(socioId => gasto.SaldoSocio(socioId) > 0);
 

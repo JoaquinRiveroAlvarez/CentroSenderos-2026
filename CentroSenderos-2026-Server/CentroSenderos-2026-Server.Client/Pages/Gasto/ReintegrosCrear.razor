@@ -140,14 +140,14 @@
 
                             <InputSelect id="reintegroReceptor"
                                          @bind-Value="modelo.SocioReceptorId"
-                                         @bind-Value:after="ActualizarGastos">
+                                         @bind-Value:after="CargarGastosParaSocio">
 
                                 <option value="0">Seleccione un socio</option>
 
                                 @foreach (var socio in ReceptoresDisponibles)
                                 {
                                     <option value="@socio.Id">
-                                        @NombreSocio(socio.Id) —
+                                        @socio.Profesional —
                                         @Moneda(PendienteSocio(gastoPrincipal!, socio.Id)) pendiente
                                     </option>
                                 }
@@ -360,10 +360,17 @@
                 .OrderBy(id => NombreSocio(id));
 
     private IEnumerable<SocioListadoDTO> ReceptoresDisponibles =>
-        socios.Where(socio =>
-            !socio.EsCaja &&
-            gastoPrincipal != null &&
-            PendienteSocio(gastoPrincipal, socio.Id) > 0);
+        gastoPrincipal == null || caja == null
+            ? Enumerable.Empty<SocioListadoDTO>()
+            : gastoPrincipal.GastoSocios
+                .Where(aporte => aporte.SocioId != caja.Id &&
+                    PendienteSocio(gastoPrincipal, aporte.SocioId) > 0)
+                .GroupBy(aporte => aporte.SocioId)
+                .Select(grupo => new SocioListadoDTO
+                {
+                    Id = grupo.Key,
+                    Profesional = grupo.First().Profesional
+                }).OrderBy(socio => socio.Profesional);
 
     private string TotalTexto
     {
@@ -436,25 +443,15 @@
 
             modelo.SocioPagadorId = caja.Id;
 
-            var respuestaGastos = await Http.Get<List<GastoListadoDTO>>(
-                "api/gasto/ListaGastos");
-
-            if (respuestaGastos.Error)
+            var respuestaGasto = await Http.Get<GastoListadoDTO>(
+                $"api/gasto/{GastoId}/detalle");
+            if (respuestaGasto.Error)
             {
-                mensaje = respuestaGastos.ObtenerError();
+                mensaje = respuestaGasto.ObtenerError();
                 return;
             }
 
-            if (respuestaGastos.Respuesta == null)
-            {
-                mensaje = "No se pudo obtener el listado de gastos.";
-                return;
-            }
-
-            gastos = respuestaGastos.Respuesta;
-
-            gastoPrincipal = gastos.FirstOrDefault(gasto =>
-                gasto.Id == GastoId);
+            gastoPrincipal = respuestaGasto.Respuesta;
 
             if (gastoPrincipal == null)
             {
@@ -473,11 +470,12 @@
             }
 
             var receptores = ReceptoresDisponibles.ToList();
+            socios.AddRange(receptores.Where(receptor => socios.All(socio => socio.Id != receptor.Id)));
 
             if (receptores.Count == 1)
                 modelo.SocioReceptorId = receptores[0].Id;
 
-            ActualizarGastos();
+            await CargarGastosParaSocio();
             datosCargados = true;
         }
         catch (Exception)
@@ -492,19 +490,8 @@
         }
     }
 
-    private bool GastoCompatible(GastoListadoDTO gasto)
-    {
-        return caja != null &&
-            gasto.Monto > 0 &&
-            gasto.GastoRepartos.Count == 1 &&
-            gasto.GastoRepartos[0].SocioId == caja.Id &&
-            gasto.GastoRepartos[0].Monto == gasto.Monto &&
-            gasto.GastoSocios.All(aporte => aporte.Monto > 0) &&
-            gasto.GastoSocios.Sum(aporte => aporte.Monto) == gasto.Monto &&
-            gasto.GastoReintegros.All(reintegro =>
-                reintegro.SocioPagadorId == caja.Id &&
-                reintegro.SocioReceptorId != caja.Id);
-    }
+    private bool GastoCompatible(GastoListadoDTO gasto) =>
+        caja != null && gasto.EsCompatibleConCaja(caja.Id);
 
     private static decimal Adelantado(GastoListadoDTO gasto, int socioId)
     {
@@ -542,6 +529,37 @@
             .Sum(reintegro => reintegro.Monto);
 
         return gasto.Monto - pagosDirectos - reintegrado;
+    }
+
+    private async Task CargarGastosParaSocio()
+    {
+        var socioId = modelo.SocioReceptorId;
+        gastos = new();
+        ActualizarGastos();
+        if (socioId <= 0)
+            return;
+
+        try
+        {
+            var respuesta = await Http.Get<List<GastoListadoDTO>>(
+                $"api/gasto/reintegrables/{socioId}");
+            if (socioId != modelo.SocioReceptorId)
+                return;
+
+            if (respuesta.Error)
+            {
+                mensaje = respuesta.ObtenerError();
+                return;
+            }
+
+            gastos = respuesta.Respuesta ?? new();
+            ActualizarGastos();
+        }
+        catch (Exception)
+        {
+            if (socioId == modelo.SocioReceptorId)
+                mensaje = "No se pudieron consultar los gastos pendientes del socio.";
+        }
     }
 
     private void ActualizarGastos()

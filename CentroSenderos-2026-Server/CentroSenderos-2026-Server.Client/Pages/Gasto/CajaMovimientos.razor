@@ -1,0 +1,104 @@
+@page "/gastos/caja"
+@attribute [Authorize]
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+@using Microsoft.AspNetCore.Authorization
+@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Servicio.ServiciosHttp
+@using System.Globalization
+@inject IHttpServicio Http
+
+<h1>Movimientos de Caja Senderos</h1>
+<a href="/gastos">Volver a Gastos</a>
+
+@if (cargando)
+{
+    <p>Cargando movimientos…</p>
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <p role="alert">@error</p>
+}
+else
+{
+    <p>Saldo de movimientos registrados <strong>@Moneda(movimientos.Sum(m => m.Importe))</strong></p>
+    <p>Incluye efectivo y otros medios de pago registrados. El saldo se calcula desde el primer movimiento disponible.</p>
+
+    <div class="filtros">
+        <label>Desde <input type="date" @bind="desde" /></label>
+        <label>Hasta <input type="date" @bind="hasta" /></label>
+    </div>
+
+    @if (desde > hasta)
+    {
+        <p role="alert">La fecha desde debe ser anterior o igual a la fecha hasta.</p>
+    }
+    else
+    {
+        var visibles = movimientos.Where(m =>
+            (!desde.HasValue || m.Fecha.Date >= desde.Value.Date) &&
+            (!hasta.HasValue || m.Fecha.Date <= hasta.Value.Date)).ToList();
+
+        @if (visibles.Count == 0)
+        {
+            <p>Sin movimientos en el período.</p>
+        }
+        else
+        {
+            <p>Movimiento neto del período <strong>@Moneda(visibles.Sum(m => m.Importe))</strong></p>
+            <table class="table">
+                <thead>
+                    <tr><th>Fecha</th><th>Concepto</th><th>Origen</th><th>Importe</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var movimiento in visibles)
+                    {
+                        <tr>
+                            <td>@movimiento.Fecha.ToString("dd/MM/yyyy")</td>
+                            <td>@movimiento.Concepto</td>
+                            <td>@movimiento.Referencia (#@movimiento.OrigenId)</td>
+                            <td>@Moneda(movimiento.Importe)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+}
+
+@code {
+    #region Estado
+
+    private List<MovimientoCajaDTO> movimientos = new();
+    private bool cargando = true;
+    private string error = string.Empty;
+    private DateTime? desde = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+    private DateTime? hasta;
+
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var respuesta = await Http.Get<List<MovimientoCajaDTO>>("api/caja/movimientos");
+            if (respuesta.Error)
+            {
+                error = respuesta.ObtenerError();
+                return;
+            }
+
+            movimientos = respuesta.Respuesta ?? new();
+        }
+        catch (Exception)
+        {
+            error = "No se pudieron consultar los movimientos de Caja.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private static string Moneda(decimal monto) =>
+        monto.ToString("C2", CultureInfo.GetCultureInfo("es-AR"));
+}

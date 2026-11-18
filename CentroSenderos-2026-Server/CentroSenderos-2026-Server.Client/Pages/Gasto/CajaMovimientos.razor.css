@@ -1,0 +1,11 @@
+.filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-block: 1rem;
+}
+
+th:last-child,
+td:last-child {
+    text-align: right;
+}
