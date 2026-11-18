@@ -31,10 +31,13 @@
     else
     {
         var periodoValido = !(desde > hasta);
+        var texto = busqueda.Trim();
         var visibles = movimientos.Where(movimiento =>
             periodoValido &&
             (!desde.HasValue || movimiento.Fecha.Date >= desde.Value.Date) &&
-            (!hasta.HasValue || movimiento.Fecha.Date <= hasta.Value.Date)).ToList();
+            (!hasta.HasValue || movimiento.Fecha.Date <= hasta.Value.Date) &&
+            (!concepto.HasValue || movimiento.Tipo == concepto.Value) &&
+            CoincideBusqueda(movimiento, texto)).ToList();
 
         <div class="caja-contenido">
             <aside class="caja-saldo" aria-labelledby="saldo-caja">
@@ -49,11 +52,34 @@
                     <h2 id="movimientos-periodo">Movimientos del período</h2>
                 </div>
 
-                <div class="caja-filtros" role="group" aria-label="Filtros de fecha">
+                <div class="caja-filtros" role="group" aria-label="Filtros de movimientos">
                     <CalendarioGasto Id="caja-fecha-desde" Etiqueta="Desde" PermiteLimpiar="true"
                                      AlinearIzquierdaEnMovil="true" @bind-Value="desde" />
                     <CalendarioGasto Id="caja-fecha-hasta" Etiqueta="Hasta" PermiteLimpiar="true"
                                      @bind-Value="hasta" />
+
+                    <div class="caja-filtro">
+                        <label for="caja-concepto">Concepto</label>
+                        <select id="caja-concepto" @bind="concepto">
+                            <option value="">Todos los conceptos</option>
+                            @foreach (var movimiento in conceptos)
+                            {
+                                <option value="@movimiento.Tipo">@movimiento.Concepto</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="caja-filtro">
+                        <label for="caja-busqueda">Buscar</label>
+                        <input type="search" id="caja-busqueda"
+                               placeholder="Origen o número de registro"
+                               @bind="busqueda" @bind:event="oninput" />
+                    </div>
+
+                    <button type="button" class="caja-restaurar" @onclick="RestaurarFiltros">
+                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                        Restaurar filtros
+                    </button>
                 </div>
 
                 @if (!periodoValido)
@@ -62,7 +88,7 @@
                 }
                 else if (visibles.Count == 0)
                 {
-                    <p class="caja-aviso" role="status">Sin movimientos en el período.</p>
+                    <p class="caja-aviso" role="status">Sin movimientos para los filtros seleccionados.</p>
                 }
                 else
                 {
@@ -103,7 +129,7 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th scope="row" colspan="3">Movimiento neto del período</th>
+                                    <th scope="row" colspan="3">Movimiento neto de la selección</th>
                                     <td class="caja-importe">@Moneda(visibles.Sum(movimiento => movimiento.Importe))</td>
                                 </tr>
                             </tfoot>
@@ -167,8 +193,11 @@
     private List<MovimientoCajaDTO> movimientos = new();
     private bool cargando = true;
     private string error = string.Empty;
-    private DateTime? desde = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+    private List<MovimientoCajaDTO> conceptos = new();
+    private DateTime? desde = InicioDelMes();
     private DateTime? hasta;
+    private TipoMovimientoCaja? concepto;
+    private string busqueda = string.Empty;
     private MovimientoCajaDTO? seleccionado;
     private List<GastoMovimientoCajaDTO> gastosReintegro = new();
     private int? gastoDetalleId;
@@ -190,6 +219,8 @@
             }
 
             movimientos = respuesta.Respuesta ?? new();
+            conceptos = movimientos.DistinctBy(movimiento => movimiento.Tipo)
+                .OrderBy(movimiento => movimiento.Concepto).ToList();
         }
         catch (Exception)
         {
@@ -200,6 +231,33 @@
             cargando = false;
         }
     }
+
+    #region Filtros
+
+    private static DateTime InicioDelMes()
+    {
+        var hoy = DateTime.Today;
+        return new DateTime(hoy.Year, hoy.Month, 1);
+    }
+
+    private static bool CoincideBusqueda(MovimientoCajaDTO movimiento, string texto)
+    {
+        if (texto.Length == 0)
+            return true;
+
+        return FiltrosEntidades.ContieneTexto(movimiento.Referencia, texto) ||
+            (int.TryParse(texto.TrimStart('#'), out var id) && movimiento.OrigenId == id);
+    }
+
+    private void RestaurarFiltros()
+    {
+        desde = InicioDelMes();
+        hasta = null;
+        concepto = null;
+        busqueda = string.Empty;
+    }
+
+    #endregion
 
     private async Task SeleccionarMovimiento(MovimientoCajaDTO movimiento)
     {

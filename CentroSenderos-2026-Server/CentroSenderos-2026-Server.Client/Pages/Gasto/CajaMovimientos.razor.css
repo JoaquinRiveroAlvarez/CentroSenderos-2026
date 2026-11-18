@@ -103,6 +103,55 @@
     background: #faf8f5;
 }
 
+.caja-filtro {
+    display: grid;
+    min-width: 0;
+    gap: 6px;
+}
+
+.caja-filtro label {
+    margin: 0;
+    color: #647b5b;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.caja-filtro select,
+.caja-filtro input {
+    width: 100%;
+    min-width: 0;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid #dedbd4;
+    border-radius: 20px;
+    background: #fff;
+    color: #444;
+    font-size: 13px;
+}
+
+.caja-filtro select {
+    cursor: pointer;
+}
+
+.caja-restaurar {
+    display: inline-flex;
+    justify-self: start;
+    align-items: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 6px 12px;
+    border: 1px solid #dedbd4;
+    border-radius: 20px;
+    background: #fff;
+    color: #556f4f;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.caja-restaurar:hover {
+    background: #eef3ec;
+}
+
 .caja-tabla {
     overflow-x: auto;
     border-radius: 0 0 20px 20px;
