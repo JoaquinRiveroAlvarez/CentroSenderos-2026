@@ -775,3 +775,11 @@ button:focus-visible {
 }
 
 /* #endregion */
+
+/* #region Distribución de filtros */
+
+.filtros-panel {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+}
+
+/* #endregion */

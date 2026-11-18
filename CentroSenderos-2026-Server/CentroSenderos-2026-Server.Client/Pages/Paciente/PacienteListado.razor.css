@@ -756,3 +756,11 @@ button:focus-visible {
 }
 
 /* #endregion */
+
+/* #region Distribución de filtros */
+
+.pacientes-filtros {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+}
+
+/* #endregion */

@@ -1,6 +1,7 @@
 /* #region 01. Estructura general y distribución */
 
 .agenda-page {
+    box-sizing: border-box;
     width: calc(100% + 36px);
     min-height: calc(100vh - 60px);
     margin-top: -32px;
@@ -11,9 +12,9 @@
 
 .agenda-layout {
     display: grid;
-    grid-template-columns: 205px minmax(0, 1fr);
+    grid-template-columns: 240px minmax(0, 1fr);
     align-items: start;
-    gap: 8px;
+    gap: 18px;
 }
 
 .agenda-principal {
@@ -223,13 +224,53 @@
 
 /* #endregion */
 
+/* #region Barra superior en móvil */
+
+@media (max-width: 600px) {
+    .agenda-toolbar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+    }
+
+    .navegacion-fecha {
+        grid-column: 1 / -1;
+        flex-wrap: wrap;
+    }
+
+    .fecha-actual {
+        flex: 1;
+        min-width: 0;
+        white-space: normal;
+        line-height: 1.5;
+    }
+
+    .selector-presentacion {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .btn-nuevo-turno {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .selector-periodo {
+        grid-column: 1 / -1;
+        grid-row: 3;
+    }
+}
+
+/* #endregion */
+
 /* #region 03. Calendario lateral */
 
 .calendario-panel {
-    overflow: hidden;
+    overflow: visible;
+    position: relative;
+    z-index: 2;
     border: 1px solid #deded9;
-    border-radius: 3px;
-    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    background-color: #fffdfa;
 }
 
 .calendario-nav:hover {
@@ -357,135 +398,101 @@
 /* #region 04. Filtros */
 
 .filtros-agenda {
-    border-top: 1px solid #deded9;
+    padding: 18px 14px 14px;
+    border-top: 1px solid #e6e5dc;
 }
 
-.btn-restaurar-filtros {
+.filtros-cabecera {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.filtros-titulo {
+    color: #465b3e;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.filtros-cabecera p {
+    margin: 5px 0 0;
+    color: #87907c;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.filtros-activos {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 23px;
+    height: 23px;
+    border-radius: 50%;
+    background: #eaf0e2;
+    color: #627b56;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.filtros-campos {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+}
+
+.filtros-campos ::deep .selector-buscable-boton {
+    background: #fffefa;
+}
+
+.filtros-acciones {
+    display: grid;
+    gap: 9px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #e6e5dc;
+}
+
+.btn-limpiar-filtros {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 7px;
-    width: calc(100% - 28px);
-    min-height: 36px;
-    margin: 12px 14px 14px;
-    padding: 8px 10px;
-    border: 1px solid #cfd8cc;
-    border-radius: 8px;
-    background-color: #f5f8f3;
-    color: #4d6847;
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: 650;
-    line-height: 1.2;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-    .btn-restaurar-filtros:hover {
-        border-color: #aebda9;
-        background-color: #eaf0e7;
-        color: #3f5c39;
-    }
-
-    .btn-restaurar-filtros:focus-visible {
-        outline: 2px solid #71866a;
-        outline-offset: 2px;
-    }
-
-    .btn-restaurar-filtros i {
-        font-size: 13px;
-    }
-
-.filtro-titulo:hover {
-    color: #526c4d;
-}
-
-    .filtro-titulo:hover i {
-        color: #526c4d;
-    }
-
-.filtro-check span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.filtro-no-disponible:last-child {
-    border-bottom: 0;
-}
-
-.filtro-no-disponible i {
-    font-size: 11px;
-}
-
-.filtro-bloque {
-    border-bottom: 1px solid #e6e6e1;
-    padding: 9px 10px;
-}
-
-.filtro-titulo {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     width: 100%;
-    margin: 0 0 9px;
-    padding: 0;
-    border: 0;
-    background-color: transparent;
-    color: #383b36;
-    font-weight: 600;
-    text-align: left;
-    cursor: pointer;
-    min-height: 22px;
-    margin-bottom: 6px;
+    min-height: 38px;
+    padding: 9px 12px;
+    border: 1px solid #dfe5d6;
+    border-radius: 9px;
+    background: #f4f7f0;
+    color: #627b56;
+    font: inherit;
     font-size: 11px;
+    cursor: pointer;
 }
 
-    .filtro-titulo i {
-        color: #4a4d48;
-        transition: color 0.2s ease;
-        font-size: 10px;
-    }
-
-.filtro-opciones {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+.btn-limpiar-filtros:hover {
+    background: #eaf0e2;
+    border-color: #b7c5ac;
 }
 
-.filtro-check {
-    display: flex;
-    align-items: center;
+.btn-limpiar-filtros:focus-visible {
+    outline: 2px solid #93a67f;
+    outline-offset: 2px;
+}
+
+.filtros-acciones p {
     margin: 0;
-    color: #4c4f4a;
-    font-weight: 400;
-    cursor: pointer;
-    gap: 7px;
-    font-size: 11px;
+    color: #87907c;
+    font-size: 10px;
+    line-height: 1.5;
+    text-align: center;
 }
 
-    .filtro-check input {
-        margin: 0;
-        accent-color: #4f674a;
-        cursor: pointer;
-        width: 12px;
-        height: 12px;
+@media (min-width: 600px) and (max-width: 900px) {
+    .filtros-campos {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-
-.filtro-no-disponible {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    border: 0;
-    border-bottom: 1px solid #e6e6e1;
-    background-color: transparent;
-    color: #989b95;
-    text-align: left;
-    cursor: not-allowed;
-    min-height: 36px;
-    padding: 0 10px;
-    font-size: 11px;
 }
 
 /* #endregion */
@@ -3223,50 +3230,6 @@
 .turno-hora-destacada i {
     font-size: .85em;
     opacity: .7;
-}
-
-.filtros-acciones {
-    display: grid;
-    gap: 8px;
-    padding-top: 16px;
-    margin-top: 6px;
-    border-top: 1px solid #e9e8df;
-}
-
-.filtros-acciones button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 7px;
-    width: 100%;
-    padding: 10px 12px;
-    margin: 0;
-    border: 1px solid #e1e4d8;
-    border-radius: 9px;
-    color: #7c896f;
-    background: #fafbf7;
-    font: inherit;
-    font-size: 11px;
-    cursor: pointer;
-}
-
-.filtros-acciones .btn-limpiar-filtros {
-    background: #f0f4ea;
-    color: #607553;
-    border-color: #dce5d1;
-}
-
-.filtros-acciones button:hover {
-    border-color: #acbc9d;
-    background: #eaf0e1;
-}
-
-.filtros-acciones p {
-    margin: 2px 0 0;
-    color: #939b88;
-    font-size: 10px;
-    text-align: center;
-    line-height: 1.6;
 }
 
 /* #endregion */

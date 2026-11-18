@@ -1,4 +1,4 @@
-﻿using CentroSenderos_2026_Shared.Enum;
+using CentroSenderos_2026_Shared.Enum;
 
 namespace CentroSenderos_2026_Shared.DTO
 {
@@ -24,6 +24,8 @@ namespace CentroSenderos_2026_Shared.DTO
 
         public int TipoDiagnosticoId { get; set; }
         public string TipoDiagnosticoNombre { get; set; } = string.Empty;
+
+        public List<TipoDTO> TiposDocumentos { get; set; } = new();
 
         public EnumEstadoRegistro EstadoRegistro { get; set; }
     }

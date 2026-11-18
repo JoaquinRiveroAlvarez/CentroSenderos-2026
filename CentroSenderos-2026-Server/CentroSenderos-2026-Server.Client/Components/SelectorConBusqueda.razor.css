@@ -258,3 +258,40 @@
 }
 
 /* #endregion */
+
+/* #region Opción Todos en filtros de agenda */
+
+.selector-buscable[data-abierto=true] {
+    z-index: 160;
+}
+
+.selector-todos {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 7px;
+    border: 1px solid #e5e9de;
+    border-radius: 8px;
+    background: #fafbf7;
+    color: #7b856c;
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.selector-todos.activa {
+    border-color: #d8e3cc;
+    background: #eff4e8;
+    color: #62784e;
+}
+
+.selector-todos small {
+    margin-left: auto;
+    color: #8c9880;
+    font-size: 10px;
+}
+
+/* #endregion */

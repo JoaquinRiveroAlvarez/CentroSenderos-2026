@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
 @using CentroSenderos_2026_Shared.Enum
+@using System.Globalization
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
@@ -175,171 +176,55 @@
 
             </div>
 
-            <div class="filtros-agenda">
-
-                <div class="filtro-bloque">
-
-                    <button type="button"
-                            class="filtro-titulo"
-                            @onclick="AlternarConsultorios">
-
-                        <span>Consultorios</span>
-
-                        <i class="bi @(mostrarConsultorios
-                            ? "bi-chevron-up"
-                            : "bi-chevron-down")">
-                        </i>
-
-                    </button>
-
-                    @if (mostrarConsultorios)
+            <section class="filtros-agenda" aria-label="Filtros de turnos">
+                <header class="filtros-cabecera">
+                    <div>
+                        <span class="filtros-titulo">Filtrar turnos</span>
+                        <p>Combiná opciones para encontrar un turno.</p>
+                    </div>
+                    @if (CantidadFiltrosActivos > 0)
                     {
-                        <div class="filtro-opciones">
-
-                            @foreach (var consultorio in ConsultoriosDisponibles)
-                            {
-                                <label class="filtro-check">
-
-                                    <input type="checkbox"
-                                           checked="@consultoriosSeleccionados.Contains(consultorio.Id)"
-                                           @onchange="evento => CambiarFiltroConsultorio(
-                                               consultorio.Id,
-                                               Convert.ToBoolean(evento.Value))" />
-
-<span>@consultorio.Nombre</span>
-
-</label>
-                            }
-
-                        </div>
+                        <span class="filtros-activos" aria-label="@($"{CantidadFiltrosActivos} filtros activos")">@CantidadFiltrosActivos</span>
                     }
-
+                </header>
+                <div class="filtros-campos">
+                    <SelectorConBusqueda Id="filtroConsultoriosTurno" Etiqueta="Consultorio"
+                                         Placeholder="Todos" MostrarOpcionTodos="true"
+                                         Opciones="OpcionesConsultoriosFiltro" @bind-Seleccionadas="ConsultoriosFiltro"
+                                         VersionLimpieza="versionLimpiezaAdicional" />
+                    <SelectorConBusqueda Id="filtroTiposTurno" Etiqueta="Tipo de turno"
+                                         Placeholder="Todos" MostrarOpcionTodos="true"
+                                         Opciones="OpcionesTiposFiltro" @bind-Seleccionadas="TiposFiltro"
+                                         VersionLimpieza="versionLimpiezaAdicional" />
+                    <SelectorConBusqueda Id="filtroProfesionalesTurno" Etiqueta="Profesional"
+                                         Placeholder="Todos" MostrarOpcionTodos="true"
+                                         Opciones="OpcionesProfesionalesFiltro" @bind-Seleccionadas="ProfesionalesFiltro"
+                                         VersionLimpieza="versionLimpiezaAdicional" />
+                    <SelectorConBusqueda Id="filtroPacientesTurno" Etiqueta="Paciente"
+                                         Placeholder="Todos" MostrarOpcionTodos="true"
+                                         Opciones="OpcionesPacientesFiltro" @bind-Seleccionadas="PacientesFiltro"
+                                         VersionLimpieza="versionLimpiezaAdicional" />
+                    <SelectorConBusqueda Id="filtroAreasTurno" Etiqueta="Área"
+                                         Placeholder="Todos" MostrarOpcionTodos="true"
+                                         Opciones="OpcionesAreasTurno" @bind-Seleccionadas="areasFiltro"
+                                         VersionLimpieza="versionLimpiezaAdicional" />
+                    <SelectorConBusqueda Id="filtroPrestacionesTurno" Etiqueta="Prestación"
+                                         Placeholder="Todos" MostrarOpcionTodos="true"
+                                         Opciones="OpcionesPrestacionesTurno" @bind-Seleccionadas="prestacionesFiltro"
+                                         VersionLimpieza="versionLimpiezaAdicional" />
+                    <SelectorConBusqueda Id="filtroEstadosTurno" Etiqueta="Estado"
+                                         Placeholder="Todos" MostrarOpcionTodos="true"
+                                         Opciones="OpcionesEstadosTurno" @bind-Seleccionadas="estadosFiltro"
+                                         VersionLimpieza="versionLimpiezaAdicional" />
                 </div>
-
-                <div class="filtro-bloque">
-
-                    <button type="button"
-                            class="filtro-titulo"
-                            @onclick="AlternarServicios">
-
-                        <span>Tipo de Turno</span>
-
-                        <i class="bi @(mostrarServicios
-                            ? "bi-chevron-up"
-                            : "bi-chevron-down")">
-                        </i>
-
+                <footer class="filtros-acciones">
+                    <button type="button" class="btn-limpiar-filtros" @onclick="LimpiarTodosLosFiltros">
+                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                        Limpiar filtros
                     </button>
-
-                    @if (mostrarServicios)
-                    {
-                        <div class="filtro-opciones">
-
-                            @foreach (var tipo in TiposTurnoDisponibles)
-                            {
-                                <label class="filtro-check">
-
-                                    <input type="checkbox"
-                                           checked="@tiposSeleccionados.Contains(tipo.Id)"
-                                           @onchange="evento => CambiarFiltroTipo(
-                                               tipo.Id,
-                                               Convert.ToBoolean(evento.Value))" />
-
-<span>@tipo.Nombre</span>
-
-</label>
-                            }
-
-                        </div>
-                    }
-
-                </div>
-
-                <div class="filtro-bloque">
-
-                    <button type="button"
-                            class="filtro-titulo"
-                            @onclick="AlternarProfesionales">
-
-                        <span>Profesionales</span>
-
-                        <i class="bi @(mostrarProfesionales
-                            ? "bi-chevron-up"
-                            : "bi-chevron-down")">
-                        </i>
-
-                    </button>
-
-                    @if (mostrarProfesionales)
-                    {
-                        <div class="filtro-opciones">
-
-                            @foreach (var profesional in ProfesionalesDisponibles)
-                            {
-                                <label class="filtro-check">
-
-                                    <input type="checkbox"
-                                           checked="@profesionalesSeleccionados.Contains(profesional.Id)"
-                                           @onchange="evento => CambiarFiltroProfesional(
-                                               profesional.Id,
-                                               Convert.ToBoolean(evento.Value))" />
-
-<span>@profesional.Nombre</span>
-
-</label>
-                            }
-
-                        </div>
-                    }
-
-                </div>
-
-                <div class="filtro-bloque">
-
-                    <button type="button"
-                            class="filtro-titulo"
-                            @onclick="AlternarPacientes">
-
-                        <span>Pacientes</span>
-
-                        <i class="bi @(mostrarPacientes
-                            ? "bi-chevron-up"
-                            : "bi-chevron-down")">
-                        </i>
-
-                    </button>
-
-                    @if (mostrarPacientes)
-                    {
-                        <div class="filtro-opciones">
-
-                            @foreach (var paciente in PacientesDisponibles)
-                            {
-                                <label class="filtro-check">
-
-                                    <input type="checkbox"
-                                           checked="@pacientesSeleccionados.Contains(paciente.Id)"
-                                           @onchange="evento => CambiarFiltroPaciente(
-                                               paciente.Id,
-                                               Convert.ToBoolean(evento.Value))" />
-
-<span>@paciente.Nombre</span>
-
-</label>
-                            }
-
-                        </div>
-                    }
-
-                </div>
-
-            </div>
-
-            <div class="filtros-acciones">
-                <button type="button" class="btn-limpiar-filtros" @onclick="LimpiarTodosLosFiltros"><i class="bi bi-x-circle" aria-hidden="true"></i>Limpiar filtros</button>
-                <button type="button" class="btn-restaurar-filtros" @onclick="RestaurarTodosLosFiltros"><i class="bi bi-check2-all" aria-hidden="true"></i>Seleccionar todos</button>
-                <p>Sin tildes se muestran todos. Marcá una opción para filtrar.</p>
-            </div>
+                    <p>@(CantidadFiltrosActivos == 0 ? "Mostrando todos los turnos." : "Los filtros se combinan entre sí.")</p>
+                </footer>
+            </section>
 
         </aside>
 
@@ -851,7 +736,6 @@
                 </section>
 
 
-
                 @if (turnoSeleccionado.SerieTurnoId.HasValue)
                 {
                     <div class="detalle-nuevo-recurrencia">
@@ -1135,16 +1019,117 @@
     private HashSet<int> profesionalesSeleccionados = new();
     private HashSet<int> pacientesSeleccionados = new();
 
+    #region Opciones de filtros unificados
+
+    private int CantidadFiltrosActivos => new[]
+    {
+        consultoriosSeleccionados.Count, tiposSeleccionados.Count,
+        profesionalesSeleccionados.Count, pacientesSeleccionados.Count,
+        areasFiltro.Count, prestacionesFiltro.Count, estadosFiltro.Count
+    }.Count(cantidad => cantidad > 0);
+
+    private static HashSet<int> ConvertirSeleccion(IEnumerable<string> valores)
+    {
+        return valores.Select(valor => int.TryParse(valor, out var id) ? id : -1)
+            .Where(id => id >= 0)
+            .ToHashSet();
+    }
+
+    private IEnumerable<OpcionSelector> OpcionesConsultoriosFiltro => ConsultoriosDisponibles
+        .Select(opcion => new OpcionSelector(opcion.Id.ToString(), opcion.Nombre));
+
+    private HashSet<string> ConsultoriosFiltro
+    {
+        get => consultoriosSeleccionados.Select(id => id.ToString()).ToHashSet();
+        set => consultoriosSeleccionados = ConvertirSeleccion(value);
+    }
+
+    private IEnumerable<OpcionSelector> OpcionesTiposFiltro => TiposTurnoDisponibles
+        .Select(opcion => new OpcionSelector(opcion.Id.ToString(), opcion.Nombre));
+
+    private HashSet<string> TiposFiltro
+    {
+        get => tiposSeleccionados.Select(id => id.ToString()).ToHashSet();
+        set => tiposSeleccionados = ConvertirSeleccion(value);
+    }
+
+    private IEnumerable<OpcionSelector> OpcionesProfesionalesFiltro => ProfesionalesDisponibles
+        .Select(opcion => new OpcionSelector(opcion.Id.ToString(), opcion.Nombre));
+
+    private HashSet<string> ProfesionalesFiltro
+    {
+        get => profesionalesSeleccionados.Select(id => id.ToString()).ToHashSet();
+        set => profesionalesSeleccionados = ConvertirSeleccion(value);
+    }
+
+    private IEnumerable<OpcionSelector> OpcionesPacientesFiltro => PacientesDisponibles
+        .Select(opcion => new OpcionSelector(opcion.Id.ToString(), opcion.Nombre));
+
+    private HashSet<string> PacientesFiltro
+    {
+        get => pacientesSeleccionados.Select(id => id.ToString()).ToHashSet();
+        set => pacientesSeleccionados = ConvertirSeleccion(value);
+    }
+
+    #endregion
+
+    #region Filtros adicionales
+
+    [SupplyParameterFromQuery(Name = "areas")]
+    public string? AreasDesdeUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "prestaciones")]
+    public string? PrestacionesDesdeUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "estados")]
+    public string? EstadosDesdeUrl { get; set; }
+
+    private HashSet<string> areasFiltro = new();
+    private HashSet<string> prestacionesFiltro = new();
+    private HashSet<string> estadosFiltro = new();
+    private int versionLimpiezaAdicional;
+
+    private IEnumerable<OpcionSelector> OpcionesAreasTurno => listaTurnos
+        .SelectMany(turno => turno.ProfesionalPrestaciones)
+        .GroupBy(atencion => atencion.TipoAreaId)
+        .Select(grupo => new OpcionSelector(
+            grupo.Key?.ToString() ?? "sin-area",
+            grupo.First().NombreTipoArea ?? "Sin área asignada"))
+        .OrderBy(opcion => opcion.Texto);
+
+    private IEnumerable<OpcionSelector> OpcionesPrestacionesTurno => listaTurnos
+        .SelectMany(turno => turno.ProfesionalPrestaciones)
+        .GroupBy(atencion => atencion.TipoPrestacionId)
+        .Select(grupo => new OpcionSelector(grupo.Key.ToString(), grupo.First().NombreTipoPrestacion))
+        .OrderBy(opcion => opcion.Texto);
+
+    private static readonly OpcionSelector[] OpcionesEstadosTurno =
+    {
+        new("reservado", "Reservado"),
+        new("atendido", "Atendido"),
+        new("cancelado", "Cancelado"),
+        new("ausente", "Ausente")
+    };
+
+    private bool CoincideFiltrosAdicionales(TurnoListadoDTO turno)
+    {
+        return FiltrosEntidades.CoincideTurno(turno, areasFiltro, prestacionesFiltro, estadosFiltro);
+    }
+
+    private static HashSet<string> LeerSeleccion(string? valor, IEnumerable<OpcionSelector> opciones)
+    {
+        var permitidos = opciones.Select(opcion => opcion.Valor).ToHashSet();
+        return (valor ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Where(permitidos.Contains)
+            .ToHashSet();
+    }
+
+    #endregion
+
     private bool cargando = true;
     private string Mensaje = string.Empty;
 
     private bool vistaSemanal;
     private bool vistaAmpliada;
 
-    private bool mostrarConsultorios = true;
-    private bool mostrarServicios;
-    private bool mostrarProfesionales;
-    private bool mostrarPacientes;
     private bool mostrarDetalle;
     private bool mostrarMensajeResultado = true;
 
@@ -1218,7 +1203,8 @@
                 EstaConsultorioSeleccionado(turno.TipoConsultorioId) &&
                 EstaTipoSeleccionado(turno.TipoTurnoId) &&
                 EstaProfesionalSeleccionado(turno) &&
-                EstaPacienteSeleccionado(turno)
+                EstaPacienteSeleccionado(turno) &&
+                CoincideFiltrosAdicionales(turno)
             )
             .OrderBy(turno => turno.FechaInicio)
             .ToList();
@@ -1420,6 +1406,9 @@
         TiposDesdeUrl = Leer("tipos");
         ProfesionalesDesdeUrl = Leer("profesionales");
         PacientesDesdeUrl = Leer("pacientes");
+        AreasDesdeUrl = Leer("areas");
+        PrestacionesDesdeUrl = Leer("prestaciones");
+        EstadosDesdeUrl = Leer("estados");
         Estado = Leer("estado");
 
         DetalleTurnoId = int.TryParse(
@@ -1429,10 +1418,6 @@
                 : null;
 
         InicializarFiltros();
-
-        pacientesSeleccionados = PacientesDisponibles
-            .Select(paciente => paciente.Id)
-            .ToHashSet();
 
         fechaSeleccionada = DateTime.Today;
 
@@ -1500,7 +1485,6 @@
                 listaTurnos =
                     resp.Respuesta ?? new List<TurnoListadoDTO>();
 
-                InicializarFiltros();
             }
         }
         catch (TaskCanceledException)
@@ -1529,10 +1513,6 @@
         }
         finally
         {
-            pacientesSeleccionados = PacientesDisponibles
-                .Select(paciente => paciente.Id)
-                .ToHashSet();
-
             cargando = false;
         }
     }
@@ -1606,18 +1586,10 @@
 
     private void InicializarFiltros()
     {
-        consultoriosSeleccionados = ConsultoriosDisponibles
-            .Select(consultorio => consultorio.Id)
-            .ToHashSet();
-
-        tiposSeleccionados = listaTurnos
-            .Where(turno => turno.TipoTurnoId != 0)
-            .Select(turno => turno.TipoTurnoId)
-            .ToHashSet();
-
-        profesionalesSeleccionados = ProfesionalesDisponibles
-            .Select(profesional => profesional.Id)
-            .ToHashSet();
+        consultoriosSeleccionados.Clear();
+        tiposSeleccionados.Clear();
+        profesionalesSeleccionados.Clear();
+        pacientesSeleccionados.Clear();
     }
 
     private List<TurnoListadoDTO> ObtenerTurnosDelDia(DateTime dia)
@@ -1628,7 +1600,8 @@
                 EstaConsultorioSeleccionado(turno.TipoConsultorioId) &&
                 EstaTipoSeleccionado(turno.TipoTurnoId) &&
                 EstaProfesionalSeleccionado(turno) &&
-                EstaPacienteSeleccionado(turno)
+                EstaPacienteSeleccionado(turno) &&
+                CoincideFiltrosAdicionales(turno)
             )
             .OrderBy(turno => turno.FechaInicio)
             .ToList();
@@ -1673,80 +1646,19 @@
         );
     }
 
-    private void CambiarFiltroConsultorio(int id, bool seleccionado)
-    {
-        if (seleccionado)
-        {
-            consultoriosSeleccionados.Add(id);
-        }
-        else
-        {
-            consultoriosSeleccionados.Remove(id);
-        }
-    }
-
-    private void CambiarFiltroTipo(int id, bool seleccionado)
-    {
-        if (seleccionado)
-        {
-            tiposSeleccionados.Add(id);
-        }
-        else
-        {
-            tiposSeleccionados.Remove(id);
-        }
-    }
-
-    private void CambiarFiltroProfesional(int id, bool seleccionado)
-    {
-        if (seleccionado)
-        {
-            profesionalesSeleccionados.Add(id);
-        }
-        else
-        {
-            profesionalesSeleccionados.Remove(id);
-        }
-    }
-
-    private void CambiarFiltroPaciente(int id, bool seleccionado)
-    {
-        if (seleccionado)
-        {
-            pacientesSeleccionados.Add(id);
-        }
-        else
-        {
-            pacientesSeleccionados.Remove(id);
-        }
-    }
 
     private void LimpiarTodosLosFiltros()
     {
+        areasFiltro.Clear();
+        prestacionesFiltro.Clear();
+        estadosFiltro.Clear();
+        versionLimpiezaAdicional++;
         consultoriosSeleccionados.Clear();
         tiposSeleccionados.Clear();
         profesionalesSeleccionados.Clear();
         pacientesSeleccionados.Clear();
     }
 
-    private void RestaurarTodosLosFiltros()
-    {
-        consultoriosSeleccionados = ConsultoriosDisponibles
-            .Select(consultorio => consultorio.Id)
-            .ToHashSet();
-
-        tiposSeleccionados = TiposTurnoDisponibles
-            .Select(tipo => tipo.Id)
-            .ToHashSet();
-
-        profesionalesSeleccionados = ProfesionalesDisponibles
-            .Select(profesional => profesional.Id)
-            .ToHashSet();
-
-        pacientesSeleccionados = PacientesDisponibles
-            .Select(paciente => paciente.Id)
-            .ToHashSet();
-    }
 
     private void IrAHoy()
     {
@@ -2006,11 +1918,17 @@
             $"&consultorios={consultoriosFiltro}" +
             $"&tipos={tiposFiltro}" +
             $"&profesionales={profesionalesFiltro}" +
-            $"&pacientes={pacientesFiltro}";
+            $"&pacientes={pacientesFiltro}" +
+            "&areas=" + Uri.EscapeDataString(string.Join(",", areasFiltro.OrderBy(v => v))) +
+            "&prestaciones=" + Uri.EscapeDataString(string.Join(",", prestacionesFiltro.OrderBy(v => v))) +
+            "&estados=" + Uri.EscapeDataString(string.Join(",", estadosFiltro.OrderBy(v => v)));
     }
 
     private void RestaurarFiltrosDesdeUrl()
     {
+        areasFiltro = LeerSeleccion(AreasDesdeUrl, OpcionesAreasTurno);
+        prestacionesFiltro = LeerSeleccion(PrestacionesDesdeUrl, OpcionesPrestacionesTurno);
+        estadosFiltro = LeerSeleccion(EstadosDesdeUrl, OpcionesEstadosTurno);
         if (ConsultoriosDesdeUrl is not null)
         {
             consultoriosSeleccionados = ConsultoriosDesdeUrl
@@ -2070,6 +1988,36 @@
                 )
                 .Where(id => opcionesValidas.Contains(id))
                 .ToHashSet();
+        }
+        // Los enlaces anteriores podían guardar todas las opciones tildadas.
+        // En la nueva presentación esa selección se representa como Todos.
+        if (consultoriosSeleccionados.SetEquals(ConsultoriosDisponibles.Select(opcion => opcion.Id)))
+        {
+            consultoriosSeleccionados.Clear();
+        }
+        if (tiposSeleccionados.SetEquals(TiposTurnoDisponibles.Select(opcion => opcion.Id)))
+        {
+            tiposSeleccionados.Clear();
+        }
+        if (profesionalesSeleccionados.SetEquals(ProfesionalesDisponibles.Select(opcion => opcion.Id)))
+        {
+            profesionalesSeleccionados.Clear();
+        }
+        if (pacientesSeleccionados.SetEquals(PacientesDisponibles.Select(opcion => opcion.Id)))
+        {
+            pacientesSeleccionados.Clear();
+        }
+        if (areasFiltro.SetEquals(OpcionesAreasTurno.Select(opcion => opcion.Valor)))
+        {
+            areasFiltro.Clear();
+        }
+        if (prestacionesFiltro.SetEquals(OpcionesPrestacionesTurno.Select(opcion => opcion.Valor)))
+        {
+            prestacionesFiltro.Clear();
+        }
+        if (estadosFiltro.SetEquals(OpcionesEstadosTurno.Select(opcion => opcion.Valor)))
+        {
+            estadosFiltro.Clear();
         }
     }
 
@@ -2250,25 +2198,6 @@
         return vistaAmpliada ? "ampliada" : "diaria";
     }
 
-    private void AlternarConsultorios()
-    {
-        mostrarConsultorios = !mostrarConsultorios;
-    }
-
-    private void AlternarServicios()
-    {
-        mostrarServicios = !mostrarServicios;
-    }
-
-    private void AlternarProfesionales()
-    {
-        mostrarProfesionales = !mostrarProfesionales;
-    }
-
-    private void AlternarPacientes()
-    {
-        mostrarPacientes = !mostrarPacientes;
-    }
 
     private void MostrarVistaDiaria()
     {

@@ -1,4 +1,4 @@
-﻿@page "/profesionales/crear"
+@page "/profesionales/crear"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
@@ -72,35 +72,11 @@
 
 
                 <div class="field-group">
-                    <label for="areaProfesional">Área</label>
-
-                    <div class="catalogo-selector">
-<InputSelect id="areaProfesional"
-                                 class="form-input"
-                                 @bind-Value="modelo.Area"
-                                 disabled="@(guardando || listaTipoAreas.Count == 0)">
-
-                        <option value="">
-                            -- Seleccionar área --
-                        </option>
-
-                        @foreach (var area in listaTipoAreas.OrderBy(x => x.Tipo))
-                        {
-                            <option value="@area.Tipo">
-                                @area.Tipo
-                            </option>
-                        }
-                    </InputSelect>
-                    <button type="button" class="catalogo-agregar" disabled="@guardando" aria-label="Crear área" title="Crear área" @onclick="() => tipoareaModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
-                    </div>
-
-                    <ValidationMessage For="@(() => modelo.Area)"
-                                       class="validation-message" />
-
-                    @if (!cargandoAreas && listaTipoAreas.Count == 0)
-                    {
-                        <span class="areas-help">Creá un área con el botón de este formulario.</span>
-                    }
+                    <label>Áreas</label>
+                    <AreasProfesional Areas="AreasDerivadas"
+                                      MostrarAyuda="true"
+                                      TienePrestacionesSinArea="@TienePrestacionesSinArea"
+                                      TextoVacio="@(modelo.TipoPrestacionIds.Count == 0 ? "Seleccioná las prestaciones del profesional." : "Sin área asignada")" />
                 </div>
 
                 <div class="field-group">
@@ -117,23 +93,13 @@
                     <label for="profesionalPrestaciones">Prestaciones</label>
 
                     <div class="catalogo-selector">
-<InputSelect class="form-input"
+<EntradaConBusqueda
                                  id="profesionalPrestaciones"
                                  @bind-Value="prestacionSeleccionadaId"
                                  @bind-Value:after="AgregarPrestacion"
-                                 disabled="@(guardando)">
-
-                        <option value="">
-                            -- Seleccionar prestación --
-                        </option>
-
-                        @foreach (var prestacion in PrestacionesDisponibles)
-                        {
-                            <option value="@prestacion.Id">
-                                @prestacion.Tipo
-                            </option>
-                        }
-                    </InputSelect>
+                                 Disabled="@(guardando)"
+                                     Etiqueta="Prestación" Placeholder="Seleccioná una prestación"
+                                     Opciones="OpcionesPrestacionesFormulario" />
                     <button type="button" class="catalogo-agregar" disabled="@guardando" aria-label="Crear prestación" title="Crear prestación" @onclick="() => tipoprestacionModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
                     </div>
 
@@ -217,31 +183,12 @@
                 <div class="field-group">
                     <label for="profesionalRol">Rol</label>
 
-                    <InputSelect class="form-input"
+                    <EntradaConBusqueda
                                  id="profesionalRol"
                                  @bind-Value="modelo.RolAsignado"
-                                 disabled="@(guardando)">
-
-                        <option value="">
-                            -- Seleccionar rol --
-                        </option>
-
-                        <option value="admin">
-                            Administrador
-                        </option>
-
-                        <option value="equipo">
-                            Equipo
-                        </option>
-
-                        <option value="profesional">
-                            Profesional
-                        </option>
-
-                        <option value="AdministradorEquipo">
-                            Administrador/Equipo
-                        </option>
-                    </InputSelect>
+                                 Disabled="@(guardando)"
+                                     Etiqueta="Rol" Placeholder="Seleccioná un rol"
+                                     Opciones="OpcionesRoles" />
                 </div>
             </div>
         </section>
@@ -284,17 +231,42 @@
 
 </div>
 
-<CrearCatalogo @ref="tipoareaModal" Recurso="tipoarea" Etiqueta="área" Creado="AreaCreada" />
 <CrearCatalogo @ref="tipoprestacionModal" Recurso="tipoprestacion" Etiqueta="prestación" Creado="PrestacionCreada" />
 
 @code {
+    #region Opciones de los buscadores
+
+    private IEnumerable<OpcionSelector> OpcionesPrestacionesFormulario =>
+        PrestacionesDisponibles
+            .Select(prestacion => new OpcionSelector(prestacion.Id.ToString(), prestacion.Tipo, prestacion.TipoAreaNombre ?? "Sin área asignada"));
+
+    private IEnumerable<OpcionSelector> OpcionesRoles =>
+        new OpcionSelector[]
+        {
+            new OpcionSelector("admin", "Administrador"),
+            new OpcionSelector("equipo", "Equipo"),
+            new OpcionSelector("profesional", "Profesional"),
+            new OpcionSelector("AdministradorEquipo", "Administrador/Equipo")
+        };
+
+    #endregion
+
+
+    private IEnumerable<TipoPrestacionListadoDTO> PrestacionesSeleccionadas =>
+        listaTipoPrestaciones.Where(prestacion => modelo.TipoPrestacionIds.Contains(prestacion.Id));
+
+    private IEnumerable<string> AreasDerivadas => PrestacionesSeleccionadas
+        .Where(prestacion => !string.IsNullOrWhiteSpace(prestacion.TipoAreaNombre))
+        .Select(prestacion => prestacion.TipoAreaNombre!)
+        .Distinct()
+        .OrderBy(nombre => nombre);
+
+    private bool TienePrestacionesSinArea => modelo.TipoPrestacionIds.Any(id =>
+        !listaTipoPrestaciones.Any(prestacion => prestacion.Id == id &&
+            prestacion.TipoAreaId.HasValue && !string.IsNullOrWhiteSpace(prestacion.TipoAreaNombre)));
+
+
     private CrearCatalogo tipoprestacionModal = default!;
-    private CrearCatalogo tipoareaModal = default!;
-    private void AreaCreada(TipoListadoDTO tipo)
-    {
-        listaTipoAreas.Add(tipo);
-        modelo.Area = tipo.Tipo;
-    }
     private async Task PrestacionCreada(TipoListadoDTO tipo)
     {
         await CargarTipoPrestaciones();
@@ -324,8 +296,6 @@
     };
 
     private List<TipoPrestacionListadoDTO> listaTipoPrestaciones = new();
-    private List<TipoListadoDTO> listaTipoAreas = new();
-    private bool cargandoAreas = true;
 
     private int? prestacionSeleccionadaId;
 
@@ -341,7 +311,6 @@
     protected override async Task OnInitializedAsync()
     {
         await CargarTipoPrestaciones();
-        await CargarTipoAreas();
     }
 
     private async Task CargarTipoPrestaciones()
@@ -358,33 +327,6 @@
         else
         {
             Mensaje = resp.ObtenerError();
-        }
-    }
-
-    private async Task CargarTipoAreas()
-    {
-        cargandoAreas = true;
-
-        try
-        {
-            var respuesta = await Http.Get<List<TipoListadoDTO>>(
-                "api/tipoarea/ListaTipoArea");
-
-            if (respuesta.Error)
-            {
-                Mensaje = respuesta.ObtenerError();
-                return;
-            }
-
-            listaTipoAreas = respuesta.Respuesta ?? new();
-        }
-        catch
-        {
-            Mensaje = "No pudimos cargar las áreas. Intentá nuevamente.";
-        }
-        finally
-        {
-            cargandoAreas = false;
         }
     }
 

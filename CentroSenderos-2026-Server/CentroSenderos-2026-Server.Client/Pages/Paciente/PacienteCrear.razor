@@ -1,4 +1,4 @@
-﻿@page "/pacientes/crear"
+@page "/pacientes/crear"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Routing
@@ -120,22 +120,10 @@
                         </label>
 
                         <div class="catalogo-selector">
-<InputSelect id="obraSocial"
-                                     class="form-input"
-                                     @bind-Value="modelo.TipoObraSocialId">
-
-                            <option value="0">
-                                Seleccione obra social
-                            </option>
-
-                            @foreach (var obra in tiposObraSocial)
-                            {
-                                <option value="@obra.Id">
-                                    @obra.Tipo
-                                </option>
-                            }
-
-                        </InputSelect>
+<EntradaConBusqueda id="obraSocial"
+                                     @bind-Value="modelo.TipoObraSocialId" Disabled="@(guardando || leyendoDocumentos)"
+                                     Etiqueta="Obra social" Placeholder="Seleccioná una obra social"
+                                     Opciones="OpcionesObrasSociales" ValorVacio="0" />
                     <button type="button" class="catalogo-agregar" disabled="@(guardando || leyendoDocumentos)" aria-label="Crear obra social" title="Crear obra social" @onclick="() => tipoobrasocialModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
                     </div>
 
@@ -171,22 +159,10 @@
                         </label>
 
                         <div class="catalogo-selector">
-<InputSelect id="diagnostico"
-                                     class="form-input"
-                                     @bind-Value="modelo.TipoDiagnosticoId">
-
-                            <option value="0">
-                                Seleccione diagnóstico
-                            </option>
-
-                            @foreach (var diagnostico in tiposDiagnostico)
-                            {
-                                <option value="@diagnostico.Id">
-                                    @diagnostico.Tipo
-                                </option>
-                            }
-
-                        </InputSelect>
+<EntradaConBusqueda id="diagnostico"
+                                     @bind-Value="modelo.TipoDiagnosticoId" Disabled="@(guardando || leyendoDocumentos)"
+                                     Etiqueta="Diagnóstico" Placeholder="Seleccioná un diagnóstico"
+                                     Opciones="OpcionesDiagnosticosFormulario" ValorVacio="0" />
                     <button type="button" class="catalogo-agregar" disabled="@(guardando || leyendoDocumentos)" aria-label="Crear diagnóstico" title="Crear diagnóstico" @onclick="() => tipodiagnosticoModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
                     </div>
 
@@ -321,13 +297,9 @@
                         <div class="field-group">
                             <label for="tipoDocumentoNuevo">Tipo de documento</label>
                             <div class="catalogo-selector">
-                                <InputSelect id="tipoDocumentoNuevo" class="form-input" @bind-Value="tipoDocumentoSeleccionado" disabled="@(guardando || leyendoDocumentos || tiposDocumentos.Count == 0)">
-                                <option value="0">Seleccioná un tipo</option>
-                                @foreach (var tipo in tiposDocumentos.OrderBy(t => t.Tipo))
-                                {
-                                    <option value="@tipo.Id">@tipo.Tipo</option>
-                                }
-                            </InputSelect>
+                                <EntradaConBusqueda id="tipoDocumentoNuevo" @bind-Value="tipoDocumentoSeleccionado" Disabled="@(guardando || leyendoDocumentos || tiposDocumentos.Count == 0)"
+                                     Etiqueta="Tipo de documento" Placeholder="Seleccioná un tipo"
+                                     Opciones="OpcionesDocumentos" ValorVacio="0" />
                                 <button type="button" class="catalogo-agregar" aria-label="Crear tipo de documento" title="Crear tipo de documento" disabled="@(guardando || leyendoDocumentos)" @onclick="() => tipodocumentoModal.Abrir()"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
                             </div>
                         </div>
@@ -425,6 +397,22 @@
 <CrearCatalogo @ref="tipodocumentoModal" Recurso="tipodocumento" Etiqueta="tipo de documento" Creado="TipoDocumentoCreado" />
 
 @code {
+    #region Opciones de los buscadores
+
+    private IEnumerable<OpcionSelector> OpcionesObrasSociales =>
+        tiposObraSocial
+            .Select(obra => new OpcionSelector(obra.Id.ToString(), obra.Tipo));
+
+    private IEnumerable<OpcionSelector> OpcionesDiagnosticosFormulario =>
+        tiposDiagnostico
+            .Select(diagnostico => new OpcionSelector(diagnostico.Id.ToString(), diagnostico.Tipo));
+
+    private IEnumerable<OpcionSelector> OpcionesDocumentos =>
+        tiposDocumentos.OrderBy(tipo => tipo.Tipo)
+            .Select(tipo => new OpcionSelector(tipo.Id.ToString(), tipo.Tipo));
+
+    #endregion
+
     private CrearCatalogo tipodocumentoModal = default!;
     private void TipoDocumentoCreado(TipoListadoDTO tipo)
     {

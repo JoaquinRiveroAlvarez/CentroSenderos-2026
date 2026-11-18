@@ -1,4 +1,4 @@
-﻿@page "/tipoplanillas"
+@page "/tipoplanillas"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
@@ -27,14 +27,7 @@
         </button>
     </div>
 
-    <div class="search-box">
-        <i class="bi bi-search"></i>
-        <input type="search"
-               aria-label="Buscar tipos de planilla"
-               placeholder="Buscar por nombre o descripción..."
-               @bind="busqueda"
-               @bind:event="oninput" />
-    </div>
+    <BarraBusquedaCatalogo @bind-Busqueda="busqueda" Etiqueta="Buscar tipos de planilla" Placeholder="Buscar por nombre o descripción..." />
 
     @if (cargando)
     {
@@ -115,8 +108,8 @@
         string.IsNullOrWhiteSpace(busqueda)
             ? lista
             : lista.Where(x =>
-                (x.Tipo?.Contains(busqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (x.Descripcion?.Contains(busqueda, StringComparison.OrdinalIgnoreCase) ?? false));
+                FiltrosEntidades.ContieneTexto(x.Tipo, busqueda) ||
+                FiltrosEntidades.ContieneTexto(x.Descripcion, busqueda));
 
     protected override async Task OnInitializedAsync()
     {

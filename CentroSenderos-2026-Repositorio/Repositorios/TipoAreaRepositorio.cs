@@ -174,6 +174,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 throw new ApplicationException(
                     "No se puede eliminar el área porque está asignada a uno o más profesionales.");
 
+            // Durante la transición también se protege la relación nueva.
+            var tienePrestaciones = await context.TipoPrestaciones
+                .AnyAsync(prestacion =>
+                    prestacion.TipoAreaId == id &&
+                    prestacion.EstadoRegistro != EnumEstadoRegistro.borrado);
+
+            if (tienePrestaciones)
+                throw new ApplicationException(
+                    "No se puede eliminar el área porque está asignada a una o más prestaciones.");
+
             entidad.EstadoRegistro = EnumEstadoRegistro.borrado;
             await context.SaveChangesAsync();
 

@@ -1,7 +1,8 @@
-﻿@page "/pacientes"
+@page "/pacientes"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Presentacion
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
@@ -67,6 +68,9 @@
             <SelectorConBusqueda Id="filtroObras" Etiqueta="Obra social" Placeholder="Todas las obras sociales" Opciones="OpcionesObras" @bind-Seleccionadas="obrasFiltro" VersionLimpieza="versionLimpieza" />
             <SelectorConBusqueda Id="filtroDiagnosticos" Etiqueta="Diagnóstico" Placeholder="Todos los diagnósticos" Opciones="OpcionesDiagnosticos" @bind-Seleccionadas="diagnosticosFiltro" VersionLimpieza="versionLimpieza" />
             <SelectorConBusqueda Id="filtroCud" Etiqueta="CUD" Placeholder="Todos" Opciones="OpcionesCud" @bind-Seleccionadas="cudFiltro" VersionLimpieza="versionLimpieza" />
+            <SelectorConBusqueda Id="filtroEdades" Etiqueta="Edad" Placeholder="Todas las edades" Opciones="OpcionesEdades" @bind-Seleccionadas="edadesFiltro" VersionLimpieza="versionLimpieza" />
+            <SelectorConBusqueda Id="filtroDocumentos" Etiqueta="Documentos" Placeholder="Todos" Opciones="OpcionesDocumentos" @bind-Seleccionadas="documentosFiltro" VersionLimpieza="versionLimpieza" />
+            <SelectorConBusqueda Id="filtroTiposDocumentos" Etiqueta="Tipo de documento" Placeholder="Todos los tipos" Opciones="OpcionesTiposDocumentos" @bind-Seleccionadas="tiposDocumentosFiltro" VersionLimpieza="versionLimpieza" />
             <button type="button" class="limpiar-filtros" @onclick="LimpiarFiltros"><i class="bi bi-x-circle" aria-hidden="true"></i> Limpiar filtros</button>
         </div>
     }
@@ -74,11 +78,8 @@
     @if (!cargando && listaPacientes.Count > 0)
     {
         <div class="orden-movil">
-            <select aria-label="Ordenar pacientes por" @bind="orden">
-                <option value="nombre">Nombre</option>
-                <option value="dni">DNI</option>
-                <option value="nacimiento">Nacimiento</option>
-            </select>
+            <SelectorConBusqueda Id="ordenListado" PermitirLimpiar="false" Etiqueta="Ordenar pacientes por" MostrarEtiqueta="false" Multiple="false" @bind-Valor="orden"
+                                 Opciones="OpcionesOrden" />
             <button type="button" @onclick="() => descendente = !descendente">@(descendente ? "Descendente ↓" : "Ascendente ↑")</button>
         </div>
     }
@@ -326,6 +327,18 @@
 }
 
 @code {
+    #region Opciones de los buscadores
+
+    private IEnumerable<OpcionSelector> OpcionesOrden =>
+        new OpcionSelector[]
+        {
+            new OpcionSelector("nombre", "Nombre"),
+            new OpcionSelector("dni", "DNI"),
+            new OpcionSelector("nacimiento", "Nacimiento")
+        };
+
+    #endregion
+
     private int? pacienteSeleccionadoId;
 
     private void CerrarDetalle()
@@ -351,6 +364,37 @@
     public bool? DescUrl { get; set; }
 
     private HashSet<string> obrasFiltro = new(), diagnosticosFiltro = new(), cudFiltro = new();
+    [SupplyParameterFromQuery(Name = "edad")]
+    public string[]? EdadUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "documentos")]
+    public string[]? DocumentosUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "tipoDocumento")]
+    public string[]? TipoDocumentoUrl { get; set; }
+
+    private HashSet<string> edadesFiltro = new();
+    private HashSet<string> documentosFiltro = new();
+    private HashSet<string> tiposDocumentosFiltro = new();
+    private static readonly OpcionSelector[] OpcionesEdades =
+    {
+        new("0-5", "0 a 5 años"),
+        new("6-12", "6 a 12 años"),
+        new("13-17", "13 a 17 años"),
+        new("18-59", "18 a 59 años"),
+        new("60+", "60 años o más"),
+        new("sin-fecha", "Sin fecha de nacimiento")
+    };
+    private static readonly OpcionSelector[] OpcionesDocumentos =
+    {
+        new("si", "Con documentos"),
+        new("no", "Sin documentos")
+    };
+    private IEnumerable<OpcionSelector> OpcionesTiposDocumentos => listaPacientes
+        .SelectMany(paciente => paciente.TiposDocumentos)
+        .GroupBy(tipo => tipo.Id)
+        .Select(grupo => grupo.First())
+        .OrderBy(tipo => tipo.Tipo)
+        .Select(tipo => new OpcionSelector(tipo.Id.ToString(), tipo.Tipo));
+
     private int versionLimpieza;
     private IEnumerable<OpcionSelector> OpcionesObras => listaPacientes.GroupBy(p => p.TipoObraSocialId).Select(g => g.First()).OrderBy(p => p.TipoObraSocialNombre).Select(p => new OpcionSelector(p.TipoObraSocialId.ToString(), p.TipoObraSocialNombre));
     private IEnumerable<OpcionSelector> OpcionesDiagnosticos => listaPacientes.GroupBy(p => p.TipoDiagnosticoId).Select(g => g.First()).OrderBy(p => p.TipoDiagnosticoNombre).Select(p => new OpcionSelector(p.TipoDiagnosticoId.ToString(), p.TipoDiagnosticoNombre));
@@ -366,6 +410,9 @@
             var parametros = new List<(string Clave, string Valor)> { ("q", busqueda), ("orden", orden), ("desc", descendente.ToString().ToLowerInvariant()) };
             parametros.AddRange(obrasFiltro.OrderBy(v => v).Select(v => ("obra", v)));
             parametros.AddRange(diagnosticosFiltro.OrderBy(v => v).Select(v => ("diagnostico", v)));
+            parametros.AddRange(edadesFiltro.OrderBy(v => v).Select(v => ("edad", v)));
+            parametros.AddRange(documentosFiltro.OrderBy(v => v).Select(v => ("documentos", v)));
+            parametros.AddRange(tiposDocumentosFiltro.OrderBy(v => v).Select(v => ("tipoDocumento", v)));
             parametros.AddRange(cudFiltro.OrderBy(v => v).Select(v => ("cud", v)));
             return "/pacientes?" + string.Join("&", parametros.Where(p => !string.IsNullOrWhiteSpace(p.Valor)).Select(p => p.Clave + "=" + Uri.EscapeDataString(p.Valor)));
         }
@@ -382,6 +429,9 @@
         obrasFiltro = IdentificadoresUrl(ObraUrl);
         diagnosticosFiltro = IdentificadoresUrl(DiagnosticoUrl);
         cudFiltro = (CudUrl ?? Array.Empty<string>()).Where(v => v is "si" or "no").ToHashSet();
+        edadesFiltro = (EdadUrl ?? Array.Empty<string>()).Where(v => OpcionesEdades.Any(o => o.Valor == v)).ToHashSet();
+        documentosFiltro = (DocumentosUrl ?? Array.Empty<string>()).Where(v => v is "si" or "no").ToHashSet();
+        tiposDocumentosFiltro = IdentificadoresUrl(TipoDocumentoUrl);
         orden = OrdenUrl is "dni" or "nacimiento" ? OrdenUrl : "nombre";
         descendente = DescUrl == true;
         pacienteSeleccionadoId = DetallePacienteId is > 0 ? DetallePacienteId : null;
@@ -404,7 +454,8 @@
             var pacientes = listaPacientes.Where(p => CoincideBusqueda(p)
                 && (obrasFiltro.Count == 0 || obrasFiltro.Contains(p.TipoObraSocialId.ToString()))
                 && (diagnosticosFiltro.Count == 0 || diagnosticosFiltro.Contains(p.TipoDiagnosticoId.ToString()))
-                && (cudFiltro.Count == 0 || cudFiltro.Contains(p.TieneCud ? "si" : "no")));
+                && (cudFiltro.Count == 0 || cudFiltro.Contains(p.TieneCud ? "si" : "no"))
+                && FiltrosEntidades.CoincidePaciente(p, edadesFiltro, documentosFiltro, tiposDocumentosFiltro, DateTime.Today));
             IOrderedEnumerable<PacienteResumenDTO> resultado;
             if (orden == "nacimiento")
                 resultado = descendente
@@ -444,6 +495,9 @@
         obrasFiltro = new();
         diagnosticosFiltro = new();
         cudFiltro = new();
+        edadesFiltro = new();
+        documentosFiltro = new();
+        tiposDocumentosFiltro = new();
         versionLimpieza++;
     }
 

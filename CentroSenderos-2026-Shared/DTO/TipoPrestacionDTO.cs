@@ -21,6 +21,11 @@ namespace CentroSenderos_2026_Shared.DTO
         [Required(ErrorMessage = "El Monto por Sesion es obligatorio")]
         public required decimal MontoSesion { get; set; } = 0;
 
+        // Opcional durante la clasificación del catálogo existente.
+        [Range(1, int.MaxValue, ErrorMessage = "Seleccioná un área válida.")]
+        public int? TipoAreaId { get; set; }
+        public string? TipoAreaNombre { get; set; }
+
         [Range(0, 100, ErrorMessage = "El porcentaje debe estar entre 0 y 100")]
         public decimal PorcentajeRetencion { get; set; } = 20;
 

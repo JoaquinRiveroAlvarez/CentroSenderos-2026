@@ -170,7 +170,7 @@ public class TurnosAgendaFiltrosTests
             .ToHaveCountAsync(0);
 
         // Confirmar que la página ya responde a eventos.
-        var bloque = pagina.Locator(".filtro-bloque")
+        var bloque = pagina.Locator(".filtros-campos .selector-buscable")
             .Nth(filtro switch
             {
                 "consultorios" => 0,
@@ -180,7 +180,7 @@ public class TurnosAgendaFiltrosTests
                 _ => 0
             });
 
-        var opciones = bloque.Locator(".filtro-opciones");
+        var opciones = bloque.Locator(".selector-opciones");
 
         for (var intento = 0; intento < 5; intento++)
         {
@@ -189,7 +189,7 @@ public class TurnosAgendaFiltrosTests
                 break;
             }
 
-            await bloque.Locator(".filtro-titulo").ClickAsync();
+            await bloque.Locator(".selector-buscable-boton").ClickAsync();
 
             try
             {
@@ -240,9 +240,28 @@ public class TurnosAgendaFiltrosTests
         await Assertions.Expect(titulosHorarios.Locator(".turno-hora-fin"))
             .ToHaveTextAsync(ordenados.Select(t => t.FechaFin.ToString("HH:mm")).ToArray(), new() { Timeout = 30000 });
 
+        var cantidadOpciones = await opciones.Locator("input[type='checkbox']").CountAsync();
         await Assertions.Expect(
                 opciones.Locator("input[type='checkbox']:checked"))
-            .ToHaveCountAsync(1, new() { Timeout = 30000 });
+            .ToHaveCountAsync(cantidadOpciones == 1 ? 0 : 1, new() { Timeout = 30000 });
+
+        // Completar una selección de dos opciones también debe volver a Todos,
+        // sin dejar tildes nativas que ya no coincidan con el valor del filtro.
+        if (cantidadOpciones == 2)
+        {
+            await opciones.Locator("input[type='checkbox']:not(:checked)").ClickAsync();
+        }
+        else
+        {
+            await bloque.Locator(".selector-todos").ClickAsync();
+        }
+
+        await Assertions.Expect(opciones.Locator("input[type='checkbox']:checked"))
+            .ToHaveCountAsync(0, new() { Timeout = 30000 });
+        await Assertions.Expect(bloque.Locator(".selector-buscable-boton"))
+            .ToContainTextAsync("Todos");
+        await Assertions.Expect(tarjetas)
+            .ToHaveCountAsync(lista.Count(turno => turno.FechaInicio.Date == fecha.Date), new() { Timeout = 30000 });
     }
         #endregion
 

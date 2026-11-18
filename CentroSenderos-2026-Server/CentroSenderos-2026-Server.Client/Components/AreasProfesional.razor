@@ -1,0 +1,39 @@
+<div class="areas-profesional" role="status">
+    @if (Areas.Any())
+    {
+        <div class="areas-etiquetas">
+            @foreach (var area in Areas.Distinct().OrderBy(nombre => nombre))
+            {
+                <span class="area-etiqueta">@area</span>
+            }
+        </div>
+    }
+    else
+    {
+        <span class="areas-vacias">@TextoVacio</span>
+    }
+
+    @if (MostrarAyuda)
+    {
+        <p class="areas-ayuda">Las áreas se obtienen de las prestaciones seleccionadas.</p>
+    }
+
+    @if (TienePrestacionesSinArea)
+    {
+        <p class="areas-pendientes">Hay prestaciones sin área asignada. Completalas desde Administración → Tipo Prestación.</p>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public IEnumerable<string> Areas { get; set; } = Array.Empty<string>();
+
+    [Parameter]
+    public bool MostrarAyuda { get; set; }
+
+    [Parameter]
+    public bool TienePrestacionesSinArea { get; set; }
+
+    [Parameter]
+    public string TextoVacio { get; set; } = "Sin área asignada";
+}

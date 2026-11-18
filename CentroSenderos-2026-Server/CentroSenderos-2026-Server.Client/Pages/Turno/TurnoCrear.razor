@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Presentacion
 @using CentroSenderos_2026_Shared.Enum
 @using CentroSenderos_2026_Shared.Recurrencias
 @using CentroSenderos_2026_Shared.Reglas
@@ -197,6 +198,7 @@
                                                    class="buscador-selector-input"
                                                    placeholder="Buscar profesional..."
                                                    autocomplete="off"
+                                                   aria-label="Buscar profesional por nombre, área o prestación"
                                                    @bind="busquedaProfesional"
                                                    @bind:event="oninput" />
 
@@ -225,9 +227,10 @@
                                                                 : "selector-desplegable-opcion")"
                                                             @onclick="() => AlternarProfesional(profesional.Id)">
 
-                                                        <span>
-                                                            @profesional.Nombre
-                                                        </span>
+                                                        <div class="profesional-opcion-info">
+                                                            <span>@profesional.Nombre</span>
+                                                            <AreasProfesional Areas="profesional.Areas" />
+                                                        </div>
 
                                                         @if (estaSeleccionado)
                                                         {
@@ -277,12 +280,7 @@
                                                                 @profesional.Nombre
                                                             </strong>
 
-                                                            @if (!string.IsNullOrWhiteSpace(profesional.Area))
-                                                            {
-                                                                <span>
-                                                                    @profesional.Area
-                                                                </span>
-                                                            }
+                                                            <AreasProfesional Areas="profesional.Areas" />
 
                                                         </div>
 
@@ -330,34 +328,13 @@
                                                     }
                                                     else
                                                     {
-                                                        <select class="form-select"
-                                                                value="@ObtenerPrestacionSeleccionada(profesional.Id)"
-                                                                @onchange="evento => SeleccionarPrestacion(profesional.Id, evento)">
-
-                                                            <option value="0">
-                                                                Seleccioná una prestación
-                                                            </option>
-
-                                                            @for (
-                                                                var indice = 0;
-                                                                indice < profesional.TipoPrestacionIds.Count;
-                                                                indice++
-                                                            )
-                                                            {
-                                                                var prestacionId =
-                                                                    profesional.TipoPrestacionIds[indice];
-
-                                                                var nombrePrestacion =
-                                                                    indice < profesional.TipoPrestacionNombres.Count
-                                                                        ? profesional.TipoPrestacionNombres[indice]
-                                                                        : "Prestación";
-
-                                                                <option value="@prestacionId">
-                                                                    @nombrePrestacion
-                                                                </option>
-                                                            }
-
-                                                        </select>
+                                                        <SelectorConBusqueda Id="@($"prestacion-{profesional.Id}")"
+                                                                             Etiqueta="Prestación" MostrarEtiqueta="false" Multiple="false"
+                                                                             Placeholder="Seleccioná una prestación"
+                                                                             Opciones="@(profesional.TipoPrestacionIds.Select((id, indice) => new OpcionSelector(id.ToString(), indice < profesional.TipoPrestacionNombres.Count ? profesional.TipoPrestacionNombres[indice] : "Prestación")))"
+                                                                             Valor="@ObtenerPrestacionSeleccionada(profesional.Id).ToString()"
+                                                                             ValorChanged="@(valor => SeleccionarPrestacion(profesional.Id, new ChangeEventArgs { Value = string.IsNullOrEmpty(valor) ? "0" : valor }))"
+                                                                             Disabled="@guardando" />
                                                     }
                                                 @if (profesional.MatriculasPorPrestacion.TryGetValue(ObtenerPrestacionSeleccionada(profesional.Id), out var matricula) && !string.IsNullOrWhiteSpace(matricula))
                                                 {
@@ -527,31 +504,10 @@
                                 Repetición
                             </label>
 
-                            <InputSelect id="frecuenciaRecurrencia"
-                                         class="form-select"
-                                         @bind-Value="modelo.FrecuenciaRecurrencia">
-
-                                <option value="@EnumFrecuenciaRecurrenciaTurno.noRepite">
-                                    No repetir
-                                </option>
-
-                                <option value="@EnumFrecuenciaRecurrenciaTurno.semanal">
-                                    Una vez por semana
-                                </option>
-
-                                <option value="@EnumFrecuenciaRecurrenciaTurno.cadaQuinceDias">
-                                    Cada 15 días
-                                </option>
-
-                                <option value="@EnumFrecuenciaRecurrenciaTurno.mensual">
-                                    Una vez por mes
-                                </option>
-
-                                <option value="@EnumFrecuenciaRecurrenciaTurno.personalizado">
-                                    Personalizado
-                                </option>
-
-                            </InputSelect>
+                            <EntradaConBusqueda id="frecuenciaRecurrencia"
+                                         @bind-Value="modelo.FrecuenciaRecurrencia" Disabled="@(guardando)"
+                                     Etiqueta="Repetición" Placeholder="Seleccioná una repetición" ValorVacio="noRepite"
+                                     Opciones="OpcionesRepeticiones" />
 
                         </div>
 
@@ -577,28 +533,11 @@
                                     Unidad
                                 </label>
 
-                                <InputSelect id="unidadRecurrencia"
+                                <EntradaConBusqueda id="unidadRecurrencia"
                                              TValue="EnumUnidadRecurrenciaTurno?"
-                                             class="form-select"
-                                             @bind-Value="modelo.UnidadRecurrencia">
-
-                                    <option value="">
-                                        Seleccione una unidad
-                                    </option>
-
-                                    <option value="@EnumUnidadRecurrenciaTurno.dias">
-                                        Días
-                                    </option>
-
-                                    <option value="@EnumUnidadRecurrenciaTurno.semanas">
-                                        Semanas
-                                    </option>
-
-                                    <option value="@EnumUnidadRecurrenciaTurno.meses">
-                                        Meses
-                                    </option>
-
-                                </InputSelect>
+                                             @bind-Value="modelo.UnidadRecurrencia" Disabled="@(guardando)"
+                                     Etiqueta="Unidad" Placeholder="Seleccioná una unidad"
+                                     Opciones="OpcionesUnidades" />
 
                             </div>
                         }
@@ -885,11 +824,9 @@
                                         <div class="resumen-persona">
                                             <strong>@profesional.Nombre</strong>
 
-                                            <span class="resumen-persona-secundario">
-                                                @(string.IsNullOrWhiteSpace(profesional.Area)
-                                                    ? "Sin área registrada"
-                                                    : profesional.Area)
-                                            </span>
+                                            <div class="resumen-persona-secundario">
+                                                <AreasProfesional Areas="profesional.Areas" />
+                                            </div>
 
                                             <div class="resumen-persona-detalle">
                                                 <span>Prestación</span>
@@ -1030,6 +967,28 @@
 </div>
 
 @code {
+    #region Opciones de los buscadores
+
+    private IEnumerable<OpcionSelector> OpcionesRepeticiones =>
+        new OpcionSelector[]
+        {
+            new OpcionSelector(EnumFrecuenciaRecurrenciaTurno.noRepite.ToString(), "No repetir"),
+            new OpcionSelector(EnumFrecuenciaRecurrenciaTurno.semanal.ToString(), "Una vez por semana"),
+            new OpcionSelector(EnumFrecuenciaRecurrenciaTurno.cadaQuinceDias.ToString(), "Cada 15 días"),
+            new OpcionSelector(EnumFrecuenciaRecurrenciaTurno.mensual.ToString(), "Una vez por mes"),
+            new OpcionSelector(EnumFrecuenciaRecurrenciaTurno.personalizado.ToString(), "Personalizado")
+        };
+
+    private IEnumerable<OpcionSelector> OpcionesUnidades =>
+        new OpcionSelector[]
+        {
+            new OpcionSelector(EnumUnidadRecurrenciaTurno.dias.ToString(), "Días"),
+            new OpcionSelector(EnumUnidadRecurrenciaTurno.semanas.ToString(), "Semanas"),
+            new OpcionSelector(EnumUnidadRecurrenciaTurno.meses.ToString(), "Meses")
+        };
+
+    #endregion
+
     private IEnumerable<OpcionSelector> OpcionesTipoTurno => tiposTurno.Select(t => new OpcionSelector(t.Id.ToString(), t.Tipo, $"{t.DuracionMinutos} min"));
     private IEnumerable<OpcionSelector> OpcionesConsultorios => consultorios.Select(c => new OpcionSelector(c.Id.ToString(), c.Tipo));
     private void CerrarOtrosSelectores()
@@ -1182,16 +1141,9 @@
     }
 
     private List<ProfesionalListadoDTO> ProfesionalesFiltrados =>
-        string.IsNullOrWhiteSpace(busquedaProfesional)
-            ? profesionales
-            : profesionales
-                .Where(profesional =>
-                    profesional.Nombre.Contains(
-                        busquedaProfesional,
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                )
-                .ToList();
+        profesionales.Where(profesional =>
+                PresentacionProfesional.CoincideBusqueda(profesional, busquedaProfesional))
+            .ToList();
 
     private List<PacienteResumenDTO> PacientesFiltrados =>
         string.IsNullOrWhiteSpace(busquedaPaciente)

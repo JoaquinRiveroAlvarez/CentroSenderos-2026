@@ -27,6 +27,15 @@
                     <button type="button" aria-label="@($"Limpiar búsqueda de {Etiqueta}")" @onclick="() => busqueda = string.Empty"><i class="bi bi-x" aria-hidden="true"></i></button>
                 }
             </div>
+            @if (Multiple && MostrarOpcionTodos)
+            {
+                <button type="button" class="selector-todos @(Seleccionadas.Count == 0 ? "activa" : "")"
+                        aria-pressed="@(Seleccionadas.Count == 0 ? "true" : "false")" disabled="@Disabled" @onclick="Limpiar">
+                    <i class="bi @(Seleccionadas.Count == 0 ? "bi-check-circle-fill" : "bi-circle")" aria-hidden="true"></i>
+                    <span>Todos</span>
+                    <small>Sin restricciones</small>
+                </button>
+            }
             <div class="selector-opciones" role="group" aria-label="@($"Opciones de {Etiqueta}")">
                 @if (!Filtradas.Any())
                 {
@@ -37,14 +46,14 @@
                     @if (Multiple)
                     {
                         <label @key="opcion.Valor" class="selector-opcion @(Seleccionadas.Contains(opcion.Valor) ? "activa" : "")">
-                            <input type="checkbox" value="@opcion.Valor" checked="@Seleccionadas.Contains(opcion.Valor)" disabled="@Disabled" @onchange="() => Alternar(opcion.Valor)" />
+                            <input type="checkbox" value="@opcion.Valor" @bind:get="Seleccionadas.Contains(opcion.Valor)" @bind:set="(bool seleccionada) => Alternar(opcion.Valor)" disabled="@(Disabled || opcion.Deshabilitada)" />
                             <span>@opcion.Texto @if (!string.IsNullOrEmpty(opcion.Detalle)) { <small>@opcion.Detalle</small> }</span>
                         </label>
                     }
                     else
                     {
                         <button @key="opcion.Valor" type="button" class="selector-opcion @(Valor == opcion.Valor ? "activa" : "")"
-                                data-valor="@opcion.Valor" disabled="@Disabled" aria-pressed="@(Valor == opcion.Valor ? "true" : "false")" @onclick="() => Elegir(opcion.Valor)">
+                                data-valor="@opcion.Valor" disabled="@(Disabled || opcion.Deshabilitada)" aria-pressed="@(Valor == opcion.Valor ? "true" : "false")" @onclick="() => Elegir(opcion.Valor)">
                             <span>@opcion.Texto @if (!string.IsNullOrEmpty(opcion.Detalle)) { <small>@opcion.Detalle</small> }</span>
                             @if (Valor == opcion.Valor) { <i class="bi bi-check2" aria-hidden="true"></i> }
                         </button>
@@ -52,8 +61,11 @@
                 }
             </div>
             <footer class="selector-pie">
-                <button type="button" class="selector-limpiar" disabled="@Disabled" @onclick="Limpiar">@(Multiple ? "Limpiar selección" : "Quitar selección")</button>
-                <span>@(Multiple ? $"{Seleccionadas.Count} seleccionadas" : "Una sola opción")</span>
+                @if (PermitirLimpiar)
+                {
+                    <button type="button" class="selector-limpiar" disabled="@Disabled" @onclick="Limpiar">@(MostrarOpcionTodos ? "Ver todos" : Multiple ? "Limpiar selección" : "Quitar selección")</button>
+                }
+                <span>@(MostrarOpcionTodos && Seleccionadas.Count == 0 ? "Todos" : Multiple ? $"{Seleccionadas.Count} seleccionadas" : "Una sola opción")</span>
                 <button type="button" @onclick="() => Cerrar(true)">Cerrar</button>
             </footer>
         </div>
@@ -66,6 +78,8 @@
     [Parameter] public string Placeholder { get; set; } = "Todas las opciones";
     [Parameter] public bool MostrarEtiqueta { get; set; } = true;
     [Parameter] public bool Multiple { get; set; } = true;
+    [Parameter] public bool MostrarOpcionTodos { get; set; }
+    [Parameter] public bool PermitirLimpiar { get; set; } = true;
     [Parameter] public bool Disabled { get; set; }
     [Parameter] public IEnumerable<OpcionSelector> Opciones { get; set; } = Array.Empty<OpcionSelector>();
     [Parameter] public HashSet<string> Seleccionadas { get; set; } = new();
@@ -126,6 +140,11 @@
         if (Disabled) return;
         var nuevas = new HashSet<string>(Seleccionadas, StringComparer.Ordinal);
         if (!nuevas.Add(valor)) nuevas.Remove(valor);
+        if (MostrarOpcionTodos && nuevas.SetEquals(Opciones.Where(opcion => !opcion.Deshabilitada).Select(opcion => opcion.Valor)))
+        {
+            nuevas.Clear();
+        }
+        Seleccionadas = nuevas;
         await SeleccionadasChanged.InvokeAsync(nuevas);
     }
 
@@ -140,7 +159,11 @@
     {
         if (Disabled) return;
         busqueda = string.Empty;
-        if (Multiple) await SeleccionadasChanged.InvokeAsync(new());
+        if (Multiple)
+        {
+            Seleccionadas = new();
+            await SeleccionadasChanged.InvokeAsync(Seleccionadas);
+        }
         else await Elegir(string.Empty);
     }
 

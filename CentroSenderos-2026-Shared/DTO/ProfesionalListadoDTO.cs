@@ -9,6 +9,8 @@ namespace CentroSenderos_2026_Shared.DTO
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public string Area { get; set; } = string.Empty;
+
+        public List<string> Areas { get; set; } = new();
         public string Cuit { get ; set; } = string.Empty;
         public string MP { get; set; } = string.Empty;
         public string RNP { get; set; } = string.Empty;

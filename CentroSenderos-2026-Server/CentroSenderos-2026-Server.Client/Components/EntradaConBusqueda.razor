@@ -1,0 +1,51 @@
+@typeparam TValue
+@inherits InputSelect<TValue>
+
+<div class="entrada-buscable @CssClass">
+    <SelectorConBusqueda Id="@Identificador"
+                         Etiqueta="@Etiqueta"
+                         MostrarEtiqueta="false"
+                         Multiple="false"
+                         Opciones="Opciones"
+                         Valor="@(CurrentValueAsString ?? string.Empty)"
+                         ValorChanged="CambiarValor"
+                         Placeholder="@Placeholder"
+                         Disabled="@Disabled" />
+</div>
+
+@code {
+    #region Parámetros
+
+    [Parameter]
+    public string Etiqueta { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Placeholder { get; set; } = "Seleccioná una opción";
+
+    [Parameter]
+    public IEnumerable<OpcionSelector> Opciones { get; set; } = Array.Empty<OpcionSelector>();
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string ValorVacio { get; set; } = string.Empty;
+
+    private readonly string identificador = $"entrada-{Guid.NewGuid():N}";
+
+    private string Identificador =>
+        AdditionalAttributes?.TryGetValue("id", out var id) == true
+            ? id?.ToString() ?? identificador
+            : identificador;
+
+    #endregion
+
+    #region Selección y validación
+
+    private void CambiarValor(string valor)
+    {
+        CurrentValueAsString = string.IsNullOrEmpty(valor) ? ValorVacio : valor;
+    }
+
+    #endregion
+}

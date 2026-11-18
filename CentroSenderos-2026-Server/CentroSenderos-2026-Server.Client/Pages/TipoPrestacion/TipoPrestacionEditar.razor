@@ -1,4 +1,4 @@
-﻿@page "/tipoprestacion/editar/{id:int}"
+@page "/tipoprestacion/editar/{id:int}"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
@@ -58,6 +58,16 @@
 
 
                 <div class="form-grid">
+                <div class="field-group field-full">
+                    <label for="areaPrestacion">ÁREA</label>
+                    <EntradaConBusqueda id="areaPrestacion" Etiqueta="Área"
+                                        Placeholder="Seleccioná un área"
+                                        @bind-Value="modelo.TipoAreaId"
+                                        Opciones="OpcionesAreas"
+                                        Disabled="@(guardando || areas.Count == 0)" />
+                    <ValidationMessage For="@(() => modelo.TipoAreaId)" />
+                </div>
+
 
                     <div class="field-group field-full">
 
@@ -253,6 +263,27 @@
 
 
 @code {
+    #region Áreas disponibles
+
+    private List<TipoListadoDTO> areas = new();
+    private IEnumerable<OpcionSelector> OpcionesAreas => areas
+        .OrderBy(area => area.Tipo)
+        .Select(area => new OpcionSelector(area.Id.ToString(), area.Tipo));
+
+    private async Task CargarAreas()
+    {
+        var respuesta = await Http.Get<List<TipoListadoDTO>>("api/tipoarea/ListaTipoArea");
+        if (respuesta.Error)
+        {
+            Mensaje = respuesta.ObtenerError();
+            return;
+        }
+
+        areas = respuesta.Respuesta ?? new();
+    }
+
+    #endregion
+
 
     [Parameter]
     public int id { get; set; }
@@ -274,6 +305,7 @@
     protected override async Task OnInitializedAsync()
     {
         await CargarPrestacion();
+        await CargarAreas();
     }
 
 
@@ -305,6 +337,12 @@
 
     private async Task Grabar()
     {
+        if (!areas.Any(area => area.Id == modelo.TipoAreaId))
+        {
+            Mensaje = "Seleccioná un área disponible para la prestación.";
+            return;
+        }
+
         guardando = true;
         Mensaje = string.Empty;
 

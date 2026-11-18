@@ -320,3 +320,36 @@
 }
 
 /* #endregion */
+
+/* #region Área en el alta rápida de prestaciones */
+
+.catalogo-area-selector {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    min-width: 0;
+}
+
+.catalogo-area-selector select {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #dedfd6;
+    border-radius: 10px;
+    background: #fff;
+    color: #384235;
+    font: inherit;
+    font-size: 13px;
+}
+
+.catalogo-area-agregar, .catalogo-area-reintentar {
+    padding: 8px 12px;
+    border: 1px solid #dce5d4;
+    border-radius: 9px;
+    background: #eef3ec;
+    color: #526c4d;
+    font: inherit;
+    cursor: pointer;
+}
+
+/* #endregion */

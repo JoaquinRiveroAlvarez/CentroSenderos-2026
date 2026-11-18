@@ -114,6 +114,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                                         ? relacion.Profesionales.Nombre
                                         : "Sin profesional",
 
+                                TipoAreaId = relacion.TipoPrestaciones!.TipoAreaId,
+                                NombreTipoArea = relacion.TipoPrestaciones.TipoArea != null
+                                    ? relacion.TipoPrestaciones.TipoArea.Tipo
+                                    : null,
+
                                 TipoPrestacionId = relacion.TipoPrestacionId,
 
                                 NombreTipoPrestacion =
@@ -278,6 +283,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                                     relacion.Profesionales != null
                                         ? relacion.Profesionales.Nombre
                                         : "Sin profesional",
+
+                                TipoAreaId = relacion.TipoPrestaciones!.TipoAreaId,
+                                NombreTipoArea = relacion.TipoPrestaciones.TipoArea != null
+                                    ? relacion.TipoPrestaciones.TipoArea.Tipo
+                                    : null,
 
                                 TipoPrestacionId = relacion.TipoPrestacionId,
 

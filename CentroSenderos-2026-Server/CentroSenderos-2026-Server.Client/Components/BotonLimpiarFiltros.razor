@@ -1,0 +1,9 @@
+<button type="button" class="limpiar-filtros-catalogo" @onclick="AlLimpiar">
+    <i class="bi bi-x-circle" aria-hidden="true"></i>
+    <span>Limpiar filtros</span>
+</button>
+
+@code {
+    [Parameter]
+    public EventCallback AlLimpiar { get; set; }
+}

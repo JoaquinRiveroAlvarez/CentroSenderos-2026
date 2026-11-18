@@ -1,4 +1,4 @@
-/* =====================================================
+﻿/* =====================================================
    PÁGINA SOCIOS
 ===================================================== */
 
@@ -1124,3 +1124,28 @@
         width: 100%;
     }
 }
+
+/* #region Áreas del profesional seleccionado */
+
+.socio-nombre {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.socio-areas-profesional {
+    margin-top: 8px;
+    min-width: 0;
+}
+
+/* #endregion */
+
+/* #region Buscador alineado con el listado */
+
+.catalogo-herramientas {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto 20px;
+}
+
+/* #endregion */
