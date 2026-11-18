@@ -92,7 +92,7 @@
 
                     </div>
 
-                    @if (modelo.SerieTurnoId.HasValue)
+                    @if (modelo.SerieTurnoId.HasValue && !modelo.ParticipantesFijos)
                     {
                         <fieldset class="alcance-edicion" disabled="@OperacionEnCurso">
                             <legend>Alcance de la edición</legend>
@@ -234,6 +234,21 @@
 
                     </div>
 
+                    @if (modelo.ParticipantesFijos)
+                    {
+                        <div class="campo campo-completo">
+                            <label>Profesionales asignados</label>
+                            <ul>
+                                @foreach (var participante in modelo.ProfesionalPrestaciones)
+                                {
+                                    <li>@participante.NombreProfesional · @participante.NombreTipoPrestacion</li>
+                                }
+                            </ul>
+                            <p>Podés editar este turno. La asignación de profesionales se gestiona desde Administración.</p>
+                        </div>
+                    }
+                    else
+                    {
                     <div class="campo campo-completo">
 
                         <label>Profesionales</label>
@@ -321,7 +336,9 @@
 
                     </div>
 
-                    @if (modelo.ProfesionalIds.Count > 0)
+                    }
+
+                    @if (!modelo.ParticipantesFijos && modelo.ProfesionalIds.Count > 0)
                     {
                         <div class="campo campo-completo">
 

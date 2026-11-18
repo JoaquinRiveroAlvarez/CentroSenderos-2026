@@ -1,4 +1,5 @@
 ﻿using CentroSenderos_2026_BD;
+using CentroSenderos_2026_BD.Datos.Entity;
 using Microsoft.EntityFrameworkCore;
 using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
@@ -29,22 +30,33 @@ namespace CentroSenderos_2026_Server.Controllers
             this.context = context;
         }
 
-        private IQueryable<CentroSenderos_2026_BD.Datos.Entity.Turno> TurnosPermitidos()
+        private IQueryable<Turno> TurnosPermitidos(bool incluirMixtos = false)
         {
             if (AlcanceProfesional.TieneAccesoCompleto(User))
                 return context.Turnos;
 
             var ids = AlcanceProfesional.Profesionales(context, User);
-            return context.Turnos.Where(t => t.TurnoProfesionales.Any()
+            var habituales = context.Turnos.Where(t => t.TurnoProfesionales.Any()
                 && t.TurnoProfesionales.All(p => ids.Contains(p.ProfesionalId)));
+            return incluirMixtos ? habituales.Union(TurnosMixtosPropios()) : habituales;
         }
 
-        private async Task<bool> PuedeGestionarTurno(int id, bool serie = false)
+        private IQueryable<Turno> TurnosMixtosPropios()
+        {
+            var equipo = AlcanceProfesional.PorRol(context, "EQUIPO");
+            var externos = AlcanceProfesional.PorRol(context, "PROFESIONAL");
+            var propios = AlcanceProfesional.Propios(context, User);
+            return context.Turnos.Where(t => t.TurnoProfesionales.Any(p => propios.Contains(p.ProfesionalId))
+                && t.TurnoProfesionales.Any(p => equipo.Contains(p.ProfesionalId))
+                && t.TurnoProfesionales.Any(p => externos.Contains(p.ProfesionalId)));
+        }
+
+        private async Task<bool> PuedeGestionarTurno(int id, bool serie = false, bool incluirMixtos = true)
         {
             if (AlcanceProfesional.TieneAccesoCompleto(User))
                 return true;
 
-            var permitidos = TurnosPermitidos();
+            var permitidos = TurnosPermitidos(incluirMixtos: incluirMixtos && !serie);
             var turno = await permitidos.Where(t => t.Id == id)
                 .Select(t => new { t.SerieTurnoId }).FirstOrDefaultAsync();
             return turno is not null && (!serie || turno.SerieTurnoId is null
@@ -64,6 +76,37 @@ namespace CentroSenderos_2026_Server.Controllers
         private Task<bool> PuedeGestionarProfesionales(TurnoDTO dto) =>
             PuedeGestionarProfesionales(dto.ProfesionalIds
                 .Concat(dto.ProfesionalPrestaciones.Select(p => p.ProfesionalId)));
+
+        private async Task<bool> PuedeEditarParticipantes(int id, TurnoDTO dto)
+        {
+            if (AlcanceProfesional.TieneAccesoCompleto(User))
+                return true;
+
+            var mixto = TurnosMixtosPropios().Where(t => t.Id == id);
+            var actuales = await mixto.SelectMany(t => t.TurnoProfesionales)
+                .Select(p => p.ProfesionalId).ToListAsync();
+            if (actuales.Count == 0)
+                return await PuedeGestionarProfesionales(dto);
+
+            return !dto.ModificarTodaLaSerie
+                && actuales.ToHashSet().SetEquals(dto.ProfesionalIds)
+                && dto.ProfesionalPrestaciones.All(p => actuales.Contains(p.ProfesionalId));
+        }
+
+        private async Task<bool> PuedeConsultarDisponibilidad(IEnumerable<int> ids, int? turnoId)
+        {
+            if (turnoId is null)
+                return await PuedeGestionarProfesionales(ids);
+            if (!await PuedeGestionarTurno(turnoId.Value))
+                return false;
+            if (await PuedeGestionarProfesionales(ids))
+                return true;
+
+            var solicitados = ids.Where(id => id > 0).Distinct().ToArray();
+            var actuales = TurnosMixtosPropios().Where(t => t.Id == turnoId)
+                .SelectMany(t => t.TurnoProfesionales).Select(p => p.ProfesionalId);
+            return solicitados.Length == await actuales.Distinct().CountAsync(id => solicitados.Contains(id));
+        }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<TurnoDTO>> GetById(int id)
@@ -85,6 +128,8 @@ namespace CentroSenderos_2026_Server.Controllers
                     );
                 }
 
+                entidad.ParticipantesFijos = !AlcanceProfesional.TieneAccesoCompleto(User)
+                    && await TurnosMixtosPropios().AnyAsync(t => t.Id == id);
                 return Ok(entidad);
             }
             catch (Exception ex)
@@ -108,7 +153,7 @@ namespace CentroSenderos_2026_Server.Controllers
 
                 if (lista is not null && !AlcanceProfesional.TieneAccesoCompleto(User))
                 {
-                    var permitidos = (await TurnosPermitidos().Select(t => t.Id).ToListAsync()).ToHashSet();
+                    var permitidos = (await TurnosPermitidos(incluirMixtos: true).Select(t => t.Id).ToListAsync()).ToHashSet();
                     lista = lista.Where(t => permitidos.Contains(t.Id)).ToList();
                 }
 
@@ -138,7 +183,7 @@ namespace CentroSenderos_2026_Server.Controllers
             try
             {
                 if (!await PuedeGestionarTurno(id, dto.ModificarTodaLaSerie)
-                    || !await PuedeGestionarProfesionales(dto)) return Forbid();
+                    || !await PuedeEditarParticipantes(id, dto)) return Forbid();
                 var resultado =
                     await repositorio.ActualizarTurno(
                         id,
@@ -231,8 +276,7 @@ namespace CentroSenderos_2026_Server.Controllers
         {
             try
             {
-                if (!await PuedeGestionarProfesionales(profesionalIds ?? [])
-                    || (turnoIdExcluir.HasValue && !await PuedeGestionarTurno(turnoIdExcluir.Value)))
+                if (!await PuedeConsultarDisponibilidad(profesionalIds ?? [], turnoIdExcluir))
                     return Forbid();
                 var horarios =
                     await repositorio.HorariosDisponibles(
@@ -287,8 +331,7 @@ namespace CentroSenderos_2026_Server.Controllers
         {
             try
             {
-                if (!await PuedeGestionarProfesionales(profesionalIds ?? [])
-                    || (turnoIdExcluir.HasValue && !await PuedeGestionarTurno(turnoIdExcluir.Value)))
+                if (!await PuedeConsultarDisponibilidad(profesionalIds ?? [], turnoIdExcluir))
                     return Forbid();
                 var horarios =
                     await repositorio.HorariosConOcupacion(
@@ -305,7 +348,7 @@ namespace CentroSenderos_2026_Server.Controllers
                 if (!AlcanceProfesional.TieneAccesoCompleto(User))
                 {
                     var ids = horarios.SelectMany(h => h.Conflictos).Select(c => c.TurnoId).Distinct().ToArray();
-                    var permitidos = (await TurnosPermitidos().Where(t => ids.Contains(t.Id))
+                    var permitidos = (await TurnosPermitidos(incluirMixtos: true).Where(t => ids.Contains(t.Id))
                         .Select(t => t.Id).ToListAsync()).ToHashSet();
                     foreach (var conflicto in horarios.SelectMany(h => h.Conflictos)
                         .Where(c => !permitidos.Contains(c.TurnoId)))
@@ -351,8 +394,7 @@ namespace CentroSenderos_2026_Server.Controllers
         {
             try
             {
-                if (!await PuedeGestionarProfesionales(profesionalIds ?? [])
-                    || (turnoIdExcluir.HasValue && !await PuedeGestionarTurno(turnoIdExcluir.Value)))
+                if (!await PuedeConsultarDisponibilidad(profesionalIds ?? [], turnoIdExcluir))
                     return Forbid();
                 var disponible = await repositorio.EsHorarioDisponible(
                     fecha,
@@ -389,7 +431,7 @@ namespace CentroSenderos_2026_Server.Controllers
         {
             try
             {
-                if (!await PuedeGestionarTurno(id)) return Forbid();
+                if (!await PuedeGestionarTurno(id, incluirMixtos: false)) return Forbid();
                 var resultado =
                     await repositorio.DeleteTurno(id);
 
@@ -486,7 +528,7 @@ namespace CentroSenderos_2026_Server.Controllers
         {
             try
             {
-                if (!await PuedeGestionarTurno(id, cancelarSiguientes)) return Forbid();
+                if (!await PuedeGestionarTurno(id, cancelarSiguientes, incluirMixtos: false)) return Forbid();
                 var cantidadCancelada = await repositorio.CancelarTurnos(
                     id,
                     cancelarSiguientes
