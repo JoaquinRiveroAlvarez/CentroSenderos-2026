@@ -1,5 +1,6 @@
 ﻿using CentroSenderos_2026_BD;
 using CentroSenderos_2026_Shared.DTO;
+using CentroSenderos_2026_Servicio.Seguridad;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,18 +9,29 @@ namespace CentroSenderos_2026_Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Policy = "EsAdmin")] // solo admins pueden usarlo
+    [Authorize(Policy = "EsAdmin")]
     public class SeguridadController : ControllerBase
     {
         private readonly UserManager<MiUsuario> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ApplicationDbContext _context;
 
         public SeguridadController(UserManager<MiUsuario> userManager,
-                                   RoleManager<IdentityRole> roleManager)
+                                   RoleManager<IdentityRole> roleManager,
+                                   ApplicationDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _context = context;
         }
+
+        private static readonly string[] Roles = ["Socio", "admin", "Calendario", "equipo", "profesional"];
+
+        private string? BuscarRol(string? rol) =>
+            Roles.FirstOrDefault(r => string.Equals(r, rol?.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        private bool PuedeGestionar(string rol) =>
+            rol is not ("Socio" or "admin") || User.IsInRole("Socio") || User.IsInRole("admin");
 
         // GET: api/seguridad/usuarios
         [HttpGet("usuarios")]
@@ -63,11 +75,11 @@ namespace CentroSenderos_2026_Server.Controllers
 
             var emailLimpio = dto.Email.Trim().ToLowerInvariant();
 
-            // Si se especificó un rol, verificar que exista en AspNetRoles
-            if (!string.IsNullOrWhiteSpace(dto.Rol) && !await _roleManager.RoleExistsAsync(dto.Rol))
-            {
-                return BadRequest($"El rol '{dto.Rol}' no existe en el sistema.");
-            }
+            var rol = BuscarRol(dto.Rol);
+            if (rol is null || !await _roleManager.RoleExistsAsync(rol))
+                return BadRequest("Seleccioná un rol válido.");
+            if (!PuedeGestionar(rol))
+                return Forbid();
 
             var usuario = await _userManager.FindByEmailAsync(emailLimpio);
 
@@ -90,47 +102,12 @@ namespace CentroSenderos_2026_Server.Controllers
                 }
             }
 
-            var rolesDelSistema = new[] { "admin", "equipo", "profesional", "AdministradorEquipo" };
-            var rolesActuales = await _userManager.GetRolesAsync(usuario);
-
-            // Si viene un rol vacío, removemos los roles anteriores del sistema
-            if (string.IsNullOrWhiteSpace(dto.Rol))
+            var resultado = await AsignacionRoles.AsignarAsync(_context, _userManager, usuario, rol);
+            if (!resultado.Succeeded)
             {
-                var rolesARemover = rolesActuales
-                    .Where(r => rolesDelSistema.Contains(r, StringComparer.OrdinalIgnoreCase))
-                    .ToList();
-
-                if (rolesARemover.Any())
-                {
-                    await _userManager.RemoveFromRolesAsync(usuario, rolesARemover);
-                    await _userManager.UpdateSecurityStampAsync(usuario);
-                }
-
-                return Ok("Rol removido correctamente.");
+                var errores = string.Join(" ", resultado.Errors.Select(error => error.Description));
+                return BadRequest(errores);
             }
-
-            // Remover roles del sistema anteriores distintos al nuevo rol asignado
-            var rolesAEliminar = rolesActuales
-                .Where(r => rolesDelSistema.Contains(r, StringComparer.OrdinalIgnoreCase) &&
-                            !string.Equals(r, dto.Rol, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            if (rolesAEliminar.Any())
-            {
-                await _userManager.RemoveFromRolesAsync(usuario, rolesAEliminar);
-            }
-
-            if (!await _userManager.IsInRoleAsync(usuario, dto.Rol))
-            {
-                var resultado = await _userManager.AddToRoleAsync(usuario, dto.Rol);
-                if (!resultado.Succeeded)
-                {
-                    var errores = string.Join(" ", resultado.Errors.Select(error => error.Description));
-                    return BadRequest(errores);
-                }
-            }
-
-            await _userManager.UpdateSecurityStampAsync(usuario);
 
             return Ok("Rol asignado correctamente.");
         }
@@ -139,10 +116,16 @@ namespace CentroSenderos_2026_Server.Controllers
         [HttpPost("removerRol")]
         public async Task<ActionResult> RemoverRol([FromBody] RolAsignacionDTO dto)
         {
-            var usuario = await _userManager.FindByEmailAsync(dto.Email);
+            var rol = BuscarRol(dto.Rol);
+            if (rol is null || string.IsNullOrWhiteSpace(dto.Email))
+                return BadRequest("Seleccioná una cuenta y un rol válido.");
+            if (!PuedeGestionar(rol))
+                return Forbid();
+
+            var usuario = await _userManager.FindByEmailAsync(dto.Email.Trim());
             if (usuario == null) return NotFound("Usuario no encontrado");
 
-            var resultado = await _userManager.RemoveFromRoleAsync(usuario, dto.Rol);
+            var resultado = await AsignacionRoles.QuitarAsync(_context, _userManager, usuario, rol);
             if (!resultado.Succeeded) return BadRequest(resultado.Errors);
 
             return Ok();

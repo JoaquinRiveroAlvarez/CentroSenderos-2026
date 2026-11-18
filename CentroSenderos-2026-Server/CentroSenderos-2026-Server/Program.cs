@@ -1,4 +1,4 @@
-using CentroSenderos_2026_BD;
+﻿using CentroSenderos_2026_BD;
 using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Server.Components;
 using CentroSenderos_2026_Server.Components.Account;
@@ -107,12 +107,33 @@ builder.Services.AddIdentityCore<MiUsuario>(options =>
 .AddSignInManager()
 .AddDefaultTokenProviders();
 
+// Identity revalida la cuenta y reconstruye los roles en la siguiente solicitud.
+builder.Services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.Zero);
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    var validarIdentity = options.Events.OnValidatePrincipal;
+    options.Events.OnValidatePrincipal = async context =>
+    {
+        await validarIdentity(context);
+        if (context.Principal?.Identity?.IsAuthenticated == true
+            && !context.Principal.IsInRole("Socio") && !context.Principal.IsInRole("admin")
+            && !context.Principal.IsInRole("Calendario") && !context.Principal.IsInRole("equipo")
+            && !context.Principal.IsInRole("profesional"))
+        {
+            context.RejectPrincipal();
+            context.ShouldRenew = false;
+        }
+    };
+});
+
 // Políticas de autorización
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("EsAdmin", policy => policy.RequireRole("admin", "AdministradorEquipo"));
-    options.AddPolicy("EsEquipo", policy => policy.RequireRole("equipo", "admin", "AdministradorEquipo"));
-    options.AddPolicy("EsProfesional", policy => policy.RequireRole("profesional", "equipo", "admin", "AdministradorEquipo"));
+    options.AddPolicy("EsSocio", policy => policy.RequireRole("Socio"));
+    options.AddPolicy("GestionaRolesPrivilegiados", policy => policy.RequireRole("Socio", "admin"));
+    options.AddPolicy("EsAdmin", policy => policy.RequireRole("Socio", "admin", "Calendario"));
+    options.AddPolicy("EsEquipo", policy => policy.RequireRole("Socio", "admin", "Calendario", "equipo"));
+    options.AddPolicy("EsProfesional", policy => policy.RequireRole("Socio", "admin", "Calendario", "equipo", "profesional"));
 });
 
 builder.Services.AddSingleton<IEmailSender<MiUsuario>, IdentityNoOpEmailSender>();

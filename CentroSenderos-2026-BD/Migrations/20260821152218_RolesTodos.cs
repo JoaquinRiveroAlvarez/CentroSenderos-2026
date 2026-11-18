@@ -22,7 +22,7 @@ namespace CentroSenderos_2026_BD.Migrations
 
             migrationBuilder.Sql(
                 "INSERT INTO \"AspNetRoles\" (\"Id\", \"Name\", \"NormalizedName\") VALUES ('"
-                + clave + "', '" + nombreRol + "', '" + nombreRolNormalizado + "')"
+                + clave + "', '" + nombreRol + "', '" + nombreRolNormalizado + "') ON CONFLICT (\"NormalizedName\") DO NOTHING;"
             );
         }
 

@@ -1,6 +1,6 @@
 @page "/profesionales"
 @page "/profesionales/detalle/{IdRuta:int}"
-@attribute [Authorize]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio,admin,Calendario,equipo,profesional")]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
 @using System.Globalization
@@ -38,9 +38,14 @@
                 </div>
                 <p id="profesionales-busqueda-ayuda" class="search-help">Nombre, área, prestación, CUIT o contacto.</p>
             </div>
-            <button type="button" class="new-professional-button" @onclick="IrACrear">
+            <Microsoft.AspNetCore.Components.Authorization.AuthorizeView Roles="Socio,admin,Calendario">
+                <button type="button" class="filter-button" @onclick="AlternarBajas">
+                    @(mostrarBajas ? "Ver fichas activas" : "Ver fichas dadas de baja")
+                </button>
+                <button type="button" class="new-professional-button" @onclick="IrACrear">
                 <i class="bi bi-person-plus" aria-hidden="true"></i><span>Nuevo profesional</span>
             </button>
+            </Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
         </div>
     </header>
     <section class="filtros-panel" aria-label="Filtros de profesionales">
@@ -273,13 +278,21 @@
     private void IrACrear() => Nav.NavigateTo("/profesionales/crear?volver=" + Uri.EscapeDataString(ContextoListado));
     private static string MostrarValor(object? valor) => string.IsNullOrWhiteSpace(valor?.ToString()) ? "—" : valor.ToString()!;
     private static string NombreRol(string rol) => rol switch { "admin" => "Administrador", "equipo" => "Equipo", "profesional" => "Profesional", "AdministradorEquipo" => "Administrador/Equipo", _ => rol };
+    private bool mostrarBajas;
+
+    private async Task AlternarBajas()
+    {
+        mostrarBajas = !mostrarBajas;
+        await CargarProfesionales();
+    }
+
     private async Task CargarProfesionales()
     {
         cargando = true;
         Mensaje = string.Empty;
         try
         {
-            var resp = await Http.Get<List<ProfesionalListadoDTO>>("api/profesional/ListaProfesional");
+            var resp = await Http.Get<List<ProfesionalListadoDTO>>(mostrarBajas ? "api/profesional/ListaProfesional?bajas=true" : "api/profesional/ListaProfesional");
             if (resp.Error && resp.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
                 listaProfesionales = new();
             else

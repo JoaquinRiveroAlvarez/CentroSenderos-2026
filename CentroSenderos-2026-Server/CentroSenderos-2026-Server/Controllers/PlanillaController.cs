@@ -1,4 +1,8 @@
-﻿using System;
+﻿using System.Security.Claims;
+using CentroSenderos_2026_BD;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using CentroSenderos_2026_Repositorio.Repositorios;
@@ -10,26 +14,36 @@ using Microsoft.Net.Http.Headers;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "EsProfesional")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ApiController]
     [Route("api/planillas")]
     public class PlanillaController : ControllerBase
     {
+        private bool Compartidas => User.IsInRole("Socio") || User.IsInRole("admin")
+            || User.IsInRole("Calendario") || User.IsInRole("equipo");
+        private string? Propietario => User.IsInRole("profesional")
+            ? User.FindFirstValue(ClaimTypes.NameIdentifier)
+            : null;
+        private readonly ApplicationDbContext context;
+        private readonly UserManager<MiUsuario> usuarios;
         private readonly IPlanillaRepositorio repositorio;
         private readonly ILogger<PlanillaController> logger;
 
         public PlanillaController(
             IPlanillaRepositorio repositorio,
-            ILogger<PlanillaController> logger)
+            ILogger<PlanillaController> logger, ApplicationDbContext context, UserManager<MiUsuario> usuarios)
         {
             this.repositorio = repositorio;
             this.logger = logger;
+            this.context = context;
+            this.usuarios = usuarios;
         }
 
         [HttpGet]
         public async Task<IActionResult> Listar()
         {
-            var lista = await repositorio.SelectListaPlanillas();
+            var lista = await repositorio.SelectListaPlanillas(Compartidas, Propietario);
             return Ok(lista);
         }
 
@@ -40,7 +54,7 @@ namespace CentroSenderos_2026_Server.Controllers
             [FromForm] string nombre,
             [FromForm] int tipoPlanillaId,
             [FromForm] IFormFile archivo,
-            [FromForm] string descripcion = "")
+            [FromForm] string descripcion = "", [FromForm] bool? privada = null)
         {
             if (archivo == null || archivo.Length == 0)
                 return BadRequest(new
@@ -59,12 +73,28 @@ namespace CentroSenderos_2026_Server.Controllers
                 using var ms = new MemoryStream();
                 await archivo.CopyToAsync(ms);
 
+                var esPrivada = privada ?? !Compartidas;
+                var propietario = esPrivada ? Propietario : null;
+                if ((esPrivada && propietario is null) || (!esPrivada && !Compartidas))
+                    return Forbid();
+
+                await using var transaccion = await context.Database.BeginTransactionAsync();
+                if (propietario is not null)
+                {
+                    await context.Database.ExecuteSqlInterpolatedAsync(
+                        $"""SELECT 1 FROM "AspNetUsers" WHERE "Id" = {propietario} FOR UPDATE""");
+                    var usuario = await usuarios.FindByIdAsync(propietario);
+                    if (usuario is null || !await usuarios.IsInRoleAsync(usuario, "profesional"))
+                        return Forbid();
+                }
+
                 var id = await repositorio.InsertarPlanilla(
                     nombre,
                     descripcion,
                     tipoPlanillaId,
                     archivo.FileName,
-                    ms.ToArray());
+                    ms.ToArray(), propietario);
+                await transaccion.CommitAsync();
 
                 return Ok(id);
             }
@@ -86,7 +116,7 @@ namespace CentroSenderos_2026_Server.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Detalle(int id)
         {
-            var detalle = await repositorio.ObtenerDetalle(id);
+            var detalle = await repositorio.ObtenerDetalle(id, Compartidas, Propietario);
             if (detalle == null) return NotFound(new { mensaje = "No se encontró la planilla." });
             return Ok(detalle);
         }
@@ -109,7 +139,7 @@ namespace CentroSenderos_2026_Server.Controllers
                     contenido = ms.ToArray();
                 }
                 var actualizado = await repositorio.EditarPlanilla(id, nombre, descripcion,
-                    tipoPlanillaId, archivo?.FileName, contenido);
+                    tipoPlanillaId, archivo?.FileName, contenido, Compartidas, Propietario);
                 if (!actualizado) return NotFound(new { mensaje = "No se encontró la planilla." });
                 return Ok(id);
             }
@@ -124,7 +154,7 @@ namespace CentroSenderos_2026_Server.Controllers
         [HttpGet("ver/{id:int}")]
         public async Task<IActionResult> Ver(int id)
         {
-            var planilla = await repositorio.ObtenerArchivoCompleto(id);
+            var planilla = await repositorio.ObtenerArchivoCompleto(id, Compartidas, Propietario);
 
             if (planilla == null || planilla.Contenido.Length == 0)
                 return NotFound(new
@@ -144,7 +174,7 @@ namespace CentroSenderos_2026_Server.Controllers
         [HttpGet("descargar/{id:int}")]
         public async Task<IActionResult> Descargar(int id)
         {
-            var planilla = await repositorio.ObtenerArchivoCompleto(id);
+            var planilla = await repositorio.ObtenerArchivoCompleto(id, Compartidas, Propietario);
 
             if (planilla == null || planilla.Contenido.Length == 0)
                 return NotFound(new
@@ -161,7 +191,7 @@ namespace CentroSenderos_2026_Server.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Eliminar(int id)
         {
-            var eliminado = await repositorio.DeletePlanilla(id);
+            var eliminado = await repositorio.DeletePlanilla(id, Compartidas, Propietario);
 
             if (!eliminado)
                 return NotFound(new

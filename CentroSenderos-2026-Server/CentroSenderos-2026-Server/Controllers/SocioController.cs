@@ -1,10 +1,12 @@
-﻿using CentroSenderos_2026_BD.Datos.Entity;
+﻿using Microsoft.AspNetCore.Authorization;
+using CentroSenderos_2026_BD.Datos.Entity;
 using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
+    [Authorize(Policy = "EsAdmin")]
     [ApiController]
     [Route("api/socio")]
     public class SocioController : ControllerBase

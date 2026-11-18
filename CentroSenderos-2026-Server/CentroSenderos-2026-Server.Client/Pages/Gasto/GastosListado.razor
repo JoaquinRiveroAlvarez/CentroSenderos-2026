@@ -1,5 +1,5 @@
 ﻿@page "/gastos"
-@attribute [Authorize]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio")]
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 
 @using Microsoft.AspNetCore.Authorization

@@ -10,6 +10,7 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         public string Nombre { get; set; } = string.Empty;
         [MaxLength(1000)]
         public string Descripcion { get; set; } = string.Empty;
+        public string? PropietarioPrivadoId { get; set; }
         public int TipoPlanillaId { get; set; }
         public TipoPlanilla? TipoPlanilla { get; set; }
         [MaxLength(255)]

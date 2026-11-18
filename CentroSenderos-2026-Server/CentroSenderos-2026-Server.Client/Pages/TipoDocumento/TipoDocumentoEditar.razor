@@ -1,5 +1,5 @@
 ﻿@page "/tipodocumento/editar/{id:int}"
-@attribute [Authorize]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio,admin,Calendario")]
 @using CentroSenderos_2026_Shared.DTO
 @using Microsoft.AspNetCore.Authorization
 @inject IHttpServicio Http

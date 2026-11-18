@@ -1,5 +1,5 @@
 @page "/pacientes/crear"
-@attribute [Authorize]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio,admin,Calendario,equipo")]
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Routing
 @using System.Text.Json

@@ -1,9 +1,11 @@
-﻿using CentroSenderos_2026_Repositorio.Repositorios;
+﻿using Microsoft.AspNetCore.Authorization;
+using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
+    [Authorize(Policy = "EsProfesional")]
     [ApiController]
     [Route("api/tipoobrasocial")]
     public class TipoObraSocialController : ControllerBase
@@ -64,6 +66,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "EsEquipo")]
         public async Task<ActionResult<int>> PostObraSocial(
             [FromBody] TipoObraSocialDTO dto)
         {
@@ -96,6 +99,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Policy = "EsAdmin")]
         public async Task<ActionResult> Put(
             int id,
             [FromBody] TipoObraSocialDTO dto)
@@ -143,6 +147,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "EsAdmin")]
         public async Task<ActionResult> Delete(int id)
         {
             var resultado =

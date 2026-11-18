@@ -35,7 +35,7 @@ namespace CentroSenderos_2026_Servicio.Seguridad
             try
             {
                 var usuarioLogueado = contextAccesor.HttpContext.User;
-                var resultado = await authorizationService.AuthorizeAsync(usuarioLogueado, "EsAdmin");
+                var resultado = await authorizationService.AuthorizeAsync(usuarioLogueado, "GestionaRolesPrivilegiados");
 
                 if (!resultado.Succeeded)
                 {
@@ -48,10 +48,10 @@ namespace CentroSenderos_2026_Servicio.Seguridad
                     return ResultadoOperacionSeguridad.NoEncontrado;
                 }
 
-                await userManager.AddToRoleAsync(usuario, rol);
-                await userManager.UpdateSecurityStampAsync(usuario);
-
-                return ResultadoOperacionSeguridad.Exitoso;
+                var asignado = await AsignacionRoles.AsignarAsync(context, userManager, usuario, rol);
+                return asignado.Succeeded
+                    ? ResultadoOperacionSeguridad.Exitoso
+                    : ResultadoOperacionSeguridad.Fallido;
             }
             catch
             {
@@ -67,7 +67,7 @@ namespace CentroSenderos_2026_Servicio.Seguridad
             try
             {
                 var usuarioLogueado = contextAccesor.HttpContext.User;
-                var resultado = await authorizationService.AuthorizeAsync(usuarioLogueado, "EsAdmin");
+                var resultado = await authorizationService.AuthorizeAsync(usuarioLogueado, "GestionaRolesPrivilegiados");
 
                 if (!resultado.Succeeded)
                 {
@@ -80,10 +80,10 @@ namespace CentroSenderos_2026_Servicio.Seguridad
                     return ResultadoOperacionSeguridad.NoEncontrado;
                 }
 
-                await userManager.RemoveFromRoleAsync(usuario, rol);
-                await userManager.UpdateSecurityStampAsync(usuario);
-
-                return ResultadoOperacionSeguridad.Exitoso;
+                var removido = await AsignacionRoles.QuitarAsync(context, userManager, usuario, rol);
+                return removido.Succeeded
+                    ? ResultadoOperacionSeguridad.Exitoso
+                    : ResultadoOperacionSeguridad.Fallido;
             }
             catch
             {

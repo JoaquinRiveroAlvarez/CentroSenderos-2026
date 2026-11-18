@@ -1,4 +1,5 @@
-﻿using CentroSenderos_2026_Repositorio.Repositorios;
+﻿using Microsoft.AspNetCore.Authorization;
+using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
+    [Authorize(Policy = "EsSocio")]
     [ApiController]
     [Route("api/[controller]")]
     public class LiquidacionController : ControllerBase

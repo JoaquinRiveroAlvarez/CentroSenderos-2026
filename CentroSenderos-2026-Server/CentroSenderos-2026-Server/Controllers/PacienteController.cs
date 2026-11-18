@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "EsProfesional")]
     [ApiController]
     [Route("api/paciente")]
     public class PacienteController : ControllerBase
@@ -54,6 +54,7 @@ namespace CentroSenderos_2026_Server.Controllers
 
 
         [HttpPost("insertar")]
+        [Authorize(Policy = "EsEquipo")]
         public async Task<ActionResult<int>> InsertarPaciente(
             [FromBody] PacienteCrearDTO dto)
         {
@@ -83,6 +84,7 @@ namespace CentroSenderos_2026_Server.Controllers
 
 
         [HttpPut("{id:int}")]
+        [Authorize(Policy = "EsEquipo")]
         public async Task<ActionResult> Put(
             int id,
             [FromBody] PacienteDTO dto)
@@ -126,6 +128,7 @@ namespace CentroSenderos_2026_Server.Controllers
 
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "EsEquipo")]
         public async Task<ActionResult> Delete(int id)
         {
             try

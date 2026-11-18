@@ -1,11 +1,11 @@
 @page "/pacientes/editar/{id:int}"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio,admin,Calendario,equipo")]
 @rendermode InteractiveAuto
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Routing
 @using System.Text.Json
 @using CentroSenderos_2026_Servicio.ServiciosHttp
 @using CentroSenderos_2026_Shared.DTO
-@attribute [Authorize]
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 

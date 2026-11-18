@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using CentroSenderos_2026_BD;
 using CentroSenderos_2026_Repositorio.Repositorios;
@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CentroSenderos_2026_Server.Controllers;
 
-[Authorize]
+[Authorize(Policy = "EsEquipo")]
 [ApiController]
 [Route("api/paciente")]
 public class PacienteDocumentosController(

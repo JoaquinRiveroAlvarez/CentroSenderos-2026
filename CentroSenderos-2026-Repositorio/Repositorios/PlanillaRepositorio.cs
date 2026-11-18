@@ -23,10 +23,15 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             this.context = context;
         }
 
-        public async Task<List<ListadoPlanillasDTO>> SelectListaPlanillas()
+        private IQueryable<Planilla> Visibles(bool compartidas, string? propietarioPrivadoId) =>
+            context.Planillas.Where(p => p.PropietarioPrivadoId == null
+                ? compartidas
+                : propietarioPrivadoId != null && p.PropietarioPrivadoId == propietarioPrivadoId);
+
+        public async Task<List<ListadoPlanillasDTO>> SelectListaPlanillas(bool compartidas, string? propietarioPrivadoId)
         {
             // El listado no carga el contenido de los PDF.
-            return await context.Planillas
+            return await Visibles(compartidas, propietarioPrivadoId)
                 .AsNoTracking()
                 .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
                 .OrderBy(p => p.Nombre)
@@ -46,9 +51,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .ToListAsync();
         }
 
-        public async Task<Planilla?> ObtenerArchivoCompleto(int id)
+        public async Task<Planilla?> ObtenerArchivoCompleto(int id, bool compartidas, string? propietarioPrivadoId)
         {
-            return await context.Planillas
+            return await Visibles(compartidas, propietarioPrivadoId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p =>
                     p.Id == id &&
@@ -60,7 +65,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             string descripcion,
             int tipoPlanillaId,
             string nombreOriginal,
-            byte[] contenido)
+            byte[] contenido, string? propietarioPrivadoId)
         {
             nombre = (nombre ?? string.Empty).Trim();
             descripcion = (descripcion ?? string.Empty).Trim();
@@ -152,6 +157,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             var planilla = new Planilla
             {
+                PropietarioPrivadoId = propietarioPrivadoId,
                 Nombre = nombre,
                 Descripcion = descripcion,
                 TipoPlanillaId = tipoPlanillaId,
@@ -170,9 +176,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return planilla.Id;
         }
 
-        public async Task<ListadoPlanillasDTO?> ObtenerDetalle(int id)
+        public async Task<ListadoPlanillasDTO?> ObtenerDetalle(int id, bool compartidas, string? propietarioPrivadoId)
         {
-            return await context.Planillas.AsNoTracking()
+            return await Visibles(compartidas, propietarioPrivadoId).AsNoTracking()
                 .Where(p => p.Id == id && p.EstadoRegistro == EnumEstadoRegistro.activo)
                 .Select(p => new ListadoPlanillasDTO
                 {
@@ -188,9 +194,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         }
 
         public async Task<bool> EditarPlanilla(int id, string nombre, string descripcion,
-            int tipoPlanillaId, string? nombreNuevo, byte[]? nuevoContenido)
+            int tipoPlanillaId, string? nombreNuevo, byte[]? nuevoContenido, bool compartidas, string? propietarioPrivadoId)
         {
-            var planilla = await context.Planillas.FirstOrDefaultAsync(p =>
+            var planilla = await Visibles(compartidas, propietarioPrivadoId).FirstOrDefaultAsync(p =>
                 p.Id == id && p.EstadoRegistro == EnumEstadoRegistro.activo);
             if (planilla == null) return false;
             // Validate everything before mutating the tracked entity.
@@ -215,7 +221,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .AsNoTracking()
                 .FirstOrDefaultAsync(t =>
                     t.Id == tipoPlanillaId &&
-                    t.EstadoRegistro == EnumEstadoRegistro.activo);
+                    (t.EstadoRegistro == EnumEstadoRegistro.activo || t.Id == planilla.TipoPlanillaId));
 
             if (tipo == null)
                 throw new ApplicationException(
@@ -285,9 +291,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
-        public async Task<bool> DeletePlanilla(int id)
+        public async Task<bool> DeletePlanilla(int id, bool compartidas, string? propietarioPrivadoId)
         {
-            var planilla = await context.Planillas
+            var planilla = await Visibles(compartidas, propietarioPrivadoId)
                 .FirstOrDefaultAsync(p =>
                     p.Id == id &&
                     p.EstadoRegistro == EnumEstadoRegistro.activo);

@@ -1,6 +1,6 @@
 ﻿@page "/planillas/editar/{Id:int}"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio,admin,Calendario,equipo,profesional")]
 @using System.Linq
-@attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using CentroSenderos_2026_Shared.DTO
@@ -310,6 +310,8 @@
             nombre = actual.Nombre;
             descripcion = actual.Descripcion;
             tipoPlanillaId = actual.TipoPlanillaId;
+            if (tiposPlanilla.All(t => t.Id != actual.TipoPlanillaId))
+                tiposPlanilla.Add(new TipoListadoDTO { Id = actual.TipoPlanillaId, Tipo = actual.TipoPlanillaNombre });
         }
         catch
         {

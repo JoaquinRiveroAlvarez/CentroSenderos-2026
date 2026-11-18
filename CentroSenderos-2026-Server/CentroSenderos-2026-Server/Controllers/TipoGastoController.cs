@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CentroSenderos_2026_Server.Controllers
 {
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = "EsSocio")]
     [Route("api/tipogasto")]
     public class TipoGastoController : ControllerBase
     {

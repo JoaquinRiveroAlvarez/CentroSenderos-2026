@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "EsSocio")]
     [ApiController]
     [Route("api/reintegrosocio")]
     public class ReintegroSocioController : ControllerBase
