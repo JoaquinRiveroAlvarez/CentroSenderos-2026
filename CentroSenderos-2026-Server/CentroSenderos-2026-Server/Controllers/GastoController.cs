@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace CentroSenderos_2026_Server.Controllers
 {
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = "EsSocio")]
     [Route("api/gasto")]
     public class GastoController : ControllerBase
     {

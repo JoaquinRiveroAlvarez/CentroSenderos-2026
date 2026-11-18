@@ -195,9 +195,11 @@
                             <button type="button" class="detalle-turno-reintentar" @onclick="CargarTurnoReferencia">Reintentar consulta</button>
                         }
                     </div>
-                    <button type="button" class="detalle-btn-editar" @onclick="Editar">
+                    <Microsoft.AspNetCore.Components.Authorization.AuthorizeView Roles="Socio,admin,Calendario,equipo">
+                        <button type="button" class="detalle-btn-editar" @onclick="Editar">
                         <i class="bi bi-pencil-square" aria-hidden="true"></i>Editar paciente
                     </button>
+                    </Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
                 }
             </footer>
             <!-- MODAL DE VISTA PREVIA OSCURECIDA (ESTILO CLASSROOM / GOOGLE DRIVE) -->

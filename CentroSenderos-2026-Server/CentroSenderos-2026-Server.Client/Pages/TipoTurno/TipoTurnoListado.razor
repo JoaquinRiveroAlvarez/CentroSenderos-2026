@@ -1,5 +1,5 @@
 @page "/tipoturno"
-@attribute [Authorize]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio,admin,Calendario")]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
 @inject IHttpServicio Http

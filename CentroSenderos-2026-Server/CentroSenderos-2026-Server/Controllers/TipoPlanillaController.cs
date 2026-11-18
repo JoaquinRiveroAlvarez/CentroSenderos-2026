@@ -1,9 +1,11 @@
-﻿using CentroSenderos_2026_Repositorio.Repositorios;
+﻿using Microsoft.AspNetCore.Authorization;
+using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
+        [Authorize(Policy = "EsProfesional")]
         [ApiController]
         [Route("api/tipoplanillas")]
         public class TipoPlanillaController : ControllerBase
@@ -57,6 +59,7 @@ namespace CentroSenderos_2026_Server.Controllers
             }
 
             [HttpPut("{id:int}")]
+            [Authorize(Policy = "EsAdmin")]
             public async Task<ActionResult> Put(int id, TipoDTO dto)
             {
                 try
@@ -79,6 +82,7 @@ namespace CentroSenderos_2026_Server.Controllers
             }
 
             [HttpDelete("{id:int}")]
+            [Authorize(Policy = "EsAdmin")]
             public async Task<ActionResult> Delete(int id)
             {
                 var resultado = await repositorio.DeleteTipoPlanilla(id);

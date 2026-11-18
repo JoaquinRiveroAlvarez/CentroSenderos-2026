@@ -1,10 +1,12 @@
-﻿using CentroSenderos_2026_Shared.DTO;
+﻿using Microsoft.AspNetCore.Authorization;
+using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Repositorio.Repositorios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
+    [Authorize(Policy = "EsProfesional")]
     [ApiController]
     [Route("api/[controller]")]
     public class DocumentoController : ControllerBase
@@ -17,6 +19,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPost("insertar")]
+        [Authorize(Policy = "EsEquipo")]
         [RequestSizeLimit(35 * 1024 * 1024)] // 35 MB de límite máximo
         [RequestFormLimits(MultipartBodyLengthLimit = 35 * 1024 * 1024)]
         [IgnoreAntiforgeryToken]
@@ -100,6 +103,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "EsEquipo")]
         public async Task<IActionResult> Eliminar(int id)
         {
             var ok = await documentoRepo.DeleteDocumento(id);

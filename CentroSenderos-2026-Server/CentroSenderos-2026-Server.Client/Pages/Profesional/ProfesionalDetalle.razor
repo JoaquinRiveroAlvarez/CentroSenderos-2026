@@ -67,7 +67,16 @@
             @if (!cargando && modelo != null)
             {
                 <button type="button" class="detalle-btn-turnos" @onclick="VerTurnos"><i class="bi bi-calendar3"></i>Ver turnos</button>
-                <button type="button" class="detalle-btn-editar" @onclick="Editar"><i class="bi bi-pencil-square"></i>Editar profesional</button>
+                <Microsoft.AspNetCore.Components.Authorization.AuthorizeView Roles="Socio,admin,Calendario">
+                    @if (modelo.EstadoRegistro == CentroSenderos_2026_Shared.Enum.EnumEstadoRegistro.borrado)
+                    {
+                        <button type="button" class="detalle-btn-editar" @onclick="Reactivar" disabled="@reactivando">Reactivar ficha</button>
+                    }
+                    else
+                    {
+                        <button type="button" class="detalle-btn-editar" @onclick="Editar"><i class="bi bi-pencil-square"></i>Editar profesional</button>
+                    }
+                </Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
             }
         </footer>
     </section>
@@ -110,6 +119,28 @@
     private Task Cerrar() => OnCerrar.InvokeAsync();
     private async Task ProcesarTecla(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
     { if (e.Key == "Escape") await Cerrar(); }
+    private bool reactivando;
+
+    private async Task Reactivar()
+    {
+        reactivando = true;
+        try
+        {
+            var respuesta = await Http.Put<object, RespuestaDTO>($"api/profesional/{Id}/reactivar", new { });
+            if (respuesta.Error)
+                Mensaje = respuesta.ObtenerError();
+            else if (modelo is not null)
+            {
+                modelo.EstadoRegistro = CentroSenderos_2026_Shared.Enum.EnumEstadoRegistro.activo;
+                Mensaje = string.Empty;
+            }
+        }
+        finally
+        {
+            reactivando = false;
+        }
+    }
+
     private void Editar() => Nav.NavigateTo($"/profesionales/editar/{Id}?volver=" + Uri.EscapeDataString(ContextoListado + (ContextoListado.Contains('?') ? "&" : "?") + $"detalle={Id}"));
     private void VerTurnos() => Nav.NavigateTo($"/turnos?profesionales={Id}");
     private static string Mostrar(object? valor) => string.IsNullOrWhiteSpace(valor?.ToString()) ? "—" : valor.ToString()!;

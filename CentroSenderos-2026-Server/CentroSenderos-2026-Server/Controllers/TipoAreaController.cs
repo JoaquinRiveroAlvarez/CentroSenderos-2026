@@ -1,9 +1,11 @@
-﻿using CentroSenderos_2026_Repositorio.Repositorios;
+﻿using Microsoft.AspNetCore.Authorization;
+using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
+    [Authorize(Policy = "EsProfesional")]
     [ApiController]
     [Route("api/tipoarea")]
     public class TipoAreaController : ControllerBase
@@ -36,6 +38,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "EsAdmin")]
         public async Task<ActionResult<int>> Crear([FromBody] TipoDTO dto)
         {
             try
@@ -53,6 +56,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Policy = "EsAdmin")]
         public async Task<IActionResult> Editar(
             int id,
             [FromBody] TipoDTO dto)
@@ -80,6 +84,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "EsAdmin")]
         public async Task<IActionResult> Eliminar(int id)
         {
             try

@@ -1,5 +1,5 @@
 ﻿@page "/admin"
-@attribute [Authorize]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio,admin,Calendario")]
 @using Microsoft.AspNetCore.Authorization
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
@@ -96,6 +96,7 @@
         </button>
 
         <!-- Tipos de Gasto -->
+<Microsoft.AspNetCore.Components.Authorization.AuthorizeView Roles="Socio">
 <button type="button" class="admin-card" @onclick="IrATiposGasto">
     <div class="admin-card-icon"><i class="bi bi-receipt"></i></div>
     <div class="admin-card-content">
@@ -104,6 +105,7 @@
     </div>
     <div class="admin-card-arrow"><i class="bi bi-chevron-right"></i></div>
 </button>
+        </Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
 
         <!-- Consultorios -->
         <button type="button" class="admin-card" @onclick="IrAConsultorios">
@@ -119,8 +121,8 @@
         <button type="button" class="admin-card" @onclick="IrARoles">
             <div class="admin-card-icon"><i class="bi bi-shield-lock"></i></div>
             <div class="admin-card-content">
-                <h2>Roles</h2>
-                <p>Asigná y remové roles de los usuarios del sistema.</p>
+                <h2>Usuarios y roles</h2>
+                <p>Consultá las cuentas y administrá sus permisos.</p>
             </div>
             <div class="admin-card-arrow"><i class="bi bi-chevron-right"></i></div>
         </button>

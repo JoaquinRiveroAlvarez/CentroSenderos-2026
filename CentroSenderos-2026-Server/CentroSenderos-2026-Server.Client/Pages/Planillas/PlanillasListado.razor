@@ -1,5 +1,5 @@
 ﻿@page "/planillas"
-@attribute [Authorize]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio,admin,Calendario,equipo,profesional")]
 @using Microsoft.AspNetCore.Authorization
 @using System.Linq
 @using CentroSenderos_2026_Shared.DTO

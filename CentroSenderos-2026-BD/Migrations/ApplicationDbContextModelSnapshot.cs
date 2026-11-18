@@ -618,6 +618,9 @@ namespace CentroSenderos_2026_BD.Migrations
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Planilla", b =>
                 {
+                    b.Property<string>("PropietarioPrivadoId")
+                        .HasColumnType("text");
+
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");

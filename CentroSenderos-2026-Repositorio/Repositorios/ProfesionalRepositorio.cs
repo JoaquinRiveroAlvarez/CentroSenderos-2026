@@ -132,10 +132,11 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return resultado;
         }
 
-        public async Task<List<ProfesionalListadoDTO>> SelectListaProfesional()
+        public async Task<List<ProfesionalListadoDTO>> SelectListaProfesional(bool bajas = false)
         {
+            var estado = bajas ? EnumEstadoRegistro.borrado : EnumEstadoRegistro.activo;
             var resultado = await context.Profesionales
-                .Where(p => p.EstadoRegistro == EnumEstadoRegistro.activo)
+                .Where(p => p.EstadoRegistro == estado)
                 .OrderBy(p => p.Area)
                 .ThenBy(p => p.Nombre)
                 .Select(p => new ProfesionalListadoDTO

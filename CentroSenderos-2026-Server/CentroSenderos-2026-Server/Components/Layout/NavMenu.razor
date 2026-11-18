@@ -19,7 +19,7 @@
 
     <nav class="sidebar-nav" aria-label="Menú principal">
 
-        <AuthorizeView Context="menuContext">
+        <AuthorizeView Roles="Socio,admin,Calendario,equipo,profesional" Context="menuContext">
 
             <Authorized>
 
@@ -56,6 +56,8 @@
 
                 </NavLink>
 
+                @if (menuContext.User.IsInRole("Socio"))
+                {
                 <a href="/gastos"
                    class="sidebar-link @(EnCaja ? "active" : null)"
                    aria-current="@(EnCaja ? "true" : null)"
@@ -68,6 +70,8 @@
 
                 </a>
 
+                }
+
                 <NavLink href="planillas"
                          class="sidebar-link"
                          title="Planillas">
@@ -79,6 +83,8 @@
 
                 </NavLink>
 
+                @if (menuContext.User.IsInRole("Socio") || menuContext.User.IsInRole("admin") || menuContext.User.IsInRole("Calendario"))
+                {
                 <NavLink href="admin"
                          class="sidebar-link"
                          title="Administración">
@@ -89,6 +95,8 @@
                     <span>Administración</span>
 
                 </NavLink>
+
+                }
 
             </Authorized>
 

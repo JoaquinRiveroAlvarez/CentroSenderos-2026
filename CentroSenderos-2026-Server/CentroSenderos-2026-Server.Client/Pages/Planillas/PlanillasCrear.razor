@@ -1,6 +1,6 @@
 ﻿@page "/planillas/crear"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio,admin,Calendario,equipo,profesional")]
 @using System.Linq
-@attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using CentroSenderos_2026_Shared.DTO
@@ -160,6 +160,14 @@
                 }
             </section>
 
+            @if (puedeElegirVisibilidad)
+            {
+                <label>
+                    <input type="checkbox" @bind="privada" />
+                    Guardar como planilla privada
+                </label>
+            }
+
             @if (!string.IsNullOrWhiteSpace(Mensaje))
             {
                 <div class="form-message" role="alert">
@@ -202,6 +210,18 @@
 
 @code {
     #region Tipo de planilla
+
+    [CascadingParameter]
+    private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState> EstadoAutenticacion { get; set; } = default!;
+    private bool puedeElegirVisibilidad;
+    private bool privada;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var cuenta = (await EstadoAutenticacion).User;
+        puedeElegirVisibilidad = cuenta.IsInRole("profesional")
+            && (cuenta.IsInRole("Socio") || cuenta.IsInRole("admin") || cuenta.IsInRole("Calendario"));
+    }
 
     private CrearCatalogo tipoPlanillaModal = default!;
 
@@ -377,6 +397,9 @@
                 contenidoArchivo.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
                 contenido.Add(contenidoArchivo, "archivo", archivoSeleccionado.Name);
             }
+
+            if (puedeElegirVisibilidad)
+                contenido.Add(new System.Net.Http.StringContent(privada ? "true" : "false"), "privada");
 
             var resp = await Http.PostMultipart<int>(
                 "api/planillas",

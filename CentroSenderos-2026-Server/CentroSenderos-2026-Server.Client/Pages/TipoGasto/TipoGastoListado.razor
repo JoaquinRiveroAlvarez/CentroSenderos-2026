@@ -1,5 +1,5 @@
 @page "/tipogasto"
-@attribute [Authorize]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio")]
 @using CentroSenderos_2026_Shared.DTO
 @using Microsoft.AspNetCore.Authorization
 @inject IHttpServicio Http

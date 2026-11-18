@@ -1,4 +1,4 @@
-using CentroSenderos_2026_BD;
+﻿using CentroSenderos_2026_BD;
 using CentroSenderos_2026_Shared.DTO;
 using CentroSenderos_2026_Shared.Enum;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CentroSenderos_2026_Server.Controllers
 {
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = "EsSocio")]
     [Route("api/caja")]
     public class CajaController(ApplicationDbContext contexto) : ControllerBase
     {

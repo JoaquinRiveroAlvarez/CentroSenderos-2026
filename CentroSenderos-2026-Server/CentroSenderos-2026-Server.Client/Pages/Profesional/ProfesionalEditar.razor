@@ -1,5 +1,5 @@
 @page "/profesionales/editar/{id:int}"
-@attribute [Authorize]
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio,admin,Calendario")]
 @using Microsoft.AspNetCore.Authorization
 @using CentroSenderos_2026_Shared.DTO
 @inject IHttpServicio Http
@@ -186,26 +186,6 @@
                 </div>
             </section>
 
-            <section class="form-section">
-                <div class="section-title">
-                    <span class="section-number">04</span>
-                    <span>Usuario del sistema</span>
-                </div>
-
-                <div class="form-grid form-grid-2">
-                    <div class="field-group">
-                        <label for="profesionalRol">Rol</label>
-
-                        <EntradaConBusqueda
-                                     id="profesionalRol"
-                                     @bind-Value="modelo.RolAsignado"
-                                     Disabled="@(guardando || eliminando)"
-                                     Etiqueta="Rol" Placeholder="Seleccioná un rol"
-                                     Opciones="OpcionesRoles" />
-                    </div>
-                </div>
-            </section>
-
             @if (!string.IsNullOrWhiteSpace(Mensaje))
             {
                 <div class="form-message" role="alert">
@@ -318,15 +298,6 @@
         PrestacionesDisponibles
             .Select(prestacion => new OpcionSelector(prestacion.Id.ToString(), prestacion.Tipo, prestacion.TipoAreaNombre ?? "Sin área asignada"));
 
-    private IEnumerable<OpcionSelector> OpcionesRoles =>
-        new OpcionSelector[]
-        {
-            new OpcionSelector("admin", "Administrador"),
-            new OpcionSelector("equipo", "Equipo"),
-            new OpcionSelector("profesional", "Profesional"),
-            new OpcionSelector("AdministradorEquipo", "Administrador/Equipo")
-        };
-
     #endregion
 
 
@@ -399,7 +370,6 @@
 
     private string Mensaje = string.Empty;
     private string MensajeEliminar = string.Empty;
-    private string rolOriginal = string.Empty;
 
     private IEnumerable<TipoPrestacionListadoDTO> PrestacionesDisponibles =>
         listaTipoPrestaciones
@@ -451,7 +421,6 @@
             modelo = profesionalResp.Respuesta;
             modelo.TipoPrestacionIds ??= new List<int>();
             modelo.TipoPrestacionNombres ??= new List<string>();
-            rolOriginal = modelo.RolAsignado ?? string.Empty;
 
             if (!prestacionesResp.Error)
             {
@@ -511,11 +480,6 @@
 
         try
         {
-            var rolCambio = !string.Equals(
-                modelo.RolAsignado ?? string.Empty,
-                rolOriginal,
-                StringComparison.OrdinalIgnoreCase);
-
             var resp = await Http.Put<ProfesionalDTO, RespuestaDTO>(
                 $"api/profesional/{id}",
                 modelo);
@@ -524,27 +488,6 @@
             {
                 Mensaje = resp.ObtenerError();
                 return;
-            }
-
-            if (rolCambio &&
-                !string.IsNullOrWhiteSpace(modelo.RolAsignado))
-            {
-                var rolResp = await Http.Post<RolAsignacionDTO, string>(
-                    "api/seguridad/asignarRol",
-                    new RolAsignacionDTO
-                    {
-                        Email = modelo.Email,
-                        Rol = modelo.RolAsignado
-                    });
-
-                if (rolResp.Error)
-                {
-                    Mensaje =
-                        "Los datos del profesional se actualizaron, " +
-                        "pero ocurrió un error al asignar el rol: " +
-                        rolResp.ObtenerError();
-                    return;
-                }
             }
 
             Nav.NavigateTo(

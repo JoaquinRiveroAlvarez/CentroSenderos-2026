@@ -1,9 +1,11 @@
-﻿using CentroSenderos_2026_Repositorio.Repositorios;
+﻿using Microsoft.AspNetCore.Authorization;
+using CentroSenderos_2026_Repositorio.Repositorios;
 using CentroSenderos_2026_Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CentroSenderos_2026_Server.Controllers
 {
+    [Authorize(Policy = "EsProfesional")]
     [ApiController]
     [Route("api/tipoconsultorio")]
     public class TipoConsultorioController : ControllerBase
@@ -42,6 +44,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "EsAdmin")]
         public async Task<IActionResult> Post([FromBody] TipoConsultorioDTO dto)
         {
             try
@@ -60,6 +63,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Policy = "EsAdmin")]
         public async Task<ActionResult> Put(int id, TipoConsultorioDTO dto)
         {
             try
