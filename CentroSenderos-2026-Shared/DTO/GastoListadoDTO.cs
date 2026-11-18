@@ -28,6 +28,28 @@ namespace CentroSenderos_2026_Shared.DTO
         public List<GastoReintegroListadoDTO> GastoReintegros
         { get; set; } = new();
 
+        public bool PuedeImputarACaja => GastoRepartos.Count == 0 &&
+            GastoReintegros.Count == 0 && Monto > 0 &&
+            GastoSocios.All(aporte => aporte.Monto > 0) &&
+            GastoSocios.Sum(aporte => aporte.Monto) == Monto;
+
+        public bool EsCompatibleConCaja(int cajaId)
+        {
+            return cajaId > 0 && Monto > 0 &&
+                GastoRepartos.Count == 1 &&
+                GastoRepartos[0].SocioId == cajaId &&
+                GastoRepartos[0].Monto == Monto &&
+                GastoSocios.All(aporte => aporte.Monto > 0) &&
+                GastoSocios.Sum(aporte => aporte.Monto) == Monto &&
+                GastoReintegros.All(reintegro => reintegro.Monto > 0 &&
+                    reintegro.SocioPagadorId == cajaId &&
+                    reintegro.SocioReceptorId != cajaId) &&
+                GastoReintegros.GroupBy(reintegro => reintegro.SocioReceptorId)
+                    .All(grupo => grupo.Sum(reintegro => reintegro.Monto) <=
+                        GastoSocios.Where(aporte => aporte.SocioId == grupo.Key)
+                            .Sum(aporte => aporte.Monto));
+        }
+
         public decimal SaldoSocio(int socioId)
         {
             var pagado = GastoSocios

@@ -1,0 +1,149 @@
+@typeparam TFecha
+@inherits InputBase<TFecha>
+@using System.Diagnostics.CodeAnalysis
+@using System.Globalization
+
+<div class="@ClaseCampo" @onkeydown="CerrarConEscape">
+    <label for="@Id" id="@(Id + "-etiqueta")" class="periodo-etiqueta">@Etiqueta</label>
+
+    @if (abierto && !Deshabilitado)
+    {
+        <button type="button" class="periodo-cierre-fondo"
+                tabindex="-1" aria-label="Cerrar calendario" @onclick="Cerrar">
+        </button>
+    }
+
+    <button type="button" id="@Id" @attributes="AdditionalAttributes"
+            class="periodo-fecha-selector @CssClass"
+            disabled="@Deshabilitado"
+            aria-labelledby="@($"{Id}-etiqueta {Id}-texto")"
+            aria-expanded="@(abierto ? "true" : "false")"
+            aria-controls="@(abierto ? Id + "-calendario" : null)"
+            @onclick="Alternar">
+        <span id="@(Id + "-texto")">@(Fecha?.ToString("dd/MM/yyyy") ?? (PermiteLimpiar ? "Sin límite" : "Seleccionar fecha"))</span>
+        <i class="bi bi-calendar3" aria-hidden="true"></i>
+    </button>
+
+    @if (abierto && !Deshabilitado)
+    {
+        <section id="@(Id + "-calendario")" class="periodo-calendario" aria-label="@($"Calendario {Etiqueta}")">
+            <div class="periodo-calendario-header">
+                <button type="button" class="periodo-calendario-nav" aria-label="Mes anterior"
+                        disabled="@(mes == DateTime.MinValue.Date)" @onclick="() => CambiarMes(-1)">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                </button>
+                <strong aria-live="polite">@cultura.TextInfo.ToTitleCase(mes.ToString("MMMM yyyy", cultura))</strong>
+                <button type="button" class="periodo-calendario-nav" aria-label="Mes siguiente"
+                        disabled="@(mes.Year == 9999 && mes.Month == 12)" @onclick="() => CambiarMes(1)">
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div class="periodo-calendario-semana" aria-hidden="true">
+                @foreach (var dia in nombresDias)
+                {
+                    <span>@dia</span>
+                }
+            </div>
+
+            <div class="periodo-calendario-dias">
+                @for (var i = 0; i < ((int)mes.DayOfWeek + 6) % 7; i++)
+                {
+                    <span aria-hidden="true"></span>
+                }
+                @for (var i = 0; i < DateTime.DaysInMonth(mes.Year, mes.Month); i++)
+                {
+                    var fecha = mes.AddDays(i);
+                    <button type="button" class="@ClaseDia(fecha)"
+                            aria-label="@fecha.ToString("D", cultura)"
+                            aria-current="@(fecha == DateTime.Today ? "date" : null)"
+                            aria-pressed="@(fecha == Fecha?.Date ? "true" : "false")"
+                            @onclick="() => Seleccionar(fecha)">@fecha.Day</button>
+                }
+            </div>
+
+            <div class="periodo-calendario-footer">
+                @if (PermiteLimpiar)
+                {
+                    <button type="button" @onclick="Limpiar">Sin límite</button>
+                }
+                <button type="button" @onclick="() => Seleccionar(DateTime.Today)">Hoy</button>
+                <button type="button" @onclick="Cerrar">Cerrar</button>
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    #region Parámetros y estado
+
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string Etiqueta { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool Deshabilitado { get; set; }
+
+    [Parameter]
+    public bool PermiteLimpiar { get; set; }
+
+    [Parameter]
+    public bool AlinearIzquierdaEnMovil { get; set; }
+
+    private static readonly CultureInfo cultura = CultureInfo.GetCultureInfo("es-AR");
+    private static readonly string[] nombresDias = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"];
+    private bool abierto;
+    private DateTime mes;
+    private DateTime? Fecha => CurrentValue is DateTime fecha ? fecha : null;
+    private string ClaseCampo => "periodo-campo" +
+        (abierto && !Deshabilitado ? " calendario-abierto" : string.Empty) +
+        (AlinearIzquierdaEnMovil ? " periodo-alinear-izquierda" : string.Empty);
+
+    #endregion
+
+    #region Selección de fecha
+
+    private void Alternar()
+    {
+        abierto = !abierto;
+        if (abierto)
+        {
+            var fecha = Fecha ?? DateTime.Today;
+            mes = new DateTime(fecha.Year, fecha.Month, 1);
+        }
+    }
+
+    private string ClaseDia(DateTime fecha) => "periodo-calendario-dia" +
+        (fecha == DateTime.Today ? " hoy" : string.Empty) +
+        (fecha == Fecha?.Date ? " seleccionado" : string.Empty);
+
+    private void CambiarMes(int cantidad) => mes = mes.AddMonths(cantidad);
+
+    private void Seleccionar(DateTime fecha)
+    {
+        Cerrar();
+        CurrentValue = (TFecha)(object)fecha;
+    }
+
+    private void Limpiar()
+    {
+        Cerrar();
+        CurrentValue = default!;
+    }
+
+    private void Cerrar() => abierto = false;
+
+    private void CerrarConEscape(KeyboardEventArgs evento)
+    {
+        if (evento.Key == "Escape")
+            Cerrar();
+    }
+
+    protected override bool TryParseValueFromString(string? value, out TFecha result,
+        [NotNullWhen(false)] out string? validationErrorMessage) =>
+        throw new NotSupportedException("El calendario selecciona fechas mediante botones.");
+
+    #endregion
+}

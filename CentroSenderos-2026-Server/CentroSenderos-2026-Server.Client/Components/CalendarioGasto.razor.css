@@ -1,0 +1,278 @@
+/* #region Campo de fecha */
+.periodo-campo {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+}
+
+    /* Campo activo por encima del cierre transparente */
+    .periodo-campo.calendario-abierto {
+        z-index: 101;
+    }
+
+.periodo-fecha-selector {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 1px solid #dedbd4;
+    border-radius: 20px;
+    background: #fff;
+    color: #444;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+
+    .periodo-fecha-selector span {
+        white-space: nowrap;
+    }
+
+    .periodo-fecha-selector i {
+        flex-shrink: 0;
+        color: #647b5b;
+    }
+
+    .periodo-fecha-selector:hover {
+        border-color: #aebba9;
+    }
+
+    .periodo-fecha-selector[aria-expanded="true"] {
+        position: relative;
+        z-index: 101;
+        border-color: #647b5b;
+        box-shadow: 0 0 0 3px rgb(100 123 91 / 13%);
+    }
+
+
+.periodo-campo,
+.periodo-campo * {
+    box-sizing: border-box;
+}
+
+.periodo-campo button {
+    font-family: inherit;
+}
+
+.periodo-etiqueta {
+    margin: 0;
+    color: #647b5b;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.periodo-fecha-selector.invalid {
+    border-color: #a04438;
+}
+
+.periodo-fecha-selector:disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+
+/* #endregion */
+
+/* #region Calendario de períodos */
+
+/* Cierre transparente al tocar fuera */
+.periodo-cierre-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: default;
+}
+
+/* Calendario debajo del selector activo */
+.periodo-calendario {
+    position: absolute;
+    z-index: 101;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 310px;
+    max-width: calc(100vw - 32px);
+    max-height: 65dvh;
+    overflow-y: auto;
+    padding: 16px;
+    border: 1px solid #d2d8cf;
+    border-radius: 14px;
+    background: #fdfdfb;
+    color: #3f443d;
+    box-shadow: 0 14px 34px rgb(48 52 46 / 17%);
+}
+
+/* Navegación por mes */
+.periodo-calendario-header {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) 32px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 9px;
+}
+
+    .periodo-calendario-header strong {
+        color: #3d423b;
+        font-size: 13px;
+        text-align: center;
+    }
+
+.periodo-calendario-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+    color: #555b53;
+    cursor: pointer;
+}
+
+    .periodo-calendario-nav:hover:not(:disabled) {
+        border-color: #d9e0d6;
+        background: #eef3ec;
+        color: #4b6545;
+    }
+
+    .periodo-calendario-nav:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+
+/* Semana de lunes a domingo */
+.periodo-calendario-semana,
+.periodo-calendario-dias {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.periodo-calendario-semana {
+    margin-bottom: 4px;
+}
+
+    .periodo-calendario-semana span {
+        padding: 5px 0;
+        color: #969a93;
+        font-size: 10px;
+        font-weight: 700;
+        text-align: center;
+    }
+
+.periodo-calendario-dias {
+    gap: 3px;
+}
+
+/* Días del mes */
+.periodo-calendario-dia {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+    color: #454a43;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+    .periodo-calendario-dia:hover {
+        border-color: #d4ddd1;
+        background: #edf3eb;
+        color: #435f3e;
+    }
+
+    /* Hoy y fecha seleccionada */
+    .periodo-calendario-dia.hoy {
+        border-color: #a9bba4;
+        color: #4c6746;
+        font-weight: 700;
+    }
+
+    .periodo-calendario-dia.seleccionado {
+        border-color: #556f4f;
+        background: #556f4f;
+        color: #fff;
+        font-weight: 700;
+        box-shadow: 0 3px 7px rgb(85 111 79 / 22%);
+    }
+
+        .periodo-calendario-dia.seleccionado:hover {
+            background: #435b3e;
+            color: #fff;
+        }
+
+/* Acciones inferiores */
+.periodo-calendario-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e1e4de;
+}
+
+    .periodo-calendario-footer button {
+        min-height: 32px;
+        padding: 6px 10px;
+        border: 1px solid #cbd5c8;
+        border-radius: 7px;
+        background: #eef3ec;
+        color: #4b6545;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+        .periodo-calendario-footer button:hover {
+            border-color: #647b5b;
+            background: #dfe8dc;
+        }
+
+/* #endregion */
+
+.periodo-fecha-selector:focus-visible,
+.periodo-calendario-nav:focus-visible,
+.periodo-calendario-dia:focus-visible,
+.periodo-calendario-footer button:focus-visible {
+    outline: 2px solid #647b5b;
+    outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+    .periodo-calendario {
+        width: 280px;
+    }
+
+    .periodo-alinear-izquierda .periodo-calendario {
+        right: auto;
+        left: 0;
+    }
+}
+
+@media (max-width: 500px) {
+    .periodo-calendario {
+        padding: 12px;
+    }
+}
+
+@media (max-width: 360px) {
+    .periodo-campo .periodo-calendario {
+        right: auto;
+        left: 0;
+        width: 100%;
+    }
+}

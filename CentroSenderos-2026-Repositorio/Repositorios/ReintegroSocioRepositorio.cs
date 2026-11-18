@@ -144,17 +144,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var receptorValido = await context.Socios
                 .AnyAsync(socio =>
                     socio.Id == dto.SocioReceptorId &&
-                    !socio.EsCaja &&
-                    socio.EstadoRegistro == EnumEstadoRegistro.activo &&
-                    socio.Profesionales != null &&
-                    socio.Profesionales.EstadoRegistro ==
-                        EnumEstadoRegistro.activo);
+                    !socio.EsCaja && socio.ProfesionalId != null);
 
             if (!receptorValido)
             {
                 throw new ApplicationException(
-                    "El socio que recibe no existe o su registro " +
-                    "o profesional está inactivo.");
+                    "El socio que recibe el reintegro no existe.");
             }
 
             var gastos = await context.Gastos
@@ -234,8 +229,12 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     .ToList();
 
                 if (reintegrosDelGasto.Any(reintegro =>
-                    reintegro.SocioPagadorId != caja.Id ||
-                    reintegro.SocioReceptorId == caja.Id))
+                    reintegro.Monto <= 0 || reintegro.SocioPagadorId != caja.Id ||
+                    reintegro.SocioReceptorId == caja.Id) ||
+                    reintegrosDelGasto.GroupBy(reintegro => reintegro.SocioReceptorId)
+                        .Any(grupo => grupo.Sum(reintegro => reintegro.Monto) >
+                            aportes.Where(aporte => aporte.SocioId == grupo.Key)
+                                .Sum(aporte => aporte.Monto)))
                 {
                     throw new ApplicationException(
                         $"El gasto «{gasto.Descripcion}» tiene reintegros " +

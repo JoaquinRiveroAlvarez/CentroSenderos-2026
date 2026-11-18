@@ -1,0 +1,244 @@
+@page "/gastos/caja"
+@attribute [Authorize]
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+@using Microsoft.AspNetCore.Authorization
+@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Servicio.ServiciosHttp
+@using System.Globalization
+@inject IHttpServicio Http
+
+<PageTitle>Movimientos de Caja Senderos</PageTitle>
+
+<div class="caja-movimientos">
+    <header class="caja-cabecera">
+        <div>
+            <a class="caja-volver" href="/gastos">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                Volver a Gastos
+            </a>
+            <h1>Movimientos de Caja Senderos</h1>
+        </div>
+    </header>
+
+    @if (cargando)
+    {
+        <p class="caja-aviso" role="status">Cargando movimientos…</p>
+    }
+    else if (!string.IsNullOrEmpty(error))
+    {
+        <p class="caja-aviso caja-error" role="alert">@error</p>
+    }
+    else
+    {
+        var periodoValido = !(desde > hasta);
+        var texto = busqueda.Trim();
+        var visibles = movimientos.Where(movimiento =>
+            periodoValido &&
+            (!desde.HasValue || movimiento.Fecha.Date >= desde.Value.Date) &&
+            (!hasta.HasValue || movimiento.Fecha.Date <= hasta.Value.Date) &&
+            (!concepto.HasValue || movimiento.Tipo == concepto.Value) &&
+            CoincideBusqueda(movimiento, texto)).ToList();
+
+        <div class="caja-contenido">
+            <aside class="caja-saldo" aria-labelledby="saldo-caja">
+                <i class="bi bi-wallet2" aria-hidden="true"></i>
+                <h2 id="saldo-caja">Saldo registrado</h2>
+                <strong>@Moneda(movimientos.Sum(movimiento => movimiento.Importe))</strong>
+                <p>Incluye efectivo y otros medios de pago desde el primer movimiento disponible.</p>
+            </aside>
+
+            <section class="caja-listado" aria-labelledby="movimientos-periodo">
+                <div class="caja-listado-cabecera">
+                    <h2 id="movimientos-periodo">Movimientos del período</h2>
+                </div>
+
+                <div class="caja-filtros" role="group" aria-label="Filtros de movimientos">
+                    <CalendarioGasto Id="caja-fecha-desde" Etiqueta="Desde" PermiteLimpiar="true"
+                                     AlinearIzquierdaEnMovil="true" @bind-Value="desde" />
+                    <CalendarioGasto Id="caja-fecha-hasta" Etiqueta="Hasta" PermiteLimpiar="true"
+                                     @bind-Value="hasta" />
+
+                    <div class="caja-filtro">
+                        <label for="caja-concepto">Concepto</label>
+                        <select id="caja-concepto" @bind="concepto">
+                            <option value="">Todos los conceptos</option>
+                            @foreach (var movimiento in conceptos)
+                            {
+                                <option value="@movimiento.Tipo">@movimiento.Concepto</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="caja-filtro">
+                        <label for="caja-busqueda">Buscar</label>
+                        <input type="search" id="caja-busqueda"
+                               placeholder="Origen o N.º"
+                               @bind="busqueda" @bind:event="oninput" />
+                    </div>
+
+                    <button type="button" class="caja-restaurar" aria-label="Restaurar filtros" @onclick="RestaurarFiltros">
+                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                        Restaurar
+                    </button>
+                </div>
+
+                @if (!periodoValido)
+                {
+                    <p class="caja-aviso caja-error" role="alert">La fecha desde debe ser anterior o igual a la fecha hasta.</p>
+                }
+                else if (visibles.Count == 0)
+                {
+                    <p class="caja-aviso" role="status">Sin movimientos para los filtros seleccionados.</p>
+                }
+                else
+                {
+                    <div class="caja-tabla" tabindex="0" role="region" aria-label="Tabla de movimientos">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Fecha</th>
+                                    <th scope="col">Concepto</th>
+                                    <th scope="col">Origen</th>
+                                    <th scope="col">Importe</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var movimiento in visibles)
+                                {
+                                    <tr class="@(ReferenceEquals(movimiento, seleccionado) ? "caja-seleccionado" : null)"
+                                        @onclick="() => SeleccionarMovimiento(movimiento)">
+                                        <td class="caja-fecha">@movimiento.Fecha.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            <button type="button" class="caja-detalle-enlace"
+                                                    aria-label="@($"{movimiento.Concepto}, {movimiento.Referencia}, {movimiento.Fecha:dd/MM/yyyy}, {Moneda(movimiento.Importe)}")"
+                                                    @onclick="() => SeleccionarMovimiento(movimiento)"
+                                                    @onclick:stopPropagation="true">
+                                                @movimiento.Concepto
+                                                <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            @movimiento.Referencia
+                                            <small>#@movimiento.OrigenId</small>
+                                        </td>
+                                        <td class="@(movimiento.Importe < 0 ? "caja-importe salida" : "caja-importe ingreso")">
+                                            @(movimiento.Importe > 0 ? "+" : string.Empty)@Moneda(movimiento.Importe)
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th scope="row" colspan="3">Movimiento neto de la selección</th>
+                                    <td class="caja-importe">@Moneda(visibles.Sum(movimiento => movimiento.Importe))</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+            </section>
+        </div>
+    }
+</div>
+
+@if (gastoDetalleId is int id)
+{
+    <GastosDetalle @key="id" GastoId="id" SoloLectura="true" OnCerrar="() => gastoDetalleId = null" />
+}
+else if (seleccionado is { Tipo: TipoMovimientoCaja.Reintegro } reintegro)
+{
+    <GastosDetalle @key="reintegro" ReintegroCaja="reintegro" SoloLectura="true"
+                   OnVerGasto="id => gastoDetalleId = id" OnCerrar="CerrarMovimiento" />
+}
+else if (seleccionado is { Tipo: not TipoMovimientoCaja.PagoGasto } movimientoSeleccionado)
+{
+    <div class="caja-detalle-fondo" @onclick="CerrarMovimiento">
+        <section class="caja-detalle-movimiento" role="dialog" aria-modal="true"
+                 aria-labelledby="titulo-movimiento-caja" @onclick:stopPropagation="true">
+            <h3 id="titulo-movimiento-caja">@movimientoSeleccionado.Concepto</h3>
+            <p>@movimientoSeleccionado.Referencia · @Moneda(movimientoSeleccionado.Importe)</p>
+            <button type="button" class="caja-cerrar-detalle" @onclick="CerrarMovimiento">Cerrar</button>
+        </section>
+    </div>
+}
+
+@code {
+    #region Estado
+
+    private List<MovimientoCajaDTO> movimientos = new();
+    private bool cargando = true;
+    private string error = string.Empty;
+    private List<MovimientoCajaDTO> conceptos = new();
+    private DateTime? desde = InicioDelMes();
+    private DateTime? hasta;
+    private TipoMovimientoCaja? concepto;
+    private string busqueda = string.Empty;
+    private MovimientoCajaDTO? seleccionado;
+    private int? gastoDetalleId;
+
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var respuesta = await Http.Get<List<MovimientoCajaDTO>>("api/caja/movimientos");
+            if (respuesta.Error)
+            {
+                error = respuesta.ObtenerError();
+                return;
+            }
+
+            movimientos = respuesta.Respuesta ?? new();
+            conceptos = movimientos.DistinctBy(movimiento => movimiento.Tipo)
+                .OrderBy(movimiento => movimiento.Concepto).ToList();
+        }
+        catch (Exception)
+        {
+            error = "No se pudieron consultar los movimientos de Caja.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    #region Filtros
+
+    private static DateTime InicioDelMes()
+    {
+        var hoy = DateTime.Today;
+        return new DateTime(hoy.Year, hoy.Month, 1);
+    }
+
+    private static bool CoincideBusqueda(MovimientoCajaDTO movimiento, string texto)
+    {
+        if (texto.Length == 0)
+            return true;
+
+        return FiltrosEntidades.ContieneTexto(movimiento.Referencia, texto) ||
+            (int.TryParse(texto.TrimStart('#'), out var id) && movimiento.OrigenId == id);
+    }
+
+    private void RestaurarFiltros()
+    {
+        desde = InicioDelMes();
+        hasta = null;
+        concepto = null;
+        busqueda = string.Empty;
+    }
+
+    #endregion
+
+    private void SeleccionarMovimiento(MovimientoCajaDTO movimiento)
+    {
+        seleccionado = movimiento;
+        if (movimiento.Tipo == TipoMovimientoCaja.PagoGasto)
+            gastoDetalleId = movimiento.OrigenId;
+    }
+
+    private void CerrarMovimiento() => seleccionado = null;
+
+    private static string Moneda(decimal monto) =>
+        monto.ToString("C2", CultureInfo.GetCultureInfo("es-AR"));
+}

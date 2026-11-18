@@ -1,0 +1,93 @@
+@using CentroSenderos_2026_Shared.DTO
+@inject IHttpServicio Http
+
+<div class="tipo-gasto-fondo">
+    <section class="tipo-gasto-dialogo" role="dialog" aria-modal="true"
+             aria-labelledby="titulo-alta-tipo-gasto" tabindex="-1"
+             @ref="dialogo" @onkeydown="CerrarConEscape">
+        <h2 id="titulo-alta-tipo-gasto">Nuevo tipo de gasto</h2>
+        <EditForm Model="modelo" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <fieldset disabled="@guardando">
+                <label for="alta-tipo-gasto-nombre">Nombre</label>
+                <InputText id="alta-tipo-gasto-nombre" @bind-Value="modelo.Tipo" maxlength="50" />
+                <ValidationMessage For="@(() => modelo.Tipo)" />
+
+                <label for="alta-tipo-gasto-descripcion">Descripción (opcional)</label>
+                <InputText id="alta-tipo-gasto-descripcion" @bind-Value="modelo.Descripcion" maxlength="50" />
+                <ValidationMessage For="@(() => modelo.Descripcion)" />
+
+                @if (!string.IsNullOrWhiteSpace(mensaje))
+                {
+                    <p role="alert">@mensaje</p>
+                }
+
+                <div class="tipo-gasto-acciones">
+                    <button type="button" @onclick="OnCerrar">Cancelar</button>
+                    <button type="submit">@(guardando ? "Guardando…" : "Crear tipo")</button>
+                </div>
+            </fieldset>
+        </EditForm>
+    </section>
+</div>
+
+@code {
+    #region Parámetros y estado
+
+    [Parameter]
+    public EventCallback<TipoListadoDTO> OnGuardado { get; set; }
+
+    [Parameter]
+    public EventCallback OnCerrar { get; set; }
+
+    private ElementReference dialogo;
+    private readonly TipoDTO modelo = new() { Tipo = string.Empty };
+    private bool guardando;
+    private string mensaje = string.Empty;
+
+    #endregion
+
+    protected override async Task OnAfterRenderAsync(bool primerRender)
+    {
+        if (primerRender)
+            await dialogo.FocusAsync();
+    }
+
+    private Task CerrarConEscape(KeyboardEventArgs evento) =>
+        evento.Key == "Escape" && !guardando ? OnCerrar.InvokeAsync() : Task.CompletedTask;
+
+    private async Task Guardar()
+    {
+        if (guardando)
+            return;
+
+        guardando = true;
+        mensaje = string.Empty;
+        try
+        {
+            modelo.Tipo = modelo.Tipo.Trim();
+            modelo.Descripcion = modelo.Descripcion.Trim();
+            var respuesta = await Http.Post<TipoDTO, int>("api/tipogasto", modelo);
+            if (respuesta.Error || respuesta.Respuesta <= 0)
+            {
+                mensaje = respuesta.Error ? respuesta.ObtenerError() : "No se pudo crear el tipo de gasto.";
+                return;
+            }
+
+            await OnGuardado.InvokeAsync(new TipoListadoDTO
+            {
+                Id = respuesta.Respuesta,
+                Tipo = modelo.Tipo,
+                Descripcion = modelo.Descripcion
+            });
+        }
+        catch (Exception)
+        {
+            mensaje = "No se pudo crear el tipo de gasto. Volvé a intentarlo.";
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+}

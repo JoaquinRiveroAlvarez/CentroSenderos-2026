@@ -153,6 +153,20 @@
     overflow-wrap: anywhere;
 }
 
+.aporte-enlace {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #405d36;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+.aporte-enlace:hover {
+    text-decoration: underline;
+}
+
     .aporte-name i {
         flex-shrink: 0;
         color: #647b5b;

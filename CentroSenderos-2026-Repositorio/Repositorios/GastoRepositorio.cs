@@ -247,6 +247,144 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "El motivo no puede exceder los 500 caracteres.");
             }
 
+            await using var transaccion =
+                await context.Database.BeginTransactionAsync(
+                    IsolationLevel.Serializable);
+
+            var usuario = await context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == usuarioId);
+
+            if (usuario == null)
+            {
+                throw new ApplicationException(
+                    "El usuario identificado no existe.");
+            }
+
+            var gasto = await context.Gastos
+                .Include(g => g.TipoGastos)
+                .Include(g => g.GastoRepartos)
+                    .ThenInclude(reparto => reparto.Socios)
+                        .ThenInclude(socio => socio!.Profesionales)
+                .Include(g => g.GastoSocios)
+                    .ThenInclude(aporte => aporte.Socios)
+                        .ThenInclude(socio => socio!.Profesionales)
+                .FirstOrDefaultAsync(g =>
+                    g.Id == id &&
+                    g.EstadoRegistro == EnumEstadoRegistro.activo);
+
+            if (gasto == null)
+                return false;
+
+            var tieneReintegros = await context.ReintegrosSociosDetalles
+                .AnyAsync(detalle =>
+                    detalle.GastoId == id &&
+                    detalle.EstadoRegistro == EnumEstadoRegistro.activo &&
+                    detalle.ReintegroSocio != null &&
+                    detalle.ReintegroSocio.EstadoRegistro ==
+                        EnumEstadoRegistro.activo);
+
+            var tipoGasto = await context.TipoGastos
+                .FirstOrDefaultAsync(tipo => tipo.Id == dto.TipoGastoId);
+
+            if (tipoGasto == null ||
+                (tipoGasto.EstadoRegistro != EnumEstadoRegistro.activo &&
+                 dto.TipoGastoId != gasto.TipoGastoId))
+            {
+                throw new ApplicationException(
+                    "El tipo de gasto seleccionado no existe o está inactivo.");
+            }
+
+            var aportesActuales = gasto.GastoSocios
+                .Where(aporte =>
+                    aporte.EstadoRegistro == EnumEstadoRegistro.activo)
+                .ToList();
+
+            var repartosOriginales = gasto.GastoRepartos
+                .Where(reparto => reparto.EstadoRegistro == EnumEstadoRegistro.activo)
+                .ToList();
+            var requiereRevision = repartosOriginales.Count != 1 ||
+                repartosOriginales[0].Socios?.EsCaja != true ||
+                repartosOriginales[0].Socios?.EstadoRegistro != EnumEstadoRegistro.activo ||
+                repartosOriginales[0].Monto != gasto.Monto || gasto.Monto <= 0 ||
+                aportesActuales.Any(aporte => aporte.Monto <= 0) ||
+                aportesActuales.Sum(aporte => aporte.Monto) != gasto.Monto;
+
+            if (tieneReintegros || requiereRevision)
+            {
+                var aportesSinCambios =
+                    dto.GastoSocios != null &&
+                    aportesActuales.Count == dto.GastoSocios.Count &&
+                    aportesActuales.All(actual =>
+                        dto.GastoSocios.Any(nuevo =>
+                            nuevo != null && nuevo.SocioId == actual.SocioId &&
+                            nuevo.Monto == actual.Monto));
+
+                if (dto.Fecha.Value.Date != gasto.Fecha.Date ||
+                    !aportesSinCambios ||
+                    dto.CompletarReparto ||
+                    (dto.SocioRepartoIds != null &&
+                     dto.SocioRepartoIds.Count > 0))
+                {
+                    throw new ApplicationException(
+                        "Este gasto tiene reintegros o datos por revisar. Solo se pueden " +
+                        "modificar la descripción y el tipo de gasto; la fecha, " +
+                        "el monto, los pagos y el reparto están protegidos.");
+                }
+
+                var versionAnterior = JsonSerializer.Serialize(
+                    ObtenerVersionGasto(gasto));
+
+                gasto.Descripcion = descripcion;
+                gasto.TipoGastoId = tipoGasto.Id;
+                gasto.TipoGastos = tipoGasto;
+
+                if (dto.ImputarACaja)
+                {
+                    var cajaActiva = await context.Socios.SingleOrDefaultAsync(socio =>
+                        socio.EsCaja && socio.EstadoRegistro == EnumEstadoRegistro.activo);
+                    if (cajaActiva == null || tieneReintegros ||
+                        !ObtenerVersionGasto(gasto).PuedeImputarACaja)
+                    {
+                        throw new ApplicationException(
+                            "Solo se puede imputar a Caja un gasto sin reparto ni reintegros y con pagos consistentes.");
+                    }
+
+                    gasto.GastoRepartos.Add(new GastoReparto
+                    {
+                        SocioId = cajaActiva.Id,
+                        Socios = cajaActiva,
+                        EstadoRegistro = EnumEstadoRegistro.activo,
+                        Monto = gasto.Monto
+                    });
+                }
+
+                var versionNueva = JsonSerializer.Serialize(
+                    ObtenerVersionGasto(gasto));
+
+                if (versionAnterior == versionNueva)
+                {
+                    throw new ApplicationException(
+                        "No hay cambios en el gasto para guardar.");
+                }
+
+                context.GastoHistoriales.Add(new GastoHistorial
+                {
+                    GastoId = gasto.Id,
+                    UsuarioId = usuario.Id,
+                    NombreUsuario = usuario.UserName ?? usuario.Id,
+                    FechaCambio = DateTime.UtcNow,
+                    Motivo = motivo,
+                    DatosAnteriores = versionAnterior,
+                    DatosNuevos = versionNueva
+                });
+
+                await context.SaveChangesAsync();
+                await transaccion.CommitAsync();
+
+                return true;
+            }
+
             if (dto.GastoSocios == null || dto.GastoSocios.Count == 0)
             {
                 throw new ApplicationException(
@@ -309,114 +447,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "El monto total supera el importe permitido.");
             }
 
-            await using var transaccion =
-                await context.Database.BeginTransactionAsync(
-                    IsolationLevel.Serializable);
-
-            var usuario = await context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == usuarioId);
-
-            if (usuario == null)
-            {
-                throw new ApplicationException(
-                    "El usuario identificado no existe.");
-            }
-
-            var gasto = await context.Gastos
-                .Include(g => g.TipoGastos)
-                .Include(g => g.GastoRepartos)
-                    .ThenInclude(reparto => reparto.Socios)
-                        .ThenInclude(socio => socio!.Profesionales)
-                .Include(g => g.GastoSocios)
-                    .ThenInclude(aporte => aporte.Socios)
-                        .ThenInclude(socio => socio!.Profesionales)
-                .FirstOrDefaultAsync(g =>
-                    g.Id == id &&
-                    g.EstadoRegistro == EnumEstadoRegistro.activo);
-
-            if (gasto == null)
-                return false;
-
-            var tieneReintegros = await context.ReintegrosSociosDetalles
-                .AnyAsync(detalle =>
-                    detalle.GastoId == id &&
-                    detalle.EstadoRegistro == EnumEstadoRegistro.activo &&
-                    detalle.ReintegroSocio != null &&
-                    detalle.ReintegroSocio.EstadoRegistro ==
-                        EnumEstadoRegistro.activo);
-
-            var tipoGasto = await context.TipoGastos
-                .FirstOrDefaultAsync(tipo => tipo.Id == dto.TipoGastoId);
-
-            if (tipoGasto == null ||
-                (tipoGasto.EstadoRegistro != EnumEstadoRegistro.activo &&
-                 dto.TipoGastoId != gasto.TipoGastoId))
-            {
-                throw new ApplicationException(
-                    "El tipo de gasto seleccionado no existe o está inactivo.");
-            }
-
-            var aportesActuales = gasto.GastoSocios
-                .Where(aporte =>
-                    aporte.EstadoRegistro == EnumEstadoRegistro.activo)
-                .ToList();
-
-            if (tieneReintegros)
-            {
-                var aportesSinCambios =
-                    aportesActuales.Count == dto.GastoSocios.Count &&
-                    aportesActuales.All(actual =>
-                        dto.GastoSocios.Any(nuevo =>
-                            nuevo.SocioId == actual.SocioId &&
-                            nuevo.Monto == actual.Monto));
-
-                if (dto.Fecha.Value.Date != gasto.Fecha.Date ||
-                    montoTotal != gasto.Monto ||
-                    !aportesSinCambios ||
-                    dto.CompletarReparto ||
-                    (dto.SocioRepartoIds != null &&
-                     dto.SocioRepartoIds.Count > 0))
-                {
-                    throw new ApplicationException(
-                        "Este gasto tiene reintegros registrados. Solo se pueden " +
-                        "modificar la descripción y el tipo de gasto; la fecha, " +
-                        "el monto, los pagos y el reparto están protegidos.");
-                }
-
-                var versionAnterior = JsonSerializer.Serialize(
-                    ObtenerVersionGasto(gasto));
-
-                gasto.Descripcion = descripcion;
-                gasto.TipoGastoId = tipoGasto.Id;
-                gasto.TipoGastos = tipoGasto;
-
-                var versionNueva = JsonSerializer.Serialize(
-                    ObtenerVersionGasto(gasto));
-
-                if (versionAnterior == versionNueva)
-                {
-                    throw new ApplicationException(
-                        "No hay cambios en el gasto para guardar.");
-                }
-
-                context.GastoHistoriales.Add(new GastoHistorial
-                {
-                    GastoId = gasto.Id,
-                    UsuarioId = usuario.Id,
-                    NombreUsuario = usuario.UserName ?? usuario.Id,
-                    FechaCambio = DateTime.UtcNow,
-                    Motivo = motivo,
-                    DatosAnteriores = versionAnterior,
-                    DatosNuevos = versionNueva
-                });
-
-                await context.SaveChangesAsync();
-                await transaccion.CommitAsync();
-
-                return true;
-            }
-
             var socioIdsActuales = aportesActuales
                 .Select(aporte => aporte.SocioId)
                 .ToList();
@@ -449,32 +479,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "Uno de los nuevos pagadores no existe o está inactivo.");
             }
 
-            var caja = await context.Socios
-                .SingleOrDefaultAsync(socio =>
-                    socio.EsCaja &&
-                    socio.EstadoRegistro == EnumEstadoRegistro.activo);
-
-            if (caja == null)
-            {
-                throw new ApplicationException(
-                    "Caja Senderos debe estar registrada y activa.");
-            }
-
-            var repartosOriginales = gasto.GastoRepartos
-                .Where(reparto =>
-                    reparto.EstadoRegistro == EnumEstadoRegistro.activo)
-                .ToList();
-
-            if (repartosOriginales.Count != 1 ||
-                repartosOriginales[0].SocioId != caja.Id ||
-                repartosOriginales[0].Monto != gasto.Monto)
-            {
-                throw new ApplicationException(
-                    "Este gasto tiene un reparto anterior o incompleto. " +
-                    "Debe revisarse antes de modificar sus pagos o importes.");
-            }
-
-            if (dto.CompletarReparto ||
+            if (dto.ImputarACaja || dto.CompletarReparto ||
                 (dto.SocioRepartoIds != null &&
                  dto.SocioRepartoIds.Count > 0))
             {
@@ -607,15 +612,17 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             };
         }
 
-        public async Task<List<GastoListadoDTO>> SelectListaGastos()
-        {
-            return await context.Gastos
-                .AsNoTracking()
-                .Where(gasto =>
-                    gasto.EstadoRegistro == EnumEstadoRegistro.activo)
+        private IQueryable<Gasto> GastosActivos() =>
+            context.Gastos.AsNoTracking()
+                .Where(gasto => gasto.EstadoRegistro == EnumEstadoRegistro.activo);
+
+        public Task<List<GastoListadoDTO>> SelectListaGastos() =>
+            ProyectarGastos(GastosActivos()
                 .OrderByDescending(gasto => gasto.Fecha)
-                .ThenByDescending(gasto => gasto.Id)
-                .Select(gasto => new GastoListadoDTO
+                .ThenByDescending(gasto => gasto.Id)).ToListAsync();
+
+        private IQueryable<GastoListadoDTO> ProyectarGastos(IQueryable<Gasto> consulta) =>
+            consulta.Select(gasto => new GastoListadoDTO
                 {
                     Id = gasto.Id,
                     Fecha = gasto.Fecha,
@@ -685,9 +692,129 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                             Monto = reparto.Monto
                         })
                         .ToList()
-                })
+                });
+
+        #region Consultas del listado y reintegros
+
+        private Task<int> ObtenerCajaId() => context.Socios
+            .Where(socio => socio.EsCaja && socio.EstadoRegistro == EnumEstadoRegistro.activo)
+            .Select(socio => socio.Id)
+            .SingleOrDefaultAsync();
+
+        public async Task<GastosPaginaDTO> ConsultarGastos(FiltroGastosDTO filtro)
+        {
+            const int cantidadPorPagina = 25;
+            var resultado = new GastosPaginaDTO { CajaId = await ObtenerCajaId() };
+            var activos = GastosActivos();
+            resultado.Tipos = await context.TipoGastos.AsNoTracking()
+                .Where(tipo => tipo.EstadoRegistro == EnumEstadoRegistro.activo ||
+                    activos.Any(gasto => gasto.TipoGastoId == tipo.Id))
+                .OrderBy(tipo => tipo.Tipo)
+                .Select(tipo => new TipoListadoDTO { Id = tipo.Id, Tipo = tipo.Tipo })
                 .ToListAsync();
+
+            resultado.Pagadores = await activos.SelectMany(gasto => gasto.GastoSocios)
+                .Where(aporte => aporte.EstadoRegistro == EnumEstadoRegistro.activo)
+                .Select(aporte => new GastoSocioListadoDTO
+                {
+                    SocioId = aporte.SocioId,
+                    Profesional = aporte.Socios!.EsCaja
+                        ? "Caja Senderos" : aporte.Socios.Profesionales!.Nombre
+                }).Distinct().OrderBy(aporte => aporte.Profesional).ToListAsync();
+
+            if (filtro.Desde?.Date > filtro.Hasta?.Date)
+                return resultado;
+
+            var consulta = activos;
+            if (filtro.Desde.HasValue)
+            {
+                var desde = DateTime.SpecifyKind(filtro.Desde.Value.Date, DateTimeKind.Utc);
+                consulta = consulta.Where(gasto => gasto.Fecha >= desde);
+            }
+
+            if (filtro.Hasta.HasValue && filtro.Hasta.Value.Date < DateTime.MaxValue.Date)
+            {
+                var hasta = DateTime.SpecifyKind(filtro.Hasta.Value.Date.AddDays(1), DateTimeKind.Utc);
+                consulta = consulta.Where(gasto => gasto.Fecha < hasta);
+            }
+
+            if (filtro.TipoId > 0)
+                consulta = consulta.Where(gasto => gasto.TipoGastoId == filtro.TipoId);
+
+            if (filtro.PagadorId > 0)
+                consulta = consulta.Where(gasto => gasto.GastoSocios.Any(aporte =>
+                    aporte.EstadoRegistro == EnumEstadoRegistro.activo && aporte.SocioId == filtro.PagadorId));
+
+            if (!string.IsNullOrWhiteSpace(filtro.Texto))
+            {
+                var literal = filtro.Texto.Trim().Replace("!", "!!").Replace("%", "!%").Replace("_", "!_");
+                var patron = "%" + literal + "%";
+                consulta = consulta.Where(gasto => EF.Functions.ILike(gasto.Descripcion, patron, "!") ||
+                    EF.Functions.ILike(gasto.TipoGastos!.Tipo, patron, "!") ||
+                    gasto.GastoSocios.Any(aporte => aporte.EstadoRegistro == EnumEstadoRegistro.activo &&
+                        EF.Functions.ILike(aporte.Socios!.EsCaja ? "Caja Senderos" :
+                            aporte.Socios.Profesionales!.Nombre, patron, "!")));
+            }
+
+            consulta = filtro.Descendente
+                ? consulta.OrderByDescending(gasto => gasto.Fecha).ThenByDescending(gasto => gasto.Id)
+                : consulta.OrderBy(gasto => gasto.Fecha).ThenBy(gasto => gasto.Id);
+            var gastos = await ProyectarGastos(consulta).ToListAsync();
+            var validos = gastos.Where(gasto => gasto.EsCompatibleConCaja(resultado.CajaId)).ToList();
+            var pendientes = validos.Where(gasto => gasto.SaldoSocio(resultado.CajaId) < 0).ToList();
+            var idsValidos = validos.Select(gasto => gasto.Id).ToHashSet();
+            resultado.Pendientes = pendientes.Count;
+            resultado.PorRevisar = gastos.Count - validos.Count;
+            resultado.Saldados = validos.Count - pendientes.Count;
+            resultado.TotalSeleccion = gastos.Sum(gasto => gasto.Monto);
+            resultado.Reintegrado = validos.Sum(gasto => gasto.GastoReintegros.Sum(reintegro => reintegro.Monto));
+            resultado.PagadoCaja = validos.Sum(gasto => gasto.GastoSocios
+                .Where(aporte => aporte.SocioId == resultado.CajaId).Sum(aporte => aporte.Monto));
+            resultado.Prioritarios = pendientes.OrderBy(gasto => gasto.SaldoSocio(resultado.CajaId)).Take(3).ToList();
+
+            var recibidos = validos.SelectMany(gasto => gasto.GastoReintegros)
+                .GroupBy(reintegro => reintegro.SocioReceptorId)
+                .ToDictionary(grupo => grupo.Key, grupo => grupo.Sum(reintegro => reintegro.Monto));
+            resultado.Socios = validos.SelectMany(gasto => gasto.GastoSocios)
+                .Where(aporte => aporte.SocioId != resultado.CajaId)
+                .GroupBy(aporte => aporte.SocioId)
+                .Select(grupo => new SaldoGastoSocioDTO
+                {
+                    Id = grupo.Key,
+                    Nombre = grupo.First().Profesional,
+                    Adelantado = grupo.Sum(aporte => aporte.Monto),
+                    Recibido = recibidos.GetValueOrDefault(grupo.Key)
+                }).OrderByDescending(socio => socio.Pendiente).ThenBy(socio => socio.Nombre).ToList();
+            resultado.Adelantado = resultado.Socios.Sum(socio => socio.Adelantado);
+
+            var filtrados = filtro.PorRevisar
+                ? gastos.Where(gasto => !idsValidos.Contains(gasto.Id)).ToList()
+                : filtro.Pendientes ? pendientes : gastos;
+            resultado.Cantidad = filtrados.Count;
+            resultado.Total = filtrados.Sum(gasto => gasto.Monto);
+            resultado.Paginas = Math.Max(1, (int)Math.Ceiling(filtrados.Count / (decimal)cantidadPorPagina));
+            resultado.Pagina = Math.Clamp(filtro.Pagina, 1, resultado.Paginas);
+            resultado.Gastos = filtrados.Skip((resultado.Pagina - 1) * cantidadPorPagina)
+                .Take(cantidadPorPagina).ToList();
+            return resultado;
         }
+
+        public async Task<List<GastoListadoDTO>> ConsultarGastosReintegrables(int socioId)
+        {
+            var cajaId = await ObtenerCajaId();
+            if (socioId <= 0 || socioId == cajaId || cajaId == 0)
+                return new();
+
+            var candidatos = await ProyectarGastos(GastosActivos()
+                .Where(gasto => gasto.GastoSocios.Any(aporte =>
+                    aporte.EstadoRegistro == EnumEstadoRegistro.activo &&
+                    aporte.SocioId == socioId && aporte.Monto > 0)))
+                .ToListAsync();
+            return candidatos.Where(gasto => gasto.EsCompatibleConCaja(cajaId) &&
+                gasto.SaldoSocio(socioId) > 0).ToList();
+        }
+
+        #endregion
 
         public async Task<GastoCrearDTO?> SelectGastoPorId(int id)
         {

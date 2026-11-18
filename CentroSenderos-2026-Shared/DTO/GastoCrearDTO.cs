@@ -20,8 +20,6 @@ namespace CentroSenderos_2026_Shared.DTO
         public string Descripcion { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Seleccioná al menos un socio")]
-        [MinLength(1,
-            ErrorMessage = "Seleccioná al menos un socio")]
         public List<GastoSocioDTO> GastoSocios { get; set; } = new();
 
         public decimal Monto =>

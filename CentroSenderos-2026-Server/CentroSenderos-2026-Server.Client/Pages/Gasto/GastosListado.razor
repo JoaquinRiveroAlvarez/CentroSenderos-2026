@@ -10,15 +10,6 @@
 @inject IHttpServicio Http
 
 <div class="gastos-page">
-    @if (!string.IsNullOrEmpty(calendarioActivo))
-    {
-        <button type="button"
-                class="periodo-cierre-fondo"
-                aria-label="Cerrar calendario"
-                @onclick="CerrarCalendarioPeriodo">
-        </button>
-    }
-
     <header class="gastos-header">
         <button type="button"
                 class="new-button"
@@ -28,6 +19,9 @@
         </button>
 
         <h1>Gastos</h1>
+        <div class="gastos-selector">
+            <SelectorCaja />
+        </div>
     </header>
 
     @if (!string.IsNullOrWhiteSpace(mensajeExito))
@@ -68,19 +62,12 @@
     }
     else
     {
-        var resultados = GastosFiltrados;
-        var total = resultados.Sum(gasto => gasto.Monto);
-        var gastosPanel = GastosFiltradosBase;
-        var validos = gastosPanel.Where(TieneRepartoCompleto).ToList();
-        var pendientes = validos.Where(TieneReintegroPendiente).ToList();
-        var sinReparto = gastosPanel.Count - validos.Count;
-        var saldados = validos.Count - pendientes.Count;
-        var importePendiente = pendientes.Sum(ImportePendiente);
-        var pagadoCaja = validos.Sum(g => g.GastoSocios.Where(a => a.SocioId == cajaId).Sum(a => a.Monto));
-        var adelantado = validos.Sum(g => g.GastoSocios.Where(a => a.SocioId != cajaId).Sum(a => a.Monto));
-        var reintegrado = validos.Sum(g => g.GastoReintegros.Sum(r => r.Monto));
-        var porcentaje = adelantado > 0 ? Math.Clamp(reintegrado / adelantado * 100m, 0m, 100m) : 0m;
-        var resumenSocios = ResumenSocios(validos);
+        var resultados = consulta.Gastos;
+        var total = consulta.Total;
+        var importePendiente = consulta.Adelantado - consulta.Reintegrado;
+        var porcentaje = consulta.Adelantado > 0
+            ? Math.Clamp(consulta.Reintegrado / consulta.Adelantado * 100m, 0m, 100m)
+            : 0m;
 
         <div class="gastos-layout">
             <section class="list-card">
@@ -89,7 +76,7 @@
                         <label for="filtroTipoGasto">Tipo de gasto</label>
 
                         <select id="filtroTipoGasto"
-                                @bind="tipoSeleccionadoId">
+                                @bind="tipoSeleccionadoId" @bind:after="ActualizarConsulta">
                             <option value="0">Todos los tipos</option>
 
                             @foreach (var tipo in TiposDisponibles)
@@ -105,7 +92,7 @@
                         <label for="filtroSocioGasto">Pagado por</label>
 
                         <select id="filtroSocioGasto"
-                                @bind="socioSeleccionadoId">
+                                @bind="socioSeleccionadoId" @bind:after="ActualizarConsulta">
                             <option value="0">Todos los pagadores</option>
 
                             @foreach (var socio in SociosDisponibles)
@@ -117,183 +104,12 @@
                         </select>
                     </div>
 
-                    <div class="@ClaseCampoFecha("desde")">
-                        <label id="labelFechaDesde">Desde</label>
+                    <CalendarioGasto Id="fechaFiltroDesde" Etiqueta="Desde" PermiteLimpiar="true"
+                                     AlinearIzquierdaEnMovil="true" @bind-Value="fechaDesde"
+                                     @bind-Value:after="ActualizarConsulta" />
 
-                        <button type="button"
-                                class="periodo-fecha-selector"
-                                aria-labelledby="labelFechaDesde textoFechaDesde"
-                                aria-expanded="@(calendarioActivo == "desde")"
-                                aria-controls="calendarioDesde"
-                                @onclick="AbrirCalendarioDesde">
-                            <span id="textoFechaDesde">
-                                @(fechaDesde?.ToString("dd/MM/yyyy") ?? "Sin límite")
-                            </span>
-
-                            <i class="bi bi-calendar3"></i>
-                        </button>
-
-                        @if (calendarioActivo == "desde")
-                        {
-                            <section id="calendarioDesde"
-                                     class="periodo-calendario"
-                                     aria-label="Calendario Desde">
-                                <div class="periodo-calendario-header">
-                                    <button type="button"
-                                            class="periodo-calendario-nav"
-                                            aria-label="Mes anterior"
-                                            disabled="@EsPrimerMes"
-                                            @onclick="MesAnteriorPeriodo">
-                                        <i class="bi bi-chevron-left"></i>
-                                    </button>
-
-                                    <strong>@TituloMesCalendarioPeriodo</strong>
-
-                                    <button type="button"
-                                            class="periodo-calendario-nav"
-                                            aria-label="Mes siguiente"
-                                            disabled="@EsUltimoMes"
-                                            @onclick="MesSiguientePeriodo">
-                                        <i class="bi bi-chevron-right"></i>
-                                    </button>
-                                </div>
-
-                                <div class="periodo-calendario-semana">
-                                    <span>Lu</span>
-                                    <span>Ma</span>
-                                    <span>Mi</span>
-                                    <span>Ju</span>
-                                    <span>Vi</span>
-                                    <span>Sá</span>
-                                    <span>Do</span>
-                                </div>
-
-                                <div class="periodo-calendario-dias">
-                                    @for (var espacio = 0; espacio < EspaciosCalendarioPeriodo; espacio++)
-                                    {
-                                        <span aria-hidden="true"></span>
-                                    }
-
-                                    @foreach (var dia in DiasCalendarioPeriodo)
-                                    {
-                                        <button type="button"
-                                                class="@ClaseDiaPeriodo(dia)"
-                                                aria-label="@dia.ToString("D", cultura)"
-                                                aria-pressed="@(FechaCalendarioPeriodo?.Date == dia.Date)"
-                                                @onclick="() => SeleccionarFechaPeriodo(dia)">
-                                            @dia.Day
-                                        </button>
-                                    }
-                                </div>
-
-                                <div class="periodo-calendario-footer">
-                                    <button type="button"
-                                            @onclick="LimpiarFechaPeriodo">
-                                        Sin límite
-                                    </button>
-
-                                    <button type="button"
-                                            @onclick="SeleccionarHoyPeriodo">
-                                        Hoy
-                                    </button>
-
-                                    <button type="button"
-                                            @onclick="CerrarCalendarioPeriodo">
-                                        Cerrar
-                                    </button>
-                                </div>
-                            </section>
-                        }
-                    </div>
-
-                    <div class="@ClaseCampoFecha("hasta")">
-                        <label id="labelFechaHasta">Hasta</label>
-
-                        <button type="button"
-                                class="periodo-fecha-selector"
-                                aria-labelledby="labelFechaHasta textoFechaHasta"
-                                aria-expanded="@(calendarioActivo == "hasta")"
-                                aria-controls="calendarioHasta"
-                                @onclick="AbrirCalendarioHasta">
-                            <span id="textoFechaHasta">
-                                @(fechaHasta?.ToString("dd/MM/yyyy") ?? "Sin límite")
-                            </span>
-
-                            <i class="bi bi-calendar3"></i>
-                        </button>
-
-                        @if (calendarioActivo == "hasta")
-                        {
-                            <section id="calendarioHasta"
-                                     class="periodo-calendario"
-                                     aria-label="Calendario Hasta">
-                                <div class="periodo-calendario-header">
-                                    <button type="button"
-                                            class="periodo-calendario-nav"
-                                            aria-label="Mes anterior"
-                                            disabled="@EsPrimerMes"
-                                            @onclick="MesAnteriorPeriodo">
-                                        <i class="bi bi-chevron-left"></i>
-                                    </button>
-
-                                    <strong>@TituloMesCalendarioPeriodo</strong>
-
-                                    <button type="button"
-                                            class="periodo-calendario-nav"
-                                            aria-label="Mes siguiente"
-                                            disabled="@EsUltimoMes"
-                                            @onclick="MesSiguientePeriodo">
-                                        <i class="bi bi-chevron-right"></i>
-                                    </button>
-                                </div>
-
-                                <div class="periodo-calendario-semana">
-                                    <span>Lu</span>
-                                    <span>Ma</span>
-                                    <span>Mi</span>
-                                    <span>Ju</span>
-                                    <span>Vi</span>
-                                    <span>Sá</span>
-                                    <span>Do</span>
-                                </div>
-
-                                <div class="periodo-calendario-dias">
-                                    @for (var espacio = 0; espacio < EspaciosCalendarioPeriodo; espacio++)
-                                    {
-                                        <span aria-hidden="true"></span>
-                                    }
-
-                                    @foreach (var dia in DiasCalendarioPeriodo)
-                                    {
-                                        <button type="button"
-                                                class="@ClaseDiaPeriodo(dia)"
-                                                aria-label="@dia.ToString("D", cultura)"
-                                                aria-pressed="@(FechaCalendarioPeriodo?.Date == dia.Date)"
-                                                @onclick="() => SeleccionarFechaPeriodo(dia)">
-                                            @dia.Day
-                                        </button>
-                                    }
-                                </div>
-
-                                <div class="periodo-calendario-footer">
-                                    <button type="button"
-                                            @onclick="LimpiarFechaPeriodo">
-                                        Sin límite
-                                    </button>
-
-                                    <button type="button"
-                                            @onclick="SeleccionarHoyPeriodo">
-                                        Hoy
-                                    </button>
-
-                                    <button type="button"
-                                            @onclick="CerrarCalendarioPeriodo">
-                                        Cerrar
-                                    </button>
-                                </div>
-                            </section>
-                        }
-                    </div>
+                    <CalendarioGasto Id="fechaFiltroHasta" Etiqueta="Hasta" PermiteLimpiar="true"
+                                     @bind-Value="fechaHasta" @bind-Value:after="ActualizarConsulta" />
 
                     <button type="button"
                             class="filter-order-button"
@@ -303,14 +119,17 @@
                         @(ordenDescendente ? "Más recientes" : "Más antiguos")
                     </button>
 
-                    <div class="filter-search">
-                        <i class="bi bi-search"></i>
-
+                    <div class="filter-search" role="search" aria-label="Búsqueda de gastos">
                         <input type="search"
                                aria-label="Buscar gastos"
                                placeholder="Buscar por tipo, descripción o socio..."
                                @bind="busqueda"
-                               @bind:event="oninput" />
+                               @bind:event="oninput"
+                               @onkeydown="BuscarConTeclado" />
+                        <button type="button" class="buscar-gastos" @onclick="ActualizarConsulta">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                            Buscar
+                        </button>
                     </div>
 
                     <button type="button"
@@ -347,7 +166,7 @@
                         </p>
                     </div>
                 }
-                else if (lista.Count == 0)
+                else if (resultados.Count == 0 && !HayFiltros)
                 {
                     <div class="state-card">
                         <i class="bi bi-receipt"></i>
@@ -483,7 +302,22 @@
                 }
 
                 <div class="list-footer">
-                    Mostrando @resultados.Count de @lista.Count gastos
+                    <span>@consulta.Cantidad gastos · Página @consulta.Pagina de @consulta.Paginas</span>
+                    @if (consulta.Paginas > 1)
+                    {
+                        <nav class="gastos-paginacion" aria-label="Paginación de gastos">
+                            <button type="button" disabled="@(consulta.Pagina == 1)"
+                                    @onclick="() => CambiarPagina(-1)">
+                                <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                                Anterior
+                            </button>
+                            <button type="button" disabled="@(consulta.Pagina == consulta.Paginas)"
+                                    @onclick="() => CambiarPagina(1)">
+                                Siguiente
+                                <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                            </button>
+                        </nav>
+                    }
                 </div>
             </section>
 
@@ -493,21 +327,25 @@
                         <span class="caja-icono"><i class="bi bi-wallet2"></i></span>
                         <div><span class="panel-eyebrow">ESTADO DE GASTOS</span><h2>Caja Senderos</h2></div>
                     </div>
+                    <a class="caja-movimientos-enlace" href="/gastos/caja">
+                        <span>Ver movimientos de Caja</span>
+                        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                    </a>
                     <span class="caja-periodo">@NombrePeriodo</span>
                     <div class="caja-deuda">
                         <span>Pendiente de reintegrar</span>
                         <strong>@(PeriodoInvalido ? "—" : Moneda(importePendiente))</strong>
                         <span class="@(importePendiente > 0 ? "caja-estado pendiente" : "caja-estado al-dia")">
                             <i class="@(importePendiente > 0 ? "bi bi-clock" : "bi bi-check-circle")"></i>
-                            @(PeriodoInvalido ? "Revisá las fechas" : validos.Count == 0 ? "Sin gastos evaluables" : importePendiente > 0 ? "Con reintegros pendientes" : "Sin reintegros pendientes")
+                            @(PeriodoInvalido ? "Revisá las fechas" : consulta.Saldados + consulta.Pendientes == 0 ? "Sin gastos evaluables" : importePendiente > 0 ? "Con reintegros pendientes" : "Sin reintegros pendientes")
                         </span>
                     </div>
                     <div class="caja-metricas">
-                        <div><span>Gastos de la selección</span><strong>@Moneda(gastosPanel.Sum(g => g.Monto))</strong></div>
-                        <div><span>Pagado por Caja</span><strong>@Moneda(pagadoCaja)</strong></div>
-                        <div><span>Devuelto a socios</span><strong>@Moneda(reintegrado)</strong></div>
+                        <div><span>Gastos de la selección</span><strong>@Moneda(consulta.TotalSeleccion)</strong></div>
+                        <div><span>Pagado por Caja</span><strong>@Moneda(consulta.PagadoCaja)</strong></div>
+                        <div><span>Devuelto a socios</span><strong>@Moneda(consulta.Reintegrado)</strong></div>
                     </div>
-                    <p class="panel-nota">Estado actual de los gastos seleccionados. El saldo del centro se incorporará cuando haya ingresos.</p>
+                    <p class="panel-nota">Saldo actual de los gastos seleccionados por fecha del gasto. Si filtrás por pagador, se incluyen todos los pagos de esos gastos.</p>
                 </section>
 
                 <section class="panel-card">
@@ -515,15 +353,15 @@
                     <div class="caja-progreso" role="progressbar" aria-label="Porcentaje reintegrado de los adelantos" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@porcentaje.ToString(CultureInfo.InvariantCulture)">
                         <span style="@($"width: {porcentaje.ToString(CultureInfo.InvariantCulture)}%")"></span>
                     </div>
-                    <p class="panel-nota">@Moneda(reintegrado) devueltos de @Moneda(adelantado) adelantados por socios.</p>
+                    <p class="panel-nota">@Moneda(consulta.Reintegrado) devueltos de @Moneda(consulta.Adelantado) adelantados por socios.</p>
                     <div class="panel-estados">
-                        <button type="button" class="@(soloConReintegros ? "panel-filtro activo" : "panel-filtro")" aria-pressed="@soloConReintegros" @onclick="VerGastosConReintegros"><span><i class="bi bi-arrow-left-right"></i> Pendientes</span><strong>@pendientes.Count</strong></button>
-                        <div class="panel-filtro saldados"><span><i class="bi bi-check-circle"></i> Saldados</span><strong>@saldados</strong></div>
-                        <button type="button" class="@(soloSinReparto ? "panel-filtro activo" : "panel-filtro")" aria-pressed="@soloSinReparto" @onclick="VerGastosSinReparto"><span><i class="bi bi-exclamation-circle"></i> Por revisar</span><strong>@sinReparto</strong></button>
+                        <button type="button" class="@(soloConReintegros ? "panel-filtro activo" : "panel-filtro")" aria-pressed="@soloConReintegros" @onclick="VerGastosConReintegros"><span><i class="bi bi-arrow-left-right"></i> Pendientes</span><strong>@consulta.Pendientes</strong></button>
+                        <div class="panel-filtro saldados"><span><i class="bi bi-check-circle"></i> Saldados</span><strong>@consulta.Saldados</strong></div>
+                        <button type="button" class="@(soloSinReparto ? "panel-filtro activo" : "panel-filtro")" aria-pressed="@soloSinReparto" @onclick="VerGastosSinReparto"><span><i class="bi bi-exclamation-circle"></i> Por revisar</span><strong>@consulta.PorRevisar</strong></button>
                     </div>
-                    @if (sinReparto > 0)
+                    @if (consulta.PorRevisar > 0)
                     {
-                        <p class="panel-aviso">@sinReparto @(sinReparto == 1 ? "gasto excluido" : "gastos excluidos") de los saldos y reintegros por datos anteriores o inconsistentes.</p>
+                        <p class="panel-aviso">@consulta.PorRevisar @(consulta.PorRevisar == 1 ? "gasto excluido" : "gastos excluidos") de los saldos y reintegros por datos anteriores o inconsistentes.</p>
                     }
                     @if (soloSinReparto || soloConReintegros)
                     {
@@ -532,13 +370,13 @@
                 </section>
 
                 <section class="panel-card panel-socios">
-                    <div class="panel-titulo"><h2>Socios</h2><span>@resumenSocios.Count</span></div>
+                    <div class="panel-titulo"><h2>Socios</h2><span>@consulta.Socios.Count</span></div>
                     <p class="panel-nota">Adelantos y devoluciones de esta selección.</p>
-                    @if (resumenSocios.Count == 0)
+                    @if (consulta.Socios.Count == 0)
                     {
                         <p class="panel-vacio">Sin adelantos de socios para mostrar.</p>
                     }
-                    @foreach (var socio in resumenSocios)
+                    @foreach (var socio in consulta.Socios)
                     {
                         <div class="panel-socio" @key="socio.Id">
                             <div class="panel-socio-header"><span>@socio.Nombre</span><strong class="@(socio.Pendiente > 0 ? "socio-pendiente" : "socio-saldado")">@(socio.Pendiente > 0 ? Moneda(socio.Pendiente) : "Al día")</strong></div>
@@ -548,11 +386,11 @@
                     }
                 </section>
 
-                @if (pendientes.Count > 0)
+                @if (consulta.Pendientes > 0)
                 {
                     <section class="panel-card">
                         <div class="panel-titulo"><h2>Para resolver</h2><i class="bi bi-arrow-up-right"></i></div>
-                        @foreach (var pendiente in pendientes.OrderByDescending(ImportePendiente).Take(3))
+                        @foreach (var pendiente in consulta.Prioritarios)
                         {
                             <button type="button" class="pendiente-gasto-link" @key="pendiente.Id" @onclick="() => AbrirDetalle(pendiente.Id)">
                                 <span>@pendiente.Descripcion<small>@pendiente.Fecha.ToString("dd/MM/yyyy")</small></span>
@@ -602,6 +440,7 @@
                        OnCerrar="CerrarDetalle"
                        OnEditar="AbrirEditar"
                        OnHistorial="AbrirHistorial"
+                       CajaId="cajaId"
                        OnReintegro="AbrirReintegro" />
     }
 </div>
@@ -610,7 +449,8 @@
     private readonly CultureInfo cultura =
         CultureInfo.GetCultureInfo("es-AR");
 
-    private List<GastoListadoDTO> lista = new();
+    private GastosPaginaDTO consulta = new();
+    private int pagina = 1;
 
     private bool cargando = true;
     private bool cargaEnCurso;
@@ -643,10 +483,6 @@
                 DateTime.Today.Year,
                 DateTime.Today.Month));
 
-    private DateTime mesCalendarioPeriodo =
-        new(DateTime.Today.Year, DateTime.Today.Month, 1);
-
-    private string calendarioActivo = string.Empty;
     private string busqueda = string.Empty;
     private string mensajeExito = string.Empty;
     private string mensajeError = string.Empty;
@@ -656,49 +492,13 @@
         fechaHasta.HasValue &&
         fechaDesde.Value.Date > fechaHasta.Value.Date;
 
-    private bool EsPrimerMes =>
-        mesCalendarioPeriodo.Year == 1 &&
-        mesCalendarioPeriodo.Month == 1;
-
-    private bool EsUltimoMes =>
-        mesCalendarioPeriodo.Year == 9999 &&
-        mesCalendarioPeriodo.Month == 12;
-
-    private DateTime? FechaCalendarioPeriodo =>
-        calendarioActivo == "desde" ? fechaDesde : fechaHasta;
-
-    private string TituloMesCalendarioPeriodo =>
-        cultura.TextInfo.ToTitleCase(
-            mesCalendarioPeriodo.ToString("MMMM yyyy", cultura));
-
-    private int EspaciosCalendarioPeriodo =>
-        ((int)mesCalendarioPeriodo.DayOfWeek + 6) % 7;
-
-    private IEnumerable<DateTime> DiasCalendarioPeriodo =>
-        Enumerable.Range(
-                1,
-                DateTime.DaysInMonth(
-                    mesCalendarioPeriodo.Year,
-                    mesCalendarioPeriodo.Month))
-            .Select(dia => new DateTime(
-                mesCalendarioPeriodo.Year,
-                mesCalendarioPeriodo.Month,
-                dia));
-
     private IEnumerable<(int Id, string Nombre)> TiposDisponibles =>
-        lista
-            .GroupBy(gasto => gasto.TipoGastoId)
-            .Select(grupo => (
-                Id: grupo.Key,
-                Nombre: grupo.First().TipoGasto))
-            .OrderBy(tipo => tipo.Nombre);
+        consulta.Tipos.Select(tipo => (tipo.Id, tipo.Tipo));
 
-    private IEnumerable<GastoSocioListadoDTO> SociosDisponibles =>
-        lista
-            .SelectMany(gasto => gasto.GastoSocios)
-            .GroupBy(aporte => aporte.SocioId)
-            .Select(grupo => grupo.First())
-            .OrderBy(aporte => aporte.Profesional);
+    private IEnumerable<GastoSocioListadoDTO> SociosDisponibles => consulta.Pagadores;
+
+    private bool HayFiltros => tipoSeleccionadoId > 0 || socioSeleccionadoId > 0 ||
+        !string.IsNullOrWhiteSpace(busqueda) || soloSinReparto || soloConReintegros;
 
     private string NombrePeriodo
     {
@@ -723,72 +523,10 @@
         }
     }
 
-    private List<GastoListadoDTO> GastosFiltradosBase
-    {
-        get
-        {
-            if (PeriodoInvalido)
-                return new();
+    private int cajaId => consulta.CajaId;
 
-            var texto = busqueda.Trim();
-
-            var gastos = lista.Where(gasto =>
-                (tipoSeleccionadoId == 0 ||
-                 gasto.TipoGastoId == tipoSeleccionadoId) &&
-                (socioSeleccionadoId == 0 ||
-                 gasto.GastoSocios.Any(aporte =>
-                     aporte.SocioId == socioSeleccionadoId)) &&
-                (!fechaDesde.HasValue ||
-                 gasto.Fecha.Date >= fechaDesde.Value.Date) &&
-                (!fechaHasta.HasValue ||
-                 gasto.Fecha.Date <= fechaHasta.Value.Date) &&
-                (string.IsNullOrWhiteSpace(texto) ||
-                 gasto.TipoGasto.Contains(
-                     texto,
-                     StringComparison.OrdinalIgnoreCase) ||
-                 gasto.Descripcion.Contains(
-                     texto,
-                     StringComparison.OrdinalIgnoreCase) ||
-                 gasto.GastoSocios.Any(aporte =>
-                     aporte.Profesional.Contains(
-                         texto,
-                         StringComparison.OrdinalIgnoreCase))));
-
-            return ordenDescendente
-                ? gastos
-                    .OrderByDescending(gasto => gasto.Fecha)
-                    .ThenByDescending(gasto => gasto.Id)
-                    .ToList()
-                : gastos
-                    .OrderBy(gasto => gasto.Fecha)
-                    .ThenBy(gasto => gasto.Id)
-                    .ToList();
-        }
-    }
-
-    private List<GastoListadoDTO> GastosFiltrados => GastosFiltradosBase
-        .Where(gasto =>
-            (!soloSinReparto || !TieneRepartoCompleto(gasto)) &&
-            (!soloConReintegros || TieneReintegroPendiente(gasto)))
-        .ToList();
-
-    private int cajaId;
-
-    private bool TieneRepartoCompleto(GastoListadoDTO gasto)
-    {
-        if (cajaId <= 0 || gasto.Monto <= 0 ||
-            gasto.GastoRepartos.Count != 1 ||
-            gasto.GastoRepartos[0].SocioId != cajaId ||
-            gasto.GastoRepartos[0].Monto != gasto.Monto ||
-            gasto.GastoSocios.Any(a => a.Monto <= 0) ||
-            gasto.GastoSocios.Sum(a => a.Monto) != gasto.Monto ||
-            gasto.GastoReintegros.Any(r => r.Monto <= 0 || r.SocioPagadorId != cajaId || r.SocioReceptorId == cajaId))
-            return false;
-
-        return gasto.GastoReintegros.GroupBy(r => r.SocioReceptorId)
-            .All(grupo => grupo.Sum(r => r.Monto) <= gasto.GastoSocios
-                .Where(a => a.SocioId == grupo.Key).Sum(a => a.Monto));
-    }
+    private bool TieneRepartoCompleto(GastoListadoDTO gasto) =>
+        gasto.EsCompatibleConCaja(cajaId);
 
     private decimal ImportePendiente(GastoListadoDTO gasto) =>
         TieneRepartoCompleto(gasto)
@@ -799,98 +537,18 @@
     private bool TieneReintegroPendiente(GastoListadoDTO gasto) =>
         ImportePendiente(gasto) > 0m;
 
-    private List<ResumenSocioPanel> ResumenSocios(List<GastoListadoDTO> gastos)
-    {
-        return gastos.SelectMany(g => g.GastoSocios)
-            .Where(a => a.SocioId != cajaId)
-            .GroupBy(a => a.SocioId)
-            .Select(grupo => new ResumenSocioPanel
-            {
-                Id = grupo.Key,
-                Nombre = grupo.Select(a => a.Profesional).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n)) ?? "Socio",
-                Adelantado = grupo.Sum(a => a.Monto),
-                Recibido = gastos.SelectMany(g => g.GastoReintegros)
-                    .Where(r => r.SocioReceptorId == grupo.Key).Sum(r => r.Monto)
-            })
-            .OrderByDescending(s => s.Pendiente).ThenBy(s => s.Nombre).ToList();
-    }
-
-    private class ResumenSocioPanel
-    {
-        public int Id { get; set; }
-        public string Nombre { get; set; } = string.Empty;
-        public decimal Adelantado { get; set; }
-        public decimal Recibido { get; set; }
-        public decimal Pendiente => Adelantado - Recibido;
-    }
-
-    private void VerGastosConReintegros()
+    private async Task VerGastosConReintegros()
     {
         soloSinReparto = false;
         soloConReintegros = true;
-        CerrarCalendarioPeriodo();
+        await ActualizarConsulta();
     }
 
-    private void QuitarFiltroPendientes()
+    private async Task QuitarFiltroPendientes()
     {
         soloSinReparto = false;
         soloConReintegros = false;
-    }
-
-    private static List<GastoSocioListadoDTO> ObtenerResumenAportes(
-        IEnumerable<GastoListadoDTO> gastos)
-    {
-        return gastos
-            .SelectMany(gasto => gasto.GastoSocios)
-            .GroupBy(aporte => aporte.SocioId)
-            .Select(grupo => new GastoSocioListadoDTO
-            {
-                SocioId = grupo.Key,
-                Profesional = grupo.First().Profesional,
-                Monto = grupo.Sum(aporte => aporte.Monto)
-            })
-            .OrderBy(aporte => aporte.Profesional)
-            .ToList();
-    }
-
-    private static List<(
-        int SocioId,
-        string Profesional,
-        decimal Saldo)> ObtenerResumenSaldos(
-            IEnumerable<GastoListadoDTO> gastos)
-    {
-        var listaGastos = gastos.ToList();
-
-        if (listaGastos.Any(gasto =>
-            gasto.GastoRepartos.Count == 0))
-        {
-            return new();
-        }
-
-        var socios = listaGastos
-            .SelectMany(gasto => gasto.GastoRepartos)
-            .Select(reparto => (
-                SocioId: reparto.SocioId,
-                Profesional: reparto.Profesional))
-            .Concat(
-                listaGastos
-                    .SelectMany(gasto => gasto.GastoSocios)
-                    .Select(aporte => (
-                        SocioId: aporte.SocioId,
-                        Profesional: aporte.Profesional)))
-            .GroupBy(socio => socio.SocioId);
-
-        return socios
-            .Select(grupo => (
-                SocioId: grupo.Key,
-                Profesional: grupo
-                    .Select(socio => socio.Profesional)
-                    .FirstOrDefault(nombre =>
-                        !string.IsNullOrWhiteSpace(nombre)) ?? "Socio",
-                Saldo: listaGastos.Sum(gasto =>
-                    gasto.SaldoSocio(grupo.Key))))
-            .OrderBy(socio => socio.Profesional)
-            .ToList();
+        await ActualizarConsulta();
     }
 
     private string Moneda(decimal monto)
@@ -898,37 +556,20 @@
             return "$ " + monto.ToString("N2", cultura);
         }
 
-    private string TextoSaldoPeriodo(decimal saldo)
-    {
-        return saldo > 0
-            ? $"+{Moneda(saldo)}"
-            : Moneda(saldo);
-    }
-
-    private static string ClaseSaldoPeriodo(decimal saldo)
-    {
-        if (saldo > 0)
-            return "saldo-periodo positivo";
-
-        if (saldo < 0)
-            return "saldo-periodo negativo";
-
-        return "saldo-periodo neutro";
-    }
-
-    private void VerGastosSinReparto()
+    private async Task VerGastosSinReparto()
     {
         soloSinReparto = true;
         soloConReintegros = false;
-        CerrarCalendarioPeriodo();
+        await ActualizarConsulta();
     }
 
-    private void CambiarOrden()
+    private async Task CambiarOrden()
     {
         ordenDescendente = !ordenDescendente;
+        await ActualizarConsulta();
     }
 
-    private void RestaurarFiltros()
+    private async Task RestaurarFiltros()
     {
         tipoSeleccionadoId = 0;
         socioSeleccionadoId = 0;
@@ -950,110 +591,27 @@
         busqueda = string.Empty;
         ordenDescendente = true;
 
-        CerrarCalendarioPeriodo();
-    }
-
-    private string ClaseCampoFecha(string campo)
-    {
-        return calendarioActivo == campo
-            ? "filter-field periodo-campo calendario-abierto"
-            : "filter-field periodo-campo";
-    }
-
-    private void AbrirCalendarioDesde()
-    {
-        AbrirCalendarioPeriodo("desde");
-    }
-
-    private void AbrirCalendarioHasta()
-    {
-        AbrirCalendarioPeriodo("hasta");
-    }
-
-    private void AbrirCalendarioPeriodo(string campo)
-    {
-        if (calendarioActivo == campo)
-        {
-            CerrarCalendarioPeriodo();
-            return;
-        }
-
-        calendarioActivo = campo;
-
-        var fecha = FechaCalendarioPeriodo ?? DateTime.Today;
-
-        mesCalendarioPeriodo = new DateTime(
-            fecha.Year,
-            fecha.Month,
-            1);
-    }
-
-    private void CerrarCalendarioPeriodo()
-    {
-        calendarioActivo = string.Empty;
-    }
-
-    private void MesAnteriorPeriodo()
-    {
-        if (!EsPrimerMes)
-            mesCalendarioPeriodo = mesCalendarioPeriodo.AddMonths(-1);
-    }
-
-    private void MesSiguientePeriodo()
-    {
-        if (!EsUltimoMes)
-            mesCalendarioPeriodo = mesCalendarioPeriodo.AddMonths(1);
-    }
-
-    private string ClaseDiaPeriodo(DateTime dia)
-    {
-        var clase = "periodo-calendario-dia";
-
-        if (dia.Date == DateTime.Today)
-            clase += " hoy";
-
-        if (FechaCalendarioPeriodo?.Date == dia.Date)
-            clase += " seleccionado";
-
-        return clase;
-    }
-
-    private void SeleccionarFechaPeriodo(DateTime fecha)
-    {
-        if (calendarioActivo == "desde")
-        {
-            fechaDesde = fecha.Date;
-        }
-        else if (calendarioActivo == "hasta")
-        {
-            fechaHasta = fecha.Date;
-        }
-
-        CerrarCalendarioPeriodo();
-    }
-
-    private void SeleccionarHoyPeriodo()
-    {
-        SeleccionarFechaPeriodo(DateTime.Today);
-    }
-
-    private void LimpiarFechaPeriodo()
-    {
-        if (calendarioActivo == "desde")
-        {
-            fechaDesde = null;
-        }
-        else if (calendarioActivo == "hasta")
-        {
-            fechaHasta = null;
-        }
-
-        CerrarCalendarioPeriodo();
+        await ActualizarConsulta();
     }
 
     protected override async Task OnInitializedAsync()
     {
         await CargarGastos();
+    }
+
+    private Task BuscarConTeclado(KeyboardEventArgs evento) =>
+        evento.Key == "Enter" ? ActualizarConsulta() : Task.CompletedTask;
+
+    private Task ActualizarConsulta()
+    {
+        pagina = 1;
+        return CargarGastos();
+    }
+
+    private Task CambiarPagina(int desplazamiento)
+    {
+        pagina = consulta.Pagina + desplazamiento;
+        return CargarGastos();
     }
 
     private async Task CargarGastos()
@@ -1067,23 +625,11 @@
 
         try
         {
-            var respuestaSocios = await Http.Get<List<SocioListadoDTO>>("api/socio/ListaSocio");
-            if (respuestaSocios.Error)
-            {
-                mensajeError = respuestaSocios.ObtenerError();
-                return;
-            }
-            var caja = respuestaSocios.Respuesta?.SingleOrDefault(s => s.EsCaja);
-            if (caja == null)
-            {
-                mensajeError = "No se pudo identificar Caja Senderos activa.";
-                return;
-            }
-            cajaId = caja.Id;
-
-            var respuesta =
-                await Http.Get<List<GastoListadoDTO>>(
-                    "api/gasto/ListaGastos");
+            var parametros = $"pagina={pagina}&tipoId={tipoSeleccionadoId}&pagadorId={socioSeleccionadoId}" +
+                $"&desde={fechaDesde:yyyy-MM-dd}&hasta={fechaHasta:yyyy-MM-dd}" +
+                $"&descendente={ordenDescendente}&pendientes={soloConReintegros}&porRevisar={soloSinReparto}" +
+                $"&texto={Uri.EscapeDataString(busqueda)}";
+            var respuesta = await Http.Get<GastosPaginaDTO>($"api/gasto/consulta?{parametros}");
 
             if (respuesta.Error)
             {
@@ -1098,7 +644,7 @@
                 return;
             }
 
-            lista = respuesta.Respuesta ?? new();
+            consulta = respuesta.Respuesta ?? new();
         }
         catch (TaskCanceledException)
         {
@@ -1223,8 +769,6 @@
         mostrarEditar = false;
         mostrarHistorial = false;
         mostrarDetalle = false;
-
-        CerrarCalendarioPeriodo();
     }
 
     private async Task GastoGuardado()
