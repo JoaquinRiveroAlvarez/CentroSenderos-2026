@@ -29,14 +29,11 @@ namespace CentroSenderos_2026_Server.Controllers
                 try
                 {
                     var lista = await repositorio.SelectListaTipoPlanilla();
-                    if (lista == null || !lista.Any())
-                        return NotFound("No hay diagnósticos registrados.");
-
                     return Ok(lista);
                 }
                 catch (Exception ex)
                 {
-                    return StatusCode(500, $"Error al obtener diagnósticos: {ex.Message}");
+                    return StatusCode(500, $"Error al obtener tipos de planilla: {ex.Message}");
                 }
             }
 

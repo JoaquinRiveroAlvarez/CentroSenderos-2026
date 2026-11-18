@@ -63,17 +63,31 @@
                     <div class="field-group">
                         <label for="tipoPlanilla">Tipo de planilla</label>
 
-                        <select id="tipoPlanilla"
-                                class="form-input @(ErrorTipo.Length > 0 ? "invalid" : "")" aria-invalid="@(ErrorTipo.Length > 0)" aria-describedby="error-tipo"
-                                disabled="@guardando"
-                                @bind="tipoPlanillaId" @bind:after="ValidarTipo">
-                            <option value="0">Seleccione un tipo</option>
+                        <div class="selector-tipo">
+                            <select id="tipoPlanilla"
+                                    class="form-input @(ErrorTipo.Length > 0 ? "invalid" : "")" aria-invalid="@(ErrorTipo.Length > 0)" aria-describedby="error-tipo"
+                                    disabled="@guardando"
+                                    @bind="tipoPlanillaId" @bind:after="ValidarTipo">
+                                <option value="0">Seleccione un tipo</option>
 
-                            @foreach (var tipo in tiposPlanilla)
-                            {
-                                <option value="@tipo.Id">@tipo.Tipo</option>
-                            }
-                        </select>
+                                @foreach (var tipo in tiposPlanilla.OrderBy(tipo => tipo.Tipo))
+                                {
+                                    <option value="@tipo.Id">@tipo.Tipo</option>
+                                }
+                            </select>
+                            <button type="button"
+                                    class="catalogo-agregar"
+                                    aria-label="Crear tipo de planilla"
+                                    title="Crear tipo de planilla"
+                                    disabled="@guardando"
+                                    @onclick="() => tipoPlanillaModal.Abrir()">
+                                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        @if (tiposPlanilla.Count == 0 && string.IsNullOrEmpty(Mensaje))
+                        {
+                            <p class="field-help">Creá un tipo de planilla con el botón +.</p>
+                        }
                         <p id="error-tipo" class="validation-message" role="alert">@ErrorTipo</p>
                     </div>
 
@@ -181,7 +195,25 @@
     }
 </div>
 
+<CrearCatalogo @ref="tipoPlanillaModal"
+               Recurso="tipoplanillas"
+               Etiqueta="tipo de planilla"
+               Creado="TipoPlanillaCreado" />
+
 @code {
+    #region Tipo de planilla
+
+    private CrearCatalogo tipoPlanillaModal = default!;
+
+    private void TipoPlanillaCreado(TipoListadoDTO tipo)
+    {
+        tiposPlanilla.Add(tipo);
+        tipoPlanillaId = tipo.Id;
+        ValidarTipo();
+    }
+
+    #endregion
+
     [SupplyParameterFromQuery(Name = "volver")] public string? VolverUrl { get; set; }
     private string Regreso => VolverUrl != null && (VolverUrl == "/planillas" || VolverUrl.StartsWith("/planillas?", StringComparison.Ordinal)) ? VolverUrl : "/planillas";
     private bool validacionSolicitada;
@@ -225,6 +257,7 @@
     {
         cargando = true;
         nombre = descripcion = Mensaje = MensajeArchivo = string.Empty;
+        tiposPlanilla.Clear();
         tipoPlanillaId = 0;
         archivo = null;
         versionArchivo++;
@@ -243,12 +276,6 @@
             }
 
             tiposPlanilla = resp.Respuesta ?? new();
-
-            if (tiposPlanilla.Count == 0)
-            {
-                Mensaje = "Primero registrá un tipo de planilla "
-                    + "en la sección Tipos de planilla.";
-            }
         }
         catch
         {
