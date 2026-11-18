@@ -42,6 +42,7 @@ namespace CentroSenderos_2026_Shared.DTO
         public Dictionary<int, string> MatriculasPorPrestacion { get; set; } = new();
 
         public List<int> TipoPrestacionIds { get; set; } = new();
+        public List<TipoPrestacionListadoDTO> PrestacionesDadasDeBaja { get; set; } = new();
         public List<string> TipoPrestacionNombres { get; set; } = new();
         public EnumEstadoRegistro EstadoRegistro { get; set; }
 

@@ -84,6 +84,92 @@ public class CambiosTurnosTests
     }
 
     [Fact]
+    public async Task PrestacionDadaDeBaja_SeConservaEnLaFichaYSeExcluyeDeNuevasSelecciones()
+    {
+        using var servicios = Servicios();
+        using var scope = servicios.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await Catalogos(db);
+        var repo = new ProfesionalRepositorio(db);
+        var id = await repo.InsertarProfesional(ProfesionalNuevo());
+        Assert.True(await new TipoPrestacionRepositorio(db).DeleteTipoPrestacion(2));
+        db.ChangeTracker.Clear();
+
+        var ficha = (await repo.SelectPorId(id))!;
+        Assert.Equal("Terapia", Assert.Single(ficha.PrestacionesDadasDeBaja).Tipo);
+        Assert.Contains(2, ficha.TipoPrestacionIds);
+        ficha.Telefono = "87654321";
+        Assert.True(await repo.ActualizarProfesional(id, ficha));
+        var guardada = (await repo.SelectPorId(id))!;
+        Assert.Equal("87654321", guardada.Telefono);
+        Assert.Equal("TO-456", guardada.MatriculasPorPrestacion[2]);
+
+        var opciones = Assert.Single(await repo.SelectListaProfesional(soloPrestacionesActivas: true));
+        Assert.Equal(1, Assert.Single(opciones.TipoPrestacionIds));
+        Assert.Equal("Psicología", Assert.Single(opciones.TipoPrestacionNombres));
+
+        ficha.TipoPrestacionIds.Remove(2);
+        Assert.True(await repo.ActualizarProfesional(id, ficha));
+        ficha.TipoPrestacionIds.Add(2);
+        await Assert.ThrowsAsync<ApplicationException>(() => repo.ActualizarProfesional(id, ficha));
+        await Assert.ThrowsAsync<ApplicationException>(() => repo.InsertarProfesional(ProfesionalNuevo()));
+    }
+
+    [Fact]
+    public async Task PrestacionDadaDeBaja_SeConservaSoloEnTurnosDondeYaEstabaGuardada()
+    {
+        using var servicios = Servicios();
+        using var scope = servicios.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await Catalogos(db);
+        var profesionalId = await new ProfesionalRepositorio(db).InsertarProfesional(ProfesionalNuevo());
+        var consultorio = new TipoConsultorio { Tipo = "Sala" };
+        var tipo = new TipoTurno { Tipo = "Reunión", DuracionMinutos = 30, RequierePacientes = false };
+        db.AddRange(consultorio, tipo);
+        await db.SaveChangesAsync();
+
+        var repo = new TurnoRepositorio(db);
+        var dto = new TurnoDTO
+        {
+            Fecha = DateTime.UtcNow.Date.AddDays(1),
+            Hora = new TimeOnly(10, 0),
+            TipoTurnoId = tipo.Id,
+            TipoConsultorioId = consultorio.Id,
+            ProfesionalIds = new() { profesionalId },
+            ProfesionalPrestaciones = new() { new() { ProfesionalId = profesionalId, TipoPrestacionId = 2 } },
+            FrecuenciaRecurrencia = EnumFrecuenciaRecurrenciaTurno.semanal,
+            FechaHastaRecurrencia = DateTime.UtcNow.Date.AddDays(8)
+        };
+        var primero = await repo.InsertarTurno(dto);
+        var siguiente = await db.Turnos.Where(t => t.Id != primero).Select(t => t.Id).SingleAsync();
+        Assert.True(await new TipoPrestacionRepositorio(db).DeleteTipoPrestacion(2));
+        db.ChangeTracker.Clear();
+
+        var edicion = (await repo.SelectPorId(primero))!;
+        edicion.Hora = new TimeOnly(11, 0);
+        Assert.True(await repo.ActualizarTurno(primero, edicion));
+        Assert.Equal(2, Assert.Single((await repo.SelectPorId(primero))!.ProfesionalPrestaciones).TipoPrestacionId);
+
+        edicion.ModificarTodaLaSerie = true;
+        edicion.Hora = new TimeOnly(12, 0);
+        Assert.True(await repo.ActualizarTurno(primero, edicion));
+        var otroTurno = (await repo.SelectPorId(siguiente))!;
+        Assert.Equal(new TimeOnly(12, 0), otroTurno.Hora);
+        Assert.Equal(2, Assert.Single(otroTurno.ProfesionalPrestaciones).TipoPrestacionId);
+
+        otroTurno.ProfesionalPrestaciones[0].TipoPrestacionId = 1;
+        Assert.True(await repo.ActualizarTurno(siguiente, otroTurno));
+        otroTurno.ProfesionalPrestaciones[0].TipoPrestacionId = 2;
+        await Assert.ThrowsAsync<ApplicationException>(() => repo.ActualizarTurno(siguiente, otroTurno));
+
+        edicion.Hora = new TimeOnly(13, 0);
+        await Assert.ThrowsAsync<ApplicationException>(() => repo.ActualizarTurno(primero, edicion));
+        Assert.Equal(new TimeOnly(12, 0), (await repo.SelectPorId(primero))!.Hora);
+        Assert.Equal(1, Assert.Single((await repo.SelectPorId(siguiente))!.ProfesionalPrestaciones).TipoPrestacionId);
+        await Assert.ThrowsAsync<ApplicationException>(() => repo.InsertarTurno(dto));
+    }
+
+    [Fact]
     public async Task AltaInvalida_RevierteCuentaYProfesional()
     {
         using var servicios = Servicios();

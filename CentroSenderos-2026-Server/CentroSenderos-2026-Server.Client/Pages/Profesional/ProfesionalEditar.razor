@@ -127,7 +127,7 @@
                                     if (prestacion is not null)
                                     {
                                         <div class="prestacion-chip prestacion-matricula">
-                                            <span>@prestacion.Tipo</span>
+                                            <span>@(modelo.PrestacionesDadasDeBaja.Any(p => p.Id == prestacionId) ? $"{prestacion.Tipo} (dada de baja)" : prestacion.Tipo)</span>
                                         <label>Matrícula
                                             <input class="form-input" aria-label="Matrícula de @prestacion.Tipo" placeholder="Ej.: MP-1234" maxlength="30" value="@modelo.MatriculasPorPrestacion.GetValueOrDefault(prestacionId)"
                                                    @onchange="e => modelo.MatriculasPorPrestacion[prestacionId] = e.Value?.ToString() ?? string.Empty" />
@@ -302,7 +302,8 @@
 
 
     private IEnumerable<TipoPrestacionListadoDTO> PrestacionesSeleccionadas =>
-        listaTipoPrestaciones.Where(prestacion => modelo.TipoPrestacionIds.Contains(prestacion.Id));
+        listaTipoPrestaciones.Concat(modelo.PrestacionesDadasDeBaja)
+            .Where(prestacion => modelo.TipoPrestacionIds.Contains(prestacion.Id));
 
     private IEnumerable<string> AreasDerivadas => PrestacionesSeleccionadas
         .Where(prestacion => !string.IsNullOrWhiteSpace(prestacion.TipoAreaNombre))
@@ -311,7 +312,7 @@
         .OrderBy(nombre => nombre);
 
     private bool TienePrestacionesSinArea => modelo.TipoPrestacionIds.Any(id =>
-        !listaTipoPrestaciones.Any(prestacion => prestacion.Id == id &&
+        !PrestacionesSeleccionadas.Any(prestacion => prestacion.Id == id &&
             prestacion.TipoAreaId.HasValue && !string.IsNullOrWhiteSpace(prestacion.TipoAreaNombre)));
 
 
@@ -427,7 +428,7 @@
                 listaTipoPrestaciones =
                     prestacionesResp.Respuesta ?? new();
             }
-            else
+            else if (prestacionesResp.HttpResponseMessage.StatusCode != System.Net.HttpStatusCode.NotFound)
             {
                 Mensaje = prestacionesResp.ObtenerError();
             }
@@ -452,7 +453,7 @@
 
         var prestacionId = prestacionSeleccionadaId.Value;
 
-        if (!modelo.TipoPrestacionIds.Contains(prestacionId))
+        if (PrestacionesDisponibles.Any(p => p.Id == prestacionId))
             modelo.TipoPrestacionIds.Add(prestacionId);
 
         prestacionSeleccionadaId = null;
@@ -466,7 +467,7 @@
 
     private TipoPrestacionListadoDTO? ObtenerPrestacion(int prestacionId)
     {
-        return listaTipoPrestaciones.FirstOrDefault(
+        return PrestacionesSeleccionadas.FirstOrDefault(
             prestacion => prestacion.Id == prestacionId);
     }
 

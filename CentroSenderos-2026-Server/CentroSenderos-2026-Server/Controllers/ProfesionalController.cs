@@ -42,10 +42,10 @@ namespace CentroSenderos_2026_Server.Controllers
 
 
         [HttpGet("ListaProfesional")]
-        public async Task<IActionResult> GetListaProfesionales([FromQuery] bool bajas = false)
+        public async Task<IActionResult> GetListaProfesionales([FromQuery] bool bajas = false, [FromQuery] bool soloPrestacionesActivas = false)
         {
             if (bajas && !AlcanceProfesional.TieneAccesoCompleto(User)) return Forbid();
-            var lista = await repositorio.SelectListaProfesional(bajas);
+            var lista = await repositorio.SelectListaProfesional(bajas, soloPrestacionesActivas);
             if (lista is not null && !AlcanceProfesional.TieneAccesoCompleto(User))
             {
                 var permitidos = (await AlcanceProfesional.Profesionales(context, User).ToListAsync()).ToHashSet();

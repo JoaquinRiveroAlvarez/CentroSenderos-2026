@@ -50,6 +50,19 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                                 x.TipoPrestacion.Tipo)
                             .ToList(),
 
+                    PrestacionesDadasDeBaja = p.ProfesionalTipoPrestaciones
+                        .Where(x => x.TipoPrestacion.EstadoRegistro == EnumEstadoRegistro.borrado)
+                        .Select(x => new TipoPrestacionListadoDTO
+                        {
+                            Id = x.TipoPrestacionId,
+                            Tipo = x.TipoPrestacion.Tipo,
+                            Cod = x.TipoPrestacion.Cod,
+                            MontoSesion = x.TipoPrestacion.MontoSesion,
+                            TipoAreaId = x.TipoPrestacion.TipoAreaId,
+                            TipoAreaNombre = x.TipoPrestacion.TipoArea != null ? x.TipoPrestacion.TipoArea.Tipo : null
+                        })
+                        .ToList(),
+
                     EsSocio = context.Socios.Any(s =>
                         s.ProfesionalId == p.Id &&
                         s.EstadoRegistro ==
@@ -132,7 +145,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return resultado;
         }
 
-        public async Task<List<ProfesionalListadoDTO>> SelectListaProfesional(bool bajas = false)
+        public async Task<List<ProfesionalListadoDTO>> SelectListaProfesional(bool bajas = false, bool soloPrestacionesActivas = false)
         {
             var estado = bajas ? EnumEstadoRegistro.borrado : EnumEstadoRegistro.activo;
             var resultado = await context.Profesionales
@@ -152,12 +165,18 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     RolAsignado = p.RolAsignado,
 
                     TipoPrestacionIds = p.ProfesionalTipoPrestaciones
+                        .Where(x => !soloPrestacionesActivas ||
+                            (x.EstadoRegistro == EnumEstadoRegistro.activo &&
+                             x.TipoPrestacion.EstadoRegistro == EnumEstadoRegistro.activo))
                         .OrderBy(x => x.TipoPrestacion.Tipo)
                         .ThenBy(x => x.TipoPrestacionId)
                         .Select(x => x.TipoPrestacionId)
                         .ToList(),
 
                     TipoPrestacionNombres = p.ProfesionalTipoPrestaciones
+                        .Where(x => !soloPrestacionesActivas ||
+                            (x.EstadoRegistro == EnumEstadoRegistro.activo &&
+                             x.TipoPrestacion.EstadoRegistro == EnumEstadoRegistro.activo))
                         .OrderBy(x => x.TipoPrestacion.Tipo)
                         .ThenBy(x => x.TipoPrestacionId)
                         .Select(x => x.TipoPrestacion.Tipo)
@@ -310,7 +329,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var cuitLimpio =
                 NormalizarCuit(dto.Cuit);
 
-            var matriculas = await ValidarMatriculas(dto);
+            var matriculas = await ValidarMatriculas(dto, profesional.ProfesionalTipoPrestaciones);
             var mpLimpia = matriculas.Values.FirstOrDefault() ?? string.Empty;
 
             var rnpLimpio =
@@ -424,16 +443,27 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return true;
         }
 
-        private async Task<Dictionary<int, string>> ValidarMatriculas(ProfesionalDTO dto)
+        private async Task<Dictionary<int, string>> ValidarMatriculas(ProfesionalDTO dto, IEnumerable<ProfesionalTipoPrestacion>? relacionesGuardadas = null)
         {
             var ids = dto.TipoPrestacionIds.Distinct().ToList();
             if (ids.Count == 0) throw new ApplicationException("Seleccioná al menos una prestación.");
-            var activos = await context.TipoPrestaciones.CountAsync(p => ids.Contains(p.Id) && p.EstadoRegistro == EnumEstadoRegistro.activo);
-            if (activos != ids.Count) throw new ApplicationException("Una prestación no existe o está inactiva.");
+            var nuevas = ids.Except(relacionesGuardadas?.Select(r => r.TipoPrestacionId) ?? []).ToList();
+            var activas = await context.TipoPrestaciones.CountAsync(p =>
+                nuevas.Contains(p.Id) && p.EstadoRegistro == EnumEstadoRegistro.activo);
+            if (activas != nuevas.Count)
+                throw new ApplicationException("Una prestación no existe o está inactiva.");
             var resultado = new Dictionary<int, string>();
             foreach (var id in ids)
             {
                 var matricula = dto.MatriculasPorPrestacion.GetValueOrDefault(id)?.Trim().ToUpperInvariant();
+                var guardada = relacionesGuardadas?.FirstOrDefault(r => r.TipoPrestacionId == id);
+                if (guardada is not null &&
+                    string.Equals(matricula ?? string.Empty, guardada.Matricula?.Trim().ToUpperInvariant() ?? string.Empty, StringComparison.Ordinal))
+                {
+                    resultado.Add(id, guardada.Matricula ?? string.Empty);
+                    continue;
+                }
+
                 if (string.IsNullOrEmpty(matricula) || matricula.Length > 30)
                     throw new ApplicationException("Ingresá una matrícula de hasta 30 caracteres para cada prestación.");
                 resultado.Add(id, matricula);
