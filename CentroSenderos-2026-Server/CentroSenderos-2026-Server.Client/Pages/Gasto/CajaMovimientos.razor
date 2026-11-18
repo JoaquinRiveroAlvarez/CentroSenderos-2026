@@ -48,14 +48,14 @@
                 <div class="caja-listado-cabecera">
                     <h2 id="movimientos-periodo">Movimientos del período</h2>
                     <div class="caja-filtros">
-                        <label>
-                            Desde
-                            <input type="date" @bind="desde" />
-                        </label>
-                        <label>
-                            Hasta
-                            <input type="date" @bind="hasta" />
-                        </label>
+                        <div class="caja-filtro">
+                            <label for="caja-fecha-desde">Desde</label>
+                            <CalendarioGasto id="caja-fecha-desde" PermiteLimpiar="true" @bind-Value="desde" />
+                        </div>
+                        <div class="caja-filtro">
+                            <label for="caja-fecha-hasta">Hasta</label>
+                            <CalendarioGasto id="caja-fecha-hasta" PermiteLimpiar="true" @bind-Value="hasta" />
+                        </div>
                     </div>
                 </div>
 
@@ -82,9 +82,18 @@
                             <tbody>
                                 @foreach (var movimiento in visibles)
                                 {
-                                    <tr>
+                                    <tr class="@(ReferenceEquals(movimiento, seleccionado) ? "caja-seleccionado" : null)"
+                                        @onclick="() => SeleccionarMovimiento(movimiento)">
                                         <td class="caja-fecha">@movimiento.Fecha.ToString("dd/MM/yyyy")</td>
-                                        <td>@movimiento.Concepto</td>
+                                        <td>
+                                            <button type="button" class="caja-detalle-enlace"
+                                                    aria-label="@($"{movimiento.Concepto}, {movimiento.Referencia}, {movimiento.Fecha:dd/MM/yyyy}, {Moneda(movimiento.Importe)}")"
+                                                    @onclick="() => SeleccionarMovimiento(movimiento)"
+                                                    @onclick:stopPropagation="true">
+                                                @movimiento.Concepto
+                                                <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                                            </button>
+                                        </td>
                                         <td>
                                             @movimiento.Referencia
                                             <small>#@movimiento.OrigenId</small>
@@ -109,6 +118,52 @@
     }
 </div>
 
+@if (gastoDetalleId == null && seleccionado is { } movimientoSeleccionado &&
+    movimientoSeleccionado.Tipo != TipoMovimientoCaja.PagoGasto)
+{
+    <div class="caja-detalle-fondo" @onclick="CerrarMovimiento">
+        <section class="caja-detalle-movimiento" role="dialog" aria-modal="true"
+                 aria-labelledby="titulo-movimiento-caja" @onclick:stopPropagation="true">
+            <h3 id="titulo-movimiento-caja">@movimientoSeleccionado.Concepto</h3>
+            <p>@movimientoSeleccionado.Referencia · @Moneda(movimientoSeleccionado.Importe)</p>
+            @if (movimientoSeleccionado.Tipo == TipoMovimientoCaja.Reintegro)
+            {
+                @if (cargandoGastos)
+                {
+                    <p role="status">Cargando gastos del reintegro…</p>
+                }
+                else if (!string.IsNullOrWhiteSpace(errorDetalle))
+                {
+                    <p role="alert">@errorDetalle</p>
+                }
+                else if (gastosReintegro.Count == 0)
+                {
+                    <p>Sin gastos asociados.</p>
+                }
+                else
+                {
+                    <ul class="caja-gastos-reintegro">
+                        @foreach (var gasto in gastosReintegro)
+                        {
+                            <li>
+                                <button type="button" class="caja-detalle-enlace"
+                                        @onclick="() => gastoDetalleId = gasto.GastoId">@gasto.Descripcion</button>
+                                <strong>@Moneda(gasto.Monto)</strong>
+                            </li>
+                        }
+                    </ul>
+                }
+            }
+            <button type="button" class="caja-cerrar-detalle" @onclick="CerrarMovimiento">Cerrar</button>
+        </section>
+    </div>
+}
+
+@if (gastoDetalleId is int id)
+{
+    <GastosDetalle @key="id" GastoId="id" SoloLectura="true" OnCerrar="() => gastoDetalleId = null" />
+}
+
 @code {
     #region Estado
 
@@ -117,6 +172,12 @@
     private string error = string.Empty;
     private DateTime? desde = new(DateTime.Today.Year, DateTime.Today.Month, 1);
     private DateTime? hasta;
+    private MovimientoCajaDTO? seleccionado;
+    private List<GastoMovimientoCajaDTO> gastosReintegro = new();
+    private int? gastoDetalleId;
+    private bool cargandoGastos;
+    private string errorDetalle = string.Empty;
+    private int versionSeleccion;
 
     #endregion
 
@@ -141,6 +202,52 @@
         {
             cargando = false;
         }
+    }
+
+    private async Task SeleccionarMovimiento(MovimientoCajaDTO movimiento)
+    {
+        var version = ++versionSeleccion;
+        seleccionado = movimiento;
+        errorDetalle = string.Empty;
+        gastosReintegro = new();
+        cargandoGastos = movimiento.Tipo == TipoMovimientoCaja.Reintegro;
+        if (movimiento.Tipo == TipoMovimientoCaja.PagoGasto)
+        {
+            gastoDetalleId = movimiento.OrigenId;
+            return;
+        }
+
+        if (!cargandoGastos)
+            return;
+
+        try
+        {
+            var respuesta = await Http.Get<List<GastoMovimientoCajaDTO>>(
+                $"api/caja/reintegros/{movimiento.OrigenId}/gastos");
+            if (version != versionSeleccion)
+                return;
+
+            if (respuesta.Error)
+                errorDetalle = respuesta.ObtenerError();
+            else
+                gastosReintegro = respuesta.Respuesta ?? new();
+        }
+        catch (Exception)
+        {
+            if (version == versionSeleccion)
+                errorDetalle = "No se pudieron consultar los gastos de este reintegro.";
+        }
+        finally
+        {
+            if (version == versionSeleccion)
+                cargandoGastos = false;
+        }
+    }
+
+    private void CerrarMovimiento()
+    {
+        versionSeleccion++;
+        seleccionado = null;
     }
 
     private static string Moneda(decimal monto) =>

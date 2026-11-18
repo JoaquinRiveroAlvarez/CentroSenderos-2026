@@ -241,18 +241,13 @@
     align-items: center;
     gap: 10px;
     min-width: 0;
-    min-height: 38px;
-    padding: 0 14px;
+    min-height: 46px;
+    padding: 3px 4px 3px 14px;
     border: 1px solid #dedbd4;
     border-radius: 20px;
     background: #fff;
     color: #647b5b;
 }
-
-    .filter-search > i {
-        flex-shrink: 0;
-        font-size: 14px;
-    }
 
     .filter-search input {
         width: 100%;
@@ -1644,9 +1639,18 @@ button.panel-filtro:hover, .panel-filtro.activo {
 
 .buscar-gastos {
     flex-shrink: 0;
+    min-height: 38px;
+    padding-inline: 14px;
+    border-color: #556f4f;
+    border-radius: 18px;
+    background: #556f4f;
+    color: #fff;
 }
 
-.buscar-gastos:hover,
+.buscar-gastos:hover {
+    background: #435e3d;
+}
+
 .gastos-paginacion button:not(:disabled):hover {
     background: #eaf1e6;
 }

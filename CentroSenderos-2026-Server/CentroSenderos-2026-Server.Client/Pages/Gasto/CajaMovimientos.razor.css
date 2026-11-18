@@ -104,21 +104,16 @@
     gap: 10px;
 }
 
-.caja-filtros label {
-    display: grid;
-    gap: 5px;
-    font-size: 13px;
-    font-weight: 600;
+.caja-filtro {
+    min-width: min(100%, 150px);
+    flex: 1 1 150px;
 }
 
-.caja-filtros input {
-    min-height: 40px;
-    padding: 7px 10px;
-    border: 1px solid #c9cdc3;
-    border-radius: 10px;
-    background: #fff;
-    color: #3f443d;
-    font: inherit;
+.caja-filtro label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 13px;
+    font-weight: 600;
 }
 
 .caja-tabla {
@@ -227,3 +222,91 @@
         padding: 10px 12px;
     }
 }
+
+/* #region Detalle de movimientos */
+
+.caja-tabla tbody tr {
+    cursor: pointer;
+}
+
+.caja-tabla tbody tr.caja-seleccionado {
+    background: #eaf1e6;
+}
+
+.caja-detalle-enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    color: #405d36;
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+.caja-detalle-enlace:hover {
+    text-decoration: underline;
+}
+
+.caja-detalle-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgb(37 46 33 / 45%);
+}
+
+.caja-detalle-movimiento {
+    width: min(100%, 460px);
+    max-height: 100%;
+    overflow-y: auto;
+    padding: 20px;
+    border: 1px solid #e7e3dc;
+    border-radius: 16px;
+    background: #faf8f5;
+    color: #3f443d;
+}
+
+.caja-cerrar-detalle {
+    display: block;
+    margin: 14px 0 0 auto;
+    padding: 7px 12px;
+    border: 1px solid #cbdac5;
+    border-radius: 9px;
+    background: #fff;
+    color: #405d36;
+}
+
+.caja-cerrar-detalle:hover {
+    background: #eaf1e6;
+}
+
+.caja-detalle-movimiento h3 {
+    margin: 0 0 6px;
+    color: #405d36;
+    font-size: 17px;
+}
+
+.caja-detalle-movimiento p {
+    margin: 0 0 8px;
+}
+
+.caja-gastos-reintegro {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.caja-gastos-reintegro li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+
+/* #endregion */

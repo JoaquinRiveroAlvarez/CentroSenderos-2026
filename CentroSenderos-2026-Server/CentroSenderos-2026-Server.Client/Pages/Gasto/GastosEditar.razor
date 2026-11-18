@@ -5,7 +5,7 @@
 
 @inject IHttpServicio Http
 
-<div class="gasto-overlay" @onclick="Cerrar">
+<div class="gasto-overlay" inert="@mostrarAltaTipo" @onclick="Cerrar">
     <section class="gasto-modal"
              role="dialog"
              aria-modal="true"
@@ -74,18 +74,24 @@
                                     Tipo de gasto
                                 </label>
 
-                                <InputSelect id="editarTipoGasto"
-                                             class="form-input"
-                                             @bind-Value="modelo.TipoGastoId">
-                                    <option value="0">Seleccionar tipo</option>
+                                <div class="selector-tipo-gasto">
+                                    <InputSelect id="editarTipoGasto"
+                                                 class="form-input"
+                                                 @bind-Value="modelo.TipoGastoId">
+                                        <option value="0">Seleccionar tipo</option>
 
-                                    @foreach (var tipo in tiposGasto)
-                                    {
-                                        <option value="@tipo.Id">
-                                            @tipo.Tipo
-                                        </option>
-                                    }
-                                </InputSelect>
+                                        @foreach (var tipo in tiposGasto)
+                                        {
+                                            <option value="@tipo.Id">
+                                                @tipo.Tipo
+                                            </option>
+                                        }
+                                    </InputSelect>
+                                    <button type="button" aria-label="Crear tipo de gasto"
+                                            title="Crear tipo de gasto" @onclick="() => mostrarAltaTipo = true">
+                                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                                    </button>
+                                </div>
 
                                 <ValidationMessage
                                     For="@(() => modelo.TipoGastoId)" />
@@ -94,10 +100,9 @@
                             <div class="field-group">
                                 <label for="editarFechaGasto">Fecha</label>
 
-                                <InputDate id="editarFechaGasto"
-                                           class="form-input"
+                                <CalendarioGasto id="editarFechaGasto"
                                            @bind-Value="modelo.Fecha"
-                                           disabled="@ProtegeImportes" />
+                                           Deshabilitado="@ProtegeImportes" />
 
                                 <ValidationMessage
                                     For="@(() => modelo.Fecha)" />
@@ -277,7 +282,24 @@
     </section>
 </div>
 
+@if (mostrarAltaTipo)
+{
+    <TipoGastoAltaRapida OnGuardado="SeleccionarTipoCreado" OnCerrar="() => mostrarAltaTipo = false" />
+}
+
 @code {
+    private bool mostrarAltaTipo;
+
+    private void SeleccionarTipoCreado(TipoListadoDTO tipo)
+    {
+        tiposGasto.RemoveAll(actual => actual.Id == tipo.Id);
+        tiposGasto.Add(tipo);
+        tiposGasto = tiposGasto.OrderBy(actual => actual.Tipo).ToList();
+        modelo.TipoGastoId = tipo.Id;
+        contexto.NotifyFieldChanged(FieldIdentifier.Create(() => modelo.TipoGastoId));
+        mostrarAltaTipo = false;
+    }
+
     [Parameter]
     public int GastoId { get; set; }
 

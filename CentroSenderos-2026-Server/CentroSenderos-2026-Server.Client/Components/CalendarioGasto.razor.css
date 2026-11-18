@@ -1,0 +1,134 @@
+/* #region Campo y calendario */
+
+.calendario-campo {
+    width: 100%;
+    min-width: 0;
+}
+
+.calendario-campo button {
+    font: inherit;
+    cursor: pointer;
+}
+
+.calendario-campo button:disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+
+.calendario-disparador {
+    display: flex;
+    width: 100%;
+    min-height: 42px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    border: 1px solid #cbd1c6;
+    border-radius: 11px;
+    background: #fff;
+    color: #3f443d;
+    text-align: left;
+}
+
+.calendario-disparador i {
+    color: #556f4f;
+}
+
+.calendario-panel {
+    width: 100%;
+    max-width: 320px;
+    margin-top: 7px;
+    padding: 10px;
+    border: 1px solid #cbdac5;
+    border-radius: 14px;
+    background: #fff;
+    color: #3f443d;
+    box-shadow: 0 5px 18px rgb(51 70 43 / 10%);
+}
+
+.calendario-encabezado,
+.calendario-acciones {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+}
+
+.calendario-mes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.calendario-mes input {
+    width: 64px;
+    padding: 3px;
+    border: 1px solid #cbd1c6;
+    border-radius: 6px;
+    color: #405d36;
+    font: inherit;
+}
+
+.calendario-encabezado strong {
+    color: #405d36;
+    text-align: center;
+    text-transform: capitalize;
+}
+
+.calendario-dias {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 2px;
+    margin-block: 8px;
+    text-align: center;
+}
+
+.calendario-dias span {
+    color: #646b61;
+    font-size: 12px;
+}
+
+.calendario-panel button {
+    min-height: 32px;
+    padding: 3px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: #405d36;
+}
+
+.calendario-encabezado button {
+    min-width: 32px;
+}
+
+.calendario-panel button:hover:not(:disabled) {
+    background: #eaf1e6;
+}
+
+.calendario-dias button[aria-current="date"] {
+    border-color: #899e80;
+}
+
+.calendario-dias button[aria-pressed="true"],
+.calendario-dias button[aria-pressed="true"]:hover {
+    background: #556f4f;
+    color: #fff;
+}
+
+.calendario-acciones {
+    border-top: 1px solid #e7e3dc;
+    padding-top: 5px;
+}
+
+.calendario-campo :focus-visible {
+    outline: 2px solid #556f4f;
+    outline-offset: 2px;
+}
+
+.calendario-disparador.invalid {
+    border-color: #a04438;
+}
+
+/* #endregion */

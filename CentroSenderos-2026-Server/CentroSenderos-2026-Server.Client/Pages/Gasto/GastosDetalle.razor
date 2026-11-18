@@ -209,7 +209,8 @@
         </div>
 
         <footer class="modal-actions">
-            @if (gasto != null &&
+            @if (!SoloLectura &&
+                 gasto != null &&
                  !cargando &&
                  string.IsNullOrWhiteSpace(mensajeError))
             {
@@ -273,6 +274,9 @@
 
     [Parameter]
     public int CajaId { get; set; }
+
+    [Parameter]
+    public bool SoloLectura { get; set; }
 
     [Parameter]
     public EventCallback<int> OnReintegro { get; set; }

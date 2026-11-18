@@ -383,3 +383,25 @@ button:disabled,
 }
 
 /* #endregion */
+
+/* #region Alta rápida de tipo */
+
+.selector-tipo-gasto {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+}
+
+.selector-tipo-gasto button {
+    min-width: 42px;
+    border: 1px solid #cbdac5;
+    border-radius: 10px;
+    background: #eaf1e6;
+    color: #405d36;
+}
+
+.selector-tipo-gasto button:hover {
+    background: #dce8d5;
+}
+
+/* #endregion */
