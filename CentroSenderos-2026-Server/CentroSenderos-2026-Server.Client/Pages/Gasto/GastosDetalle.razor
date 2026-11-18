@@ -13,8 +13,8 @@
 
         <header class="modal-header">
             <div>
-                <h2 id="tituloDetalleGasto">Detalle del gasto</h2>
-                <p>Información del gasto, pagos y reparto entre socios.</p>
+                <h2 id="tituloDetalleGasto">@(ReintegroCaja == null ? "Detalle del gasto" : "Detalle del reintegro")</h2>
+                <p>@(ReintegroCaja == null ? "Información del gasto, pagos y reparto entre socios." : "Información del reintegro y gastos asociados.")</p>
             </div>
 
             <button type="button"
@@ -30,14 +30,14 @@
         {
             <div class="state-card" role="status">
                 <span class="spinner-border spinner-border-sm"></span>
-                <p>Cargando gasto...</p>
+                <p>@(ReintegroCaja == null ? "Cargando gasto…" : "Cargando reintegro…")</p>
             </div>
         }
         else if (!string.IsNullOrWhiteSpace(mensajeError))
         {
             <div class="state-card">
                 <i class="bi bi-exclamation-circle state-icon"></i>
-                <h3>No se pudo cargar el gasto</h3>
+                <h3>@(ReintegroCaja == null ? "No se pudo cargar el gasto" : "No se pudo cargar el reintegro")</h3>
                 <p role="alert">@mensajeError</p>
 
                 <button type="button"
@@ -47,6 +47,59 @@
                     Reintentar
                 </button>
             </div>
+        }
+        else if (ReintegroCaja is { } reintegroCaja)
+        {
+            <section class="detail-section">
+                <h3>Información del reintegro</h3>
+                <dl class="detail-grid">
+                    <div class="detail-field">
+                        <dt>Fecha</dt>
+                        <dd>@reintegroCaja.Fecha.ToString("dd/MM/yyyy")</dd>
+                    </div>
+                    <div class="detail-field">
+                        <dt>Número de registro</dt>
+                        <dd>#@reintegroCaja.OrigenId</dd>
+                    </div>
+                    <div class="detail-field">
+                        <dt>Pagado por</dt>
+                        <dd>Caja Senderos</dd>
+                    </div>
+                    <div class="detail-field">
+                        <dt>Socio receptor</dt>
+                        <dd>@reintegroCaja.Referencia</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section class="detail-section">
+                <h3>Gastos reintegrados</h3>
+                @if (gastosReintegro.Count == 0)
+                {
+                    <p class="empty-aportes">Sin gastos asociados.</p>
+                }
+                else
+                {
+                    <div class="aportes-list">
+                        @foreach (var item in gastosReintegro)
+                        {
+                            <div class="aporte-row" @key="item.GastoId">
+                                <button type="button" class="aporte-name aporte-enlace"
+                                        @onclick="() => OnVerGasto.InvokeAsync(item.GastoId)">
+                                    <i class="bi bi-receipt" aria-hidden="true"></i>
+                                    <span>@item.Descripcion</span>
+                                </button>
+                                <strong class="aporte-amount">@Moneda(item.Monto)</strong>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="total-box">
+                    <span>Total reintegrado</span>
+                    <strong>@Moneda(-reintegroCaja.Importe)</strong>
+                </div>
+            </section>
         }
         else if (gasto != null)
         {
@@ -264,6 +317,14 @@
     public int GastoId { get; set; }
 
     [Parameter]
+    public MovimientoCajaDTO? ReintegroCaja { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnVerGasto { get; set; }
+
+    private List<GastoMovimientoCajaDTO> gastosReintegro = new();
+
+    [Parameter]
     public EventCallback OnCerrar { get; set; }
 
     [Parameter]
@@ -327,6 +388,24 @@
 
         try
         {
+            if (ReintegroCaja is { } reintegro)
+            {
+                var respuestaReintegro = await Http.Get<List<GastoMovimientoCajaDTO>>(
+                    $"api/caja/reintegros/{reintegro.OrigenId}/gastos");
+                if (respuestaReintegro.Error)
+                {
+                    mensajeError = respuestaReintegro.ObtenerError();
+                    if (string.IsNullOrWhiteSpace(mensajeError))
+                        mensajeError = "No se pudieron consultar los gastos del reintegro.";
+                }
+                else
+                {
+                    gastosReintegro = respuestaReintegro.Respuesta ?? new();
+                }
+
+                return;
+            }
+
             var respuesta =
                 await Http.Get<GastoListadoDTO>(
                     $"api/gasto/{GastoId}/detalle");
@@ -359,8 +438,9 @@
         }
         catch (Exception)
         {
-            mensajeError =
-                "No se pudo cargar el gasto. Verificá la conexión.";
+            mensajeError = ReintegroCaja == null
+                ? "No se pudo consultar el detalle del gasto."
+                : "No se pudieron consultar los gastos del reintegro.";
         }
         finally
         {

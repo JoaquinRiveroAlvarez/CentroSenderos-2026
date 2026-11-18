@@ -1440,17 +1440,18 @@ button.panel-filtro:hover, .panel-filtro.activo {
     gap: 8px;
     margin-top: 12px;
     padding: 9px 11px;
-    border: 1px solid #cbdac5;
+    border: 1px solid #556f4f;
     border-radius: 9px;
-    background: #fff;
-    color: #435e3d;
+    background: #556f4f;
+    color: #fff;
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
 }
 
 .caja-movimientos-enlace:hover {
-    background: #f2f4ee;
+    background: #435e3d;
+    color: #fff;
     text-decoration: underline;
 }
 
