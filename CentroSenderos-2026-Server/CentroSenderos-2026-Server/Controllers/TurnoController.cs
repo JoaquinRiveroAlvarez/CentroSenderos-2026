@@ -88,9 +88,30 @@ namespace CentroSenderos_2026_Server.Controllers
             if (actuales.Count == 0)
                 return await PuedeGestionarProfesionales(dto);
 
-            return !dto.ModificarTodaLaSerie
-                && actuales.ToHashSet().SetEquals(dto.ProfesionalIds)
-                && dto.ProfesionalPrestaciones.All(p => actuales.Contains(p.ProfesionalId));
+            if (dto.ModificarTodaLaSerie || !actuales.ToHashSet().SetEquals(dto.ProfesionalIds))
+            {
+                return false;
+            }
+
+            var profesionalPropioId = await AlcanceProfesional.Propios(context, User)
+                .Where(profesionalId => actuales.Contains(profesionalId))
+                .OrderBy(profesionalId => profesionalId)
+                .Select(profesionalId => (int?)profesionalId)
+                .FirstOrDefaultAsync();
+
+            if (profesionalPropioId is null)
+            {
+                return false;
+            }
+
+            var turno = await repositorio.SelectPorId(id);
+
+            return turno is not null && dto.ProfesionalPrestaciones.All(seleccion =>
+                actuales.Contains(seleccion.ProfesionalId)
+                && (seleccion.ProfesionalId == profesionalPropioId
+                    || turno.ProfesionalPrestaciones.Any(guardada =>
+                        guardada.ProfesionalId == seleccion.ProfesionalId
+                        && guardada.TipoPrestacionId == seleccion.TipoPrestacionId)));
         }
 
         private async Task<bool> PuedeConsultarDisponibilidad(IEnumerable<int> ids, int? turnoId)
@@ -113,23 +134,33 @@ namespace CentroSenderos_2026_Server.Controllers
         {
             try
             {
-                if (!await PuedeGestionarTurno(id)) return NotFound();
-                var entidad =
-                    await repositorio.SelectPorId(id);
+                if (!await PuedeGestionarTurno(id))
+                {
+                    return NotFound();
+                }
+
+                var entidad = await repositorio.SelectPorId(id);
 
                 if (entidad is null)
                 {
-                    return NotFound(
-                        new RespuestaDTO
-                        {
-                            mensaje =
-                                "No encontramos el turno solicitado."
-                        }
-                    );
+                    return NotFound(new RespuestaDTO
+                    {
+                        mensaje = "No encontramos el turno solicitado."
+                    });
                 }
 
                 entidad.ParticipantesFijos = !AlcanceProfesional.TieneAccesoCompleto(User)
                     && await TurnosMixtosPropios().AnyAsync(t => t.Id == id);
+
+                if (entidad.ParticipantesFijos)
+                {
+                    entidad.ProfesionalPropioId = await AlcanceProfesional.Propios(context, User)
+                        .Where(profesionalId => entidad.ProfesionalIds.Contains(profesionalId))
+                        .OrderBy(profesionalId => profesionalId)
+                        .Select(profesionalId => (int?)profesionalId)
+                        .FirstOrDefaultAsync();
+                }
+
                 return Ok(entidad);
             }
             catch (Exception ex)
@@ -137,8 +168,7 @@ namespace CentroSenderos_2026_Server.Controllers
                 return ErrorInterno(
                     ex,
                     "cargar el turno",
-                    "No pudimos cargar el turno en este momento. " +
-                    "Intentá nuevamente."
+                    "No pudimos cargar el turno en este momento. Intentá nuevamente."
                 );
             }
         }

@@ -51,6 +51,7 @@ public class TurnoDTO
 
     // Nuevas propiedades para permitir múltiples profesionales y pacientes.
     public bool ParticipantesFijos { get; set; }
+    public int? ProfesionalPropioId { get; set; }
 
     public List<int> ProfesionalIds { get; set; } = new();
 

@@ -238,13 +238,45 @@
                     {
                         <div class="campo campo-completo">
                             <label>Profesionales asignados</label>
-                            <ul>
+
+                            <div class="profesionales-prestaciones-lista">
                                 @foreach (var participante in modelo.ProfesionalPrestaciones)
                                 {
-                                    <li>@participante.NombreProfesional · @participante.NombreTipoPrestacion</li>
+                                    var profesionalId = participante.ProfesionalId;
+                                    var profesionalPropio = profesionalId == modelo.ProfesionalPropioId
+                                        ? profesionales.FirstOrDefault(item => item.Id == profesionalId)
+                                        : null;
+
+                                    var opciones = profesionalPropio is null
+                                        ? new[]
+                                        {
+                        new OpcionSelector(
+                            participante.TipoPrestacionId.ToString(),
+                            participante.NombreTipoPrestacion)
+                                        }
+                                        : OpcionesPrestaciones(
+                                            profesionalPropio,
+                                            ObtenerOpcionHistorica(profesionalPropio));
+
+                                    <div class="profesional-prestacion-card" @key="profesionalId">
+                                        <SelectorConBusqueda Id="@($"profesional-fijo-{profesionalId}")"
+                                                             Etiqueta="Profesional"
+                                                             Multiple="false"
+                                                             Disabled="true"
+                                                             Valor="@profesionalId.ToString()"
+                                                             Opciones="@(new[] { new OpcionSelector(profesionalId.ToString(), participante.NombreProfesional) })" />
+
+                                        <SelectorConBusqueda Id="@($"prestacion-fija-{profesionalId}")"
+                                                             Etiqueta="Prestación"
+                                                             Multiple="false"
+                                                             PermitirLimpiar="false"
+                                                             Disabled="@(profesionalPropio is null || OperacionEnCurso)"
+                                                             Valor="@participante.TipoPrestacionId.ToString()"
+                                                             Opciones="@opciones"
+                                                             ValorChanged="@(valor => SeleccionarPrestacion(profesionalId, new ChangeEventArgs { Value = valor }))" />
+                                    </div>
                                 }
-                            </ul>
-                            <p>Podés editar este turno. La asignación de profesionales se gestiona desde Administración.</p>
+                            </div>
                         </div>
                     }
                     else
@@ -2485,43 +2517,47 @@
     {
         var profesionalIdsSeleccionados = modelo.ProfesionalIds
             .Where(profesionalId => profesionalId > 0)
-            .Distinct()
             .ToHashSet();
 
         var relacionesNormalizadas = modelo.ProfesionalPrestaciones
             .Where(seleccion =>
-                profesionalIdsSeleccionados.Contains(
-                    seleccion.ProfesionalId
-                ) &&
-                seleccion.TipoPrestacionId > 0
-            )
+                profesionalIdsSeleccionados.Contains(seleccion.ProfesionalId) &&
+                seleccion.TipoPrestacionId > 0)
             .GroupBy(seleccion => seleccion.ProfesionalId)
             .Select(grupo => grupo.First())
             .ToList();
 
         foreach (var profesionalId in profesionalIdsSeleccionados)
         {
-            var profesional = profesionales.FirstOrDefault(
-                item => item.Id == profesionalId
-            );
-
             var seleccion = relacionesNormalizadas.FirstOrDefault(
                 item => item.ProfesionalId == profesionalId
             );
 
-            if (profesional is null || seleccion is null)
+            if (seleccion is null)
             {
-                Mensaje =
-                    "Seleccioná una prestación para cada profesional.";
+                Mensaje = "Seleccioná una prestación para cada profesional.";
                 return false;
             }
 
-            if (!profesional.TipoPrestacionIds.Contains(
-                seleccion.TipoPrestacionId) && ObtenerOpcionHistorica(profesional) is null)
+            if (modelo.ParticipantesFijos && profesionalId != modelo.ProfesionalPropioId)
             {
-                Mensaje =
-                    "La prestación seleccionada no está asignada a " +
-                    $"{profesional.Nombre}.";
+                continue;
+            }
+
+            var profesional = profesionales.FirstOrDefault(
+                item => item.Id == profesionalId
+            );
+
+            if (profesional is null)
+            {
+                Mensaje = "Seleccioná una prestación para cada profesional.";
+                return false;
+            }
+
+            if (!profesional.TipoPrestacionIds.Contains(seleccion.TipoPrestacionId)
+                && ObtenerOpcionHistorica(profesional) is null)
+            {
+                Mensaje = $"La prestación seleccionada no está asignada a {profesional.Nombre}.";
                 return false;
             }
         }
@@ -2535,7 +2571,6 @@
 
         return true;
     }
-
     private async Task Grabar()
     {
         if (!PuedeGuardar || OperacionEnCurso)
