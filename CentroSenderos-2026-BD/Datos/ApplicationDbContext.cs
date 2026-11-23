@@ -29,6 +29,7 @@ namespace CentroSenderos_2026_BD
         public DbSet<DetalleLiquidacion> DetalleLiquidaciones { get; set; }
         public DbSet<Liquidacion> Liquidaciones { get; set; }
         public DbSet<Gasto> Gastos { get; set; }
+        public DbSet<GastoComprobante> GastoComprobantes { get; set; }
         public DbSet<GastoHistorial> GastoHistoriales { get; set; }
         public DbSet<Documento> Documentos { get; set; }
         public DbSet<GastoReparto> GastoRepartos { get; set; }

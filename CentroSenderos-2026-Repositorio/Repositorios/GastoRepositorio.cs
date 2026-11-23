@@ -7,6 +7,7 @@ using Modelado2025_1Repositorio.Repositorios;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -192,6 +193,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             };
 
             context.Gastos.Add(gasto);
+            AgregarComprobantes(gasto, dto.ComprobantesNuevos);
 
             await context.SaveChangesAsync();
             await transaccion.CommitAsync();
@@ -199,7 +201,56 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return gasto.Id;
         }
 
-        public async Task<bool> ActualizarGasto(int id,GastoEditarDTO dto,string usuarioId)
+        private List<string> AgregarComprobantes(
+            Gasto gasto, List<GastoComprobanteNuevoDTO>? archivos)
+        {
+            if (archivos is null || archivos.Count == 0)
+                return new List<string>();
+
+            if (archivos.Count > GastoComprobanteNuevoDTO.MaximoPorGuardado)
+                throw new ApplicationException("Podés adjuntar hasta 3 comprobantes nuevos por guardado.");
+
+            var nombres = new List<string>(archivos.Count);
+            foreach (var archivo in archivos)
+            {
+                if (archivo?.Contenido is not { Length: > 0 and <= GastoComprobanteDTO.MaximoBytes } contenido)
+                    throw new ApplicationException("Cada comprobante debe tener contenido y pesar hasta 5 MB.");
+
+                var nombre = Path.GetFileName(
+                    (archivo.Nombre ?? string.Empty).Replace('\\', '/'));
+                if (string.IsNullOrWhiteSpace(nombre) || nombre.Length > 180 || nombre.Any(char.IsControl))
+                    throw new ApplicationException("El nombre de uno de los comprobantes no es válido.");
+
+                var tipo = ObtenerTipoComprobante(Path.GetExtension(nombre), contenido);
+                if (tipo is null)
+                    throw new ApplicationException("Los comprobantes deben ser PDF, JPG o PNG válidos.");
+
+                context.GastoComprobantes.Add(new GastoComprobante
+                {
+                    Gasto = gasto,
+                    Nombre = nombre,
+                    TipoContenido = tipo,
+                    Contenido = contenido,
+                    TamanoBytes = contenido.Length,
+                    FechaCarga = DateTime.UtcNow
+                });
+                nombres.Add(nombre);
+            }
+
+            return nombres;
+        }
+
+        private static string? ObtenerTipoComprobante(string extension, ReadOnlySpan<byte> contenido) =>
+            extension.ToLowerInvariant() switch
+            {
+                ".pdf" when contenido.StartsWith("%PDF-"u8) => "application/pdf",
+                ".jpg" or ".jpeg" when contenido.StartsWith(new byte[] { 0xff, 0xd8, 0xff }) => "image/jpeg",
+                ".png" when contenido.StartsWith(
+                    new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a }) => "image/png",
+                _ => null
+            };
+
+        public async Task<bool> ActualizarGasto(int id, GastoEditarDTO dto, string usuarioId)
         {
             if (dto == null)
             {
@@ -276,6 +327,28 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (gasto == null)
                 return false;
 
+            var comprobanteIds = dto.ComprobanteIdsParaQuitar?
+                .Distinct().ToArray() ?? Array.Empty<int>();
+            var comprobantesQuitados = new List<string>();
+
+            if (comprobanteIds.Length > 0)
+            {
+                var comprobantesParaQuitar = context.GastoComprobantes
+                    .Where(archivo => archivo.GastoId == gasto.Id &&
+                                     comprobanteIds.Contains(archivo.Id));
+
+                comprobantesQuitados = await comprobantesParaQuitar
+                    .OrderBy(archivo => archivo.Id)
+                    .Select(archivo => archivo.Nombre)
+                    .ToListAsync();
+
+                if (comprobantesQuitados.Count > 0)
+                    await comprobantesParaQuitar.ExecuteDeleteAsync();
+            }
+
+            var comprobantesAgregados = AgregarComprobantes(gasto, dto.ComprobantesNuevos);
+            var cambioComprobantes = comprobantesAgregados.Count > 0 || comprobantesQuitados.Count > 0;
+
             var tieneReintegros = await context.ReintegrosSociosDetalles
                 .AnyAsync(detalle =>
                     detalle.GastoId == id &&
@@ -332,8 +405,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         "el monto, los pagos y el reparto están protegidos.");
                 }
 
-                var versionAnterior = JsonSerializer.Serialize(
-                    ObtenerVersionGasto(gasto));
+                var versionAnterior = SerializarVersionHistorial(gasto, comprobantesQuitados);
 
                 gasto.Descripcion = descripcion;
                 gasto.TipoGastoId = tipoGasto.Id;
@@ -359,10 +431,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     });
                 }
 
-                var versionNueva = JsonSerializer.Serialize(
-                    ObtenerVersionGasto(gasto));
+                var versionNueva = SerializarVersionHistorial(gasto, comprobantesAgregados);
 
-                if (versionAnterior == versionNueva)
+                if (versionAnterior == versionNueva && !cambioComprobantes)
                 {
                     throw new ApplicationException(
                         "No hay cambios en el gasto para guardar.");
@@ -488,8 +559,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     "No corresponde seleccionar socios para repartirlo.");
             }
 
-            var datosAnteriores = JsonSerializer.Serialize(
-                ObtenerVersionGasto(gasto));
+            var datosAnteriores = SerializarVersionHistorial(gasto, comprobantesQuitados);
 
             foreach (var aporteActual in aportesActuales)
             {
@@ -537,10 +607,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
             repartosOriginales[0].Monto = montoTotal;
 
-            var datosNuevos = JsonSerializer.Serialize(
-                ObtenerVersionGasto(gasto));
+            var datosNuevos = SerializarVersionHistorial(gasto, comprobantesAgregados);
 
-            if (datosAnteriores == datosNuevos)
+            if (datosAnteriores == datosNuevos && !cambioComprobantes)
             {
                 throw new ApplicationException(
                     "No hay cambios en el gasto para guardar.");
@@ -561,6 +630,15 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             await transaccion.CommitAsync();
 
             return true;
+        }
+
+        private static string SerializarVersionHistorial(Gasto gasto, List<string> comprobantes)
+        {
+            var version = ObtenerVersionGasto(gasto);
+            if (comprobantes.Count > 0)
+                version.ComprobantesModificados = comprobantes;
+
+            return JsonSerializer.Serialize(version);
         }
 
         private static GastoListadoDTO ObtenerVersionGasto(Gasto gasto)
@@ -623,17 +701,19 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
         private IQueryable<GastoListadoDTO> ProyectarGastos(IQueryable<Gasto> consulta) =>
             consulta.Select(gasto => new GastoListadoDTO
-                {
-                    Id = gasto.Id,
-                    Fecha = gasto.Fecha,
-                    TipoGastoId = gasto.TipoGastoId,
-                    TipoGasto = gasto.TipoGastos != null
+            {
+                Id = gasto.Id,
+                CantidadComprobantes = context.GastoComprobantes.Count(
+                        comprobante => comprobante.GastoId == gasto.Id),
+                Fecha = gasto.Fecha,
+                TipoGastoId = gasto.TipoGastoId,
+                TipoGasto = gasto.TipoGastos != null
                         ? gasto.TipoGastos.Tipo
                         : string.Empty,
-                    Descripcion = gasto.Descripcion,
-                    Monto = gasto.Monto,
+                Descripcion = gasto.Descripcion,
+                Monto = gasto.Monto,
 
-                    GastoReintegros = gasto.ReintegroSocioDetalles
+                GastoReintegros = gasto.ReintegroSocioDetalles
                         .Where(detalle =>
                             detalle.EstadoRegistro ==
                                 EnumEstadoRegistro.activo &&
@@ -652,10 +732,10 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         })
                         .ToList(),
 
-                    TieneHistorial = context.GastoHistoriales
+                TieneHistorial = context.GastoHistoriales
                         .Any(historial => historial.GastoId == gasto.Id),
 
-                    GastoSocios = gasto.GastoSocios
+                GastoSocios = gasto.GastoSocios
                         .Where(aporte =>
                             aporte.EstadoRegistro ==
                                 EnumEstadoRegistro.activo)
@@ -674,7 +754,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         })
                         .ToList(),
 
-                    GastoRepartos = gasto.GastoRepartos
+                GastoRepartos = gasto.GastoRepartos
                         .Where(reparto =>
                             reparto.EstadoRegistro ==
                                 EnumEstadoRegistro.activo)
@@ -692,7 +772,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                             Monto = reparto.Monto
                         })
                         .ToList()
-                });
+            });
 
         #region Consultas del listado y reintegros
 
@@ -765,7 +845,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var idsValidos = validos.Select(gasto => gasto.Id).ToHashSet();
             resultado.Pendientes = pendientes.Count;
             resultado.PorRevisar = gastos.Count - validos.Count;
-            resultado.Saldados = validos.Count - pendientes.Count;
+            resultado.Saldados = validos.Count(gasto =>
+                gasto.SaldoSocio(resultado.CajaId) == 0 && gasto.GastoReintegros.Count > 0);
             resultado.TotalSeleccion = gastos.Sum(gasto => gasto.Monto);
             resultado.Reintegrado = validos.Sum(gasto => gasto.GastoReintegros.Sum(reintegro => reintegro.Monto));
             resultado.PagadoCaja = validos.Sum(gasto => gasto.GastoSocios
@@ -787,9 +868,21 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 }).OrderByDescending(socio => socio.Pendiente).ThenBy(socio => socio.Nombre).ToList();
             resultado.Adelantado = resultado.Socios.Sum(socio => socio.Adelantado);
 
-            var filtrados = filtro.PorRevisar
-                ? gastos.Where(gasto => !idsValidos.Contains(gasto.Id)).ToList()
-                : filtro.Pendientes ? pendientes : gastos;
+            var filtrados = filtro.EstadoReintegro switch
+            {
+                EstadoReintegroGasto.ConSaldoPendiente => pendientes,
+                { } estado => gastos.Where(gasto => gasto.ObtenerEstadoReintegro(resultado.CajaId) == estado).ToList(),
+                null when filtro.PorRevisar => gastos.Where(gasto => !idsValidos.Contains(gasto.Id)).ToList(),
+                null when filtro.Pendientes => pendientes,
+                _ => gastos
+            };
+
+            if (filtro.SocioPendienteId > 0)
+            {
+                filtrados = filtrados.Where(gasto => idsValidos.Contains(gasto.Id)
+                    && filtro.SocioPendienteId != resultado.CajaId
+                    && gasto.SaldoSocio(filtro.SocioPendienteId) > 0m).ToList();
+            }
             resultado.Cantidad = filtrados.Count;
             resultado.Total = filtrados.Sum(gasto => gasto.Monto);
             resultado.Paginas = Math.Max(1, (int)Math.Ceiling(filtrados.Count / (decimal)cantidadPorPagina));
@@ -896,6 +989,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 
         public async Task<GastoListadoDTO?> SelectDetalleGasto(int id)
         {
+            var cajaId = await ObtenerCajaId();
+
             return await context.Gastos
                 .AsNoTracking()
                 .Where(gasto =>
@@ -904,6 +999,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 .Select(gasto => new GastoListadoDTO
                 {
                     Id = gasto.Id,
+                    CajaId = cajaId,
                     Fecha = gasto.Fecha,
                     TipoGastoId = gasto.TipoGastoId,
                     TipoGasto = gasto.TipoGastos != null
@@ -938,7 +1034,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .Where(aporte =>
                             aporte.EstadoRegistro ==
                                 EnumEstadoRegistro.activo)
-                        .OrderBy(aporte => aporte.SocioId)
+                        .OrderBy(aporte => aporte.Id)
                         .Select(aporte => new GastoSocioListadoDTO
                         {
                             SocioId = aporte.SocioId,
@@ -957,7 +1053,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .Where(reparto =>
                             reparto.EstadoRegistro ==
                                 EnumEstadoRegistro.activo)
-                        .OrderBy(reparto => reparto.SocioId)
+                        .OrderBy(reparto => reparto.Id)
                         .Select(reparto => new GastoRepartoListadoDTO
                         {
                             SocioId = reparto.SocioId,

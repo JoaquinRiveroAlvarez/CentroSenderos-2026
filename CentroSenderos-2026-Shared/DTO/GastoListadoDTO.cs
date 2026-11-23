@@ -5,8 +5,24 @@ using System.Linq;
 
 namespace CentroSenderos_2026_Shared.DTO
 {
+    public enum EstadoReintegroGasto
+    {
+        Pendiente = 1,
+        Parcial,
+        Saldado,
+        NoCorresponde,
+        PorRevisar,
+        ConSaldoPendiente
+    }
+
     public class GastoListadoDTO
     {
+        [System.Text.Json.Serialization.JsonIgnore(
+            Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public List<string>? ComprobantesModificados { get; set; }
+
+        public int CantidadComprobantes { get; set; }
+
         public int Id { get; set; }
 
         public DateTime Fecha { get; set; }
@@ -18,6 +34,8 @@ namespace CentroSenderos_2026_Shared.DTO
         public string Descripcion { get; set; } = string.Empty;
 
         public decimal Monto { get; set; }
+
+        public int CajaId { get; set; }
 
         public bool TieneHistorial { get; set; }
 
@@ -48,6 +66,21 @@ namespace CentroSenderos_2026_Shared.DTO
                     .All(grupo => grupo.Sum(reintegro => reintegro.Monto) <=
                         GastoSocios.Where(aporte => aporte.SocioId == grupo.Key)
                             .Sum(aporte => aporte.Monto));
+        }
+
+        public EstadoReintegroGasto ObtenerEstadoReintegro(int cajaId)
+        {
+            if (!EsCompatibleConCaja(cajaId))
+                return EstadoReintegroGasto.PorRevisar;
+
+            if (SaldoSocio(cajaId) < 0m)
+                return GastoReintegros.Count > 0
+                    ? EstadoReintegroGasto.Parcial
+                    : EstadoReintegroGasto.Pendiente;
+
+            return GastoReintegros.Count > 0
+                ? EstadoReintegroGasto.Saldado
+                : EstadoReintegroGasto.NoCorresponde;
         }
 
         public decimal SaldoSocio(int socioId)

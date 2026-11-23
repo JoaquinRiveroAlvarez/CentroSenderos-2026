@@ -60,186 +60,77 @@
             <div class="history-list">
                 @foreach (var cambio in historial)
                 {
-                    <article class="history-card" @key="cambio.Id">
-                        <div class="history-header">
-                            <div class="history-user">
-                                <i class="bi bi-person"></i>
-                                <strong>@cambio.NombreUsuario</strong>
-                            </div>
+                    var datos = CompararDatos(cambio);
+                    var aportes = CompararAportes(cambio);
+                    var reparto = CompararReparto(cambio);
+                    var comprobantes = CompararComprobantes(cambio);
+                    var campos = datos.Select(fila => fila.Dato).ToList();
+                    if (aportes.Count > 0)
+                        campos.Add("Aportes");
+                    if (reparto.Count > 0)
+                        campos.Add("Reparto entre socios");
 
-                            <span class="history-date">
-                                @FechaArgentina(cambio.FechaCambio)
+                    if (comprobantes.Count > 0)
+                        campos.Add("Comprobantes");
+
+                    var secciones = new[]
+                    {
+                        (Titulo: "Datos del gasto", Columna: "Dato", Filas: datos),
+                        (Titulo: "Aportes por socio", Columna: "Socio", Filas: aportes),
+                        (Titulo: "Reparto entre socios", Columna: "Socio", Filas: reparto),
+                        (Titulo: "Comprobantes", Columna: "Archivo", Filas: comprobantes)
+                    };
+
+                    <details class="history-card" @key="cambio.Id">
+                        <summary class="history-toggle">
+                            <strong class="history-summary">@(campos.Count > 0 ? string.Join(" · ", campos) : "Sin diferencias visibles")</strong>
+                            <span class="history-header">
+                                <span class="history-user">
+                                    <i class="bi bi-person" aria-hidden="true"></i>
+                                    @cambio.NombreUsuario
+                                </span>
+                                <span class="history-date">@FechaArgentina(cambio.FechaCambio)</span>
                             </span>
-                        </div>
+                        </summary>
 
                         <div class="history-reason">
                             <span>Motivo de la modificación</span>
                             <p>@cambio.Motivo</p>
                         </div>
 
-                        <h3>Datos del gasto</h3>
-
-                        <div class="table-container">
-                            <table class="comparison-table">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Dato</th>
-                                        <th scope="col">Antes</th>
-                                        <th scope="col">Después</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    <tr class="@(cambio.DatosAnteriores.Fecha.Date != cambio.DatosNuevos.Fecha.Date ? "changed-row" : null)">
-                                        <th scope="row">Fecha</th>
-                                        <td>
-                                            @cambio.DatosAnteriores.Fecha.ToString("dd/MM/yyyy")
-                                        </td>
-                                        <td>
-                                            @cambio.DatosNuevos.Fecha.ToString("dd/MM/yyyy")
-                                        </td>
-                                    </tr>
-
-                                    <tr class="@(cambio.DatosAnteriores.TipoGastoId != cambio.DatosNuevos.TipoGastoId || cambio.DatosAnteriores.TipoGasto != cambio.DatosNuevos.TipoGasto ? "changed-row" : null)">
-                                        <th scope="row">Tipo de gasto</th>
-                                        <td>@cambio.DatosAnteriores.TipoGasto</td>
-                                        <td>@cambio.DatosNuevos.TipoGasto</td>
-                                    </tr>
-
-                                    <tr class="@(cambio.DatosAnteriores.Descripcion != cambio.DatosNuevos.Descripcion ? "changed-row" : null)">
-                                        <th scope="row">Descripción</th>
-                                        <td>@cambio.DatosAnteriores.Descripcion</td>
-                                        <td>@cambio.DatosNuevos.Descripcion</td>
-                                    </tr>
-
-                                    <tr class="@(cambio.DatosAnteriores.Monto != cambio.DatosNuevos.Monto ? "changed-row" : null)">
-                                        <th scope="row">Monto total</th>
-                                        <td class="amount-cell">
-                                            @Moneda(cambio.DatosAnteriores.Monto)
-                                        </td>
-                                        <td class="amount-cell">
-                                            @Moneda(cambio.DatosNuevos.Monto)
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <h3>Aportes por socio</h3>
-
-                        <div class="table-container">
-                            <table class="comparison-table">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Socio</th>
-                                        <th scope="col">Antes</th>
-                                        <th scope="col">Después</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    @foreach (var socioId in SocioIds(cambio))
-                                    {
-                                        var anterior = Aporte(
-                                            cambio.DatosAnteriores,
-                                            socioId);
-
-                                        var nuevo = Aporte(
-                                            cambio.DatosNuevos,
-                                            socioId);
-
-                                        <tr class="@(anterior?.Monto != nuevo?.Monto || anterior?.Profesional != nuevo?.Profesional ? "changed-row" : null)"
-                                            @key="socioId">
-
-                                            <th scope="row">
-                                                @(nuevo?.Profesional ?? anterior?.Profesional)
-                                            </th>
-
-                                            <td class="amount-cell">
-                                                @(anterior == null
-                                                    ? "Sin aporte"
-                                                    : Moneda(anterior.Monto))
-                                            </td>
-
-                                            <td class="amount-cell">
-                                                @(nuevo == null
-                                                    ? "Sin aporte"
-                                                    : Moneda(nuevo.Monto))
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-
-                                                <h3>Reparto entre socios</h3>
-
-                        @if (!SocioIdsReparto(cambio).Any())
-                        {
-                            <p class="comparison-help">
-                                Esta modificación no contiene información
-                                del reparto. Los registros anteriores a la
-                                incorporación de esta función no guardaban
-                                esos datos.
-                            </p>
-                        }
-                        else
-                        {
-                            <div class="table-container">
-                                <table class="comparison-table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">Socio</th>
-                                            <th scope="col">Antes</th>
-                                            <th scope="col">Después</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        @foreach (var socioId in SocioIdsReparto(cambio))
-                                        {
-                                            var anterior = ParteReparto(
-                                                cambio.DatosAnteriores,
-                                                socioId);
-
-                                            var nuevo = ParteReparto(
-                                                cambio.DatosNuevos,
-                                                socioId);
-
-                                            <tr class="@(anterior?.Monto != nuevo?.Monto || anterior?.Profesional != nuevo?.Profesional ? "changed-row" : null)"
-                                                @key="socioId">
-                                                <th scope="row">
-                                                    @(nuevo?.Profesional ??
-                                                      anterior?.Profesional)
-                                                </th>
-
-                                                <td class="amount-cell">
-                                                    @(anterior == null
-                                                        ? "Sin parte registrada"
-                                                        : Moneda(anterior.Monto))
-                                                </td>
-
-                                                <td class="amount-cell">
-                                                    @(nuevo == null
-                                                        ? "Sin parte registrada"
-                                                        : Moneda(nuevo.Monto))
-                                                </td>
+                        <div class="history-comparison">
+                            @foreach (var seccion in secciones.Where(seccion => seccion.Filas.Count > 0))
+                            {
+                                <h3>@seccion.Titulo</h3>
+                                <div class="table-container">
+                                    <table class="comparison-table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">@seccion.Columna</th>
+                                                <th scope="col">Antes</th>
+                                                <th scope="col">Después</th>
                                             </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var fila in seccion.Filas)
+                                            {
+                                                <tr class="changed-row">
+                                                    <th scope="row">@fila.Dato</th>
+                                                    <td>@fila.Antes</td>
+                                                    <td>@fila.Despues</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
 
-                            <p class="comparison-help">
-                                Los importes indican cuánto le corresponde
-                                pagar a cada socio.
-                            </p>
-                        }
-
-                        <p class="comparison-help">
-                            Las filas resaltadas indican cambios.
-                        </p>
-                    </article>
+                            @if (campos.Count == 0)
+                            {
+                                <p class="comparison-help">Este registro no contiene diferencias entre los datos comparados.</p>
+                            }
+                        </div>
+                    </details>
                 }
             </div>
         }
@@ -336,12 +227,100 @@
         return TimeZoneInfo.ConvertTimeFromUtc(
                 fechaUtc,
                 zonaArgentina)
-            .ToString("dd/MM/yyyy HH:mm:ss", cultura);
+            .ToString("dd/MM/yyyy HH:mm", cultura);
     }
 
-   private string Moneda(decimal monto)
+    private string Moneda(decimal monto)
     {
         return "$ " + monto.ToString("N2", cultura);
+    }
+
+    private static List<(string Dato, string Antes, string Despues)> CompararComprobantes(
+        GastoHistorialDTO cambio)
+    {
+        var filas = new List<(string Dato, string Antes, string Despues)>();
+
+        foreach (var nombre in cambio.DatosAnteriores.ComprobantesModificados ?? new List<string>())
+            filas.Add((nombre, "Adjunto", "Quitado"));
+
+        foreach (var nombre in cambio.DatosNuevos.ComprobantesModificados ?? new List<string>())
+            filas.Add((nombre, "—", "Agregado"));
+
+        return filas;
+    }
+
+    private List<(string Dato, string Antes, string Despues)> CompararDatos(GastoHistorialDTO cambio)
+    {
+        var anterior = cambio.DatosAnteriores;
+        var nuevo = cambio.DatosNuevos;
+        var filas = new List<(string Dato, string Antes, string Despues)>();
+
+        if (anterior.Fecha.Date != nuevo.Fecha.Date)
+            filas.Add(("Fecha", anterior.Fecha.ToString("dd/MM/yyyy"), nuevo.Fecha.ToString("dd/MM/yyyy")));
+
+        if (anterior.TipoGastoId != nuevo.TipoGastoId || anterior.TipoGasto != nuevo.TipoGasto)
+        {
+            var mismoNombre = anterior.TipoGasto == nuevo.TipoGasto;
+            filas.Add(("Tipo de gasto",
+                mismoNombre ? $"{anterior.TipoGasto} (#{anterior.TipoGastoId})" : anterior.TipoGasto,
+                mismoNombre ? $"{nuevo.TipoGasto} (#{nuevo.TipoGastoId})" : nuevo.TipoGasto));
+        }
+
+        if (anterior.Descripcion != nuevo.Descripcion)
+            filas.Add(("Descripción", anterior.Descripcion, nuevo.Descripcion));
+
+        if (anterior.Monto != nuevo.Monto)
+            filas.Add(("Monto total", Moneda(anterior.Monto), Moneda(nuevo.Monto)));
+
+        return filas;
+    }
+
+    private List<(string Dato, string Antes, string Despues)> CompararAportes(GastoHistorialDTO cambio)
+    {
+        var filas = new List<(string Dato, string Antes, string Despues)>();
+        foreach (var socioId in SocioIds(cambio))
+        {
+            var anterior = Aporte(cambio.DatosAnteriores, socioId);
+            var nuevo = Aporte(cambio.DatosNuevos, socioId);
+            if (anterior?.Monto == nuevo?.Monto && anterior?.Profesional == nuevo?.Profesional)
+                continue;
+
+            filas.Add(CompararImporteSocio(socioId, anterior?.Profesional, anterior?.Monto,
+                nuevo?.Profesional, nuevo?.Monto, "Sin aporte"));
+        }
+        return filas;
+    }
+
+    private List<(string Dato, string Antes, string Despues)> CompararReparto(GastoHistorialDTO cambio)
+    {
+        var filas = new List<(string Dato, string Antes, string Despues)>();
+        foreach (var socioId in SocioIdsReparto(cambio))
+        {
+            var anterior = ParteReparto(cambio.DatosAnteriores, socioId);
+            var nuevo = ParteReparto(cambio.DatosNuevos, socioId);
+            if (anterior?.Monto == nuevo?.Monto && anterior?.Profesional == nuevo?.Profesional)
+                continue;
+
+            filas.Add(CompararImporteSocio(socioId, anterior?.Profesional, anterior?.Monto,
+                nuevo?.Profesional, nuevo?.Monto, "Sin parte registrada"));
+        }
+        return filas;
+    }
+
+    private (string Dato, string Antes, string Despues) CompararImporteSocio(
+        int socioId, string? nombreAnterior, decimal? montoAnterior,
+        string? nombreNuevo, decimal? montoNuevo, string sinImporte)
+    {
+        var socio = nombreNuevo ?? nombreAnterior ?? $"Socio #{socioId}";
+        var cambioNombre = montoAnterior.HasValue && montoNuevo.HasValue && nombreAnterior != nombreNuevo;
+
+        return (socio,
+            montoAnterior is decimal anterior
+                ? cambioNombre ? $"{nombreAnterior} · {Moneda(anterior)}" : Moneda(anterior)
+                : sinImporte,
+            montoNuevo is decimal nuevo
+                ? cambioNombre ? $"{nombreNuevo} · {Moneda(nuevo)}" : Moneda(nuevo)
+                : sinImporte);
     }
 
     private static IEnumerable<int> SocioIds(GastoHistorialDTO cambio)
@@ -362,8 +341,8 @@
             aporte => aporte.SocioId == socioId);
     }
 
-        private static IEnumerable<int> SocioIdsReparto(
-        GastoHistorialDTO cambio)
+    private static IEnumerable<int> SocioIdsReparto(
+    GastoHistorialDTO cambio)
     {
         var anteriores = cambio.DatosAnteriores.GastoRepartos
             ?? new List<GastoRepartoListadoDTO>();

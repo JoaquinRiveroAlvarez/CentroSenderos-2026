@@ -104,6 +104,17 @@
                         </select>
                     </div>
 
+                    <div class="filter-field">
+                        <label for="filtroReintegroGasto">Reintegro</label>
+                        <select id="filtroReintegroGasto" @bind="estadoReintegro" @bind:after="ActualizarFiltroEstado">
+                            <option value="">Todos los estados</option>
+                            @foreach (var estado in Enum.GetValues<EstadoReintegroGasto>())
+                            {
+                                <option value="@estado">@NombreEstadoReintegro(estado)</option>
+                            }
+                        </select>
+                    </div>
+
                     <CalendarioGasto Id="fechaFiltroDesde" Etiqueta="Desde" PermiteLimpiar="true"
                                      AlinearIzquierdaEnMovil="true" @bind-Value="fechaDesde"
                                      @bind-Value:after="ActualizarConsulta" />
@@ -140,18 +151,11 @@
                     </button>
                 </div>
 
-                @if (soloSinReparto || soloConReintegros)
+                @if (socioPendienteId > 0)
                 {
                     <div class="pending-filter-bar" role="status">
-                        <span>
-                            <i class="bi bi-info-circle"></i>
-                            @(soloConReintegros ? "Mostrando gastos con reintegros pendientes" : "Mostrando gastos con datos por revisar")
-                        </span>
-
-                        <button type="button"
-                                @onclick="QuitarFiltroPendientes">
-                            Quitar este filtro
-                        </button>
+                        <span>Pendiente de devolver a @socioPendienteNombre</span>
+                        <button type="button" @onclick="QuitarFiltroSocioPendiente">Quitar este filtro</button>
                     </div>
                 }
 
@@ -197,6 +201,7 @@
                                         Monto total
                                     </th>
 
+                                    <th scope="col">Reintegro</th>
                                     <th scope="col" class="actions-column">
                                         Acciones
                                     </th>
@@ -206,18 +211,23 @@
                             <tbody>
                                 @foreach (var gasto in resultados)
                                 {
+                                    var estado = gasto.ObtenerEstadoReintegro(cajaId);
+                                    var pendiente = socioPendienteId > 0
+                                        ? gasto.SaldoSocio(socioPendienteId)
+                                        : ImportePendiente(gasto);
+
                                     <tr @key="gasto.Id"
                                         class="@(TieneReintegroPendiente(gasto) ? "gasto-row reintegro-pendiente" : "gasto-row")"
                                         @onclick="() => AbrirDetalle(gasto.Id)">
-                                        <td class="date-cell">
+                                        <td class="date-cell" data-label="Fecha">
                                             @gasto.Fecha.ToString("dd/MM/yyyy")
                                         </td>
 
-                                        <td class="type-cell">
+                                        <td class="type-cell" data-label="Tipo de gasto">
                                             @gasto.TipoGasto
                                         </td>
 
-                                        <td>
+                                        <td data-label="Pagado por">
                                             <div class="socios-list">
                                                 @foreach (var aporte in gasto.GastoSocios)
                                                 {
@@ -235,29 +245,49 @@
                                             </div>
                                         </td>
 
-                                        <td class="description-cell">
-                                            <button type="button"
-                                                    class="gasto-detail-link"
-                                                    aria-label="@($"Ver detalle: {gasto.Descripcion}")"
-                                                    @onclick:stopPropagation="true"
-                                                    @onclick="() => AbrirDetalle(gasto.Id)">
-                                                @gasto.Descripcion
-                                            </button>
-                                            @if (TieneReintegroPendiente(gasto))
-                                            {
-                                                <span class="gasto-pendiente-badge"><i class="bi bi-arrow-left-right"></i> Pendiente: @Moneda(ImportePendiente(gasto))</span>
-                                            }
-                                            else if (!TieneRepartoCompleto(gasto))
-                                            {
-                                                <span class="gasto-reparto-badge">Datos por revisar</span>
-                                            }
+                                        <td class="description-cell" data-label="Descripción">
+                                            <div class="gasto-descripcion">
+                                                <button type="button"
+                                                        class="gasto-detail-link"
+                                                        aria-label="@($"Ver detalle: {gasto.Descripcion}")"
+                                                        @onclick:stopPropagation="true"
+                                                        @onclick="() => AbrirDetalle(gasto.Id)">
+                                                    @gasto.Descripcion
+                                                </button>
+                                                @if (gasto.CantidadComprobantes > 0)
+                                                {
+                                                    var etiqueta = gasto.CantidadComprobantes == 1
+                                                        ? "1 comprobante"
+                                                        : $"{gasto.CantidadComprobantes} comprobantes";
+                                                    <button type="button" class="gasto-comprobantes-link"
+                                                            title="@($"Ver {etiqueta}")"
+                                                            aria-label="@($"Ver {etiqueta} de {gasto.Descripcion}")"
+                                                            @onclick:stopPropagation="true"
+                                                            @onclick="() => AbrirDetalle(gasto.Id, irAComprobantes: true)">
+                                                        <i class="bi bi-paperclip" aria-hidden="true"></i>
+                                                        <span>@gasto.CantidadComprobantes</span>
+                                                    </button>
+                                                }
+                                            </div>
                                         </td>
 
-                                        <td class="amount-column total-cell">
+                                        <td class="amount-column total-cell" data-label="Monto total">
                                             @Moneda(gasto.Monto)
                                         </td>
 
-                                        <td class="actions-column">
+                                        <td class="gasto-estado-reintegro" data-label="Reintegro">
+                                            <span class="@ClaseEstadoReintegro(estado)">@NombreEstadoReintegro(estado)</span>
+                                            @if (pendiente > 0m)
+                                            {
+                                                <small>@Moneda(pendiente) por devolver</small>
+                                            }
+                                            else if (estado == EstadoReintegroGasto.PorRevisar)
+                                            {
+                                                <small>@MotivoRevision(gasto)</small>
+                                            }
+                                        </td>
+
+                                        <td class="actions-column" data-label="Acciones">
                                             <div class="gasto-actions"
                                                  @onclick:stopPropagation="true">
                                                 <button type="button"
@@ -294,6 +324,7 @@
                                         @Moneda(total)
                                     </td>
 
+                                    <td></td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -337,7 +368,7 @@
                         <strong>@(PeriodoInvalido ? "—" : Moneda(importePendiente))</strong>
                         <span class="@(importePendiente > 0 ? "caja-estado pendiente" : "caja-estado al-dia")">
                             <i class="@(importePendiente > 0 ? "bi bi-clock" : "bi bi-check-circle")"></i>
-                            @(PeriodoInvalido ? "Revisá las fechas" : consulta.Saldados + consulta.Pendientes == 0 ? "Sin gastos evaluables" : importePendiente > 0 ? "Con reintegros pendientes" : "Sin reintegros pendientes")
+                            @(PeriodoInvalido ? "Revisá las fechas" : consulta.PagadoCaja == 0m && consulta.Adelantado == 0m ? "Sin gastos evaluables" : importePendiente > 0 ? "Con reintegros pendientes" : "Sin reintegros pendientes")
                         </span>
                     </div>
                     <div class="caja-metricas">
@@ -355,17 +386,29 @@
                     </div>
                     <p class="panel-nota">@Moneda(consulta.Reintegrado) devueltos de @Moneda(consulta.Adelantado) adelantados por socios.</p>
                     <div class="panel-estados">
-                        <button type="button" class="@(soloConReintegros ? "panel-filtro activo" : "panel-filtro")" aria-pressed="@soloConReintegros" @onclick="VerGastosConReintegros"><span><i class="bi bi-arrow-left-right"></i> Pendientes</span><strong>@consulta.Pendientes</strong></button>
-                        <div class="panel-filtro saldados"><span><i class="bi bi-check-circle"></i> Saldados</span><strong>@consulta.Saldados</strong></div>
-                        <button type="button" class="@(soloSinReparto ? "panel-filtro activo" : "panel-filtro")" aria-pressed="@soloSinReparto" @onclick="VerGastosSinReparto"><span><i class="bi bi-exclamation-circle"></i> Por revisar</span><strong>@consulta.PorRevisar</strong></button>
+                        <button type="button" class="@ClaseFiltroEstado(EstadoReintegroGasto.ConSaldoPendiente)"
+                                aria-pressed="@(estadoReintegro == EstadoReintegroGasto.ConSaldoPendiente)"
+                                @onclick="() => FiltrarEstado(EstadoReintegroGasto.ConSaldoPendiente)">
+                            <span><i class="bi bi-arrow-left-right"></i> Pendientes</span><strong>@consulta.Pendientes</strong>
+                        </button>
+                        <button type="button" class="@ClaseFiltroEstado(EstadoReintegroGasto.Saldado)"
+                                aria-pressed="@(estadoReintegro == EstadoReintegroGasto.Saldado)"
+                                @onclick="() => FiltrarEstado(EstadoReintegroGasto.Saldado)">
+                            <span><i class="bi bi-check-circle"></i> Saldados</span><strong>@consulta.Saldados</strong>
+                        </button>
+                        <button type="button" class="@ClaseFiltroEstado(EstadoReintegroGasto.PorRevisar)"
+                                aria-pressed="@(estadoReintegro == EstadoReintegroGasto.PorRevisar)"
+                                @onclick="() => FiltrarEstado(EstadoReintegroGasto.PorRevisar)">
+                            <span><i class="bi bi-exclamation-circle"></i> Por revisar</span><strong>@consulta.PorRevisar</strong>
+                        </button>
                     </div>
                     @if (consulta.PorRevisar > 0)
                     {
                         <p class="panel-aviso">@consulta.PorRevisar @(consulta.PorRevisar == 1 ? "gasto excluido" : "gastos excluidos") de los saldos y reintegros por datos anteriores o inconsistentes.</p>
                     }
-                    @if (soloSinReparto || soloConReintegros)
+                    @if (estadoReintegro.HasValue)
                     {
-                        <button type="button" class="panel-enlace" @onclick="QuitarFiltroPendientes">Ver todos los estados <i class="bi bi-arrow-right"></i></button>
+                        <button type="button" class="panel-enlace" @onclick="() => FiltrarEstado(null)">Ver todos los estados <i class="bi bi-arrow-right"></i></button>
                     }
                 </section>
 
@@ -379,7 +422,22 @@
                     @foreach (var socio in consulta.Socios)
                     {
                         <div class="panel-socio" @key="socio.Id">
-                            <div class="panel-socio-header"><span>@socio.Nombre</span><strong class="@(socio.Pendiente > 0 ? "socio-pendiente" : "socio-saldado")">@(socio.Pendiente > 0 ? Moneda(socio.Pendiente) : "Al día")</strong></div>
+                            <div class="panel-socio-header">
+                                <span>@socio.Nombre</span>
+                                @if (socio.Pendiente > 0m)
+                                {
+                                    <button type="button" class="socio-pendiente socio-pendiente-enlace"
+                                            aria-label="@($"Ver gastos pendientes de {socio.Nombre}")"
+                                            aria-pressed="@(socioPendienteId == socio.Id)"
+                                            @onclick="() => FiltrarSocioPendiente(socio.Id, socio.Nombre)">
+                                        @Moneda(socio.Pendiente)
+                                    </button>
+                                }
+                                else
+                                {
+                                    <strong class="socio-saldado">Al día</strong>
+                                }
+                            </div>
                             <small>@(socio.Pendiente > 0 ? "Pendiente de recibir" : "Sin devolución pendiente")</small>
                             <div class="panel-socio-detalle"><span>Adelantó <b>@Moneda(socio.Adelantado)</b></span><span>Recibió <b>@Moneda(socio.Recibido)</b></span></div>
                         </div>
@@ -437,6 +495,7 @@
     {
         <GastosDetalle @key="gastoDetalleId"
                        GastoId="gastoDetalleId"
+                       IrAComprobantes="irAComprobantesDetalle"
                        OnCerrar="CerrarDetalle"
                        OnEditar="AbrirEditar"
                        OnHistorial="AbrirHistorial"
@@ -461,13 +520,15 @@
     private bool mostrarDetalle;
     private bool volverAlDetalle;
     private bool ordenDescendente = true;
-    private bool soloSinReparto;
-    private bool soloConReintegros;
+    private EstadoReintegroGasto? estadoReintegro;
+    private int socioPendienteId;
+    private string socioPendienteNombre = string.Empty;
 
     private int gastoReintegroId;
     private int gastoEditarId;
     private int gastoHistorialId;
     private int gastoDetalleId;
+    private bool irAComprobantesDetalle;
     private int versionMensaje;
     private int tipoSeleccionadoId;
     private int socioSeleccionadoId;
@@ -498,7 +559,7 @@
     private IEnumerable<GastoSocioListadoDTO> SociosDisponibles => consulta.Pagadores;
 
     private bool HayFiltros => tipoSeleccionadoId > 0 || socioSeleccionadoId > 0 ||
-        !string.IsNullOrWhiteSpace(busqueda) || soloSinReparto || soloConReintegros;
+        !string.IsNullOrWhiteSpace(busqueda) || estadoReintegro.HasValue || socioPendienteId > 0;
 
     private string NombrePeriodo
     {
@@ -537,31 +598,79 @@
     private bool TieneReintegroPendiente(GastoListadoDTO gasto) =>
         ImportePendiente(gasto) > 0m;
 
-    private async Task VerGastosConReintegros()
+    private string MotivoRevision(GastoListadoDTO gasto)
     {
-        soloSinReparto = false;
-        soloConReintegros = true;
-        await ActualizarConsulta();
+        if (cajaId <= 0)
+            return "Caja Senderos sin configurar";
+
+        if (gasto.Monto <= 0m || gasto.GastoSocios.Any(aporte => aporte.Monto <= 0m)
+            || gasto.GastoSocios.Sum(aporte => aporte.Monto) != gasto.Monto)
+            return "Los pagos no coinciden con el total";
+
+        if (gasto.GastoReintegros.Any(reintegro => reintegro.Monto <= 0m
+            || reintegro.SocioPagadorId != cajaId || reintegro.SocioReceptorId == cajaId))
+            return "Reintegro incompatible con Caja";
+
+        if (gasto.GastoRepartos.Count == 0)
+            return "Falta imputar a Caja";
+
+        if (gasto.GastoRepartos.Count != 1 || gasto.GastoRepartos[0].SocioId != cajaId
+            || gasto.GastoRepartos[0].Monto != gasto.Monto)
+            return "Reparto incompatible con Caja";
+
+        return "El reintegro supera el aporte";
     }
 
-    private async Task QuitarFiltroPendientes()
+    private static string NombreEstadoReintegro(EstadoReintegroGasto estado) => estado switch
     {
-        soloSinReparto = false;
-        soloConReintegros = false;
-        await ActualizarConsulta();
+        EstadoReintegroGasto.ConSaldoPendiente => "Pendiente o parcial",
+        EstadoReintegroGasto.NoCorresponde => "No corresponde",
+        EstadoReintegroGasto.PorRevisar => "Por revisar",
+        _ => estado.ToString()
+    };
+
+    private static string ClaseEstadoReintegro(EstadoReintegroGasto estado) => estado switch
+    {
+        EstadoReintegroGasto.Pendiente or EstadoReintegroGasto.Parcial => "gasto-pendiente-badge",
+        EstadoReintegroGasto.PorRevisar => "gasto-reparto-badge",
+        EstadoReintegroGasto.Saldado => "socio-saldado",
+        _ => "text-muted"
+    };
+
+    private string ClaseFiltroEstado(EstadoReintegroGasto estado) =>
+        estadoReintegro == estado ? "panel-filtro activo" : "panel-filtro";
+
+    private Task FiltrarEstado(EstadoReintegroGasto? estado)
+    {
+        estadoReintegro = estado;
+        return ActualizarFiltroEstado();
     }
 
-    private string Moneda(decimal monto)
-        {
-            return "$ " + monto.ToString("N2", cultura);
-        }
-
-    private async Task VerGastosSinReparto()
+    private Task ActualizarFiltroEstado()
     {
-        soloSinReparto = true;
-        soloConReintegros = false;
-        await ActualizarConsulta();
+        if (estadoReintegro is EstadoReintegroGasto.Saldado
+            or EstadoReintegroGasto.NoCorresponde or EstadoReintegroGasto.PorRevisar)
+            return QuitarFiltroSocioPendiente();
+
+        return ActualizarConsulta();
     }
+
+    private Task FiltrarSocioPendiente(int socioId, string nombre)
+    {
+        socioPendienteId = socioId;
+        socioPendienteNombre = nombre;
+        estadoReintegro = EstadoReintegroGasto.ConSaldoPendiente;
+        return ActualizarConsulta();
+    }
+
+    private Task QuitarFiltroSocioPendiente()
+    {
+        socioPendienteId = 0;
+        socioPendienteNombre = string.Empty;
+        return ActualizarConsulta();
+    }
+
+    private string Moneda(decimal monto) => "$ " + monto.ToString("N2", cultura);
 
     private async Task CambiarOrden()
     {
@@ -573,8 +682,9 @@
     {
         tipoSeleccionadoId = 0;
         socioSeleccionadoId = 0;
-        soloSinReparto = false;
-        soloConReintegros = false;
+        estadoReintegro = null;
+        socioPendienteId = 0;
+        socioPendienteNombre = string.Empty;
 
         fechaDesde = new DateTime(
             DateTime.Today.Year,
@@ -627,7 +737,7 @@
         {
             var parametros = $"pagina={pagina}&tipoId={tipoSeleccionadoId}&pagadorId={socioSeleccionadoId}" +
                 $"&desde={fechaDesde:yyyy-MM-dd}&hasta={fechaHasta:yyyy-MM-dd}" +
-                $"&descendente={ordenDescendente}&pendientes={soloConReintegros}&porRevisar={soloSinReparto}" +
+                $"&descendente={ordenDescendente}&estadoReintegro={estadoReintegro}&socioPendienteId={socioPendienteId}" +
                 $"&texto={Uri.EscapeDataString(busqueda)}";
             var respuesta = await Http.Get<GastosPaginaDTO>($"api/gasto/consulta?{parametros}");
 
@@ -747,12 +857,13 @@
         }
     }
 
-    private void AbrirDetalle(int id)
+    private void AbrirDetalle(int id, bool irAComprobantes = false)
     {
         CerrarMensaje();
         CerrarModales();
 
         gastoDetalleId = id;
+        irAComprobantesDetalle = irAComprobantes;
         mostrarDetalle = true;
     }
 

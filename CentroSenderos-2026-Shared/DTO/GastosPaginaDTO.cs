@@ -11,6 +11,8 @@ namespace CentroSenderos_2026_Shared.DTO
         public int PagadorId { get; set; }
         public string? Texto { get; set; }
         public bool Descendente { get; set; } = true;
+        public EstadoReintegroGasto? EstadoReintegro { get; set; }
+        public int SocioPendienteId { get; set; }
         public bool Pendientes { get; set; }
         public bool PorRevisar { get; set; }
         public int Pagina { get; set; } = 1;

@@ -15,6 +15,8 @@ namespace CentroSenderos_2026_Shared.DTO
 
         public List<int> SocioRepartoIds { get; set; } = new();
 
+        public List<int> ComprobanteIdsParaQuitar { get; set; } = new();
+
 
     }
 }

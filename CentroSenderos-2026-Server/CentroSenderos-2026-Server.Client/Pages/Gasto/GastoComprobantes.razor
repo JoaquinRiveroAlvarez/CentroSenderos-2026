@@ -1,0 +1,320 @@
+﻿@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Servicio.ServiciosHttp
+@using Microsoft.AspNetCore.Components.Forms
+
+@inject IHttpServicio Http
+
+<section class="comprobantes" aria-label="Comprobantes del gasto" inert="@(vistaPrevia is not null)">
+    <h3 @ref="tituloComprobantes" tabindex="-1">Comprobantes</h3>
+
+    @if (Modelo is not null)
+    {
+        <label class="documentos-carga @(leyendo ? "deshabilitada" : null)">
+            <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+            <span>
+                <strong>@(leyendo ? "Preparando archivos…" : "Adjuntar comprobantes")</strong>
+                <small id="@idAyuda">PDF, JPG o PNG. Hasta 3 archivos nuevos de 5 MB cada uno.</small>
+            </span>
+            <InputFile @key="versionArchivo" OnChange="SeleccionarArchivos" accept=".pdf,.jpg,.jpeg,.png"
+                       multiple disabled="@leyendo" aria-label="Adjuntar comprobantes" aria-describedby="@idAyuda" />
+        </label>
+
+        @if (!string.IsNullOrEmpty(errorArchivo))
+        {
+            <p class="documentos-vacio" role="alert">@errorArchivo</p>
+        }
+    }
+
+    @if (cargando)
+    {
+        <p role="status">Cargando comprobantes…</p>
+    }
+    else if (!string.IsNullOrEmpty(errorCarga))
+    {
+        <p role="alert">@errorCarga</p>
+        <button type="button" @onclick="Cargar">Reintentar</button>
+    }
+    else if (comprobantes.Count == 0 && (Modelo?.ComprobantesNuevos.Count ?? 0) == 0)
+    {
+        <p class="documentos-vacio">Todavía no hay comprobantes adjuntos.</p>
+    }
+
+    @if (comprobantes.Count > 0 || Modelo?.ComprobantesNuevos.Count > 0)
+    {
+        <ul class="documentos-pendientes">
+            @foreach (var comprobante in comprobantes)
+            {
+                var idsParaQuitar = (Modelo as GastoEditarDTO)?.ComprobanteIdsParaQuitar;
+                var marcado = idsParaQuitar?.Contains(comprobante.Id) == true;
+                <li class="documento-pendiente @(marcado ? "documento-por-quitar" : null)" @key="comprobante.Id">
+                    <span class="documento-icono">
+                        <i class="bi @Icono(comprobante.Nombre)" aria-hidden="true"></i>
+                    </span>
+                    <div class="documento-datos">
+                        <strong>@comprobante.Nombre</strong>
+                        <span>@Tamano(comprobante.TamanoBytes)</span>
+                        @if (marcado)
+                        {
+                            <span class="documento-estado" role="status">Se quitará al guardar</span>
+                        }
+                    </div>
+                    @if (idsParaQuitar is not null)
+                    {
+                        @if (marcado)
+                        {
+                            <button type="button" class="documento-deshacer"
+                                    aria-label="@($"Deshacer la eliminación de {comprobante.Nombre}")"
+                                    @onclick="() => { idsParaQuitar.Remove(comprobante.Id); }">
+                                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                                Deshacer
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="documento-quitar" title="Quitar comprobante"
+                                    aria-label="@($"Quitar {comprobante.Nombre}")"
+                                    @onclick="() => idsParaQuitar.Add(comprobante.Id)">
+                                <i class="bi bi-trash3" aria-hidden="true"></i>
+                            </button>
+                        }
+                    }
+                    else
+                    {
+                        <div class="documento-acciones">
+                            <button type="button" class="documento-ver"
+                                    aria-label="@($"Ver {comprobante.Nombre}")"
+                                    @onclick="() => VerComprobante(comprobante)">
+                                <i class="bi bi-eye" aria-hidden="true"></i>
+                                Ver
+                            </button>
+                            <a class="documento-descargar" href="@($"/{Ruta}/{comprobante.Id}")" download
+                               aria-label="@($"Descargar {comprobante.Nombre}")" title="Descargar comprobante">
+                                <i class="bi bi-download" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    }
+                </li>
+            }
+
+            @if (Modelo is not null)
+            {
+                @foreach (var archivo in Modelo.ComprobantesNuevos)
+                {
+                    <li class="documento-pendiente" @key="archivo">
+                        <span class="documento-icono">
+                            <i class="bi @Icono(archivo.Nombre)" aria-hidden="true"></i>
+                        </span>
+                        <div class="documento-datos">
+                            <strong>@archivo.Nombre</strong>
+                            <span>@Tamano(archivo.Contenido.Length) · Pendiente de guardar</span>
+                        </div>
+                        <button type="button" class="documento-quitar" title="Quitar archivo seleccionado"
+                                disabled="@leyendo" @onclick="() => QuitarPendiente(archivo)"
+                                aria-label="@($"Quitar {archivo.Nombre}")">
+                            <i class="bi bi-trash3" aria-hidden="true"></i>
+                        </button>
+                    </li>
+                }
+            }
+        </ul>
+    }
+</section>
+
+@if (vistaPrevia is { } archivoVista)
+{
+    <div class="comprobante-vista-fondo" @onclick="CerrarVistaPrevia" @onclick:stopPropagation="true">
+        <section class="comprobante-vista" role="dialog" aria-modal="true"
+                 aria-labelledby="@idTituloVista" @onclick:stopPropagation="true" @onkeydown="TeclaVistaPrevia">
+            <header>
+                <h3 id="@idTituloVista">@archivoVista.Nombre</h3>
+                <button type="button" @ref="botonCerrarVista" @onclick="CerrarVistaPrevia"
+                        aria-label="Cerrar vista previa">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+            </header>
+
+            <div class="comprobante-vista-contenido">
+                @if (EsPdf(archivoVista.Nombre))
+                {
+                    <iframe src="@($"/{Ruta}/{archivoVista.Id}/vista-previa")"
+                            title="@($"Vista previa de {archivoVista.Nombre}")"></iframe>
+                }
+                else
+                {
+                    <img class="@(imagenAmpliada ? "imagen-ampliada" : null)"
+                         src="@($"/{Ruta}/{archivoVista.Id}/vista-previa")"
+                         alt="@($"Comprobante {archivoVista.Nombre}")" />
+                }
+            </div>
+
+            <footer>
+                @if (!EsPdf(archivoVista.Nombre))
+                {
+                    <button type="button" @onclick="() => imagenAmpliada = !imagenAmpliada">
+                        <i class="bi @(imagenAmpliada ? "bi-zoom-out" : "bi-zoom-in")" aria-hidden="true"></i>
+                        @(imagenAmpliada ? "Ajustar imagen" : "Ampliar imagen")
+                    </button>
+                }
+                <a class="documento-descargar" href="@($"/{Ruta}/{archivoVista.Id}")" download>
+                    <i class="bi bi-download" aria-hidden="true"></i>
+                    Descargar
+                </a>
+            </footer>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter] public int GastoId { get; set; }
+    [Parameter] public bool EnfocarAlAbrir { get; set; }
+    [Parameter] public GastoCrearDTO? Modelo { get; set; }
+    [Parameter] public EventCallback<bool> OnLeyendoArchivo { get; set; }
+
+    private readonly string idAyuda = $"comprobante-ayuda-{Guid.NewGuid():N}";
+    private readonly string idTituloVista = $"comprobante-vista-{Guid.NewGuid():N}";
+    private ElementReference botonCerrarVista;
+    private ElementReference tituloComprobantes;
+    private GastoComprobanteDTO? vistaPrevia;
+    private bool enfocarVista;
+    private bool imagenAmpliada;
+
+    private string Ruta => $"api/gasto/{GastoId}/comprobantes";
+    private List<GastoComprobanteDTO> comprobantes = [];
+    private int versionArchivo;
+    private bool cargando;
+    private bool leyendo;
+    private string errorCarga = string.Empty;
+    private string errorArchivo = string.Empty;
+
+    protected override Task OnInitializedAsync() => GastoId > 0 ? Cargar() : Task.CompletedTask;
+
+    private void VerComprobante(GastoComprobanteDTO comprobante)
+    {
+        vistaPrevia = comprobante;
+        imagenAmpliada = false;
+        enfocarVista = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && EnfocarAlAbrir)
+            await tituloComprobantes.FocusAsync();
+
+        if (!enfocarVista)
+            return;
+
+        enfocarVista = false;
+        await botonCerrarVista.FocusAsync(preventScroll: true);
+    }
+
+    private void CerrarVistaPrevia() => vistaPrevia = null;
+
+    private void TeclaVistaPrevia(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs evento)
+    {
+        if (evento.Key == "Escape")
+            CerrarVistaPrevia();
+    }
+
+    private static bool EsPdf(string nombre) =>
+        nombre.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+
+    private async Task Cargar()
+    {
+        cargando = true;
+        errorCarga = string.Empty;
+
+        try
+        {
+            var respuesta = await Http.Get<List<GastoComprobanteDTO>>(Ruta);
+            if (respuesta.Error)
+            {
+                var motivo = respuesta.ObtenerError();
+                errorCarga = string.IsNullOrWhiteSpace(motivo)
+                    ? "No se pudieron consultar los comprobantes."
+                    : motivo;
+                return;
+            }
+
+            comprobantes = respuesta.Respuesta ?? [];
+        }
+        catch (Exception)
+        {
+            errorCarga = "No se pudieron consultar los comprobantes. Intentá nuevamente.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task SeleccionarArchivos(InputFileChangeEventArgs evento)
+    {
+        if (Modelo is not { } modelo || leyendo)
+            return;
+
+        errorArchivo = string.Empty;
+        var pendientes = modelo.ComprobantesNuevos;
+        var disponibles = GastoComprobanteNuevoDTO.MaximoPorGuardado - pendientes.Count;
+        if (evento.FileCount > disponibles)
+        {
+            errorArchivo = "Podés adjuntar hasta 3 comprobantes nuevos por guardado.";
+            versionArchivo++;
+            return;
+        }
+
+        leyendo = true;
+        try
+        {
+            await OnLeyendoArchivo.InvokeAsync(true);
+            var seleccion = new List<GastoComprobanteNuevoDTO>();
+
+            foreach (var archivo in evento.GetMultipleFiles(disponibles))
+            {
+                if (archivo.Size <= 0 || archivo.Size > GastoComprobanteDTO.MaximoBytes)
+                {
+                    errorArchivo = "Cada comprobante debe tener contenido y pesar hasta 5 MB.";
+                    return;
+                }
+
+                if (archivo.Name.Length > 180 ||
+                    Path.GetExtension(archivo.Name).ToLowerInvariant() is not (".pdf" or ".jpg" or ".jpeg" or ".png"))
+                {
+                    errorArchivo = "Elegí archivos PDF, JPG o PNG con un nombre de hasta 180 caracteres.";
+                    return;
+                }
+
+                await using var origen = archivo.OpenReadStream(GastoComprobanteDTO.MaximoBytes);
+                using var destino = new MemoryStream((int)archivo.Size);
+                await origen.CopyToAsync(destino);
+                seleccion.Add(new GastoComprobanteNuevoDTO
+                {
+                    Nombre = archivo.Name,
+                    Contenido = destino.ToArray()
+                });
+            }
+
+            pendientes.AddRange(seleccion);
+        }
+        catch (IOException)
+        {
+            errorArchivo = "No se pudieron leer los archivos. Volvé a seleccionarlos.";
+        }
+        finally
+        {
+            versionArchivo++;
+            leyendo = false;
+            await OnLeyendoArchivo.InvokeAsync(false);
+        }
+    }
+
+    private void QuitarPendiente(GastoComprobanteNuevoDTO archivo) =>
+        Modelo?.ComprobantesNuevos.Remove(archivo);
+
+    private static string Icono(string nombre) =>
+        EsPdf(nombre)
+            ? "bi-file-earmark-pdf"
+            : "bi-file-earmark-image";
+
+    private static string Tamano(int bytes) =>
+        $"{Math.Max(1, Math.Ceiling(bytes / 1024m)):N0} KB";
+}

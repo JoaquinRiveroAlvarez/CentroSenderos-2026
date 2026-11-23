@@ -205,28 +205,61 @@
 
 /* #endregion */
 
-/* #region Monto total */
+/* #region Resumen de pagos */
 
 .total-box {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
     margin-top: 16px;
     padding: 14px 16px;
     border-radius: 12px;
-    background: #dfe5dc;
+    background: #f1f3ed;
     color: #45563e;
+    overflow-wrap: anywhere;
 }
 
-    .total-box span {
-        font-size: 14px;
+.importe-principal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin: 0;
+}
+
+    .importe-principal dt {
+        color: #62685d;
+        font-size: 13px;
     }
 
-    .total-box strong {
+    .importe-principal dd {
+        margin: 3px 0 0;
         font-size: 21px;
-        overflow-wrap: anywhere;
+        font-weight: 700;
     }
+
+.importe-pendiente {
+    text-align: right;
+}
+
+.importe-desglose {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 9px 0 0;
+    border-top: 1px solid #dce4d6;
+    color: #62685d;
+    font-size: 12px;
+}
+
+@media (max-width: 440px) {
+    .importe-principal {
+        flex-direction: column;
+    }
+
+    .importe-pendiente {
+        text-align: left;
+    }
+}
 
 /* #endregion */
 
@@ -361,16 +394,16 @@ button:disabled,
     gap: 8px;
 }
 
-.selector-tipo-gasto button {
-    min-width: 42px;
-    border: 1px solid #cbdac5;
-    border-radius: 10px;
-    background: #eaf1e6;
-    color: #405d36;
-}
+    .selector-tipo-gasto button {
+        min-width: 42px;
+        border: 1px solid #cbdac5;
+        border-radius: 10px;
+        background: #eaf1e6;
+        color: #405d36;
+    }
 
-.selector-tipo-gasto button:hover {
-    background: #dce8d5;
-}
+        .selector-tipo-gasto button:hover {
+            background: #dce8d5;
+        }
 
 /* #endregion */

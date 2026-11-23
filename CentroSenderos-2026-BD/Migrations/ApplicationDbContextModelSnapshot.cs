@@ -203,6 +203,44 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.ToTable("Gastos");
                 });
 
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.GastoComprobante", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<byte[]>("Contenido")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTime>("FechaCarga")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("GastoId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)");
+
+                    b.Property<int>("TamanoBytes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TipoContenido")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GastoId");
+
+                    b.ToTable("GastoComprobantes");
+                });
+
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.GastoHistorial", b =>
                 {
                     b.Property<int>("Id")
@@ -618,9 +656,6 @@ namespace CentroSenderos_2026_BD.Migrations
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Planilla", b =>
                 {
-                    b.Property<string>("PropietarioPrivadoId")
-                        .HasColumnType("text");
-
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
@@ -663,6 +698,9 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     b.Property<string>("Observacion")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PropietarioPrivadoId")
                         .HasColumnType("text");
 
                     b.Property<long>("TamanoBytes")
@@ -1715,6 +1753,17 @@ namespace CentroSenderos_2026_BD.Migrations
                         .IsRequired();
 
                     b.Navigation("TipoGastos");
+                });
+
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.GastoComprobante", b =>
+                {
+                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.Gasto", "Gasto")
+                        .WithMany()
+                        .HasForeignKey("GastoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Gasto");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.GastoHistorial", b =>

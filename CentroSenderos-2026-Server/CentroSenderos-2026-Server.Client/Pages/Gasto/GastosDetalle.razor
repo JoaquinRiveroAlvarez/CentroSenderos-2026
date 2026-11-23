@@ -26,238 +26,263 @@
         </header>
 
         <div class="detalle-contenido">
-        @if (cargando)
-        {
-            <div class="state-card" role="status">
-                <span class="spinner-border spinner-border-sm"></span>
-                <p>@(ReintegroCaja == null ? "Cargando gasto…" : "Cargando reintegro…")</p>
-            </div>
-        }
-        else if (!string.IsNullOrWhiteSpace(mensajeError))
-        {
-            <div class="state-card">
-                <i class="bi bi-exclamation-circle state-icon"></i>
-                <h3>@(ReintegroCaja == null ? "No se pudo cargar el gasto" : "No se pudo cargar el reintegro")</h3>
-                <p role="alert">@mensajeError</p>
-
-                <button type="button"
-                        class="secondary-button"
-                        @onclick="CargarDetalle">
-                    <i class="bi bi-arrow-clockwise"></i>
-                    Reintentar
-                </button>
-            </div>
-        }
-        else if (ReintegroCaja is { } reintegroCaja)
-        {
-            <section class="detail-section">
-                <h3>Información del reintegro</h3>
-                <dl class="detail-grid">
-                    <div class="detail-field">
-                        <dt>Fecha</dt>
-                        <dd>@reintegroCaja.Fecha.ToString("dd/MM/yyyy")</dd>
-                    </div>
-                    <div class="detail-field">
-                        <dt>Número de registro</dt>
-                        <dd>#@reintegroCaja.OrigenId</dd>
-                    </div>
-                    <div class="detail-field">
-                        <dt>Pagado por</dt>
-                        <dd>Caja Senderos</dd>
-                    </div>
-                    <div class="detail-field">
-                        <dt>Socio receptor</dt>
-                        <dd>@reintegroCaja.Referencia</dd>
-                    </div>
-                </dl>
-            </section>
-
-            <section class="detail-section">
-                <h3>Gastos reintegrados</h3>
-                @if (gastosReintegro.Count == 0)
-                {
-                    <p class="empty-aportes">Sin gastos asociados.</p>
-                }
-                else
-                {
-                    <div class="aportes-list">
-                        @foreach (var item in gastosReintegro)
-                        {
-                            <div class="aporte-row" @key="item.GastoId">
-                                <button type="button" class="aporte-name aporte-enlace"
-                                        @onclick="() => OnVerGasto.InvokeAsync(item.GastoId)">
-                                    <i class="bi bi-receipt" aria-hidden="true"></i>
-                                    <span>@item.Descripcion</span>
-                                </button>
-                                <strong class="aporte-amount">@Moneda(item.Monto)</strong>
-                            </div>
-                        }
-                    </div>
-                }
-
-                <div class="total-box">
-                    <span>Total reintegrado</span>
-                    <strong>@Moneda(-reintegroCaja.Importe)</strong>
+            @if (cargando)
+            {
+                <div class="state-card" role="status">
+                    <span class="spinner-border spinner-border-sm"></span>
+                    <p>@(ReintegroCaja == null ? "Cargando gasto…" : "Cargando reintegro…")</p>
                 </div>
-            </section>
-        }
-        else if (gasto != null)
-        {
-            <section class="detail-section">
-                <h3>Información del gasto</h3>
+            }
+            else if (!string.IsNullOrWhiteSpace(mensajeError))
+            {
+                <div class="state-card">
+                    <i class="bi bi-exclamation-circle state-icon"></i>
+                    <h3>@(ReintegroCaja == null ? "No se pudo cargar el gasto" : "No se pudo cargar el reintegro")</h3>
+                    <p role="alert">@mensajeError</p>
 
-                <dl class="detail-grid">
-                    <div class="detail-field">
-                        <dt>Tipo de gasto</dt>
-                        <dd>@gasto.TipoGasto</dd>
-                    </div>
-
-                    <div class="detail-field">
-                        <dt>Fecha</dt>
-                        <dd>@gasto.Fecha.ToString("dd/MM/yyyy")</dd>
-                    </div>
-
-                    <div class="detail-field full-width">
-                        <dt>Descripción</dt>
-                        <dd class="description">@gasto.Descripcion</dd>
-                    </div>
-                </dl>
-            </section>
-
-            <section class="detail-section">
-                <h3>Pagos realizados</h3>
-
-                @if (gasto.GastoSocios.Count == 0)
-                {
-                    <p class="empty-aportes">
-                        No hay pagos registrados para este gasto.
-                    </p>
-                }
-                else
-                {
-                    <div class="aportes-list">
-                        @foreach (var aporte in gasto.GastoSocios)
-                        {
-                            <div class="aporte-row" @key="aporte.SocioId">
-                                <div class="aporte-name">
-                                    <i class="bi bi-person"></i>
-                                    <span>@aporte.Profesional</span>
-                                </div>
-
-                                <strong class="aporte-amount">
-                                    @Moneda(aporte.Monto)
-                                </strong>
-                            </div>
-                        }
-                    </div>
-                }
-
-                <div class="total-box">
-                    <span>Monto total</span>
-                    <strong>@Moneda(gasto.Monto)</strong>
+                    <button type="button"
+                            class="secondary-button"
+                            @onclick="CargarDetalle">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        Reintentar
+                    </button>
                 </div>
-            </section>
+            }
+            else if (ReintegroCaja is { } reintegroCaja)
+            {
+                <section class="detail-section">
+                    <h3>Información del reintegro</h3>
+                    <dl class="detail-grid">
+                        <div class="detail-field">
+                            <dt>Fecha</dt>
+                            <dd>@reintegroCaja.Fecha.ToString("dd/MM/yyyy")</dd>
+                        </div>
+                        <div class="detail-field">
+                            <dt>Número de registro</dt>
+                            <dd>#@reintegroCaja.OrigenId</dd>
+                        </div>
+                        <div class="detail-field">
+                            <dt>Pagado por</dt>
+                            <dd>Caja Senderos</dd>
+                        </div>
+                        <div class="detail-field">
+                            <dt>Socio receptor</dt>
+                            <dd>@reintegroCaja.Referencia</dd>
+                        </div>
+                    </dl>
+                </section>
 
-            <section class="detail-section">
-                <h3>Reparto entre socios</h3>
-
-                @if (gasto.GastoRepartos.Count == 0)
-                {
-                    <div class="reparto-pendiente" role="status">
-                        <i class="bi bi-info-circle"></i>
-                        <p>
-                            Este gasto todavía no tiene un reparto registrado.
-                            Sus pagos se conservan, pero no se puede calcular
-                            el saldo de cada socio.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <div class="reparto-table-container">
-                        <table class="reparto-table">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Socio</th>
-                                    <th scope="col" class="reparto-importe">
-                                        Pagó
-                                    </th>
-                                    <th scope="col" class="reparto-importe">
-                                        Le corresponde
-                                    </th>
-                                    <th scope="col" class="reparto-importe">
-                                        Pendiente actual
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                @foreach (var socioId in SocioIdsDetalle)
-                                {
-                                    var reparto = gasto.GastoRepartos
-                                        .FirstOrDefault(item =>
-                                            item.SocioId == socioId);
-
-                                    var pago = PagoSocio(socioId);
-                                    var parte = reparto?.Monto ?? 0m;
-                                    var saldo = gasto.SaldoSocio(socioId);
-
-                                    <tr @key="socioId">
-                                        <th scope="row">
-                                            @NombreSocio(socioId)
-                                        </th>
-
-                                        <td class="reparto-importe">
-                                            @Moneda(pago)
-                                        </td>
-
-                                        <td class="reparto-importe">
-                                            @Moneda(parte)
-                                        </td>
-
-                                        <td class="reparto-importe">
-                                            <span class="@ClaseSaldo(saldo)">
-                                                @TextoSaldo(saldo)
-                                            </span>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <p class="reparto-help">
-                        El pendiente actual incluye los reintegros registrados.
-                        Si varias personas deben devolver dinero, registrá
-                        un reintegro por cada pagador y destinatario.
-                    </p>
-                }
-            </section>
-        }
-
-        @if (gasto != null && !cargando && string.IsNullOrWhiteSpace(mensajeError) && gasto.GastoReintegros.Count > 0)
-        {
-            <section class="detail-section">
-                <h3>Reintegros registrados</h3>
-                <div class="aportes-list">
-                    @foreach (var reintegro in gasto.GastoReintegros.OrderByDescending(item => item.Fecha).ThenByDescending(item => item.ReintegroSocioId))
+                <section class="detail-section">
+                    <h3>Gastos reintegrados</h3>
+                    @if (gastosReintegro.Count == 0)
                     {
-                        <div class="aporte-row" @key="reintegro.ReintegroSocioId">
-                            <div class="aporte-name">
-                                <i class="bi bi-arrow-left-right"></i>
-                                <span>
-                                    @reintegro.Fecha.ToString("dd/MM/yyyy"):
-                                    @NombreSocio(reintegro.SocioPagadorId)
-                                    → @NombreSocio(reintegro.SocioReceptorId)
-                                </span>
-                            </div>
-                            <strong class="aporte-amount">@Moneda(reintegro.Monto)</strong>
+                        <p class="empty-aportes">Sin gastos asociados.</p>
+                    }
+                    else
+                    {
+                        <div class="aportes-list">
+                            @foreach (var item in gastosReintegro)
+                            {
+                                <div class="aporte-row" @key="item.GastoId">
+                                    <button type="button" class="aporte-name aporte-enlace"
+                                            @onclick="() => OnVerGasto.InvokeAsync(item.GastoId)">
+                                        <i class="bi bi-receipt" aria-hidden="true"></i>
+                                        <span>@item.Descripcion</span>
+                                    </button>
+                                    <strong class="aporte-amount">@Moneda(item.Monto)</strong>
+                                </div>
+                            }
                         </div>
                     }
-                </div>
-                <p class="reparto-help">Importes aplicados a este gasto. Una transferencia puede incluir otros gastos.</p>
-            </section>
-        }
+
+                    <div class="total-box">
+                        <span>Total reintegrado</span>
+                        <strong>@Moneda(-reintegroCaja.Importe)</strong>
+                    </div>
+                </section>
+            }
+            else if (gasto != null)
+            {
+                var cajaId = CajaIdDetalle;
+                var compatible = gasto.EsCompatibleConCaja(cajaId);
+                var pagadoCaja = PagoSocio(cajaId);
+                var adelantado = gasto.GastoSocios.Where(aporte => aporte.SocioId != cajaId)
+                    .Sum(aporte => aporte.Monto);
+                var reintegrado = gasto.GastoReintegros
+                    .Where(item => item.SocioPagadorId == cajaId && item.SocioReceptorId != cajaId)
+                    .Sum(item => item.Monto);
+                var pendiente = compatible ? -gasto.SaldoSocio(cajaId) : 0m;
+
+                <section class="detail-section" aria-label="Resumen del gasto">
+                    <h3 class="gasto-titulo">@gasto.Descripcion</h3>
+                    <p class="gasto-fecha-tipo">@gasto.TipoGasto · @gasto.Fecha.ToString("dd/MM/yyyy")</p>
+
+                    <div class="resumen-gasto">
+                        <dl class="resumen-importes">
+                            <div>
+                                <dt>Total del gasto</dt>
+                                <dd>@Moneda(gasto.Monto)</dd>
+                            </div>
+                            <div class="resumen-pendiente">
+                                <dt>Pendiente de reintegrar</dt>
+                                <dd>@(compatible ? Moneda(pendiente) : "Por revisar")</dd>
+                            </div>
+                        </dl>
+
+                        @if (cajaId > 0)
+                        {
+                            <ul class="resumen-desglose" aria-label="Desglose de importes">
+                                <li>Caja pagó <strong>@Moneda(pagadoCaja)</strong></li>
+                                <li>Los socios adelantaron <strong>@Moneda(adelantado)</strong></li>
+                                <li>Caja ya devolvió <strong>@Moneda(reintegrado)</strong></li>
+                            </ul>
+                        }
+                    </div>
+                    @if (!compatible)
+                    {
+                        <p class="reparto-help">
+                            @(cajaId > 0
+                                ? "Revisá los pagos, el reparto y los reintegros antes de calcular el pendiente."
+                                : "Configurá Caja Senderos para calcular el saldo del gasto.")
+                        </p>
+                    }
+                </section>
+
+                <GastoComprobantes @key="GastoId" GastoId="GastoId" EnfocarAlAbrir="IrAComprobantes" />
+
+                <section class="detail-section">
+                    <h3>Pagos realizados</h3>
+
+                    @if (gasto.GastoSocios.Count == 0)
+                    {
+                        <p class="empty-aportes">
+                            No hay pagos registrados para este gasto.
+                        </p>
+                    }
+                    else
+                    {
+                        <div class="aportes-list aportes-lista-simple">
+                            @foreach (var aporte in gasto.GastoSocios)
+                            {
+                                <div class="aporte-row" @key="aporte.SocioId">
+                                    <div class="aporte-name">
+                                        <i class="bi bi-person"></i>
+                                        <span>@aporte.Profesional</span>
+                                    </div>
+
+                                    <strong class="aporte-amount">
+                                        @Moneda(aporte.Monto)
+                                    </strong>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                </section>
+
+                <section class="detail-section">
+                    <h3>Reintegros registrados</h3>
+                    @if (gasto.GastoReintegros.Count == 0)
+                    {
+                        <p class="empty-aportes">Todavía no hay reintegros registrados.</p>
+                    }
+                    else
+                    {
+                        <div class="aportes-list aportes-lista-simple">
+                            @foreach (var reintegro in gasto.GastoReintegros.OrderBy(item => item.Fecha).ThenBy(item => item.ReintegroSocioId))
+                            {
+                                <div class="aporte-row" @key="reintegro.ReintegroSocioId">
+                                    <div class="aporte-name">
+                                        <i class="bi bi-arrow-left-right"></i>
+                                        <span>
+                                            @reintegro.Fecha.ToString("dd/MM/yyyy"):
+                                            @NombreSocio(reintegro.SocioPagadorId)
+                                            → @NombreSocio(reintegro.SocioReceptorId)
+                                        </span>
+                                    </div>
+                                    <strong class="aporte-amount">@Moneda(reintegro.Monto)</strong>
+                                </div>
+                            }
+                        </div>
+                        <p class="reparto-help">Importes aplicados a este gasto. Una transferencia puede incluir otros gastos.</p>
+                    }
+                </section>
+
+
+                <details class="detail-section reparto-desplegable">
+                    <summary>Ver reparto entre socios</summary>
+
+                    @if (gasto.GastoRepartos.Count == 0)
+                    {
+                        <div class="reparto-pendiente" role="status">
+                            <i class="bi bi-info-circle"></i>
+                            <p>
+                                Este gasto todavía no tiene un reparto registrado.
+                                Sus pagos se conservan, pero no se puede calcular
+                                el saldo de cada socio.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="reparto-table-container">
+                            <table class="reparto-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Socio</th>
+                                        <th scope="col" class="reparto-importe">
+                                            Pagó
+                                        </th>
+                                        <th scope="col" class="reparto-importe">
+                                            Le corresponde
+                                        </th>
+                                        <th scope="col" class="reparto-importe">
+                                            Pendiente actual
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var socioId in SocioIdsDetalle)
+                                    {
+                                        var parte = gasto.GastoRepartos
+                                            .Where(item => item.SocioId == socioId)
+                                            .Sum(item => item.Monto);
+
+                                        var pago = PagoSocio(socioId);
+                                        var saldo = gasto.SaldoSocio(socioId);
+
+                                        <tr @key="socioId">
+                                            <th scope="row">
+                                                @NombreSocio(socioId)
+                                            </th>
+
+                                            <td class="reparto-importe">
+                                                @Moneda(pago)
+                                            </td>
+
+                                            <td class="reparto-importe">
+                                                @Moneda(parte)
+                                            </td>
+
+                                            <td class="reparto-importe">
+                                                <span class="@ClaseSaldo(saldo)">
+                                                    @TextoSaldo(saldo)
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p class="reparto-help">
+                            El pendiente actual incluye los reintegros registrados.
+                            Caja Senderos devuelve a cada socio el importe que adelantó.
+                        </p>
+                    }
+                </details>
+            }
 
         </div>
 
@@ -270,7 +295,7 @@
                 @if (PuedeReintegrar)
                 {
                     <button type="button"
-                            class="secondary-button"
+                            class="secondary-button reintegro-button"
                             @onclick="AbrirReintegro">
                         <i class="bi bi-arrow-left-right"></i>
                         Registrar reintegro
@@ -317,6 +342,9 @@
     public int GastoId { get; set; }
 
     [Parameter]
+    public bool IrAComprobantes { get; set; }
+
+    [Parameter]
     public MovimientoCajaDTO? ReintegroCaja { get; set; }
 
     [Parameter]
@@ -342,8 +370,10 @@
     [Parameter]
     public EventCallback<int> OnReintegro { get; set; }
 
+    private int CajaIdDetalle => CajaId > 0 ? CajaId : gasto?.CajaId ?? 0;
+
     private bool PuedeReintegrar => gasto != null &&
-        gasto.EsCompatibleConCaja(CajaId) &&
+        gasto.EsCompatibleConCaja(CajaIdDetalle) &&
         SocioIdsDetalle.Any(socioId => gasto.SaldoSocio(socioId) < 0) &&
         SocioIdsDetalle.Any(socioId => gasto.SaldoSocio(socioId) > 0);
 
@@ -368,9 +398,7 @@
             ? Enumerable.Empty<int>()
             : gasto.GastoRepartos
                 .Select(reparto => reparto.SocioId)
-                .Union(
-                    gasto.GastoSocios.Select(aporte => aporte.SocioId))
-                .OrderBy(id => id);
+                .Union(gasto.GastoSocios.Select(aporte => aporte.SocioId));
 
     protected override async Task OnInitializedAsync()
     {
@@ -458,6 +486,9 @@
 
     private string NombreSocio(int socioId)
     {
+        if (socioId == CajaIdDetalle && socioId > 0)
+            return "Caja Senderos";
+
         return gasto?.GastoRepartos
             .FirstOrDefault(reparto =>
                 reparto.SocioId == socioId)?.Profesional
@@ -468,9 +499,9 @@
     }
 
     private string Moneda(decimal monto)
-        {
-            return "$ " + monto.ToString("N2", cultura);
-        }
+    {
+        return "$ " + monto.ToString("N2", cultura);
+    }
 
     private string TextoSaldo(decimal saldo)
     {

@@ -78,6 +78,88 @@
 
 /* #region Información del gasto */
 
+/* Resumen de importes */
+.detail-section .gasto-titulo {
+    margin-bottom: 4px;
+    font-size: 20px;
+    overflow-wrap: anywhere;
+}
+
+.gasto-fecha-tipo {
+    margin: 0 0 14px;
+    color: #62685d;
+    font-size: 13px;
+}
+
+.resumen-gasto {
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: #f1f3ed;
+}
+
+.resumen-importes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin: 0;
+}
+
+    .resumen-importes > div {
+        min-width: 0;
+    }
+
+    .resumen-importes dt {
+        color: #62685d;
+        font-size: 13px;
+    }
+
+    .resumen-importes dd {
+        margin: 3px 0 0;
+        color: #40553b;
+        font-size: 21px;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+.resumen-pendiente {
+    text-align: right;
+}
+
+.resumen-desglose {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin: 10px 0 0;
+    padding: 9px 0 0;
+    border-top: 1px solid #dce4d6;
+    list-style: none;
+    color: #62685d;
+    font-size: 12px;
+}
+
+.reparto-desplegable summary {
+    color: #40553b;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.reparto-desplegable[open] summary {
+    margin-bottom: 12px;
+}
+
+.aportes-list.aportes-lista-simple {
+    gap: 0;
+}
+
+.aportes-lista-simple .aporte-row {
+    padding: 8px 0;
+    border: 0;
+    border-bottom: 1px solid #e7e3dc;
+    border-radius: 0;
+    background: transparent;
+}
+
 /* Reduce la separación vertical entre secciones. */
 .detail-section {
     padding: 14px 0;
@@ -163,14 +245,14 @@
     cursor: pointer;
 }
 
-.aporte-enlace:hover {
-    text-decoration: underline;
-}
-
-    .aporte-name i {
-        flex-shrink: 0;
-        color: #647b5b;
+    .aporte-enlace:hover {
+        text-decoration: underline;
     }
+
+.aporte-name i {
+    flex-shrink: 0;
+    color: #647b5b;
+}
 
 .aporte-amount {
     flex-shrink: 0;
@@ -286,6 +368,21 @@ button:focus-visible {
     outline: 2px solid #556f4f;
     outline-offset: 2px;
 }
+/* #endregion */
+
+/* #region Acción principal */
+
+.modal-actions .reintegro-button {
+    background: #556f4f;
+    border-color: #556f4f;
+    color: #fff;
+}
+
+    .modal-actions .reintegro-button:hover {
+        background: #445c3e;
+        border-color: #445c3e;
+    }
+
 /* #endregion */
 
 /* #region Reparto entre socios */
@@ -410,6 +507,16 @@ button:focus-visible {
 
     .aporte-row {
         flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 400px) {
+    .resumen-importes {
+        flex-direction: column;
+    }
+
+    .resumen-pendiente {
+        text-align: left;
     }
 }
 

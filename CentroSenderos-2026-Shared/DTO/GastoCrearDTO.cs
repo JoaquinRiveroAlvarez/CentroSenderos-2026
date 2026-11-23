@@ -22,6 +22,8 @@ namespace CentroSenderos_2026_Shared.DTO
         [Required(ErrorMessage = "Seleccioná al menos un socio")]
         public List<GastoSocioDTO> GastoSocios { get; set; } = new();
 
+        public List<GastoComprobanteNuevoDTO> ComprobantesNuevos { get; set; } = new();
+
         public decimal Monto =>
             GastoSocios?.Sum(aporte => aporte.Monto) ?? 0m;
     }
