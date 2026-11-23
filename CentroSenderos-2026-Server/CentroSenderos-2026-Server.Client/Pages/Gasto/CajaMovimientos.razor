@@ -39,6 +39,14 @@
             (!concepto.HasValue || movimiento.Tipo == concepto.Value) &&
             CoincideBusqueda(movimiento, texto)).ToList();
 
+        var ingresos = visibles.Where(movimiento => movimiento.Importe > 0m)
+    .Sum(movimiento => movimiento.Importe);
+
+        var egresos = -visibles.Where(movimiento => movimiento.Importe < 0m)
+            .Sum(movimiento => movimiento.Importe);
+
+        var neto = ingresos - egresos;
+
         <div class="caja-contenido">
             <aside class="caja-saldo" aria-labelledby="saldo-caja">
                 <i class="bi bi-wallet2" aria-hidden="true"></i>
@@ -81,6 +89,26 @@
                         Restaurar
                     </button>
                 </div>
+
+                @if (periodoValido)
+                {
+                    <div class="caja-resumen" role="group" aria-label="Resumen de la selección">
+                        <dl>
+                            <div>
+                                <dt>Ingresos</dt>
+                                <dd class="caja-importe ingreso">@Moneda(ingresos)</dd>
+                            </div>
+                            <div>
+                                <dt>Egresos</dt>
+                                <dd class="caja-importe salida">@Moneda(egresos)</dd>
+                            </div>
+                            <div>
+                                <dt>Neto de la selección</dt>
+                                <dd class="caja-importe @(neto < 0m ? "salida" : null)">@Moneda(neto)</dd>
+                            </div>
+                        </dl>
+                    </div>
+                }
 
                 @if (!periodoValido)
                 {
@@ -127,12 +155,12 @@
                                     </tr>
                                 }
                             </tbody>
-                            <tfoot>
+                            @* <tfoot>
                                 <tr>
                                     <th scope="row" colspan="3">Movimiento neto de la selección</th>
                                     <td class="caja-importe">@Moneda(visibles.Sum(movimiento => movimiento.Importe))</td>
                                 </tr>
-                            </tfoot>
+                            </tfoot> *@
                         </table>
                     </div>
                 }

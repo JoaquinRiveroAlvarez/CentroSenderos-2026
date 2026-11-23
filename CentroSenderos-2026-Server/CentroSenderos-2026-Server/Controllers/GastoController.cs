@@ -78,6 +78,12 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
+        [HttpGet("posibles-duplicados")]
+        public async Task<ActionResult<List<GastoListadoDTO>>> BuscarPosiblesDuplicados([FromQuery] DateTime fecha,[FromQuery] int tipoGastoId,[FromQuery] decimal monto)
+        {
+            return Ok(await repositorio.BuscarPosiblesDuplicados(fecha, tipoGastoId, monto));
+        }
+
         [HttpGet("{id:int}")]
         public async Task<ActionResult<GastoCrearDTO>> GetGastoPorId(int id)
         {
@@ -107,9 +113,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> ActualizarGasto(
-            int id,
-            [FromBody] GastoEditarDTO dto)
+        public async Task<IActionResult> ActualizarGasto(int id,[FromBody] GastoEditarDTO dto)
         {
             var usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 

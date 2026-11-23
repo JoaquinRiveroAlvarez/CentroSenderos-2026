@@ -115,6 +115,16 @@
                         </select>
                     </div>
 
+                    <div class="filter-field">
+                        <label for="filtroComprobanteGasto">Comprobantes</label>
+                        <select id="filtroComprobanteGasto"
+                                @bind="estadoComprobante" @bind:after="ActualizarConsulta">
+                            <option value="">Todos</option>
+                            <option value="@EstadoComprobanteGasto.ConComprobante">Con comprobante</option>
+                            <option value="@EstadoComprobanteGasto.SinComprobante">Sin comprobante</option>
+                        </select>
+                    </div>
+
                     <CalendarioGasto Id="fechaFiltroDesde" Etiqueta="Desde" PermiteLimpiar="true"
                                      AlinearIzquierdaEnMovil="true" @bind-Value="fechaDesde"
                                      @bind-Value:after="ActualizarConsulta" />
@@ -521,6 +531,7 @@
     private bool volverAlDetalle;
     private bool ordenDescendente = true;
     private EstadoReintegroGasto? estadoReintegro;
+    private EstadoComprobanteGasto? estadoComprobante;
     private int socioPendienteId;
     private string socioPendienteNombre = string.Empty;
 
@@ -559,7 +570,8 @@
     private IEnumerable<GastoSocioListadoDTO> SociosDisponibles => consulta.Pagadores;
 
     private bool HayFiltros => tipoSeleccionadoId > 0 || socioSeleccionadoId > 0 ||
-        !string.IsNullOrWhiteSpace(busqueda) || estadoReintegro.HasValue || socioPendienteId > 0;
+        !string.IsNullOrWhiteSpace(busqueda) || estadoReintegro.HasValue ||
+        estadoComprobante.HasValue || socioPendienteId > 0;
 
     private string NombrePeriodo
     {
@@ -683,6 +695,7 @@
         tipoSeleccionadoId = 0;
         socioSeleccionadoId = 0;
         estadoReintegro = null;
+        estadoComprobante = null;
         socioPendienteId = 0;
         socioPendienteNombre = string.Empty;
 
@@ -738,7 +751,7 @@
             var parametros = $"pagina={pagina}&tipoId={tipoSeleccionadoId}&pagadorId={socioSeleccionadoId}" +
                 $"&desde={fechaDesde:yyyy-MM-dd}&hasta={fechaHasta:yyyy-MM-dd}" +
                 $"&descendente={ordenDescendente}&estadoReintegro={estadoReintegro}&socioPendienteId={socioPendienteId}" +
-                $"&texto={Uri.EscapeDataString(busqueda)}";
+                $"&estadoComprobante={estadoComprobante}&texto={Uri.EscapeDataString(busqueda)}";
             var respuesta = await Http.Get<GastosPaginaDTO>($"api/gasto/consulta?{parametros}");
 
             if (respuesta.Error)

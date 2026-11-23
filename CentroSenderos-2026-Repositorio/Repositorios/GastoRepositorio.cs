@@ -201,8 +201,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return gasto.Id;
         }
 
-        private List<string> AgregarComprobantes(
-            Gasto gasto, List<GastoComprobanteNuevoDTO>? archivos)
+        private List<string> AgregarComprobantes(Gasto gasto, List<GastoComprobanteNuevoDTO>? archivos)
         {
             if (archivos is null || archivos.Count == 0)
                 return new List<string>();
@@ -240,8 +239,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return nombres;
         }
 
-        private static string? ObtenerTipoComprobante(string extension, ReadOnlySpan<byte> contenido) =>
-            extension.ToLowerInvariant() switch
+        private static string? ObtenerTipoComprobante(string extension, ReadOnlySpan<byte> contenido) =>extension.ToLowerInvariant() switch
             {
                 ".pdf" when contenido.StartsWith("%PDF-"u8) => "application/pdf",
                 ".jpg" or ".jpeg" when contenido.StartsWith(new byte[] { 0xff, 0xd8, 0xff }) => "image/jpeg",
@@ -774,7 +772,6 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .ToList()
             });
 
-        #region Consultas del listado y reintegros
 
         private Task<int> ObtenerCajaId() => context.Socios
             .Where(socio => socio.EsCaja && socio.EstadoRegistro == EnumEstadoRegistro.activo)
@@ -824,6 +821,17 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (filtro.PagadorId > 0)
                 consulta = consulta.Where(gasto => gasto.GastoSocios.Any(aporte =>
                     aporte.EstadoRegistro == EnumEstadoRegistro.activo && aporte.SocioId == filtro.PagadorId));
+
+            consulta = filtro.EstadoComprobante switch
+            {
+                EstadoComprobanteGasto.ConComprobante => consulta.Where(gasto =>
+                    context.GastoComprobantes.Any(comprobante => comprobante.GastoId == gasto.Id)),
+
+                EstadoComprobanteGasto.SinComprobante => consulta.Where(gasto =>
+                    !context.GastoComprobantes.Any(comprobante => comprobante.GastoId == gasto.Id)),
+
+                _ => consulta
+            };
 
             if (!string.IsNullOrWhiteSpace(filtro.Texto))
             {
@@ -907,7 +915,23 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 gasto.SaldoSocio(socioId) > 0).ToList();
         }
 
-        #endregion
+        public Task<List<GastoListadoDTO>> BuscarPosiblesDuplicados(DateTime fecha, int tipoGastoId, decimal monto)
+        {
+            var dia = DateTime.SpecifyKind(fecha.Date, DateTimeKind.Utc);
+
+            return GastosActivos()
+                .Where(gasto => gasto.Fecha == dia &&
+                    gasto.TipoGastoId == tipoGastoId &&
+                    gasto.Monto == monto)
+                .OrderByDescending(gasto => gasto.Id)
+                .Take(5)
+                .Select(gasto => new GastoListadoDTO
+                {
+                    Id = gasto.Id,
+                    Descripcion = gasto.Descripcion
+                })
+                .ToListAsync();
+        }
 
         public async Task<GastoCrearDTO?> SelectGastoPorId(int id)
         {

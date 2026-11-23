@@ -5,7 +5,7 @@
 
 @inject IHttpServicio Http
 
-<div class="gasto-overlay" inert="@mostrarAltaTipo" @onclick="Cerrar">
+<div class="gasto-overlay" inert="@mostrarAltaTipo">
     <section class="gasto-modal"
              role="dialog"
              aria-modal="true"
@@ -254,6 +254,40 @@
                     </div>
                 }
 
+                @if (MostrarAvisoDuplicado && datosAdvertidos is { } coincidencia)
+                {
+                    <div class="aviso-gasto-duplicado" role="alert">
+                        <div class="aviso-gasto-duplicado__cabecera">
+                            <span class="aviso-gasto-duplicado__icono" aria-hidden="true">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </span>
+
+                            <div>
+                                <strong>Posible gasto duplicado</strong>
+                                <p>Estos gastos tienen la misma fecha, tipo e importe.</p>
+                            </div>
+                        </div>
+
+                        <p class="aviso-gasto-duplicado__datos">
+                            @coincidencia.Fecha.ToString("dd/MM/yyyy") · @Moneda(coincidencia.Monto)
+                        </p>
+
+                        <ul class="aviso-gasto-duplicado__lista">
+                            @foreach (var gasto in posiblesDuplicados)
+                            {
+                                <li @key="gasto.Id">
+                                    <span class="aviso-gasto-duplicado__numero">#@gasto.Id</span>
+                                    <span>@gasto.Descripcion</span>
+                                </li>
+                            }
+                        </ul>
+
+                        <p class="aviso-gasto-duplicado__ayuda">
+                            Si corresponde a otro gasto, elegí <strong>Guardar de todos modos</strong>.
+                        </p>
+                    </div>
+                }
+
                 <footer class="form-actions">
                     <button type="button"
                             class="secondary-button"
@@ -274,7 +308,7 @@
                         }
                         else
                         {
-                            <span>Guardar gasto</span>
+                            <span>@(MostrarAvisoDuplicado ? "Guardar de todos modos" : "Guardar gasto")</span>
                         }
                     </button>
                 </footer>
@@ -327,6 +361,16 @@
     private bool datosCargados;
     private bool guardando;
     private bool leyendoComprobante;
+    private (DateTime Fecha, int TipoGastoId, decimal Monto)? datosAdvertidos;
+    private List<GastoListadoDTO> posiblesDuplicados = new();
+
+    private (DateTime Fecha, int TipoGastoId, decimal Monto)? DatosParaDuplicado =>
+        modelo.Fecha is DateTime fecha
+            ? (fecha.Date, modelo.TipoGastoId, modelo.Monto)
+            : null;
+
+    private bool MostrarAvisoDuplicado =>
+        posiblesDuplicados.Count > 0 && datosAdvertidos == DatosParaDuplicado;
 
     private void CambiarLecturaComprobante(bool leyendo) => leyendoComprobante = leyendo;
 
@@ -497,10 +541,37 @@
 
         try
         {
-            var respuesta =
-                await Http.Post<GastoCrearDTO, int>(
-                    "api/gasto/insertar",
-                    modelo);
+            if (!MostrarAvisoDuplicado && DatosParaDuplicado is { } datos)
+            {
+                var fecha = datos.Fecha.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                var monto = datos.Monto.ToString(CultureInfo.InvariantCulture);
+
+                var coincidencias = await Http.Get<List<GastoListadoDTO>>(
+                    $"api/gasto/posibles-duplicados?fecha={fecha}" +
+                    $"&tipoGastoId={datos.TipoGastoId}&monto={monto}");
+
+                if (coincidencias.Error)
+                {
+                    mensaje = "No se pudo buscar posibles duplicados. Intentá guardar nuevamente.";
+                    return;
+                }
+
+                if (DatosParaDuplicado != datos)
+                {
+                    mensaje = "Cambiaste los datos durante la consulta. Volvé a guardar.";
+                    return;
+                }
+
+                posiblesDuplicados = coincidencias.Respuesta ?? new();
+                datosAdvertidos = datos;
+
+                if (posiblesDuplicados.Count > 0)
+                    return;
+            }
+
+            datosAdvertidos = null;
+            posiblesDuplicados.Clear();
+            var respuesta =await Http.Post<GastoCrearDTO, int>("api/gasto/insertar",modelo);
 
             if (respuesta.Error)
             {

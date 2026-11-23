@@ -407,3 +407,78 @@ button:disabled,
         }
 
 /* #endregion */
+
+/* #region Aviso de posible gasto duplicado */
+
+.aviso-gasto-duplicado {
+    margin: 16px 0 0;
+    padding: 14px 16px;
+    border: 1px solid #e3d5b3;
+    border-radius: 14px;
+    background: #faf5e9;
+    color: #51442e;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.aviso-gasto-duplicado__cabecera {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+    .aviso-gasto-duplicado__cabecera strong {
+        font-size: 1rem;
+        color: #47391f;
+    }
+
+    .aviso-gasto-duplicado__cabecera p {
+        margin: 2px 0 0;
+    }
+
+.aviso-gasto-duplicado__icono {
+    display: grid;
+    flex: 0 0 32px;
+    height: 32px;
+    place-items: center;
+    border-radius: 9px;
+    background: #efe2c4;
+    color: #694d21;
+}
+
+.aviso-gasto-duplicado__datos {
+    margin: 10px 0 6px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.aviso-gasto-duplicado__lista {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+    .aviso-gasto-duplicado__lista li {
+        display: grid;
+        grid-template-columns: max-content minmax(0, 1fr);
+        gap: 8px;
+        padding: 6px 10px;
+        border: 1px solid #e9dfca;
+        border-radius: 8px;
+        background: #fffdf8;
+        overflow-wrap: anywhere;
+    }
+
+.aviso-gasto-duplicado__numero {
+    color: #694d21;
+    font-weight: 600;
+}
+
+.aviso-gasto-duplicado__ayuda {
+    margin: 10px 0 0;
+    font-size: 0.85rem;
+}
+
+/* #endregion */
