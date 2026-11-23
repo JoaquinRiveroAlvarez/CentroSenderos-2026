@@ -536,3 +536,21 @@ button:focus-visible {
     }
 }
 /* #endregion */
+
+/* #region Acción duplicar gasto */
+.modal-actions .duplicar-gasto-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-color: #cad8c4;
+    background: #eef3eb;
+    color: #40563b;
+    font-weight: 600;
+}
+
+    .modal-actions .duplicar-gasto-button:hover:not(:disabled) {
+        border-color: #a8bca0;
+        background: #e1ebdd;
+    }
+/* #endregion */

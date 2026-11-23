@@ -342,6 +342,30 @@
                     </div>
                 }
 
+                @if (!PeriodoInvalido && consulta.TotalesPorMesYTipo.Count > 0)
+                {
+                    <details class="panel-card totales-gastos">
+                        <summary>Totales por mes y tipo de gasto</summary>
+                        @foreach (var mes in consulta.TotalesPorMesYTipo.GroupBy(totalMes => new { totalMes.Anio, totalMes.Mes }))
+                        {
+                            var periodo = new DateTime(mes.Key.Anio, mes.Key.Mes, 1);
+                            <div class="panel-titulo">
+                                <h2>@periodo.ToString("MMMM yyyy", cultura)</h2>
+                                <strong>@Moneda(mes.Sum(tipo => tipo.Total))</strong>
+                            </div>
+                            <ul class="list-unstyled">
+                                @foreach (var tipo in mes)
+                                {
+                                    <li class="d-flex justify-content-between gap-2">
+                                        <span>@tipo.TipoGasto</span>
+                                        <strong>@Moneda(tipo.Total)</strong>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </details>
+                }
+
                 <div class="list-footer">
                     <span>@consulta.Cantidad gastos · Página @consulta.Pagina de @consulta.Paginas</span>
                     @if (consulta.Paginas > 1)
@@ -456,8 +480,8 @@
 
                 @if (consulta.Pendientes > 0)
                 {
-                    <section class="panel-card">
-                        <div class="panel-titulo"><h2>Para resolver</h2><i class="bi bi-arrow-up-right"></i></div>
+                    <section class="panel-card reintegros-antiguos">
+                        <div class="panel-titulo"><h2>Reintegros pendientes más antiguos</h2><i class="bi bi-arrow-up-right"></i></div>
                         @foreach (var pendiente in consulta.Prioritarios)
                         {
                             <button type="button" class="pendiente-gasto-link" @key="pendiente.Id" @onclick="() => AbrirDetalle(pendiente.Id)">
@@ -482,7 +506,8 @@
 
     @if (mostrarCrear)
     {
-        <GastosCrear OnCerrar="CerrarCrear"
+        <GastosCrear GastoOrigen="gastoOrigenBorrador"
+                     OnCerrar="CerrarCrear"
                      OnGuardado="GastoGuardado" />
     }
 
@@ -508,6 +533,7 @@
                        IrAComprobantes="irAComprobantesDetalle"
                        OnCerrar="CerrarDetalle"
                        OnEditar="AbrirEditar"
+                       OnDuplicar="AbrirBorrador"
                        OnHistorial="AbrirHistorial"
                        CajaId="cajaId"
                        OnReintegro="AbrirReintegro" />
@@ -530,6 +556,7 @@
     private bool mostrarDetalle;
     private bool volverAlDetalle;
     private bool ordenDescendente = true;
+    private GastoListadoDTO? gastoOrigenBorrador;
     private EstadoReintegroGasto? estadoReintegro;
     private EstadoComprobanteGasto? estadoComprobante;
     private int socioPendienteId;
@@ -660,6 +687,10 @@
 
     private Task ActualizarFiltroEstado()
     {
+        if (estadoReintegro is EstadoReintegroGasto.ConSaldoPendiente
+            or EstadoReintegroGasto.Pendiente or EstadoReintegroGasto.Parcial)
+            ordenDescendente = false;
+
         if (estadoReintegro is EstadoReintegroGasto.Saldado
             or EstadoReintegroGasto.NoCorresponde or EstadoReintegroGasto.PorRevisar)
             return QuitarFiltroSocioPendiente();
@@ -672,7 +703,7 @@
         socioPendienteId = socioId;
         socioPendienteNombre = nombre;
         estadoReintegro = EstadoReintegroGasto.ConSaldoPendiente;
-        return ActualizarConsulta();
+        return ActualizarFiltroEstado();
     }
 
     private Task QuitarFiltroSocioPendiente()
@@ -821,9 +852,15 @@
         mostrarCrear = true;
     }
 
+    private void AbrirBorrador(GastoListadoDTO origen)
+    {
+        AbrirCrear();
+        gastoOrigenBorrador = origen;
+    }
+
     private void CerrarCrear()
     {
-        mostrarCrear = false;
+        CerrarModales();
     }
 
     private void AbrirEditar(int id)
@@ -888,6 +925,7 @@
 
     private void CerrarModales()
     {
+        gastoOrigenBorrador = null;
         mostrarReintegro = false;
         mostrarCrear = false;
         mostrarEditar = false;

@@ -1599,3 +1599,122 @@ button.panel-filtro:hover, .panel-filtro.activo {
     }
 
 /* #endregion */
+
+/* #region Totales por mes y tipo */
+.totales-gastos {
+    margin: 16px;
+    padding: 0 14px;
+    border: 1px solid #e1e5dc;
+    border-radius: 14px;
+    background: #f7f8f4;
+}
+
+    .totales-gastos > summary {
+        padding: 13px 0;
+        color: #40563b;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+        .totales-gastos > summary::marker {
+            color: #556f4f;
+        }
+
+    .totales-gastos .panel-titulo {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 4px 12px;
+        margin: 0;
+        padding: 10px 12px;
+        border-radius: 8px 8px 0 0;
+        background: #e8eee4;
+        color: #40563b;
+    }
+
+        .totales-gastos .panel-titulo h2 {
+            margin: 0;
+            font-size: .9rem;
+            text-transform: capitalize;
+        }
+
+    .totales-gastos strong {
+        color: #34482e;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .totales-gastos ul {
+        margin: 0 0 12px;
+        padding: 0;
+        border: 1px solid #e1e5dc;
+        border-top: 0;
+        border-radius: 0 0 8px 8px;
+        background: #fff;
+    }
+
+    .totales-gastos li {
+        padding: 8px 12px;
+        font-size: .875rem;
+    }
+
+        .totales-gastos li + li {
+            border-top: 1px solid #efede8;
+        }
+
+        .totales-gastos li > span {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+/* #endregion */
+
+/* #region Reintegros pendientes más antiguos */
+.reintegros-antiguos .panel-titulo {
+    align-items: flex-start;
+    gap: 8px;
+}
+
+    .reintegros-antiguos .panel-titulo h2 {
+        line-height: 1.35;
+    }
+
+.reintegros-antiguos.panel-card .pendiente-gasto-link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 10px 9px;
+    border: 1px solid #e7e3dc;
+    border-radius: 9px;
+    background: #fff;
+    text-align: left;
+}
+
+.reintegros-antiguos .pendiente-gasto-link + .pendiente-gasto-link {
+    margin-top: 6px;
+}
+
+.reintegros-antiguos .pendiente-gasto-link > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.reintegros-antiguos .pendiente-gasto-link small {
+    display: block;
+    margin-top: 3px;
+    color: #616b5e;
+}
+
+.reintegros-antiguos.panel-card .pendiente-gasto-link strong {
+    color: #684e28;
+    font-size: .82rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.reintegros-antiguos.panel-card .pendiente-gasto-link:hover {
+    border-color: #b6c6af;
+    background: #f2f5ef;
+}
+/* #endregion */

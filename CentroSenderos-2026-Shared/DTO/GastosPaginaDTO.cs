@@ -39,11 +39,20 @@ namespace CentroSenderos_2026_Shared.DTO
         public decimal PagadoCaja { get; set; }
         public decimal Adelantado { get; set; }
         public decimal Reintegrado { get; set; }
+        public List<TotalGastosPorMesYTipoDTO> TotalesPorMesYTipo { get; set; } = new();
         public List<GastoListadoDTO> Gastos { get; set; } = new();
         public List<GastoListadoDTO> Prioritarios { get; set; } = new();
         public List<TipoListadoDTO> Tipos { get; set; } = new();
         public List<GastoSocioListadoDTO> Pagadores { get; set; } = new();
         public List<SaldoGastoSocioDTO> Socios { get; set; } = new();
+    }
+
+    public class TotalGastosPorMesYTipoDTO
+    {
+        public int Anio { get; set; }
+        public int Mes { get; set; }
+        public string TipoGasto { get; set; } = string.Empty;
+        public decimal Total { get; set; }
     }
 
     public class SaldoGastoSocioDTO

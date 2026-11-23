@@ -302,6 +302,16 @@
                     </button>
                 }
 
+                @if (OnDuplicar.HasDelegate)
+                {
+                    <button type="button"
+                            class="secondary-button duplicar-gasto-button"
+                            @onclick="() => OnDuplicar.InvokeAsync(gasto)">
+                        <i class="bi bi-copy" aria-hidden="true"></i>
+                        Duplicar como borrador
+                    </button>
+                }
+
                 @if (gasto.TieneHistorial)
                 {
                     <button type="button"
@@ -357,6 +367,9 @@
 
     [Parameter]
     public EventCallback<int> OnEditar { get; set; }
+
+    [Parameter]
+    public EventCallback<GastoListadoDTO> OnDuplicar { get; set; }
 
     [Parameter]
     public EventCallback<int> OnHistorial { get; set; }

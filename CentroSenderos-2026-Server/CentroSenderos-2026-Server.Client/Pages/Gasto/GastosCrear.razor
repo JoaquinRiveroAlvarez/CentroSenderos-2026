@@ -14,7 +14,7 @@
 
         <header class="modal-header">
             <div>
-                <h2 id="tituloNuevoGasto">Nuevo gasto</h2>
+                <h2 id="tituloNuevoGasto">@(GastoOrigen is null ? "Nuevo gasto" : "Duplicar gasto")</h2>
                 <p>Completá los datos y el aporte de cada socio.</p>
             </div>
 
@@ -49,6 +49,23 @@
         }
         else
         {
+            @if (GastoOrigen is { } origen)
+            {
+                <div class="borrador-gasto">
+                    <i class="bi bi-copy" aria-hidden="true"></i>
+                    <div>
+                        <strong>Borrador del gasto #@origen.Id</strong>
+                        <p>Al guardar, el reparto se asignará a Caja Senderos.</p>
+                    </div>
+                </div>
+                @if (datosOrigenNoDisponibles)
+                {
+                    <p class="borrador-gasto-aviso" role="status">
+                        El tipo o alguno de los pagadores del gasto original ya no está disponible. Revisá el tipo y los aportes antes de guardar.
+                    </p>
+                }
+            }
+
             <EditForm EditContext="@contexto"
                       OnValidSubmit="Guardar"
                       FormName="CrearGastoForm">
@@ -341,6 +358,10 @@
     [Parameter]
     public EventCallback OnGuardado { get; set; }
 
+    [Parameter]
+    public GastoListadoDTO? GastoOrigen { get; set; }
+
+    private bool datosOrigenNoDisponibles;
     private readonly GastoCrearDTO modelo = new()
     {
         Fecha = DateTime.Today,
@@ -422,6 +443,24 @@
 
             tiposGasto = respuestaTipos.Respuesta ?? new();
             socios = respuestaSocios.Respuesta ?? new();
+
+            if (GastoOrigen is { } origen)
+            {
+                modelo.Descripcion = origen.Descripcion;
+                modelo.TipoGastoId = tiposGasto.Any(tipo => tipo.Id == origen.TipoGastoId)
+                    ? origen.TipoGastoId
+                    : 0;
+                modelo.GastoSocios = origen.GastoSocios
+                    .Where(aporte => socios.Any(socio => socio.Id == aporte.SocioId))
+                    .Select(aporte => new GastoSocioDTO
+                    {
+                        SocioId = aporte.SocioId,
+                        Monto = aporte.Monto
+                    }).ToList();
+
+                datosOrigenNoDisponibles = modelo.TipoGastoId == 0 ||
+                    modelo.GastoSocios.Count != origen.GastoSocios.Count;
+            }
 
             datosCargados = true;
         }
@@ -571,7 +610,7 @@
 
             datosAdvertidos = null;
             posiblesDuplicados.Clear();
-            var respuesta =await Http.Post<GastoCrearDTO, int>("api/gasto/insertar",modelo);
+            var respuesta = await Http.Post<GastoCrearDTO, int>("api/gasto/insertar", modelo);
 
             if (respuesta.Error)
             {

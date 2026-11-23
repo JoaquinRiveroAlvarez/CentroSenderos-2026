@@ -239,14 +239,14 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             return nombres;
         }
 
-        private static string? ObtenerTipoComprobante(string extension, ReadOnlySpan<byte> contenido) =>extension.ToLowerInvariant() switch
-            {
-                ".pdf" when contenido.StartsWith("%PDF-"u8) => "application/pdf",
-                ".jpg" or ".jpeg" when contenido.StartsWith(new byte[] { 0xff, 0xd8, 0xff }) => "image/jpeg",
-                ".png" when contenido.StartsWith(
-                    new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a }) => "image/png",
-                _ => null
-            };
+        private static string? ObtenerTipoComprobante(string extension, ReadOnlySpan<byte> contenido) => extension.ToLowerInvariant() switch
+        {
+            ".pdf" when contenido.StartsWith("%PDF-"u8) => "application/pdf",
+            ".jpg" or ".jpeg" when contenido.StartsWith(new byte[] { 0xff, 0xd8, 0xff }) => "image/jpeg",
+            ".png" when contenido.StartsWith(
+                new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a }) => "image/png",
+            _ => null
+        };
 
         public async Task<bool> ActualizarGasto(int id, GastoEditarDTO dto, string usuarioId)
         {
@@ -859,7 +859,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             resultado.Reintegrado = validos.Sum(gasto => gasto.GastoReintegros.Sum(reintegro => reintegro.Monto));
             resultado.PagadoCaja = validos.Sum(gasto => gasto.GastoSocios
                 .Where(aporte => aporte.SocioId == resultado.CajaId).Sum(aporte => aporte.Monto));
-            resultado.Prioritarios = pendientes.OrderBy(gasto => gasto.SaldoSocio(resultado.CajaId)).Take(3).ToList();
+            resultado.Prioritarios = pendientes.OrderBy(gasto => gasto.Fecha)
+                .ThenBy(gasto => gasto.Id).Take(3).ToList();
 
             var recibidos = validos.SelectMany(gasto => gasto.GastoReintegros)
                 .GroupBy(reintegro => reintegro.SocioReceptorId)
@@ -893,6 +894,18 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             }
             resultado.Cantidad = filtrados.Count;
             resultado.Total = filtrados.Sum(gasto => gasto.Monto);
+            resultado.TotalesPorMesYTipo = filtrados
+                .GroupBy(gasto => new { gasto.Fecha.Year, gasto.Fecha.Month, gasto.TipoGastoId, gasto.TipoGasto })
+                .OrderByDescending(grupo => grupo.Key.Year)
+                .ThenByDescending(grupo => grupo.Key.Month)
+                .ThenBy(grupo => grupo.Key.TipoGasto)
+                .Select(grupo => new TotalGastosPorMesYTipoDTO
+                {
+                    Anio = grupo.Key.Year,
+                    Mes = grupo.Key.Month,
+                    TipoGasto = grupo.Key.TipoGasto ?? string.Empty,
+                    Total = grupo.Sum(gasto => gasto.Monto)
+                }).ToList();
             resultado.Paginas = Math.Max(1, (int)Math.Ceiling(filtrados.Count / (decimal)cantidadPorPagina));
             resultado.Pagina = Math.Clamp(filtro.Pagina, 1, resultado.Paginas);
             resultado.Gastos = filtrados.Skip((resultado.Pagina - 1) * cantidadPorPagina)
