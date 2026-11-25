@@ -260,7 +260,7 @@
 ========================================================= -->
 @if (modalActual == ModalPrestacion.Detalle)
 {
-    <ModalAdministracion Titulo="Detalle de prestación" CerrarAlTocarFondo="true" Ocupado="@(cargandoDetalle || eliminando)" Inactivo="@mostrarConfirmacionEliminar" AlCerrar="SolicitarCerrarModal">
+    <ModalAdministracion Icono="bi-clipboard2-pulse" Titulo="Detalle de prestación" CerrarAlTocarFondo="true" Ocupado="@(cargandoDetalle || eliminando)" Inactivo="@mostrarConfirmacionEliminar" AlCerrar="SolicitarCerrarModal">
 
             @if (cargandoDetalle)
             {
@@ -382,7 +382,7 @@
 ========================================================= -->
 @if (modalActual == ModalPrestacion.Crear)
 {
-    <ModalAdministracion Titulo="Nueva prestación" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
+    <ModalAdministracion Icono="bi-clipboard2-pulse" Titulo="Nueva prestación" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
 
 
 
@@ -407,6 +407,12 @@
                                             Opciones="OpcionesAreasFormulario"
                                             Disabled="@(guardando || !AreasDisponibles)" />
 
+                        <button type="button" class="prestacion-area-nueva" disabled="@(guardando || cargandoAreas)"
+                                @onclick="() => altaArea.Abrir()">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                            Nueva área
+                        </button>
+
                         <ValidationMessage For="@(() => modelo.TipoAreaId)" />
 
                         <p id="areaPrestacionAyuda" class="prestacion-area-ayuda">
@@ -428,7 +434,7 @@
                         else if (!cargandoAreas && listaAreas.Count == 0)
                         {
                             <p class="prestacion-area-ayuda" role="status">
-                                No hay áreas activas. Creá una desde Administración → Tipo Área.
+                                No hay áreas activas. Usá Nueva área para crear la primera.
                             </p>
 
                             <button type="button"
@@ -538,7 +544,7 @@
 ========================================================= -->
 @if (modalActual == ModalPrestacion.Editar)
 {
-    <ModalAdministracion Titulo="Editar prestación" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
+    <ModalAdministracion Icono="bi-clipboard2-pulse" Titulo="Editar prestación" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
 
 
 
@@ -563,6 +569,12 @@
                                             Opciones="OpcionesAreasFormulario"
                                             Disabled="@(guardando || !AreasDisponibles)" />
 
+                        <button type="button" class="prestacion-area-nueva" disabled="@(guardando || cargandoAreas)"
+                                @onclick="() => altaArea.Abrir()">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                            Nueva área
+                        </button>
+
                         <ValidationMessage For="@(() => modelo.TipoAreaId)" />
 
                         <p id="areaPrestacionAyuda" class="prestacion-area-ayuda">
@@ -584,7 +596,7 @@
                         else if (!cargandoAreas && listaAreas.Count == 0)
                         {
                             <p class="prestacion-area-ayuda" role="status">
-                                No hay áreas activas. Creá una desde Administración → Tipo Área.
+                                No hay áreas activas. Usá Nueva área para crear la primera.
                             </p>
 
                             <button type="button"
@@ -712,7 +724,18 @@
                           OnDescartar="DescartarCambios" />
 }
 
+<CrearCatalogo @ref="altaArea" Recurso="tipoarea" Etiqueta="área" Creado="SeleccionarAreaCreada" />
+
 @code {
+    private CrearCatalogo altaArea = default!;
+
+    private void SeleccionarAreaCreada(TipoListadoDTO area)
+    {
+        listaAreas.Add(area);
+        errorAreas = string.Empty;
+        modelo.TipoAreaId = area.Id;
+    }
+
     private Func<Task>? salidaPendiente;
     private string? estadoInicial;
     private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);

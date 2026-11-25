@@ -89,7 +89,8 @@
 
 @if (usuarioSeleccionado is { } cuenta)
 {
-    <ModalAdministracion Titulo="@TituloModal" CerrarAlTocarFondo="@(vista == Vista.Detalle)"
+    <ModalAdministracion Icono="@(vista == Vista.Contrasena ? "bi-key" : cambioPendiente is null ? "bi-shield-lock" : null)"
+                         Titulo="@TituloModal" CerrarAlTocarFondo="@(vista == Vista.Detalle)"
                          Ocupado="@guardando" Inactivo="@confirmarDescarte" AlCerrar="SolicitarCerrar">
         @if (vista == Vista.Contrasena)
         {

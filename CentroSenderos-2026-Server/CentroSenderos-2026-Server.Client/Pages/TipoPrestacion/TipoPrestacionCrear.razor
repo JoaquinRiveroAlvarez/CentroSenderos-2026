@@ -50,6 +50,12 @@
                                         @bind-Value="modelo.TipoAreaId"
                                         Opciones="OpcionesAreas"
                                         Disabled="@(guardando || areas.Count == 0)" />
+                    <button type="button" class="prestacion-area-nueva" disabled="@guardando"
+                            @onclick="() => altaArea.Abrir()">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        Nueva área
+                    </button>
+
                     <ValidationMessage For="@(() => modelo.TipoAreaId)" />
                 </div>
 
@@ -169,7 +175,17 @@
                           OnDescartar="SalirDelFormulario" />
 }
 
+<CrearCatalogo @ref="altaArea" Recurso="tipoarea" Etiqueta="área" Creado="SeleccionarAreaCreada" />
+
 @code {
+    private CrearCatalogo altaArea = default!;
+
+    private void SeleccionarAreaCreada(TipoListadoDTO area)
+    {
+        areas.Add(area);
+        modelo.TipoAreaId = area.Id;
+    }
+
     private bool confirmarDescarte;
     private string? estadoInicial;
     private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
