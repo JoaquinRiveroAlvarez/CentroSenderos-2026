@@ -60,6 +60,14 @@
 
         </div>
     }
+    else if (!string.IsNullOrWhiteSpace(mensajeCarga))
+    {
+        <div class="estado-card" role="alert">
+            <h2>No pudimos cargar las obras sociales</h2>
+            <p>@mensajeCarga</p>
+            <button type="button" class="btn-nueva-estado" @onclick="Cargar">Reintentar</button>
+        </div>
+    }
     else if (lista.Count == 0)
     {
         <div class="estado-card">
@@ -339,6 +347,7 @@
     }
 
     private List<TipoObraSocialDTO> lista = new();
+    private string mensajeCarga = string.Empty;
     private TipoObraSocialDTO modelo = CrearModeloVacio();
 
     private ModalObraSocial modalActual = ModalObraSocial.Ninguno;
@@ -373,20 +382,35 @@
     private async Task Cargar()
     {
         cargando = true;
+        mensajeCarga = string.Empty;
 
-        var resp = await Http.Get<List<TipoObraSocialDTO>>(
-            "api/tipoobrasocial/ListaTipoObraSocial"
-        );
+        try
+        {
+            var respuesta = await Http.Get<List<TipoObraSocialDTO>>(
+                "api/tipoobrasocial/ListaTipoObraSocial");
 
-        lista = resp.Error
-            ? new()
-            : resp.Respuesta ?? new();
+            if (!respuesta.Error && respuesta.Respuesta is not null)
+            {
+                lista = respuesta.Respuesta;
+                return;
+            }
 
-        Mensaje = resp.Error
-            ? resp.ObtenerError()
-            : string.Empty;
-
-        cargando = false;
+            mensajeCarga = respuesta.HttpResponseMessage?.StatusCode switch
+            {
+                System.Net.HttpStatusCode.Unauthorized => "Volvé a iniciar sesión para consultar el listado.",
+                System.Net.HttpStatusCode.Forbidden => "Tu cuenta no tiene permiso para consultar el listado.",
+                { } codigo => $"El servidor no devolvió el listado (HTTP {(int)codigo}).",
+                _ => "No recibimos el listado. Intentá nuevamente."
+            };
+        }
+        catch
+        {
+            mensajeCarga = "No se pudo consultar el listado. Verificá la conexión e intentá nuevamente.";
+        }
+        finally
+        {
+            cargando = false;
+        }
     }
 
     private async Task AbrirDetalle(int id)
