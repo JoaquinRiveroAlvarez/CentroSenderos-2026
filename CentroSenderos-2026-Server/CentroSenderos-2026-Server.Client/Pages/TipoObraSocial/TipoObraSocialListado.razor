@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="obras-sociales-page" inert="@(salidaPendiente is not null)">
+<div class="obras-sociales-page" inert="@(modalActual != ModalObraSocial.Ninguno)">
 
     <div class="page-header">
 
@@ -188,453 +188,93 @@
 
 </div>
 
-@* Modal de detalle *@
-
 @if (modalActual == ModalObraSocial.Detalle)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
-
-        <div class="admin-modal">
-
+    <ModalAdministracion Titulo="Detalle de obra social" CerrarAlTocarFondo="true"
+                         Ocupado="@(cargandoDetalle || eliminando)" Inactivo="@mostrarConfirmacionEliminar"
+                         AlCerrar="SolicitarCerrarModal">
+        <div class="administracion-cuerpo">
             @if (cargandoDetalle)
             {
-                <div class="modal-loading">
-
-                    <div class="spinner-border"
-                         role="status">
-                    </div>
-
-                    <span>Cargando obra social...</span>
-
-                </div>
+                <p role="status">Cargando obra social…</p>
             }
             else
             {
-                <div class="modal-header">
-
-                    <div>
-
-                        <h2>Detalle Obra Social</h2>
-
-                        <p>
-                            Información de la obra social seleccionada.
-                        </p>
-
-                    </div>
-
-                    <button type="button"
-                            class="close-button"
-                            title="Cerrar"
-                            @onclick="SolicitarCerrarModal">
-
-                        <i class="bi bi-x-lg"></i>
-
-                    </button>
-
-                </div>
-
-                <div class="field-group">
-
-                    <label>OBRA SOCIAL</label>
-
-                    <div class="detail-value">
-                        @MostrarValor(modelo.Tipo)
-                    </div>
-
-                </div>
-
-                <div class="field-group">
-
-                    <label>CUIT</label>
-
-                    <div class="detail-value">
-                        @FormatearCuitParaMostrar(modelo.Cuit)
-                    </div>
-
-                </div>
-
-                <div class="field-group">
-
-                    <label>DESCRIPCIÓN</label>
-
-                    <div class="detail-value detail-value-large">
-
-                        @if (string.IsNullOrWhiteSpace(modelo.Descripcion))
-                        {
-                            <span class="sin-descripcion">
-                                Sin descripción
-                            </span>
-                        }
-                        else
-                        {
-                            @modelo.Descripcion
-                        }
-
-                    </div>
-
-                </div>
-
+                <dl class="administracion-campo"><dt>Obra social</dt><dd>@MostrarValor(modelo.Tipo)</dd></dl>
+                <dl class="administracion-campo"><dt>CUIT</dt><dd>@FormatearCuitParaMostrar(modelo.Cuit)</dd></dl>
+                <dl class="administracion-campo"><dt>Descripción</dt><dd>@(string.IsNullOrWhiteSpace(modelo.Descripcion) ? "Sin descripción" : modelo.Descripcion)</dd></dl>
                 @if (!string.IsNullOrWhiteSpace(Mensaje))
                 {
-                    <div class="form-message">
-
-                        <i class="bi bi-exclamation-circle"></i>
-                        <span>@Mensaje</span>
-
-                    </div>
+                    <p class="administracion-error" role="alert">@Mensaje</p>
                 }
-
-                <div class="modal-actions detail-actions">
-
-                    <button type="button"
-                            class="btn-cerrar"
-                            @onclick="SolicitarCerrarModal">
-
-                        Cerrar
-
-                    </button>
-
-                    <button type="button"
-                            class="btn-editar"
-                            @onclick="AbrirEditar">
-
-                        <i class="bi bi-pencil-square"></i>
-                        Editar
-
-                    </button>
-
-                </div>
             }
-
         </div>
-
-    </div>
+        @if (!cargandoDetalle)
+        {
+            <footer class="administracion-acciones">
+                <button type="button" class="administracion-eliminar" @onclick="AbrirConfirmacionEliminar">Eliminar</button>
+                <button type="button" @onclick="SolicitarCerrarModal">Cerrar</button>
+                <button type="button" class="administracion-primario" @onclick="AbrirEditar">Editar</button>
+            </footer>
+        }
+    </ModalAdministracion>
 }
 
-@* Modal de creación *@
-
-@if (modalActual == ModalObraSocial.Crear)
+@if (modalActual is ModalObraSocial.Crear or ModalObraSocial.Editar)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
-
-        <div class="admin-modal">
-
-            <div class="modal-header">
-
-                <div>
-
-                    <h2>Nueva Obra Social</h2>
-
-                    <p>
-                        Complete los datos de la obra social.
-                    </p>
-
-                </div>
-
-                <button type="button"
-                        class="close-button"
-                        title="Cerrar"
-                        disabled="@guardando"
-                        @onclick="SolicitarCerrarModal">
-
-                    <i class="bi bi-x-lg"></i>
-
-                </button>
-
-            </div>
-
-            <EditForm Model="@modelo"
-                      OnValidSubmit="CrearObraSocial">
-
-                <DataAnnotationsValidator />
-
-                <ValidationSummary class="validation-summary" />
-
-                <div class="field-group">
-
-                    <label>OBRA SOCIAL</label>
-
-                    <InputText class="senderos-input"
-                               @bind-Value="modelo.Tipo"
-                               placeholder="Ingresar nombre de la obra social" />
-
+    var editando = modalActual == ModalObraSocial.Editar;
+    <ModalAdministracion Titulo="@(editando ? "Editar obra social" : "Nueva obra social")"
+                         Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)"
+                         AlCerrar="CerrarFormulario">
+        <EditForm Model="@modelo" OnValidSubmit="GuardarFormulario" class="administracion-formulario">
+            <DataAnnotationsValidator />
+            <div class="administracion-cuerpo">
+                <ValidationSummary />
+                <div class="administracion-campo">
+                    <label for="administracion-obra-nombre">Obra social</label>
+                    <InputText id="administracion-obra-nombre" @bind-Value="modelo.Tipo" disabled="@guardando" />
                     <ValidationMessage For="@(() => modelo.Tipo)" />
-
                 </div>
-
-                <div class="field-group">
-
-                    <label>CUIT</label>
-
-                    <InputText class="senderos-input"
-                               @bind-Value="modelo.Cuit"
-                               @onblur="FormatearCuitModelo"
-                               inputmode="numeric"
-                               maxlength="13"
-                               placeholder="Ej.: 30-12345678-9" />
-
-                    <small class="field-help">
-                        Ingresá los 11 números del CUIT, con o sin guiones.
-                    </small>
-
+                <div class="administracion-campo">
+                    <label for="administracion-obra-cuit">CUIT</label>
+                    <InputText id="administracion-obra-cuit" @bind-Value="modelo.Cuit" @onblur="FormatearCuitModelo"
+                               inputmode="numeric" maxlength="13" placeholder="Ej.: 30-12345678-9" disabled="@guardando" />
                     <ValidationMessage For="@(() => modelo.Cuit)" />
-
                 </div>
-
-                <div class="field-group">
-
-                    <label>DESCRIPCIÓN</label>
-
-                    <InputTextArea class="senderos-textarea"
-                                   @bind-Value="modelo.Descripcion"
-                                   placeholder="Ingresar una descripción" />
-
+                <div class="administracion-campo">
+                    <label for="administracion-obra-descripcion">Descripción</label>
+                    <InputTextArea id="administracion-obra-descripcion" @bind-Value="modelo.Descripcion" disabled="@guardando" />
                     <ValidationMessage For="@(() => modelo.Descripcion)" />
-
                 </div>
-
                 @if (!string.IsNullOrWhiteSpace(Mensaje))
                 {
-                    <div class="form-message">
-
-                        <i class="bi bi-exclamation-circle"></i>
-                        <span>@Mensaje</span>
-
-                    </div>
+                    <p class="administracion-error" role="alert">@Mensaje</p>
                 }
-
-                <div class="modal-actions">
-
-                    <button type="button"
-                            class="btn-cancelar"
-                            disabled="@guardando"
-                            @onclick="SolicitarCerrarModal">
-
-                        Cancelar
-
-                    </button>
-
-                    <button type="submit"
-                            class="btn-guardar"
-                            disabled="@guardando">
-
-                        @if (guardando)
-                        {
-                            <span class="spinner-border spinner-border-sm"></span>
-                            <span>Guardando...</span>
-                        }
-                        else
-                        {
-                            <span>Guardar</span>
-                        }
-
-                    </button>
-
-                </div>
-
-            </EditForm>
-
-        </div>
-
-    </div>
-}
-
-@* Modal de edición *@
-
-@if (modalActual == ModalObraSocial.Editar)
-{
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
-
-        <div class="admin-modal">
-
-            <div class="modal-header">
-
-                <div>
-
-                    <h2>Editar Obra Social</h2>
-
-                    <p>
-                        Modifique los datos de la obra social.
-                    </p>
-
-                </div>
-
-                <button type="button"
-                        class="close-button"
-                        title="Volver al detalle"
-                        disabled="@(guardando || eliminando)"
-                        @onclick="SolicitarCancelarEdicion">
-
-                    <i class="bi bi-x-lg"></i>
-
-                </button>
-
             </div>
-
-            <EditForm Model="@modelo"
-                      OnValidSubmit="GuardarCambios">
-
-                <DataAnnotationsValidator />
-
-                <ValidationSummary class="validation-summary" />
-
-                <div class="field-group">
-
-                    <label>OBRA SOCIAL</label>
-
-                    <InputText class="senderos-input"
-                               @bind-Value="modelo.Tipo"
-                               placeholder="Ingresar nombre de la obra social" />
-
-                    <ValidationMessage For="@(() => modelo.Tipo)" />
-
-                </div>
-
-                <div class="field-group">
-
-                    <label>CUIT</label>
-
-                    <InputText class="senderos-input"
-                               @bind-Value="modelo.Cuit"
-                               @onblur="FormatearCuitModelo"
-                               inputmode="numeric"
-                               maxlength="13"
-                               placeholder="Ej.: 30-12345678-9" />
-
-                    <small class="field-help">
-                        Ingresá los 11 números del CUIT, con o sin guiones.
-                    </small>
-
-                    <ValidationMessage For="@(() => modelo.Cuit)" />
-
-                </div>
-
-                <div class="field-group">
-
-                    <label>DESCRIPCIÓN</label>
-
-                    <InputTextArea class="senderos-textarea"
-                                   @bind-Value="modelo.Descripcion"
-                                   placeholder="Ingresar una descripción" />
-
-                    <ValidationMessage For="@(() => modelo.Descripcion)" />
-
-                </div>
-
-                @if (!string.IsNullOrWhiteSpace(Mensaje))
-                {
-                    <div class="form-message">
-
-                        <i class="bi bi-exclamation-circle"></i>
-                        <span>@Mensaje</span>
-
-                    </div>
-                }
-
-                <div class="modal-actions edit-actions">
-
-                    <button type="button"
-                            class="btn-eliminar"
-                            disabled="@(guardando || eliminando)"
-                            @onclick="AbrirConfirmacionEliminar">
-
-                        <i class="bi bi-trash3"></i>
-                        Eliminar
-
-                    </button>
-
-                    <div class="right-actions">
-
-                        <button type="button"
-                                class="btn-cancelar"
-                                disabled="@(guardando || eliminando)"
-                                @onclick="SolicitarCancelarEdicion">
-
-                            Cancelar
-
-                        </button>
-
-                        <button type="submit"
-                                class="btn-guardar"
-                                disabled="@(guardando || eliminando)">
-
-                            @if (guardando)
-                            {
-                                <span class="spinner-border spinner-border-sm"></span>
-                                <span>Guardando...</span>
-                            }
-                            else
-                            {
-                                <span>Guardar Cambios</span>
-                            }
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </EditForm>
-
-        </div>
-
-    </div>
+            <footer class="administracion-acciones">
+                <button type="button" disabled="@guardando" @onclick="CerrarFormulario">Cancelar</button>
+                <button type="submit" class="administracion-primario" disabled="@guardando">
+                    @(guardando ? "Guardando…" : editando ? "Guardar cambios" : "Guardar")
+                </button>
+            </footer>
+        </EditForm>
+    </ModalAdministracion>
 }
-
-@* Confirmación de eliminación *@
 
 @if (mostrarConfirmacionEliminar)
 {
-    <div class="delete-modal-overlay">
-
-        <div class="delete-modal">
-
-            <div class="delete-warning-icon">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-
-            <h2>
-                ¿Estás seguro que querés eliminar esta obra social?
-            </h2>
-
-            <p>
-                Esta acción no se puede deshacer.
-                La obra social será eliminada definitivamente.
-            </p>
-
-            <div class="delete-modal-actions">
-
-                <button type="button"
-                        class="confirm-delete-button"
-                        disabled="@eliminando"
-                        @onclick="ConfirmarEliminar">
-
-                    @if (eliminando)
-                    {
-                        <span class="spinner-border spinner-border-sm"></span>
-                        <span>Eliminando...</span>
-                    }
-                    else
-                    {
-                        <span>Eliminar</span>
-                    }
-
-                </button>
-
-                <button type="button"
-                        class="modal-cancel-button"
-                        disabled="@eliminando"
-                        @onclick="CerrarConfirmacionEliminar">
-
-                    Cancelar
-
-                </button>
-
-            </div>
-
+    <ModalAdministracion Titulo="¿Eliminar la obra social?" Ocupado="@eliminando"
+                         AlCerrar="CerrarConfirmacionEliminar">
+        <div class="administracion-cuerpo">
+            <p>La obra social <strong>@modelo.Tipo</strong> dejará de estar disponible.</p>
         </div>
-
-    </div>
+        <footer class="administracion-acciones">
+            <button type="button" disabled="@eliminando" @onclick="CerrarConfirmacionEliminar">Cancelar</button>
+            <button type="button" class="administracion-peligro" disabled="@eliminando" @onclick="ConfirmarEliminar">
+                @(eliminando ? "Eliminando…" : "Eliminar")
+            </button>
+        </footer>
+    </ModalAdministracion>
 }
 
 @if (salidaPendiente is not null)
@@ -644,6 +284,14 @@
 }
 
 @code {
+    private Task CerrarFormulario() => modalActual == ModalObraSocial.Editar
+        ? SolicitarCancelarEdicion()
+        : SolicitarCerrarModal();
+
+    private Task GuardarFormulario() => modalActual == ModalObraSocial.Editar
+        ? GuardarCambios()
+        : CrearObraSocial();
+
     private Func<Task>? salidaPendiente;
     private string? estadoInicial;
     private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
