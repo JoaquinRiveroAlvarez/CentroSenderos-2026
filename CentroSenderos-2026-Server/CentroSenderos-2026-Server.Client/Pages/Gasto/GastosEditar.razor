@@ -1,11 +1,12 @@
-﻿@using CentroSenderos_2026_Shared.DTO
+﻿@using Microsoft.AspNetCore.Components.Web
+@using CentroSenderos_2026_Shared.DTO
 @using CentroSenderos_2026_Servicio.ServiciosHttp
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Globalization
 
 @inject IHttpServicio Http
 
-<div class="gasto-overlay" inert="@mostrarAltaTipo" @onclick="Cerrar">
+<div class="gasto-overlay" inert="@mostrarAltaTipo">
     <section class="gasto-modal"
              role="dialog"
              aria-modal="true"
@@ -21,7 +22,7 @@
             <button type="button"
                     class="close-button"
                     aria-label="Cerrar edición"
-                    disabled="@guardando"
+                    disabled="@(guardando || leyendoComprobante || confirmarDescarte)"
                     @onclick="Cerrar">
                 <i class="bi bi-x-lg"></i>
             </button>
@@ -64,7 +65,7 @@
                     </p>
                 }
 
-                <fieldset class="form-fields" disabled="@guardando">
+                <fieldset class="form-fields" disabled="@(guardando || confirmarDescarte)">
                     <section class="form-section">
                         <h3>Detalles del gasto</h3>
 
@@ -277,26 +278,56 @@
                 }
 
                 <footer class="form-actions">
-                    <button type="button"
-                            class="secondary-button"
-                            disabled="@guardando"
-                            @onclick="Cerrar">
-                        Cancelar
-                    </button>
+                    @if (confirmarDescarte)
+                    {
+                        <div class="descarte-gasto">
+                            <div class="descarte-gasto__mensaje" role="alert">
+                                <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                                <div>
+                                    <strong>¿Descartar los cambios?</strong>
+                                    <p>Se perderán las modificaciones y los cambios de comprobantes que no guardaste.</p>
+                                </div>
+                            </div>
 
-                    <button type="submit"
-                            class="save-button"
-                            disabled="@(guardando || leyendoComprobante)">
-                        @if (guardando)
-                        {
-                            <span class="spinner-border spinner-border-sm"></span>
-                            <span>Guardando...</span>
-                        }
-                        else
-                        {
-                            <span>Guardar cambios</span>
-                        }
-                    </button>
+                            <div class="descarte-gasto__acciones">
+                                <button type="button"
+                                        class="secondary-button"
+                                        @ref="botonSeguirEditando"
+                                        @onclick="() => confirmarDescarte = false">
+                                    Seguir editando
+                                </button>
+
+                                <button type="button"
+                                        class="secondary-button descarte-gasto__confirmar"
+                                        @onclick="DescartarCambios">
+                                    Descartar cambios
+                                </button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <button type="button"
+                                class="secondary-button"
+                                disabled="@guardando"
+                                @onclick="Cerrar">
+                            Cancelar
+                        </button>
+
+                        <button type="submit"
+                                class="save-button"
+                                disabled="@(guardando || leyendoComprobante)">
+                            @if (guardando)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                                <span>Guardando...</span>
+                            }
+                            else
+                            {
+                                <span>Guardar cambios</span>
+                            }
+                        </button>
+                    }
                 </footer>
             </EditForm>
         }
@@ -344,6 +375,10 @@
 
     private bool cargando = true;
     private bool datosCargados;
+    private string? estadoInicial;
+    private bool confirmarDescarte;
+    private bool enfocarConfirmacion;
+    private ElementReference botonSeguirEditando;
     private bool guardando;
     private bool leyendoComprobante;
 
@@ -559,6 +594,7 @@
             contexto = new EditContext(modelo);
             erroresAportes = new ValidationMessageStore(contexto);
 
+            estadoInicial = CapturarEstado();
             datosCargados = true;
         }
         catch (TaskCanceledException)
@@ -704,7 +740,7 @@
 
     private async Task Guardar()
     {
-        if (guardando || leyendoComprobante)
+        if (guardando || leyendoComprobante || confirmarDescarte)
             return;
 
         mensaje = string.Empty;
@@ -760,11 +796,48 @@
         }
     }
 
+    private string CapturarEstado()
+    {
+        return System.Text.Json.JsonSerializer.Serialize(new
+        {
+            modelo.TipoGastoId,
+            Fecha = modelo.Fecha?.Date,
+            modelo.Descripcion,
+            Aportes = modelo.GastoSocios
+                .OrderBy(aporte => aporte.SocioId)
+                .Select(aporte => new { aporte.SocioId, aporte.Monto }),
+            ComprobantesNuevos = modelo.ComprobantesNuevos.Count,
+            modelo.Motivo,
+            modelo.ImputarACaja,
+            modelo.CompletarReparto,
+            SociosReparto = modelo.SocioRepartoIds.OrderBy(id => id),
+            ComprobantesParaQuitar = modelo.ComprobanteIdsParaQuitar.OrderBy(id => id)
+        });
+    }
+
     private async Task Cerrar()
     {
-        if (guardando)
+        if (guardando || leyendoComprobante || confirmarDescarte)
             return;
+
+        if (datosCargados && estadoInicial != CapturarEstado())
+        {
+            confirmarDescarte = true;
+            enfocarConfirmacion = true;
+            return;
+        }
 
         await OnCerrar.InvokeAsync();
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!enfocarConfirmacion)
+            return;
+
+        enfocarConfirmacion = false;
+        await botonSeguirEditando.FocusAsync();
+    }
+
+    private Task DescartarCambios() => OnCerrar.InvokeAsync();
 }
