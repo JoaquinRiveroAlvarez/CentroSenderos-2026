@@ -11,7 +11,7 @@
 
 <PageTitle>Editar turno</PageTitle>
 
-<div class="turno-editar-page">
+<div class="turno-editar-page" inert="@confirmarDescarte">
 
     <button type="button"
             class="btn-volver"
@@ -1080,6 +1080,12 @@
     </div>
 }
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
     private IEnumerable<OpcionSelector> OpcionesTipoTurno => tiposTurno.Select(t => new OpcionSelector(t.Id.ToString(), t.Tipo, $"{t.DuracionMinutos} min"));
     private IEnumerable<OpcionSelector> OpcionesConsultorios => consultorios.Select(c => new OpcionSelector(c.Id.ToString(), c.Tipo));
@@ -1146,6 +1152,8 @@
     private string errorCarga = string.Empty;
 
     private bool cargando = true;
+    private bool confirmarDescarte;
+    private string? estadoInicial;
     private bool guardando;
     private bool eliminando;
     private bool consultandoHorarios;
@@ -1456,6 +1464,8 @@
         }
         finally
         {
+            if (string.IsNullOrWhiteSpace(errorCarga))
+                estadoInicial = CapturarEstado();
             cargando = false;
         }
     }
@@ -2606,6 +2616,7 @@
                 return;
             }
 
+            estadoInicial = CapturarEstado();
             pacientesGuardados = modelo.PacienteIds.ToHashSet();
 
             // Primero se actualiza la relación turno-paciente; después, su asistencia.
@@ -2677,7 +2688,34 @@
         }
     }
 
+    private string CapturarEstado() => System.Text.Json.JsonSerializer.Serialize(new
+    {
+        modelo.TipoTurnoId,
+        modelo.TipoConsultorioId,
+        Fecha = modelo.Fecha.Date,
+        Hora = horaSeleccionada,
+        Pacientes = modelo.PacienteIds.OrderBy(id => id),
+        Profesionales = modelo.ProfesionalIds.OrderBy(id => id)
+            .Select(id => new { Id = id, Prestacion = ObtenerPrestacionSeleccionada(id) }),
+        modelo.EstadoTurno
+    });
+
     private void Volver()
+    {
+        if (OperacionEnCurso || confirmarDescarte)
+            return;
+
+        if (estadoInicial is not null && (estadoInicial != CapturarEstado() || asistenciasPendientes.Count > 0))
+        {
+            CerrarSelectores();
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
+    }
+
+    private void SalirDelFormulario()
     {
         if (OperacionEnCurso)
         {
