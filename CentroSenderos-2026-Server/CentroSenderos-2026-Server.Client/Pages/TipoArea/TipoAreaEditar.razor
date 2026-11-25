@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="editar-area-page">
+<div class="editar-area-page" inert="@confirmarDescarte">
     <button type="button"
             class="back-button"
             disabled="@(guardando || eliminando)"
@@ -164,7 +164,17 @@
     </div>
 }
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
+    private bool confirmarDescarte;
+    private string? estadoInicial;
+    private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
+
     [Parameter]
     public int id { get; set; }
 
@@ -205,6 +215,7 @@
             }
 
             modelo = respuesta.Respuesta;
+            estadoInicial = CapturarEstadoFormulario();
         }
         catch
         {
@@ -298,7 +309,21 @@
         }
     }
 
-    private void Cancelar() => Nav.NavigateTo("/tipoarea");
+    private void Cancelar() => Volver();
 
-    private void Volver() => Nav.NavigateTo("/tipoarea");
+    private void Volver()
+    {
+        if (guardando || eliminando || confirmarDescarte)
+            return;
+
+        if (estadoInicial is not null && estadoInicial != CapturarEstadoFormulario())
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
+    }
+
+    private void SalirDelFormulario() => Nav.NavigateTo("/tipoarea");
 }

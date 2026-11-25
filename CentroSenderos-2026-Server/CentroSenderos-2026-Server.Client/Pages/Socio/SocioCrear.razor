@@ -8,7 +8,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="socio-form-page">
+<div class="socio-form-page" inert="@confirmarDescarte">
     <div class="socio-card">
 
         <div class="card-header">
@@ -180,7 +180,17 @@
     </div>
 </div>
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
+    private bool confirmarDescarte;
+    private string? estadoInicial;
+    private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
+
     private IEnumerable<string> AreasSeleccionadas =>
         profesionales.FirstOrDefault(profesional => profesional.Id == modelo.ProfesionalId)
             ?.Areas.AsEnumerable() ?? Enumerable.Empty<string>();
@@ -211,6 +221,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        estadoInicial = CapturarEstadoFormulario();
         try
         {
             await CargarSocios();
@@ -369,15 +380,21 @@
         }
     }
 
-    private void Cancelar()
-    {
-        if (!guardando)
-            Nav.NavigateTo("/socio");
-    }
+    private void Cancelar() => Volver();
 
     private void Volver()
     {
-        if (!guardando)
-            Nav.NavigateTo("/socio");
+        if (guardando || confirmarDescarte)
+            return;
+
+        if (estadoInicial is not null && estadoInicial != CapturarEstadoFormulario())
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
     }
+
+    private void SalirDelFormulario() => Nav.NavigateTo("/socio");
 }

@@ -1,7 +1,7 @@
 @using CentroSenderos_2026_Shared.DTO
 @inject IHttpServicio Http
 
-<div class="tipo-gasto-fondo">
+<div class="tipo-gasto-fondo" inert="@confirmarDescarte">
     <section class="tipo-gasto-dialogo" role="dialog" aria-modal="true"
              aria-labelledby="titulo-alta-tipo-gasto" tabindex="-1"
              @ref="dialogo" @onkeydown="CerrarConEscape">
@@ -23,7 +23,7 @@
                 }
 
                 <div class="tipo-gasto-acciones">
-                    <button type="button" @onclick="OnCerrar">Cancelar</button>
+                    <button type="button" @onclick="Cerrar">Cancelar</button>
                     <button type="submit">@(guardando ? "Guardando…" : "Crear tipo")</button>
                 </div>
             </fieldset>
@@ -31,7 +31,14 @@
     </section>
 </div>
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="OnCerrar" />
+}
+
 @code {
+    private bool confirmarDescarte;
     #region Parámetros y estado
 
     [Parameter]
@@ -54,7 +61,21 @@
     }
 
     private Task CerrarConEscape(KeyboardEventArgs evento) =>
-        evento.Key == "Escape" && !guardando ? OnCerrar.InvokeAsync() : Task.CompletedTask;
+        evento.Key == "Escape" ? Cerrar() : Task.CompletedTask;
+
+    private async Task Cerrar()
+    {
+        if (guardando || confirmarDescarte)
+            return;
+
+        if (!string.IsNullOrEmpty(modelo.Tipo) || !string.IsNullOrEmpty(modelo.Descripcion))
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        await OnCerrar.InvokeAsync();
+    }
 
     private async Task Guardar()
     {

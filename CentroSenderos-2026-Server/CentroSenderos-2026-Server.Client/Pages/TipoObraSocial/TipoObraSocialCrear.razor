@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="obra-social-form-page">
+<div class="obra-social-form-page" inert="@confirmarDescarte">
 
     <div class="obra-social-card">
 
@@ -139,7 +139,19 @@
 
 </div>
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
+    private bool confirmarDescarte;
+    private string? estadoInicial;
+    private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
+
+    protected override void OnInitialized() => estadoInicial = CapturarEstadoFormulario();
+
 
     private TipoObraSocialDTO modelo = CrearModeloVacio();
 
@@ -217,16 +229,21 @@
         };
     }
 
-    private void Cancelar()
-    {
-        if (!guardando)
-        {
-            Nav.NavigateTo("/tipoobrasocial");
-        }
-    }
+    private void Cancelar() => Volver();
 
     private void Volver()
     {
-        Nav.NavigateTo("/tipoobrasocial");
+        if (guardando || confirmarDescarte)
+            return;
+
+        if (estadoInicial is not null && estadoInicial != CapturarEstadoFormulario())
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
     }
+
+    private void SalirDelFormulario() => Nav.NavigateTo("/tipoobrasocial");
 }

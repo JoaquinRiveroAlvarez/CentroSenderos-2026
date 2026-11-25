@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="consultorio-form-page">
+<div class="consultorio-form-page" inert="@confirmarDescarte">
 
     <div class="consultorio-card">
 
@@ -218,7 +218,17 @@
 }
 
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
+    private bool confirmarDescarte;
+    private string? estadoInicial;
+    private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
+
 
     [Parameter]
     public int id { get; set; }
@@ -263,6 +273,7 @@
             modelo =
                 resp.Respuesta
                 ?? CrearModeloVacio();
+            estadoInicial = CapturarEstadoFormulario();
         }
 
         cargando = false;
@@ -341,10 +352,7 @@
     }
 
 
-    private void Cancelar()
-    {
-        Nav.NavigateTo("/tipoconsultorio");
-    }
+    private void Cancelar() => Volver();
 
 
     private static TipoConsultorioDTO CrearModeloVacio()
@@ -360,6 +368,17 @@
 
     private void Volver()
     {
-        Nav.NavigateTo("/tipoconsultorio");
+        if (guardando || eliminando || confirmarDescarte)
+            return;
+
+        if (estadoInicial is not null && estadoInicial != CapturarEstadoFormulario())
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
     }
+
+    private void SalirDelFormulario() => Nav.NavigateTo("/tipoconsultorio");
 }

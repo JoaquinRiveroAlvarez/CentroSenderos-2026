@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="turnos-page">
+<div class="turnos-page" inert="@(salidaPendiente is not null)">
 
     <div class="page-header">
 
@@ -208,7 +208,7 @@
 
 @if (modalActual == ModalTurno.Detalle)
 {
-    <div class="admin-modal-overlay">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
 
         <div class="admin-modal">
 
@@ -241,7 +241,7 @@
                     <button type="button"
                             class="close-button"
                             title="Cerrar"
-                            @onclick="CerrarModal">
+                            @onclick="SolicitarCerrarModal">
                         <i class="bi bi-x-lg"></i>
                     </button>
 
@@ -318,7 +318,7 @@
 
                     <button type="button"
                             class="btn-cerrar"
-                            @onclick="CerrarModal">
+                            @onclick="SolicitarCerrarModal">
                         Cerrar
                     </button>
 
@@ -341,7 +341,7 @@
 
 @if (modalActual == ModalTurno.Crear)
 {
-    <div class="admin-modal-overlay">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
 
         <div class="admin-modal">
 
@@ -361,7 +361,7 @@
                         class="close-button"
                         disabled="@guardando"
                         title="Cerrar"
-                        @onclick="CerrarModal">
+                        @onclick="SolicitarCerrarModal">
                     <i class="bi bi-x-lg"></i>
                 </button>
 
@@ -462,7 +462,7 @@
                     <button type="button"
                             class="btn-cancelar"
                             disabled="@guardando"
-                            @onclick="CerrarModal">
+                            @onclick="SolicitarCerrarModal">
                         Cancelar
                     </button>
 
@@ -495,7 +495,7 @@
 
 @if (modalActual == ModalTurno.Editar)
 {
-    <div class="admin-modal-overlay">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
 
         <div class="admin-modal">
 
@@ -515,7 +515,7 @@
                         class="close-button"
                         disabled="@guardando"
                         title="Volver al detalle"
-                        @onclick="CancelarEdicion">
+                        @onclick="SolicitarCancelarEdicion">
                     <i class="bi bi-x-lg"></i>
                 </button>
 
@@ -626,7 +626,7 @@
                         <button type="button"
                                 class="btn-cancelar"
                                 disabled="@guardando"
-                                @onclick="CancelarEdicion">
+                                @onclick="SolicitarCancelarEdicion">
                             Cancelar
                         </button>
 
@@ -711,7 +711,50 @@
     </div>
 }
 
+@if (salidaPendiente is not null)
+{
+    <ConfirmacionDescarte OnContinuar="SeguirEditando"
+                          OnDescartar="DescartarCambios" />
+}
+
 @code {
+    private Func<Task>? salidaPendiente;
+    private string? estadoInicial;
+    private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
+
+    private void SeguirEditando() => salidaPendiente = null;
+
+    private async Task DescartarCambios()
+    {
+        var salir = salidaPendiente;
+        salidaPendiente = null;
+        if (salir is not null)
+            await salir();
+    }
+
+    private Task SolicitarCancelarEdicion() => SolicitarSalida(CancelarEdicion);
+
+    private Task SolicitarCerrarModal() => SolicitarSalida(() =>
+    {
+        CerrarModal();
+        return Task.CompletedTask;
+    });
+
+    private async Task SolicitarSalida(Func<Task> salir)
+    {
+        if (guardando || eliminando || cargandoDetalle || salidaPendiente is not null)
+            return;
+
+        if ((modalActual is ModalTurno.Crear or ModalTurno.Editar) &&
+            estadoInicial is not null && estadoInicial != CapturarEstadoFormulario())
+        {
+            salidaPendiente = salir;
+            return;
+        }
+
+        await salir();
+    }
+
 
     private enum ModalTurno
     {
@@ -816,6 +859,7 @@
         Mensaje = string.Empty;
         idSeleccionado = null;
         modelo = CrearModeloVacio();
+        estadoInicial = CapturarEstadoFormulario();
         modalActual = ModalTurno.Crear;
     }
 
@@ -847,6 +891,7 @@
     private void AbrirEditar()
     {
         Mensaje = string.Empty;
+        estadoInicial = CapturarEstadoFormulario();
         modalActual = ModalTurno.Editar;
     }
 

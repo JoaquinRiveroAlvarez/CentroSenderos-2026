@@ -8,7 +8,7 @@
 @if (abierto)
 {
     <dialog @ref="dialogo" class="catalogo-dialog" aria-labelledby="@($"{identificador}-titulo")" aria-describedby="@($"{identificador}-ayuda")">
-        <form @onsubmit="Guardar" @onsubmit:preventDefault>
+        <form inert="@confirmarDescarte" @onsubmit="Guardar" @onsubmit:preventDefault>
             <header class="catalogo-header">
                 <span class="catalogo-icono" aria-hidden="true"><i class="bi @Icono"></i></span>
                 <div>
@@ -98,6 +98,11 @@
                 </div>
             </footer>
         </form>
+        @if (confirmarDescarte)
+        {
+            <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                                  OnDescartar="CerrarDialogo" />
+        }
     </dialog>
 }
 
@@ -119,6 +124,7 @@
     private IJSObjectReference? modulo;
     private DotNetObjectReference<CrearCatalogo>? referencia;
     private bool abierto, guardando, abrirPendiente;
+    private bool confirmarDescarte;
     private string nombre = "", descripcion = "", codigo = "", cuit = "", error = "";
     private decimal monto, retencion = 20;
 
@@ -171,6 +177,7 @@
         areasDisponibles = new();
         errorAreas = string.Empty;
         cargandoAreas = Recurso == "tipoprestacion";
+        confirmarDescarte = false;
         abierto = abrirPendiente = true;
         StateHasChanged();
     }
@@ -194,7 +201,22 @@
 
     private async Task Cerrar()
     {
-        if (guardando) return;
+        if (guardando || confirmarDescarte)
+            return;
+
+        if (nombre.Length > 0 || descripcion.Length > 0 || codigo.Length > 0 ||
+            cuit.Length > 0 || monto != 0 || retencion != 20 || areaSeleccionadaId.HasValue)
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        await CerrarDialogo();
+    }
+
+    private async Task CerrarDialogo()
+    {
+        confirmarDescarte = false;
         if (modulo is not null) await modulo.InvokeVoidAsync("cerrar", dialogo);
         abierto = false;
         StateHasChanged();
@@ -250,7 +272,7 @@
             }
             await Creado.InvokeAsync(new TipoListadoDTO { Id = respuesta.Respuesta, Tipo = nombre.Trim(), Descripcion = descripcion.Trim() });
             guardando = false;
-            await Cerrar();
+            await CerrarDialogo();
         }
         catch { error = "No se pudo guardar. Intentá nuevamente."; }
         finally { guardando = false; }
