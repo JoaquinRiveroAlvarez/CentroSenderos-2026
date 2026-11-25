@@ -382,7 +382,7 @@
 ========================================================= -->
 @if (modalActual == ModalPrestacion.Crear)
 {
-    <ModalAdministracion Titulo="Nueva prestación" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
+    <ModalAdministracion IconoFormulario="bi-clipboard2-pulse" Titulo="Nueva prestación" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
 
 
 
@@ -544,7 +544,7 @@
 ========================================================= -->
 @if (modalActual == ModalPrestacion.Editar)
 {
-    <ModalAdministracion Titulo="Editar prestación" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
+    <ModalAdministracion IconoFormulario="bi-clipboard2-pulse" Titulo="Editar prestación" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
 
 
 

@@ -155,7 +155,7 @@
 @if ((vista is Vista.Crear or Vista.Editar) && modelo is not null)
 {
     var editando = vista == Vista.Editar;
-    <ModalAdministracion Titulo="@(editando ? "Editar tipo de gasto" : "Nuevo tipo de gasto")"
+    <ModalAdministracion IconoFormulario="bi-receipt" Titulo="@(editando ? "Editar tipo de gasto" : "Nuevo tipo de gasto")"
                          Ocupado="@ocupado" Inactivo="@confirmarDescarte" AlCerrar="SolicitarCerrar">
         <EditForm Model="@modelo" OnValidSubmit="Guardar" class="administracion-formulario">
             <DataAnnotationsValidator />

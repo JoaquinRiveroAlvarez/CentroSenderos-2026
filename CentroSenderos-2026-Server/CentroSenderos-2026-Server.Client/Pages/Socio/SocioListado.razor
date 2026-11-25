@@ -169,7 +169,7 @@
 
 @if (modalActual == ModalSocio.Crear)
 {
-    <ModalAdministracion Titulo="Nuevo socio" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
+    <ModalAdministracion IconoFormulario="bi-people" Titulo="Nuevo socio" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
 
 
             @if (cargandoProfesionales)
@@ -335,7 +335,7 @@
 
 @if (modalActual == ModalSocio.Editar)
 {
-    <ModalAdministracion Titulo="Editar socio" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
+    <ModalAdministracion IconoFormulario="bi-people" Titulo="Editar socio" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
 
 
             @if (cargandoProfesionales)

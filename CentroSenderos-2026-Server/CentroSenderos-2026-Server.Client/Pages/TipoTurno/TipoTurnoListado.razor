@@ -306,7 +306,7 @@
 
 @if (modalActual == ModalTurno.Crear)
 {
-    <ModalAdministracion Titulo="Nuevo tipo de turno" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
+    <ModalAdministracion IconoFormulario="bi-calendar-event" Titulo="Nuevo tipo de turno" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
 
 
             <EditForm Model="@modelo"
@@ -417,7 +417,7 @@
 
 @if (modalActual == ModalTurno.Editar)
 {
-    <ModalAdministracion Titulo="Editar tipo de turno" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
+    <ModalAdministracion IconoFormulario="bi-calendar-event" Titulo="Editar tipo de turno" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
 
 
             <EditForm Model="@modelo"

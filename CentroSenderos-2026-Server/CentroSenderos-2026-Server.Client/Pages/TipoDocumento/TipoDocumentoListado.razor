@@ -150,7 +150,7 @@
 @if ((vista is Vista.Crear or Vista.Editar) && modelo is not null)
 {
     var editando = vista == Vista.Editar;
-    <ModalAdministracion Titulo="@(editando ? "Editar tipo de documento" : "Nuevo tipo de documento")"
+    <ModalAdministracion IconoFormulario="bi-file-earmark-text" Titulo="@(editando ? "Editar tipo de documento" : "Nuevo tipo de documento")"
                          Ocupado="@ocupado" Inactivo="@confirmarDescarte" AlCerrar="SolicitarCerrar">
         <EditForm Model="@modelo" OnValidSubmit="Guardar" class="administracion-formulario">
             <DataAnnotationsValidator />

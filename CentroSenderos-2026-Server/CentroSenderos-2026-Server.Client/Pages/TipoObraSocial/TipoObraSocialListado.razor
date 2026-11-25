@@ -229,7 +229,7 @@
 @if (modalActual is ModalObraSocial.Crear or ModalObraSocial.Editar)
 {
     var editando = modalActual == ModalObraSocial.Editar;
-    <ModalAdministracion Titulo="@(editando ? "Editar obra social" : "Nueva obra social")"
+    <ModalAdministracion IconoFormulario="bi-shield-plus" Titulo="@(editando ? "Editar obra social" : "Nueva obra social")"
                          Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)"
                          AlCerrar="CerrarFormulario">
         <EditForm Model="@modelo" OnValidSubmit="GuardarFormulario" class="administracion-formulario">

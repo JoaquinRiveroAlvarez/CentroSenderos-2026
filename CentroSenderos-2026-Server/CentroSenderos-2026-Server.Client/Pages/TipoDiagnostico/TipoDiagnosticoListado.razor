@@ -259,7 +259,7 @@
 
 @if (modalActual == ModalDiagnostico.Crear)
 {
-    <ModalAdministracion Titulo="Nuevo diagnóstico" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
+    <ModalAdministracion IconoFormulario="bi-file-medical" Titulo="Nuevo diagnóstico" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
 
 
             <EditForm Model="@modelo"
@@ -321,7 +321,7 @@
 
 @if (modalActual == ModalDiagnostico.Editar)
 {
-    <ModalAdministracion Titulo="Editar diagnóstico" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
+    <ModalAdministracion IconoFormulario="bi-file-medical" Titulo="Editar diagnóstico" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
 
 
             <EditForm Model="@modelo"

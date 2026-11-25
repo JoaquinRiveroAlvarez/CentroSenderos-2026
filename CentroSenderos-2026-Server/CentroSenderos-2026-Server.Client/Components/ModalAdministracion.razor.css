@@ -165,3 +165,137 @@
 }
 
 /* #endregion */
+
+/* #region Formularios de Administración */
+
+.administracion-fondo-formulario {
+    background: #20241f59;
+    backdrop-filter: blur(6px);
+}
+
+.administracion-fondo-formulario .administracion-modal {
+    --administracion-espacio: 28px;
+    width: min(100%, 560px);
+    border-radius: 20px;
+    background: #fffdfa;
+    color: #384235;
+    box-shadow: 0 24px 70px #20241f29;
+}
+
+.administracion-fondo-formulario .administracion-cabecera {
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: var(--administracion-espacio) var(--administracion-espacio) 22px;
+    border-color: #eeece6;
+}
+
+.administracion-icono {
+    display: grid;
+    place-items: center;
+    flex: 0 0 44px;
+    height: 44px;
+    border: 1px solid #dce5d7;
+    border-radius: 14px;
+    background: #eaf0e6;
+    color: #556f4f;
+    font-size: 21px;
+}
+
+.administracion-seccion {
+    color: #697363;
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.administracion-fondo-formulario .administracion-cabecera h2 {
+    margin: 3px 0 0;
+    color: #435b3d;
+    font-size: 23px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.administracion-fondo-formulario .administracion-x {
+    flex-basis: 30px;
+    min-height: 30px;
+    margin-left: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #697363;
+}
+
+.administracion-fondo-formulario .administracion-x:hover:not(:disabled) {
+    background: #f1eee7;
+    color: #435b3d;
+}
+
+.administracion-fondo-formulario ::deep .administracion-cuerpo {
+    gap: 20px;
+    padding: 24px var(--administracion-espacio) var(--administracion-espacio);
+}
+
+.administracion-fondo-formulario ::deep .administracion-campo {
+    gap: 8px;
+}
+
+.administracion-fondo-formulario ::deep .administracion-campo label,
+.administracion-fondo-formulario ::deep .administracion-campo dt {
+    color: #56614f;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.administracion-fondo-formulario ::deep .administracion-campo input:not([type="checkbox"]):not([type="radio"]),
+.administracion-fondo-formulario ::deep .administracion-campo textarea,
+.administracion-fondo-formulario ::deep .administracion-campo select,
+.administracion-fondo-formulario ::deep .administracion-campo dd {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid #dedfd6;
+    border-radius: 10px;
+    background-color: #fff;
+    color: #384235;
+    font: inherit;
+}
+
+.administracion-fondo-formulario ::deep .administracion-campo textarea {
+    min-height: 72px;
+}
+
+.administracion-fondo-formulario ::deep .administracion-campo input.invalid,
+.administracion-fondo-formulario ::deep .administracion-campo textarea.invalid,
+.administracion-fondo-formulario ::deep .administracion-campo select.invalid {
+    border-color: #ae5b52;
+}
+
+.administracion-fondo-formulario ::deep .administracion-acciones {
+    gap: 9px;
+    padding: 16px var(--administracion-espacio);
+    border-color: #eeece6;
+    background: #faf9f5;
+}
+
+.administracion-fondo-formulario ::deep .administracion-acciones button {
+    min-height: 39px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+@media (max-width: 480px) {
+    .administracion-fondo-formulario .administracion-modal {
+        --administracion-espacio: 16px;
+    }
+
+    .administracion-fondo-formulario .administracion-cabecera h2 {
+        font-size: 20px;
+    }
+}
+
+/* #endregion */
