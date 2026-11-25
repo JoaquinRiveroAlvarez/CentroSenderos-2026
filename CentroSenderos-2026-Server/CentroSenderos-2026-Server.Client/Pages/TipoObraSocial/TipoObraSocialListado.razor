@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="obras-sociales-page">
+<div class="obras-sociales-page" inert="@(salidaPendiente is not null)">
 
     <div class="page-header">
 
@@ -192,7 +192,7 @@
 
 @if (modalActual == ModalObraSocial.Detalle)
 {
-    <div class="admin-modal-overlay">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
 
         <div class="admin-modal">
 
@@ -225,7 +225,7 @@
                     <button type="button"
                             class="close-button"
                             title="Cerrar"
-                            @onclick="CerrarModal">
+                            @onclick="SolicitarCerrarModal">
 
                         <i class="bi bi-x-lg"></i>
 
@@ -288,7 +288,7 @@
 
                     <button type="button"
                             class="btn-cerrar"
-                            @onclick="CerrarModal">
+                            @onclick="SolicitarCerrarModal">
 
                         Cerrar
 
@@ -315,7 +315,7 @@
 
 @if (modalActual == ModalObraSocial.Crear)
 {
-    <div class="admin-modal-overlay">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
 
         <div class="admin-modal">
 
@@ -335,7 +335,7 @@
                         class="close-button"
                         title="Cerrar"
                         disabled="@guardando"
-                        @onclick="CerrarModal">
+                        @onclick="SolicitarCerrarModal">
 
                     <i class="bi bi-x-lg"></i>
 
@@ -408,7 +408,7 @@
                     <button type="button"
                             class="btn-cancelar"
                             disabled="@guardando"
-                            @onclick="CerrarModal">
+                            @onclick="SolicitarCerrarModal">
 
                         Cancelar
 
@@ -443,7 +443,7 @@
 
 @if (modalActual == ModalObraSocial.Editar)
 {
-    <div class="admin-modal-overlay">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
 
         <div class="admin-modal">
 
@@ -463,7 +463,7 @@
                         class="close-button"
                         title="Volver al detalle"
                         disabled="@(guardando || eliminando)"
-                        @onclick="CancelarEdicion">
+                        @onclick="SolicitarCancelarEdicion">
 
                     <i class="bi bi-x-lg"></i>
 
@@ -548,7 +548,7 @@
                         <button type="button"
                                 class="btn-cancelar"
                                 disabled="@(guardando || eliminando)"
-                                @onclick="CancelarEdicion">
+                                @onclick="SolicitarCancelarEdicion">
 
                             Cancelar
 
@@ -637,7 +637,50 @@
     </div>
 }
 
+@if (salidaPendiente is not null)
+{
+    <ConfirmacionDescarte OnContinuar="SeguirEditando"
+                          OnDescartar="DescartarCambios" />
+}
+
 @code {
+    private Func<Task>? salidaPendiente;
+    private string? estadoInicial;
+    private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
+
+    private void SeguirEditando() => salidaPendiente = null;
+
+    private async Task DescartarCambios()
+    {
+        var salir = salidaPendiente;
+        salidaPendiente = null;
+        if (salir is not null)
+            await salir();
+    }
+
+    private Task SolicitarCancelarEdicion() => SolicitarSalida(CancelarEdicion);
+
+    private Task SolicitarCerrarModal() => SolicitarSalida(() =>
+    {
+        CerrarModal();
+        return Task.CompletedTask;
+    });
+
+    private async Task SolicitarSalida(Func<Task> salir)
+    {
+        if (guardando || eliminando || cargandoDetalle || salidaPendiente is not null)
+            return;
+
+        if ((modalActual is ModalObraSocial.Crear or ModalObraSocial.Editar) &&
+            estadoInicial is not null && estadoInicial != CapturarEstadoFormulario())
+        {
+            salidaPendiente = salir;
+            return;
+        }
+
+        await salir();
+    }
+
 
     private enum ModalObraSocial
     {
@@ -730,6 +773,7 @@
         Mensaje = string.Empty;
         idSeleccionado = null;
         modelo = CrearModeloVacio();
+        estadoInicial = CapturarEstadoFormulario();
         modalActual = ModalObraSocial.Crear;
     }
 
@@ -770,6 +814,7 @@
     {
         Mensaje = string.Empty;
         modelo.Cuit = FormatearCuit(modelo.Cuit);
+        estadoInicial = CapturarEstadoFormulario();
         modalActual = ModalObraSocial.Editar;
     }
 

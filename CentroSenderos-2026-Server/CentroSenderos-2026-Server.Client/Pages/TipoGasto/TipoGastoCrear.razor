@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="crear-tipo-gasto-page">
+<div class="crear-tipo-gasto-page" inert="@confirmarDescarte">
     <button type="button"
             class="back-button"
             disabled="@guardando"
@@ -91,7 +91,19 @@
     </EditForm>
 </div>
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
+    private bool confirmarDescarte;
+    private string? estadoInicial;
+    private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
+
+    protected override void OnInitialized() => estadoInicial = CapturarEstadoFormulario();
+
     private TipoDTO modelo = new()
     {
         Tipo = string.Empty,
@@ -134,7 +146,21 @@
         }
     }
 
-    private void Cancelar() => Nav.NavigateTo("/tipogasto");
+    private void Cancelar() => Volver();
 
-    private void Volver() => Nav.NavigateTo("/tipogasto");
+    private void Volver()
+    {
+        if (guardando || confirmarDescarte)
+            return;
+
+        if (estadoInicial is not null && estadoInicial != CapturarEstadoFormulario())
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
+    }
+
+    private void SalirDelFormulario() => Nav.NavigateTo("/tipogasto");
 }

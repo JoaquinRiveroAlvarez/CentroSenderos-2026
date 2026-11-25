@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="turno-form-page">
+<div class="turno-form-page" inert="@confirmarDescarte">
 
     <div class="turno-card">
 
@@ -219,7 +219,17 @@
 }
 
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
+    private bool confirmarDescarte;
+    private string? estadoInicial;
+    private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
+
 
     [Parameter]
     public int id { get; set; }
@@ -264,6 +274,7 @@
             modelo =
                 resp.Respuesta
                 ?? CrearModeloVacio();
+            estadoInicial = CapturarEstadoFormulario();
         }
 
         cargando = false;
@@ -342,10 +353,7 @@
     }
 
 
-    private void Cancelar()
-    {
-        Nav.NavigateTo("/tipoturno");
-    }
+    private void Cancelar() => Volver();
 
 
     private static TipoTurnoDTO CrearModeloVacio()
@@ -362,6 +370,17 @@
 
     private void Volver()
     {
-        Nav.NavigateTo("/tipoturno");
+        if (guardando || eliminando || confirmarDescarte)
+            return;
+
+        if (estadoInicial is not null && estadoInicial != CapturarEstadoFormulario())
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
     }
+
+    private void SalirDelFormulario() => Nav.NavigateTo("/tipoturno");
 }

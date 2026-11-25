@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="prestacion-form-page">
+<div class="prestacion-form-page" inert="@confirmarDescarte">
 
     <div class="prestacion-card">
 
@@ -163,7 +163,17 @@
 </div>
 
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
+    private bool confirmarDescarte;
+    private string? estadoInicial;
+    private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
+
     #region Áreas disponibles
 
     private List<TipoListadoDTO> areas = new();
@@ -202,6 +212,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        estadoInicial = CapturarEstadoFormulario();
         await CargarAreas();
     }
 
@@ -238,14 +249,22 @@
     }
 
 
-    private void Cancelar()
-    {
-        Nav.NavigateTo("/tipoprestacion");
-    }
+    private void Cancelar() => Volver();
 
 
     private void Volver()
     {
-        Nav.NavigateTo("/tipoprestacion");
+        if (guardando || confirmarDescarte)
+            return;
+
+        if (estadoInicial is not null && estadoInicial != CapturarEstadoFormulario())
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
     }
+
+    private void SalirDelFormulario() => Nav.NavigateTo("/tipoprestacion");
 }

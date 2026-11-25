@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="obra-social-form-page">
+<div class="obra-social-form-page" inert="@confirmarDescarte">
 
     <div class="obra-social-card">
 
@@ -246,7 +246,17 @@
     </div>
 }
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
+    private bool confirmarDescarte;
+    private string? estadoInicial;
+    private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
+
 
     [Parameter]
     public int id { get; set; }
@@ -279,6 +289,7 @@
         if (!resp.Error && resp.Respuesta is not null)
         {
             modelo = resp.Respuesta;
+            estadoInicial = CapturarEstadoFormulario();
             modelo.Cuit = FormatearCuit(modelo.Cuit);
             obraSocialEncontrada = true;
         }
@@ -407,16 +418,26 @@
         };
     }
 
-    private void Cancelar()
+    private void Cancelar() => SolicitarSalida($"/tipoobrasocial/detalle/{id}");
+
+    private string? destinoDescarte;
+
+    private void Volver() => SolicitarSalida("/tipoobrasocial");
+
+    private void SolicitarSalida(string destino)
     {
-        if (!guardando && !eliminando)
+        if (guardando || eliminando || confirmarDescarte)
+            return;
+
+        if (estadoInicial is not null && estadoInicial != CapturarEstadoFormulario())
         {
-            Nav.NavigateTo($"/tipoobrasocial/detalle/{id}");
+            destinoDescarte = destino;
+            confirmarDescarte = true;
+            return;
         }
+
+        Nav.NavigateTo(destino);
     }
 
-    private void Volver()
-    {
-        Nav.NavigateTo("/tipoobrasocial");
-    }
+    private void SalirDelFormulario() => Nav.NavigateTo(destinoDescarte ?? "/tipoobrasocial");
 }

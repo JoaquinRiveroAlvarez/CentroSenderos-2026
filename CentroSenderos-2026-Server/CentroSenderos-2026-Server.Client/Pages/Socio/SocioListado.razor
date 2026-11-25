@@ -8,7 +8,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="socios-page">
+<div class="socios-page" inert="@(salidaPendiente is not null)">
     <div class="page-header">
         <div class="header-title">
             <button type="button"
@@ -171,7 +171,7 @@
 
 @if (modalActual == ModalSocio.Crear)
 {
-    <div class="admin-modal-overlay">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
         <div class="admin-modal"
              role="dialog"
              aria-modal="true"
@@ -188,7 +188,7 @@
                         title="Cerrar"
                         aria-label="Cerrar formulario"
                         disabled="@guardando"
-                        @onclick="CerrarModal">
+                        @onclick="SolicitarCerrarModal">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
@@ -265,7 +265,7 @@
                         <button type="button"
                                 class="btn-cancelar"
                                 disabled="@guardando"
-                                @onclick="CerrarModal">
+                                @onclick="SolicitarCerrarModal">
                             Cancelar
                         </button>
 
@@ -292,7 +292,7 @@
 
 @if (modalActual == ModalSocio.Detalle)
 {
-    <div class="admin-modal-overlay">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
         <div class="admin-modal"
              role="dialog"
              aria-modal="true"
@@ -323,7 +323,7 @@
                             class="close-button"
                             title="Cerrar"
                             aria-label="Cerrar detalle"
-                            @onclick="CerrarModal">
+                            @onclick="SolicitarCerrarModal">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
@@ -380,7 +380,7 @@
                 <div class="modal-actions detail-actions">
                     <button type="button"
                             class="btn-cerrar"
-                            @onclick="CerrarModal">
+                            @onclick="SolicitarCerrarModal">
                         Cerrar
                     </button>
 
@@ -398,7 +398,7 @@
 
 @if (modalActual == ModalSocio.Editar)
 {
-    <div class="admin-modal-overlay">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
         <div class="admin-modal"
              role="dialog"
              aria-modal="true"
@@ -422,7 +422,7 @@
                         title="Volver al detalle"
                         aria-label="Volver al detalle"
                         disabled="@(guardando || cargandoProfesionales)"
-                        @onclick="CancelarEdicion">
+                        @onclick="SolicitarCancelarEdicion">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
@@ -529,7 +529,7 @@
                             <button type="button"
                                     class="btn-cancelar"
                                     disabled="@guardando"
-                                    @onclick="CancelarEdicion">
+                                    @onclick="SolicitarCancelarEdicion">
                                 Cancelar
                             </button>
 
@@ -604,7 +604,50 @@
     </div>
 }
 
+@if (salidaPendiente is not null)
+{
+    <ConfirmacionDescarte OnContinuar="SeguirEditando"
+                          OnDescartar="DescartarCambios" />
+}
+
 @code {
+    private Func<Task>? salidaPendiente;
+    private string? estadoInicial;
+    private string CapturarEstadoFormulario() => System.Text.Json.JsonSerializer.Serialize(modelo);
+
+    private void SeguirEditando() => salidaPendiente = null;
+
+    private async Task DescartarCambios()
+    {
+        var salir = salidaPendiente;
+        salidaPendiente = null;
+        if (salir is not null)
+            await salir();
+    }
+
+    private Task SolicitarCancelarEdicion() => SolicitarSalida(CancelarEdicion);
+
+    private Task SolicitarCerrarModal() => SolicitarSalida(() =>
+    {
+        CerrarModal();
+        return Task.CompletedTask;
+    });
+
+    private async Task SolicitarSalida(Func<Task> salir)
+    {
+        if (guardando || eliminando || cargandoDetalle || cargandoProfesionales || salidaPendiente is not null)
+            return;
+
+        if ((modalActual is ModalSocio.Crear or ModalSocio.Editar) &&
+            estadoInicial is not null && estadoInicial != CapturarEstadoFormulario())
+        {
+            salidaPendiente = salir;
+            return;
+        }
+
+        await salir();
+    }
+
     private IEnumerable<string> ObtenerAreasSocio(SocioListadoDTO socio)
     {
         if (socio.EsCaja)
@@ -738,6 +781,7 @@
         Mensaje = string.Empty;
         idSeleccionado = null;
         modelo = CrearModeloVacio();
+        estadoInicial = CapturarEstadoFormulario();
         modalActual = ModalSocio.Crear;
 
         await CargarProfesionales();
@@ -859,6 +903,7 @@
         }
 
         Mensaje = string.Empty;
+        estadoInicial = CapturarEstadoFormulario();
         modalActual = ModalSocio.Editar;
 
         if (!modelo.EsCaja)

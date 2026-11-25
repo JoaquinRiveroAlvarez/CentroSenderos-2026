@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="roles-page">
+<div class="roles-page" inert="@(salidaPendiente is not null)">
 
     <div class="page-header">
         <div class="header-title">
@@ -56,7 +56,7 @@
                 <InputText id="confirmacion-contrasena" type="password" autocomplete="new-password"
                            @bind-Value="restablecimiento.Confirmacion" disabled="@guardando" />
                 <button type="submit" class="btn-rol" disabled="@guardando">Guardar contraseña</button>
-                <button type="button" class="btn-rol" disabled="@guardando" @onclick="CerrarRestablecimiento">Cancelar</button>
+                <button type="button" class="btn-rol" disabled="@guardando" @onclick="SolicitarCerrarRestablecimiento">Cancelar</button>
             </EditForm>
         </section>
     }
@@ -150,7 +150,14 @@
     }
 </div>
 
+@if (salidaPendiente is not null)
+{
+    <ConfirmacionDescarte OnContinuar="SeguirEditando"
+                          OnDescartar="DescartarCambios" />
+}
+
 @code {
+    private Action? salidaPendiente;
     [CascadingParameter]
     private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState> EstadoAutenticacion { get; set; } = default!;
 
@@ -269,5 +276,32 @@
         textoBusqueda = string.Empty;
     }
 
-    private void Volver() => Nav.NavigateTo("/admin");
+    private void SolicitarCerrarRestablecimiento() => SolicitarSalida(CerrarRestablecimiento);
+
+    private void Volver() => SolicitarSalida(() => Nav.NavigateTo("/admin"));
+
+    private void SolicitarSalida(Action salir)
+    {
+        if (guardando || salidaPendiente is not null)
+            return;
+
+        if (cuentaRestablecer is not null &&
+            (!string.IsNullOrEmpty(restablecimiento.NuevaContrasena) ||
+             !string.IsNullOrEmpty(restablecimiento.Confirmacion)))
+        {
+            salidaPendiente = salir;
+            return;
+        }
+
+        salir();
+    }
+
+    private void SeguirEditando() => salidaPendiente = null;
+
+    private void DescartarCambios()
+    {
+        var salir = salidaPendiente;
+        salidaPendiente = null;
+        salir?.Invoke();
+    }
 }

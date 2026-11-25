@@ -5,7 +5,7 @@
 @using System.Text.Json
 @inject IHttpServicio Http
 
-<div class="reintegro-overlay">
+<div class="reintegro-overlay" inert="@confirmarDescarte">
     <section class="reintegro-modal"
              role="dialog"
              aria-modal="true"
@@ -322,7 +322,15 @@
     </section>
 </div>
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="OnCerrar" />
+}
+
 @code {
+    private bool confirmarDescarte;
+    private string? estadoInicial;
     [Parameter] public int GastoId { get; set; }
     [Parameter] public EventCallback OnCerrar { get; set; }
     [Parameter] public EventCallback OnGuardado { get; set; }
@@ -474,6 +482,7 @@
                 modelo.SocioReceptorId = receptores[0].Id;
 
             await CargarGastosParaSocio();
+            estadoInicial = CapturarEstadoFormulario();
             datosCargados = true;
         }
         catch (Exception)
@@ -798,10 +807,29 @@
             return "$ " + monto.ToString("N2",CultureInfo.GetCultureInfo("es-AR"));
         }
 
+    private string CapturarEstadoFormulario() => JsonSerializer.Serialize(new
+    {
+        modelo.SocioReceptorId,
+        Fecha = modelo.Fecha.Date,
+        modelo.Observacion,
+        incluirOtros,
+        Gastos = filas.Where(fila => fila.Seleccionado)
+            .OrderBy(fila => fila.Gasto.Id)
+            .Select(fila => new { fila.Gasto.Id, fila.Monto })
+    });
+
     private async Task Cerrar()
     {
-        if (!guardando)
-            await OnCerrar.InvokeAsync();
+        if (guardando || confirmarDescarte)
+            return;
+
+        if (!guardado && datosCargados && estadoInicial != CapturarEstadoFormulario())
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        await OnCerrar.InvokeAsync();
     }
 
     private class FilaGasto
