@@ -93,7 +93,7 @@
                 <i class="bi bi-search"></i>
             </div>
 
-            <h2>No encontramos resultados</h2>
+            <h2>No encontramos coincidencias</h2>
 
             <p>
                 No hay consultorios que coincidan con
@@ -217,13 +217,7 @@
     @if (!string.IsNullOrWhiteSpace(Mensaje) &&
          modalActual == ModalConsultorio.Ninguno)
     {
-        <div class="mensaje-error">
-
-            <i class="bi bi-exclamation-circle"></i>
-
-            <span>@Mensaje</span>
-
-        </div>
+        <AvisoSenderos Mensaje="@Mensaje" />
     }
 
 </div>
@@ -386,13 +380,7 @@
 
                 @if (!string.IsNullOrWhiteSpace(Mensaje))
                 {
-                    <div class="form-message">
-
-                        <i class="bi bi-exclamation-circle"></i>
-
-                        <span>@Mensaje</span>
-
-                    </div>
+                    <AvisoSenderos Mensaje="@Mensaje" />
                 }
 
 
@@ -478,13 +466,7 @@
 
                 @if (!string.IsNullOrWhiteSpace(Mensaje))
                 {
-                    <div class="form-message">
-
-                        <i class="bi bi-exclamation-circle"></i>
-
-                        <span>@Mensaje</span>
-
-                    </div>
+                    <AvisoSenderos Mensaje="@Mensaje" />
                 }
 
 

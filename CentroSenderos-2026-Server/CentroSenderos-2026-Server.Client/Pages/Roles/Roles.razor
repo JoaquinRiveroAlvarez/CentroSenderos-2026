@@ -2,6 +2,8 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio,admin,Calendario")]
 @using Microsoft.AspNetCore.Authorization
 @using System.Net.Http
+@using System.Net.Http.Json
+@using System.Text.Json
 @using CentroSenderos_2026_Shared.DTO
 @inject IHttpServicio Http
 @inject NavigationManager Nav
@@ -30,7 +32,7 @@
     {
         <div class="state-card" role="alert">
             <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
-            <h2>Error al cargar usuarios</h2>
+            <h2>No pudimos cargar los usuarios</h2>
             <p>@mensajeCarga</p>
             <button type="button" class="state-button" @onclick="CargarUsuarios">
                 <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
@@ -49,7 +51,7 @@
     {
         <div class="state-card">
             <i class="bi bi-search" aria-hidden="true"></i>
-            <h2>Sin resultados</h2>
+            <h2>No encontramos usuarios con ese correo</h2>
             <p>Probá con otro correo electrónico.</p>
             <BotonLimpiarFiltros AlLimpiar="LimpiarBusqueda" />
         </div>
@@ -94,24 +96,28 @@
                          Ocupado="@guardando" Inactivo="@confirmarDescarte" AlCerrar="SolicitarCerrar">
         @if (vista == Vista.Contrasena)
         {
-            <EditForm Model="restablecimiento" OnValidSubmit="RestablecerContrasena" class="administracion-formulario">
+            <EditForm EditContext="contextoRestablecimiento" OnValidSubmit="RestablecerContrasena" class="administracion-formulario">
                 <DataAnnotationsValidator />
                 <div class="administracion-cuerpo">
                     <dl class="administracion-campo"><dt>Correo electrónico</dt><dd>@CorreoVisible(cuenta)</dd></dl>
-                    <ValidationSummary />
                     <div class="administracion-campo">
                         <label for="nueva-contrasena">Nueva contraseña</label>
-                        <InputText id="nueva-contrasena" type="password" autocomplete="new-password"
+                        <InputText id="nueva-contrasena" type="password" autocomplete="new-password" aria-describedby="requisitos-contrasena"
                                    @bind-Value="restablecimiento.NuevaContrasena" disabled="@guardando" />
+                        <small id="requisitos-contrasena">@RequisitosContrasena.Ayuda</small>
+                        <div role="status">
+                            <ValidationMessage For="() => restablecimiento.NuevaContrasena" />
+                        </div>
                     </div>
                     <div class="administracion-campo">
                         <label for="confirmacion-contrasena">Confirmá la nueva contraseña</label>
                         <InputText id="confirmacion-contrasena" type="password" autocomplete="new-password"
                                    @bind-Value="restablecimiento.Confirmacion" disabled="@guardando" />
+                        <ValidationMessage For="() => restablecimiento.Confirmacion" />
                     </div>
                     @if (!string.IsNullOrWhiteSpace(errorAccion))
                     {
-                        <p class="administracion-error" role="alert">@errorAccion</p>
+                        <AvisoSenderos Titulo="No pudimos restablecer la contraseña" Mensaje="@errorAccion" />
                     }
                 </div>
                 <footer class="administracion-acciones">
@@ -181,11 +187,11 @@
 
                 @if (!string.IsNullOrWhiteSpace(errorAccion))
                 {
-                    <p class="administracion-error" role="alert">@errorAccion</p>
+                    <AvisoSenderos Mensaje="@errorAccion" />
                 }
                 @if (!string.IsNullOrWhiteSpace(avisoAccion))
                 {
-                    <p class="role-notice" role="status">@avisoAccion</p>
+                    <AvisoSenderos Mensaje="@avisoAccion" Exito="true" />
                 }
             </div>
             <footer class="administracion-acciones">
@@ -228,6 +234,8 @@
 }
 
 @code {
+    private sealed record ErroresDeFormulario(Dictionary<string, string[]> Errors);
+
     private enum Vista { Detalle, Roles, Contrasena }
 
     private static readonly (string Rol, string Nombre)[] RolesDisponibles =
@@ -240,6 +248,8 @@
     private List<UsuarioDTO> usuarios = new();
     private UsuarioDTO? usuarioSeleccionado;
     private RestablecerContrasenaDTO restablecimiento = new();
+    private EditContext contextoRestablecimiento = default!;
+    private ValidationMessageStore erroresRestablecimiento = default!;
     private (string Rol, bool Quitar)? cambioPendiente;
     private Vista vista;
     private bool puedeGestionarPrivilegiados;
@@ -311,6 +321,14 @@
     private void AbrirRestablecimiento(UsuarioDTO cuenta)
     {
         restablecimiento = new() { UsuarioId = cuenta.Id };
+        contextoRestablecimiento = new EditContext(restablecimiento);
+        erroresRestablecimiento = new ValidationMessageStore(contextoRestablecimiento);
+        contextoRestablecimiento.OnValidationRequested += (_, _) => erroresRestablecimiento.Clear();
+        contextoRestablecimiento.OnFieldChanged += (_, cambio) =>
+        {
+            erroresRestablecimiento.Clear(cambio.FieldIdentifier);
+            contextoRestablecimiento.NotifyValidationStateChanged();
+        };
         IrAVista(Vista.Contrasena);
     }
 
@@ -328,20 +346,36 @@
             if (resultado.Error)
             {
                 errorAccion = resultado.ObtenerError();
+                if (resultado.HttpResponseMessage.Content.Headers.ContentType?.MediaType == "application/problem+json")
+                {
+                    var problema = await resultado.HttpResponseMessage.Content.ReadFromJsonAsync<ErroresDeFormulario>();
+                    if (problema?.Errors is { Count: > 0 } errores)
+                    {
+                        var generales = new List<string>();
+                        foreach (var (campo, mensajes) in errores)
+                        {
+                            if (campo is nameof(RestablecerContrasenaDTO.NuevaContrasena) or nameof(RestablecerContrasenaDTO.Confirmacion))
+                                erroresRestablecimiento.Add(contextoRestablecimiento.Field(campo), mensajes);
+                            else
+                                generales.AddRange(mensajes);
+                        }
+
+                        errorAccion = string.Join(" ", generales);
+                        contextoRestablecimiento.NotifyValidationStateChanged();
+                    }
+                }
                 return;
             }
 
             CerrarRestablecimiento();
             avisoAccion = "Contraseña restablecida.";
         }
-        catch (HttpRequestException)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException)
         {
-            errorAccion = "No se pudo verificar el restablecimiento. Volvé a intentarlo.";
+            errorAccion = "No pudimos verificar el restablecimiento. Volvé a intentarlo.";
         }
         finally
         {
-            restablecimiento.NuevaContrasena = string.Empty;
-            restablecimiento.Confirmacion = string.Empty;
             guardando = false;
         }
     }

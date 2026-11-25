@@ -1,0 +1,16 @@
+<div class="aviso-senderos @(Exito ? "aviso-exito" : "aviso-error")" role="@(Exito ? "status" : "alert")">
+    <i class="bi @(Exito ? "bi-check-circle" : "bi-exclamation-circle")" aria-hidden="true"></i>
+    <div>
+        @if (!string.IsNullOrWhiteSpace(Titulo))
+        {
+            <strong>@Titulo</strong>
+        }
+        <p>@Mensaje</p>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? Titulo { get; set; }
+    [Parameter, EditorRequired] public string Mensaje { get; set; } = string.Empty;
+    [Parameter] public bool Exito { get; set; }
+}

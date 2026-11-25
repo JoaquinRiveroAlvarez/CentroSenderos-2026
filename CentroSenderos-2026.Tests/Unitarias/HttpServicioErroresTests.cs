@@ -24,10 +24,10 @@ public class HttpServicioErroresTests
     }
 
     [Theory]
-    [InlineData(401, "No está logueado.")]
-    [InlineData(403, "No tiene autorización a ejecutar este proceso.")]
+    [InlineData(401, "Iniciá sesión para continuar.")]
+    [InlineData(403, "Tu cuenta no tiene permiso para realizar esta acción.")]
     [InlineData(404, "No hay datos disponibles.")]
-    [InlineData(400, "No se pudo procesar la información.")]
+    [InlineData(400, "Revisá los datos ingresados e intentá nuevamente.")]
     public async Task Html_ConservaElMensajeDelEstadoHttp(int estado, string mensaje)
     {
         using var cliente = Cliente((HttpStatusCode)estado, "<html><body>Página del servidor</body></html>");

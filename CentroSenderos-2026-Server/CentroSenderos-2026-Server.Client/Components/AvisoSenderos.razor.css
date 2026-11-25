@@ -1,0 +1,29 @@
+/* #region Avisos de error y éxito */
+.aviso-senderos {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 10px 12px;
+    border: 1px solid;
+    border-radius: 10px;
+    font-size: .875rem;
+}
+
+.aviso-senderos p {
+    margin: 0;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.aviso-error {
+    border-color: #ebc9c2;
+    background: #fff1ee;
+    color: #80332b;
+}
+
+.aviso-exito {
+    border-color: #d0dfc9;
+    background: #eef5eb;
+    color: #385334;
+}
+/* #endregion */
