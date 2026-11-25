@@ -1,23 +1,16 @@
-﻿<StatusMessage Message="@StatusMessage" />
-<h3>Recovery codes</h3>
+<StatusMessage Message="@StatusMessage" />
+<h2>Códigos de recuperación</h2>
 <div class="alert alert-warning" role="alert">
-    <p>
-        <strong>Put these codes in a safe place.</strong>
-    </p>
-    <p>
-        If you lose your device and don't have the recovery codes you will lose access to your account.
-    </p>
+    <p><strong>Guardá estos códigos en un lugar seguro.</strong></p>
+    <p>Si perdés acceso a tu aplicación de autenticación, podés usar uno de estos códigos para entrar a tu cuenta.</p>
 </div>
-<div class="row">
-    <div class="col-md-12">
-        @foreach (var recoveryCode in RecoveryCodes)
-        {
-            <div>
-                <code class="recovery-code">@recoveryCode</code>
-            </div>
-        }
-    </div>
+<div class="cuenta-codigos">
+    @foreach (var codigo in RecoveryCodes)
+    {
+        <code>@codigo</code>
+    }
 </div>
+<a href="Account/Manage/TwoFactorAuthentication" class="btn btn-primary">Volver a seguridad</a>
 
 @code {
     [Parameter]

@@ -1,0 +1,242 @@
+/* #region Estructura de Mi cuenta */
+.cuenta {
+    max-width: 1150px;
+    margin-inline: auto;
+    padding: clamp(18px, 4vw, 44px);
+    color: #384235;
+}
+
+.cuenta-encabezado {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 26px;
+}
+
+.cuenta-icono {
+    display: grid;
+    place-items: center;
+    flex: 0 0 54px;
+    height: 54px;
+    border-radius: 17px;
+    background: #eaf0e6;
+    color: #556f4f;
+    font-size: 26px;
+}
+
+.cuenta-encabezado h1 {
+    margin: 0;
+    font-size: clamp(1.55rem, 3vw, 2.1rem);
+    font-weight: 650;
+}
+
+.cuenta-encabezado p {
+    margin: 4px 0 0;
+    color: #626d5e;
+}
+
+.cuenta-grilla {
+    display: grid;
+    grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.cuenta-panel {
+    min-width: 0;
+    padding: clamp(16px, 4vw, 32px);
+    border: 1px solid #e7e3dc;
+    border-radius: 20px;
+    background: #fffdfa;
+    box-shadow: 0 12px 34px #2935260a;
+    overflow-wrap: anywhere;
+}
+/* #endregion */
+
+/* #region Menú */
+.cuenta-grilla ::deep .cuenta-menu {
+    padding: 9px;
+    border: 1px solid #e7e3dc;
+    border-radius: 16px;
+    background: #fffdfa;
+}
+
+.cuenta-grilla ::deep .cuenta-menu ul {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cuenta-grilla ::deep .cuenta-enlace {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    color: #485745;
+    text-decoration: none;
+}
+
+.cuenta-grilla ::deep .cuenta-enlace:hover,
+.cuenta-grilla ::deep .cuenta-enlace.active {
+    background: #eaf0e6;
+    color: #344c30;
+}
+
+.cuenta-grilla ::deep .cuenta-enlace.active {
+    font-weight: 650;
+}
+/* #endregion */
+
+/* #region Formularios, avisos y acciones */
+.cuenta-panel ::deep :is(h2, h3, h4) {
+    margin-bottom: 16px;
+    color: #435b3d;
+    font-weight: 650;
+}
+
+.cuenta-panel ::deep :is(h2, h3) {
+    font-size: 1.4rem;
+}
+
+.cuenta-panel ::deep h4 {
+    margin-top: 18px;
+    font-size: 1.05rem;
+}
+
+.cuenta-panel ::deep .col-xl-6 {
+    width: min(100%, 510px);
+}
+
+.cuenta-panel ::deep .form-floating > .form-control {
+    border-color: #d8ddd2;
+    border-radius: 10px;
+}
+
+.cuenta-panel ::deep .form-control:focus {
+    border-color: #789372;
+    box-shadow: 0 0 0 3px #556f4f20;
+}
+
+.cuenta-panel ::deep .form-control:disabled {
+    background: #f3f3ed;
+}
+
+.cuenta-panel ::deep .form-control.invalid {
+    border-color: #a95249;
+}
+
+.cuenta-panel ::deep .btn {
+    margin: 3px 4px 3px 0;
+    padding: 9px 14px;
+    border-radius: 10px;
+    font-size: .875rem;
+    font-weight: 600;
+    white-space: normal;
+}
+
+.cuenta-panel ::deep .btn-primary {
+    --bs-btn-bg: #556f4f;
+    --bs-btn-border-color: #556f4f;
+    --bs-btn-hover-bg: #435b3d;
+    --bs-btn-hover-border-color: #435b3d;
+    --bs-btn-active-bg: #384d34;
+    --bs-btn-active-border-color: #384d34;
+}
+
+.cuenta-panel ::deep .btn-danger {
+    --bs-btn-bg: #fff1ee;
+    --bs-btn-border-color: #ebc9c2;
+    --bs-btn-color: #80332b;
+    --bs-btn-hover-bg: #80332b;
+    --bs-btn-hover-border-color: #80332b;
+}
+
+.cuenta-panel ::deep .aviso-senderos {
+    margin-bottom: 16px;
+}
+
+.cuenta-panel ::deep .alert {
+    border-radius: 12px;
+}
+
+.cuenta-panel ::deep .alert p:last-child {
+    margin-bottom: 0;
+}
+
+.cuenta ::deep :focus-visible {
+    outline: 2px solid #556f4f;
+    outline-offset: 3px;
+}
+
+.cuenta-panel ::deep .cuenta-dato {
+    display: grid;
+    gap: 6px;
+    margin: 16px 0;
+    padding: 13px 15px;
+    border: 1px solid #e7e3dc;
+    border-radius: 10px;
+    background: #f7f8f3;
+}
+
+.cuenta-panel ::deep .cuenta-dato dd {
+    margin: 0;
+}
+
+.cuenta-panel ::deep .cuenta-codigos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+    gap: 8px;
+}
+
+.cuenta-panel ::deep .cuenta-codigos code {
+    padding: 8px;
+    border-radius: 8px;
+    background: #eef2ea;
+    color: #384235;
+    text-align: center;
+}
+/* #endregion */
+
+/* #region Pantallas pequeñas */
+@media (max-width: 780px) {
+    .cuenta-grilla {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cuenta-grilla ::deep .cuenta-menu ul {
+        grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .cuenta-panel ::deep .table td {
+        display: block;
+    }
+}
+/* #endregion */
+
+/* #region Configuración del autenticador */
+.cuenta-panel ::deep .cuenta-pasos {
+    display: grid;
+    gap: 12px;
+    padding-inline-start: 22px;
+}
+
+.cuenta-panel ::deep .cuenta-clave {
+    display: block;
+    width: fit-content;
+    margin-top: 8px;
+    padding: 9px 12px;
+    border-radius: 9px;
+    background: #eaf0e6;
+    color: #384235;
+    user-select: all;
+}
+
+.cuenta-panel ::deep .cuenta-campo-corto {
+    max-width: 340px;
+}
+/* #endregion */
