@@ -1,4 +1,4 @@
-﻿@page "/Account/Manage/Disable2fa"
+@page "/Account/Manage/Disable2fa"
 
 @using Microsoft.AspNetCore.Identity
 @using CentroSenderos_2026_BD
@@ -7,25 +7,24 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<Disable2fa> Logger
 
-<PageTitle>Disable two-factor authentication (2FA)</PageTitle>
+<PageTitle>Desactivar verificación en dos pasos</PageTitle>
 
 <StatusMessage />
-<h3>Disable two-factor authentication (2FA)</h3>
+<h2>Desactivar verificación en dos pasos</h2>
 
 <div class="alert alert-warning" role="alert">
     <p>
-        <strong>This action only disables 2FA.</strong>
+        <strong>Tu cuenta dejará de pedir el segundo paso al iniciar sesión.</strong>
     </p>
     <p>
-        Disabling 2FA does not change the keys used in authenticator apps. If you wish to change the key
-        used in an authenticator app you should <a href="Account/Manage/ResetAuthenticator">reset your authenticator keys.</a>
+        La clave de la aplicación se conserva. Si necesitás cambiarla, podés <a href="Account/Manage/ResetAuthenticator">restablecerla.</a>
     </p>
 </div>
 
 <div>
     <form @formname="disable-2fa" @onsubmit="OnSubmitAsync" method="post">
         <AntiforgeryToken />
-        <button class="btn btn-danger" type="submit">Disable 2FA</button>
+        <button class="btn btn-danger" type="submit">Confirmar desactivación</button>
     </form>
 </div>
 
@@ -68,7 +67,7 @@
         Logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", userId);
         RedirectManager.RedirectToWithStatus(
             "Account/Manage/TwoFactorAuthentication",
-            "2fa has been disabled. You can reenable 2fa when you setup an authenticator app",
+            "Verificación en dos pasos desactivada.",
             HttpContext);
     }
 }

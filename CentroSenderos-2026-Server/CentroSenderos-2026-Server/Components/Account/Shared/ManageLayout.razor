@@ -1,17 +1,19 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @layout CentroSenderos_2026_Server.Components.Layout.MainLayout
 
-<h1>Manage your account</h1>
+<div class="cuenta">
+    <header class="cuenta-encabezado">
+        <span class="cuenta-icono" aria-hidden="true"><i class="bi bi-person-circle"></i></span>
+        <div>
+            <h1>Mi cuenta</h1>
+            <p>Administrá tu perfil, tus datos y la seguridad de tu cuenta.</p>
+        </div>
+    </header>
 
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
-    <div class="row">
-        <div class="col-lg-3">
-            <ManageNavMenu />
-        </div>
-        <div class="col-lg-9">
+    <div class="cuenta-grilla">
+        <ManageNavMenu />
+        <section class="cuenta-panel" aria-label="Configuración de la cuenta">
             @Body
-        </div>
+        </section>
     </div>
 </div>
