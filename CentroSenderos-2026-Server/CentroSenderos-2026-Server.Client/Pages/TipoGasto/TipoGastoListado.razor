@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="tipos-gasto-page">
+<div class="tipos-gasto-page" inert="@(vista != Vista.Ninguna)">
     <div class="page-header">
         <div>
             <button type="button"
@@ -22,7 +22,7 @@
 
         <button type="button"
                 class="new-button"
-                @onclick="IrACrear">
+                @onclick="AbrirCrear">
             <i class="bi bi-plus-lg"></i>
             <span>Nuevo tipo</span>
         </button>
@@ -66,6 +66,10 @@
             <i class="bi bi-receipt"></i>
             <h2>No hay tipos de gasto registrados</h2>
             <p>Creá el primero para clasificar los gastos del centro.</p>
+            <button type="button" class="new-button" @onclick="AbrirCrear">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                <span>Nuevo tipo</span>
+            </button>
         </div>
     }
     else if (!TiposFiltrados.Any())
@@ -82,12 +86,13 @@
             <div class="list-header">
                 <span>Tipo de gasto</span>
                 <span>Descripción</span>
-                <span class="actions-heading">Acción</span>
+                <span aria-hidden="true"></span>
             </div>
 
             @foreach (var tipoGasto in TiposFiltrados)
             {
-                <div class="tipo-gasto-row" @key="tipoGasto.Id">
+                <div class="tipo-gasto-row" style="position: relative" @key="tipoGasto.Id">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {tipoGasto.Tipo}")" Abrir="() => AbrirDetalle(tipoGasto.Id)" />
                     <div class="tipo-gasto-name">
                         <i class="bi bi-receipt"></i>
                         <strong>@tipoGasto.Tipo</strong>
@@ -99,15 +104,7 @@
                             : tipoGasto.Descripcion)
                     </div>
 
-                    <div class="tipo-gasto-actions">
-                        <button type="button"
-                                class="edit-button"
-                                title="Editar"
-                                aria-label="@($"Editar {tipoGasto.Tipo}")"
-                                @onclick="() => IrAEditar(tipoGasto.Id)">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                    </div>
+                    <div class="tipo-gasto-actions" aria-hidden="true"></div>
                 </div>
             }
 
@@ -119,7 +116,279 @@
     }
 </div>
 
+@if (vista == Vista.Detalle)
+{
+    <ModalAdministracion Titulo="Detalle de tipo de gasto" CerrarAlTocarFondo="true"
+                         Ocupado="@ocupado" Inactivo="@confirmarEliminar" AlCerrar="CerrarModal">
+        <div class="administracion-cuerpo">
+            @if (ocupado)
+            {
+                <p role="status">Cargando tipo de gasto…</p>
+            }
+            else if (modelo is not null)
+            {
+                <dl class="administracion-campo"><dt>Nombre</dt><dd>@modelo.Tipo</dd></dl>
+                <dl class="administracion-campo"><dt>Descripción</dt><dd>@(string.IsNullOrWhiteSpace(modelo.Descripcion) ? "Sin descripción" : modelo.Descripcion)</dd></dl>
+            }
+            @if (!string.IsNullOrWhiteSpace(mensajeModal))
+            {
+                <p class="administracion-error" role="alert">@mensajeModal</p>
+            }
+        </div>
+        @if (!ocupado)
+        {
+            <footer class="administracion-acciones">
+                @if (modelo is not null)
+                {
+                    <button type="button" class="administracion-eliminar" @onclick="() => confirmarEliminar = true">Eliminar</button>
+                }
+                <button type="button" @onclick="CerrarModal">Cerrar</button>
+                @if (modelo is not null)
+                {
+                    <button type="button" class="administracion-primario" @onclick="AbrirEditar">Editar</button>
+                }
+            </footer>
+        }
+    </ModalAdministracion>
+}
+
+@if ((vista is Vista.Crear or Vista.Editar) && modelo is not null)
+{
+    var editando = vista == Vista.Editar;
+    <ModalAdministracion Titulo="@(editando ? "Editar tipo de gasto" : "Nuevo tipo de gasto")"
+                         Ocupado="@ocupado" Inactivo="@confirmarDescarte" AlCerrar="SolicitarCerrar">
+        <EditForm Model="@modelo" OnValidSubmit="Guardar" class="administracion-formulario">
+            <DataAnnotationsValidator />
+            <div class="administracion-cuerpo">
+                <ValidationSummary />
+                <div class="administracion-campo">
+                    <label for="administracion-tipogasto-nombre">Nombre</label>
+                    <InputText id="administracion-tipogasto-nombre" @bind-Value="modelo.Tipo" disabled="@ocupado" />
+                    <ValidationMessage For="@(() => modelo!.Tipo)" />
+                </div>
+                <div class="administracion-campo">
+                    <label for="administracion-tipogasto-descripcion">Descripción</label>
+                    <InputTextArea id="administracion-tipogasto-descripcion" @bind-Value="modelo.Descripcion" disabled="@ocupado" />
+                    <ValidationMessage For="@(() => modelo!.Descripcion)" />
+                </div>
+                @if (!string.IsNullOrWhiteSpace(mensajeModal))
+                {
+                    <p class="administracion-error" role="alert">@mensajeModal</p>
+                }
+            </div>
+            <footer class="administracion-acciones">
+                <button type="button" disabled="@ocupado" @onclick="SolicitarCerrar">Cancelar</button>
+                <button type="submit" class="administracion-primario" disabled="@ocupado">
+                    @(ocupado ? "Guardando…" : editando ? "Guardar cambios" : "Guardar")
+                </button>
+            </footer>
+        </EditForm>
+    </ModalAdministracion>
+}
+
+@if (confirmarEliminar)
+{
+    <ModalAdministracion Titulo="¿Eliminar el tipo de gasto?" Ocupado="@ocupado" AlCerrar="CerrarConfirmacionEliminar">
+        <div class="administracion-cuerpo">
+            <p>El tipo de gasto <strong>@modelo?.Tipo</strong> dejará de estar disponible.</p>
+            @if (!string.IsNullOrWhiteSpace(mensajeModal))
+            {
+                <p class="administracion-error" role="alert">@mensajeModal</p>
+            }
+        </div>
+        <footer class="administracion-acciones">
+            <button type="button" disabled="@ocupado" @onclick="CerrarConfirmacionEliminar">Cancelar</button>
+            <button type="button" class="administracion-peligro" disabled="@ocupado" @onclick="Eliminar">
+                @(ocupado ? "Eliminando…" : "Eliminar")
+            </button>
+        </footer>
+    </ModalAdministracion>
+}
+
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false" OnDescartar="DescartarCambios" />
+}
+
 @code {
+    private enum Vista { Ninguna, Crear, Editar, Detalle }
+    private Vista vista;
+    private TipoDTO? modelo;
+    private (string? Tipo, string? Descripcion) estadoInicial;
+    private int idSeleccionado;
+    private bool ocupado;
+    private bool confirmarDescarte;
+    private bool confirmarEliminar;
+    private string mensajeModal = string.Empty;
+    private string resultadoLocal = string.Empty;
+
+    private void AbrirCrear()
+    {
+        resultadoLocal = string.Empty;
+        PrepararFormulario(new TipoDTO { Tipo = string.Empty, Descripcion = string.Empty }, Vista.Crear);
+    }
+
+    private void AbrirEditar()
+    {
+        if (modelo is not null)
+            PrepararFormulario(modelo, Vista.Editar);
+    }
+
+    private void PrepararFormulario(TipoDTO datos, Vista destino)
+    {
+        modelo = datos;
+        estadoInicial = (datos.Tipo, datos.Descripcion);
+        mensajeModal = string.Empty;
+        vista = destino;
+    }
+
+    private async Task AbrirDetalle(int id)
+    {
+        idSeleccionado = id;
+        vista = Vista.Detalle;
+        modelo = null;
+        mensajeModal = string.Empty;
+        ocupado = true;
+
+        try
+        {
+            var respuesta = await Http.Get<TipoDTO>($"api/tipogasto/{id}");
+            modelo = respuesta.Error ? null : respuesta.Respuesta;
+            if (modelo is null)
+                mensajeModal = respuesta.Error ? respuesta.ObtenerError() : "No se encontró el tipo de gasto.";
+        }
+        catch
+        {
+            mensajeModal = "No pudimos consultar el tipo de gasto. Intentá nuevamente.";
+        }
+        finally
+        {
+            ocupado = false;
+        }
+    }
+
+    private void SolicitarCerrar()
+    {
+        if (ocupado)
+            return;
+
+        if (modelo is not null && estadoInicial != (modelo.Tipo, modelo.Descripcion))
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        DescartarCambios();
+    }
+
+    private void DescartarCambios()
+    {
+        confirmarDescarte = false;
+        if (vista == Vista.Editar && modelo is not null)
+        {
+            modelo.Tipo = estadoInicial.Tipo ?? string.Empty;
+            modelo.Descripcion = estadoInicial.Descripcion ?? string.Empty;
+            mensajeModal = string.Empty;
+            vista = Vista.Detalle;
+            return;
+        }
+
+        CerrarModal();
+    }
+
+    private void CerrarModal()
+    {
+        if (ocupado || confirmarEliminar)
+            return;
+
+        vista = Vista.Ninguna;
+        modelo = null;
+        mensajeModal = string.Empty;
+    }
+
+    private async Task Guardar()
+    {
+        if (ocupado || modelo is null)
+            return;
+
+        var editando = vista == Vista.Editar;
+        ocupado = true;
+        mensajeModal = string.Empty;
+
+        try
+        {
+            if (editando)
+            {
+                var respuesta = await Http.Put<TipoDTO, RespuestaDTO>($"api/tipogasto/{idSeleccionado}", modelo);
+                if (respuesta.Error)
+                {
+                    mensajeModal = respuesta.ObtenerError();
+                    return;
+                }
+            }
+            else
+            {
+                var respuesta = await Http.Post<TipoDTO, int>("api/tipogasto", modelo);
+                if (respuesta.Error)
+                {
+                    mensajeModal = respuesta.ObtenerError();
+                    return;
+                }
+            }
+
+            vista = editando ? Vista.Detalle : Vista.Ninguna;
+            resultadoLocal = editando ? "actualizado" : "creado";
+            await Cargar();
+        }
+        catch
+        {
+            mensajeModal = "No pudimos guardar el tipo de gasto. Intentá nuevamente.";
+        }
+        finally
+        {
+            ocupado = false;
+        }
+    }
+
+    private void CerrarConfirmacionEliminar()
+    {
+        confirmarEliminar = false;
+        mensajeModal = string.Empty;
+    }
+
+    private async Task Eliminar()
+    {
+        if (ocupado)
+            return;
+
+        ocupado = true;
+        mensajeModal = string.Empty;
+
+        try
+        {
+            var respuesta = await Http.Delete($"api/tipogasto/{idSeleccionado}");
+            if (respuesta.Error)
+            {
+                mensajeModal = respuesta.ObtenerError();
+                return;
+            }
+
+            confirmarEliminar = false;
+            vista = Vista.Ninguna;
+            modelo = null;
+            resultadoLocal = "eliminado";
+            await Cargar();
+        }
+        catch
+        {
+            mensajeModal = "No pudimos eliminar el tipo de gasto. Intentá nuevamente.";
+        }
+        finally
+        {
+            ocupado = false;
+        }
+    }
+
     [SupplyParameterFromQuery(Name = "estado")]
     public string? Estado { get; set; }
 
@@ -130,7 +399,7 @@
     private void Volver() => Nav.NavigateTo("/admin");
 
 
-    private string MensajeExito => Estado switch
+    private string MensajeExito => (string.IsNullOrEmpty(resultadoLocal) ? Estado : resultadoLocal) switch
     {
         "creado" => "Tipo de gasto creado correctamente.",
         "actualizado" => "Tipo de gasto actualizado correctamente.",
@@ -195,9 +464,4 @@
             Nav.NavigateTo("/tipogasto", replace: true);
     }
 
-    private void IrACrear() =>
-        Nav.NavigateTo("/tipogasto/crear");
-
-    private void IrAEditar(int id) =>
-        Nav.NavigateTo($"/tipogasto/editar/{id}");
 }

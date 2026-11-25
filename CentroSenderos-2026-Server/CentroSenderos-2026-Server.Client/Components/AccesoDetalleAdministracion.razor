@@ -1,0 +1,8 @@
+<button type="button" class="acceso-detalle" aria-label="@Etiqueta" @onclick="Abrir">
+    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+</button>
+
+@code {
+    [Parameter, EditorRequired] public string Etiqueta { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public EventCallback Abrir { get; set; }
+}

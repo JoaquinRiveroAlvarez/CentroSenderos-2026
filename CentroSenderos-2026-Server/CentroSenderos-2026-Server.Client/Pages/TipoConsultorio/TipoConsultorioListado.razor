@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="consultorios-page" inert="@(salidaPendiente is not null)">
+<div class="consultorios-page" inert="@(modalActual != ModalConsultorio.Ninguno)">
 
     <div class="page-header">
 
@@ -44,9 +44,7 @@
 
     </div>
 
-    <div class="catalogo-herramientas">
-        <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar consultorio" Placeholder="Buscar consultorio..." />
-    </div>
+    <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar consultorio" Placeholder="Buscar consultorio..." />
 
 
     @if (cargando)
@@ -130,8 +128,8 @@
 
                 @foreach (var item in ConsultoriosFiltrados)
                 {
-                    <div class="consultorio-row"
-                         @onclick="() => AbrirDetalle(item.Id)">
+                    <div class="consultorio-row" style="position: relative">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {item.Tipo}")" Abrir="() => AbrirDetalle(item.Id)" />
 
                         <div class="consultorio-info">
 
@@ -191,7 +189,7 @@
 
 
                         <div class="consultorio-action">
-                            <i class="bi bi-chevron-right"></i>
+                            
                         </div>
 
                     </div>
@@ -237,9 +235,7 @@
 
 @if (modalActual == ModalConsultorio.Detalle)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
-
-        <div class="admin-modal">
+    <ModalAdministracion Titulo="Detalle de consultorio" CerrarAlTocarFondo="true" Ocupado="@(cargandoDetalle || eliminando)" Inactivo="@mostrarConfirmacionEliminar" AlCerrar="SolicitarCerrarModal">
 
             @if (cargandoDetalle)
             {
@@ -255,47 +251,25 @@
             }
             else
             {
-                <div class="modal-header">
-
-                    <div>
-
-                        <h2>Detalle Consultorio</h2>
-
-                        <p>
-                            Información del consultorio seleccionado.
-                        </p>
-
-                    </div>
+                <div class="administracion-cuerpo">
 
 
-                    <button type="button"
-                            class="close-button"
-                            title="Cerrar"
-                            @onclick="SolicitarCerrarModal">
-
-                        <i class="bi bi-x-lg"></i>
-
-                    </button>
-
-                </div>
-
-
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>CONSULTORIO</label>
 
-                    <div class="detail-value">
+                    <div class="administracion-valor detail-value">
                         @MostrarValor(modelo.Tipo)
                     </div>
 
                 </div>
 
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>DESCRIPCIÓN</label>
 
-                    <div class="detail-value detail-value-large">
+                    <div class="administracion-valor detail-value detail-value-large">
 
                         @if (string.IsNullOrWhiteSpace(modelo.Descripcion))
                         {
@@ -313,7 +287,7 @@
                 </div>
 
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>DIRECCIÓN</label>
 
@@ -332,32 +306,15 @@
                 </div>
 
 
-                <div class="modal-actions detail-actions">
-
-                    <button type="button"
-                            class="btn-cerrar"
-                            @onclick="SolicitarCerrarModal">
-
-                        Cerrar
-
-                    </button>
-
-
-                    <button type="button"
-                            class="btn-editar"
-                            @onclick="AbrirEditar">
-
-                        <i class="bi bi-pencil-square"></i>
-                        Editar
-
-                    </button>
-
                 </div>
+                <footer class="administracion-acciones">
+                    <button type="button" class="administracion-eliminar" @onclick="AbrirConfirmacionEliminar">Eliminar</button>
+                    <button type="button" @onclick="SolicitarCerrarModal">Cerrar</button>
+                    <button type="button" class="administracion-primario" @onclick="AbrirEditar">Editar</button>
+                </footer>
             }
 
-        </div>
-
-    </div>
+    </ModalAdministracion>
 }
 
 
@@ -367,45 +324,20 @@
 
 @if (modalActual == ModalConsultorio.Crear)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
+    <ModalAdministracion Titulo="Nuevo consultorio" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
 
-        <div class="admin-modal">
-
-            <div class="modal-header">
-
-                <div>
-
-                    <h2>Nuevo Consultorio</h2>
-
-                    <p>
-                        Complete los datos del consultorio.
-                    </p>
-
-                </div>
-
-
-                <button type="button"
-                        class="close-button"
-                        title="Cerrar"
-                        disabled="@guardando"
-                        @onclick="SolicitarCerrarModal">
-
-                    <i class="bi bi-x-lg"></i>
-
-                </button>
-
-            </div>
 
 
             <EditForm Model="@modelo"
-                      OnValidSubmit="CrearConsultorio">
+                      OnValidSubmit="CrearConsultorio" class="administracion-formulario">
+                <div class="administracion-cuerpo">
 
                 <DataAnnotationsValidator />
 
                 <ValidationSummary class="validation-summary" />
 
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>CONSULTORIO</label>
 
@@ -418,7 +350,7 @@
                 </div>
 
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>DESCRIPCIÓN</label>
 
@@ -431,7 +363,7 @@
                 </div>
 
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>DIRECCIÓN</label>
 
@@ -464,41 +396,17 @@
                 }
 
 
-                <div class="modal-actions">
-
-                    <button type="button"
-                            class="btn-cancelar"
-                            disabled="@guardando"
-                            @onclick="SolicitarCerrarModal">
-
-                        Cancelar
-
-                    </button>
-
-
-                    <button type="submit"
-                            class="btn-guardar"
-                            disabled="@guardando">
-
-                        @if (guardando)
-                        {
-                            <span class="spinner-border spinner-border-sm"></span>
-                            <span>Guardando...</span>
-                        }
-                        else
-                        {
-                            <span>Guardar</span>
-                        }
-
-                    </button>
-
                 </div>
+                <footer class="administracion-acciones">
+                    <button type="button" disabled="@guardando" @onclick="SolicitarCerrarModal">Cancelar</button>
+                    <button type="submit" class="administracion-primario" disabled="@guardando">
+                        @(guardando ? "Guardando…" : "Guardar")
+                    </button>
+                </footer>
 
             </EditForm>
 
-        </div>
-
-    </div>
+    </ModalAdministracion>
 }
 
 
@@ -508,45 +416,20 @@
 
 @if (modalActual == ModalConsultorio.Editar)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
+    <ModalAdministracion Titulo="Editar consultorio" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
 
-        <div class="admin-modal">
-
-            <div class="modal-header">
-
-                <div>
-
-                    <h2>Editar Consultorio</h2>
-
-                    <p>
-                        Modifique los datos del consultorio.
-                    </p>
-
-                </div>
-
-
-                <button type="button"
-                        class="close-button"
-                        title="Volver al detalle"
-                        disabled="@guardando"
-                        @onclick="SolicitarCancelarEdicion">
-
-                    <i class="bi bi-x-lg"></i>
-
-                </button>
-
-            </div>
 
 
             <EditForm Model="@modelo"
-                      OnValidSubmit="GuardarCambios">
+                      OnValidSubmit="GuardarCambios" class="administracion-formulario">
+                <div class="administracion-cuerpo">
 
                 <DataAnnotationsValidator />
 
                 <ValidationSummary class="validation-summary" />
 
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>CONSULTORIO</label>
 
@@ -559,7 +442,7 @@
                 </div>
 
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>DESCRIPCIÓN</label>
 
@@ -572,7 +455,7 @@
                 </div>
 
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>DIRECCIÓN</label>
 
@@ -605,56 +488,17 @@
                 }
 
 
-                <div class="modal-actions edit-actions">
-
-                    <button type="button"
-                            class="btn-eliminar"
-                            disabled="@guardando"
-                            @onclick="AbrirConfirmacionEliminar">
-
-                        <i class="bi bi-trash3"></i>
-                        Eliminar Consultorio
-
-                    </button>
-
-
-                    <div class="right-actions">
-
-                        <button type="button"
-                                class="btn-cancelar"
-                                disabled="@guardando"
-                                @onclick="SolicitarCancelarEdicion">
-
-                            Cancelar
-
-                        </button>
-
-
-                        <button type="submit"
-                                class="btn-guardar"
-                                disabled="@guardando">
-
-                            @if (guardando)
-                            {
-                                <span class="spinner-border spinner-border-sm"></span>
-                                <span>Guardando...</span>
-                            }
-                            else
-                            {
-                                <span>Guardar Cambios</span>
-                            }
-
-                        </button>
-
-                    </div>
-
                 </div>
+                <footer class="administracion-acciones">
+                    <button type="button" disabled="@guardando" @onclick="SolicitarCancelarEdicion">Cancelar</button>
+                    <button type="submit" class="administracion-primario" disabled="@guardando">
+                        @(guardando ? "Guardando…" : "Guardar cambios")
+                    </button>
+                </footer>
 
             </EditForm>
 
-        </div>
-
-    </div>
+    </ModalAdministracion>
 }
 
 
@@ -664,60 +508,15 @@
 
 @if (mostrarConfirmacionEliminar)
 {
-    <div class="delete-modal-overlay">
-
-        <div class="delete-modal">
-
-            <div class="delete-warning-icon">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-
-
-            <h2>
-                ¿Estás seguro que querés eliminar este consultorio?
-            </h2>
-
-
-            <p>
-                Esta acción no se puede deshacer.
-                El consultorio será eliminado definitivamente.
-            </p>
-
-
-            <div class="delete-modal-actions">
-
-                <button type="button"
-                        class="confirm-delete-button"
-                        disabled="@eliminando"
-                        @onclick="ConfirmarEliminar">
-
-                    @if (eliminando)
-                    {
-                        <span class="spinner-border spinner-border-sm"></span>
-                        <span>Eliminando...</span>
-                    }
-                    else
-                    {
-                        <span>Eliminar</span>
-                    }
-
-                </button>
-
-
-                <button type="button"
-                        class="modal-cancel-button"
-                        disabled="@eliminando"
-                        @onclick="CerrarConfirmacionEliminar">
-
-                    Cancelar
-
-                </button>
-
-            </div>
-
+    <ModalAdministracion Titulo="¿Eliminar este registro?" Ocupado="@eliminando" AlCerrar="CerrarConfirmacionEliminar">
+        <div class="administracion-cuerpo">
+            <p>Si confirmás, el registro dejará de estar disponible.</p>
         </div>
-
-    </div>
+        <footer class="administracion-acciones">
+            <button type="button" disabled="@eliminando" @onclick="CerrarConfirmacionEliminar">Cancelar</button>
+            <button type="button" class="administracion-peligro" disabled="@eliminando" @onclick="ConfirmarEliminar">@(eliminando ? "Eliminando…" : "Eliminar")</button>
+        </footer>
+    </ModalAdministracion>
 }
 
 

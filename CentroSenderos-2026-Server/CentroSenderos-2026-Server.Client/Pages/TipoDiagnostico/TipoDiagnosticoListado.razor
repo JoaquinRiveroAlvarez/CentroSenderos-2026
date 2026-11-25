@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="diagnosticos-page" inert="@(salidaPendiente is not null)">
+<div class="diagnosticos-page" inert="@(modalActual != ModalDiagnostico.Ninguno)">
 
     <div class="page-header">
 
@@ -44,9 +44,7 @@
 
     </div>
 
-    <div class="catalogo-herramientas">
-        <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar por nombre o descripción" Placeholder="Buscar por nombre o descripción..." />
-    </div>
+    <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar por nombre o descripción" Placeholder="Buscar por nombre o descripción..." />
 
     @if (cargando)
     {
@@ -60,7 +58,7 @@
 
         </div>
     }
-    else if (lista.Count == 0)
+    else if (lista.Count == 0 && string.IsNullOrWhiteSpace(Mensaje))
     {
         <div class="estado-card">
 
@@ -85,7 +83,7 @@
 
         </div>
     }
-    else if (!DiagnosticosFiltrados.Any())
+    else if (lista.Count > 0 && !DiagnosticosFiltrados.Any())
     {
         <div class="estado-card">
 
@@ -102,7 +100,7 @@
 
         </div>
     }
-    else
+    else if (lista.Count > 0)
     {
         <div class="list-card">
 
@@ -118,8 +116,8 @@
 
                 @foreach (var item in DiagnosticosFiltrados)
                 {
-                    <div class="diagnostico-row"
-                         @onclick="() => AbrirDetalle(item.Id)">
+                    <div class="diagnostico-row" style="position: relative">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {item.Tipo}")" Abrir="() => AbrirDetalle(item.Id)" />
 
                         <div class="diagnostico-info">
 
@@ -149,7 +147,7 @@
                         </div>
 
                         <div class="diagnostico-action">
-                            <i class="bi bi-chevron-right"></i>
+                            
                         </div>
 
                     </div>
@@ -187,9 +185,7 @@
 
 @if (modalActual == ModalDiagnostico.Detalle)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
-
-        <div class="admin-modal">
+    <ModalAdministracion Titulo="Detalle de diagnóstico" CerrarAlTocarFondo="true" Ocupado="@(cargandoDetalle || eliminando)" Inactivo="@mostrarConfirmacionEliminar" AlCerrar="SolicitarCerrarModal">
 
             @if (cargandoDetalle)
             {
@@ -205,44 +201,23 @@
             }
             else
             {
-                <div class="modal-header">
+                <div class="administracion-cuerpo">
 
-                    <div>
-
-                        <h2>Detalle Diagnóstico</h2>
-
-                        <p>
-                            Información del tipo de diagnóstico seleccionado.
-                        </p>
-
-                    </div>
-
-                    <button type="button"
-                            class="close-button"
-                            title="Cerrar"
-                            @onclick="SolicitarCerrarModal">
-
-                        <i class="bi bi-x-lg"></i>
-
-                    </button>
-
-                </div>
-
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>DIAGNÓSTICO</label>
 
-                    <div class="detail-value">
+                    <div class="administracion-valor detail-value">
                         @MostrarValor(modelo.Tipo)
                     </div>
 
                 </div>
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>DESCRIPCIÓN</label>
 
-                    <div class="detail-value detail-value-large">
+                    <div class="administracion-valor detail-value detail-value-large">
 
                         @if (string.IsNullOrWhiteSpace(modelo.Descripcion))
                         {
@@ -269,73 +244,33 @@
                     </div>
                 }
 
-                <div class="modal-actions detail-actions">
-
-                    <button type="button"
-                            class="btn-cerrar"
-                            @onclick="SolicitarCerrarModal">
-
-                        Cerrar
-
-                    </button>
-
-                    <button type="button"
-                            class="btn-editar"
-                            @onclick="AbrirEditar">
-
-                        <i class="bi bi-pencil-square"></i>
-                        Editar
-
-                    </button>
-
                 </div>
+                <footer class="administracion-acciones">
+                    <button type="button" class="administracion-eliminar" @onclick="AbrirConfirmacionEliminar">Eliminar</button>
+                    <button type="button" @onclick="SolicitarCerrarModal">Cerrar</button>
+                    <button type="button" class="administracion-primario" @onclick="AbrirEditar">Editar</button>
+                </footer>
             }
 
-        </div>
-
-    </div>
+    </ModalAdministracion>
 }
 
 @* Modal de creación *@
 
 @if (modalActual == ModalDiagnostico.Crear)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
+    <ModalAdministracion Titulo="Nuevo diagnóstico" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
 
-        <div class="admin-modal">
-
-            <div class="modal-header">
-
-                <div>
-
-                    <h2>Nuevo Diagnóstico</h2>
-
-                    <p>
-                        Complete los datos del diagnóstico.
-                    </p>
-
-                </div>
-
-                <button type="button"
-                        class="close-button"
-                        title="Cerrar"
-                        disabled="@guardando"
-                        @onclick="SolicitarCerrarModal">
-
-                    <i class="bi bi-x-lg"></i>
-
-                </button>
-
-            </div>
 
             <EditForm Model="@modelo"
-                      OnValidSubmit="CrearDiagnostico">
+                      OnValidSubmit="CrearDiagnostico" class="administracion-formulario">
+                <div class="administracion-cuerpo">
 
                 <DataAnnotationsValidator />
 
                 <ValidationSummary class="validation-summary" />
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>DIAGNÓSTICO</label>
 
@@ -347,7 +282,7 @@
 
                 </div>
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>DESCRIPCIÓN</label>
 
@@ -369,82 +304,35 @@
                     </div>
                 }
 
-                <div class="modal-actions">
-
-                    <button type="button"
-                            class="btn-cancelar"
-                            disabled="@guardando"
-                            @onclick="SolicitarCerrarModal">
-
-                        Cancelar
-
-                    </button>
-
-                    <button type="submit"
-                            class="btn-guardar"
-                            disabled="@guardando">
-
-                        @if (guardando)
-                        {
-                            <span class="spinner-border spinner-border-sm"></span>
-                            <span>Guardando...</span>
-                        }
-                        else
-                        {
-                            <span>Guardar</span>
-                        }
-
-                    </button>
-
                 </div>
+                <footer class="administracion-acciones">
+                    <button type="button" disabled="@guardando" @onclick="SolicitarCerrarModal">Cancelar</button>
+                    <button type="submit" class="administracion-primario" disabled="@(guardando)">
+                        @(guardando ? "Guardando…" : "Guardar")
+                    </button>
+                </footer>
 
             </EditForm>
 
-        </div>
-
-    </div>
+    </ModalAdministracion>
 }
 
 @* Modal de edición *@
 
 @if (modalActual == ModalDiagnostico.Editar)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
+    <ModalAdministracion Titulo="Editar diagnóstico" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
 
-        <div class="admin-modal">
-
-            <div class="modal-header">
-
-                <div>
-
-                    <h2>Editar Diagnóstico</h2>
-
-                    <p>
-                        Modifique los datos del diagnóstico.
-                    </p>
-
-                </div>
-
-                <button type="button"
-                        class="close-button"
-                        title="Volver al detalle"
-                        disabled="@(guardando || eliminando)"
-                        @onclick="SolicitarCancelarEdicion">
-
-                    <i class="bi bi-x-lg"></i>
-
-                </button>
-
-            </div>
 
             <EditForm Model="@modelo"
-                      OnValidSubmit="GuardarCambios">
+                      OnValidSubmit="GuardarCambios" class="administracion-formulario">
+                <div class="administracion-cuerpo">
 
                 <DataAnnotationsValidator />
 
                 <ValidationSummary class="validation-summary" />
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>DIAGNÓSTICO</label>
 
@@ -456,7 +344,7 @@
 
                 </div>
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
 
                     <label>DESCRIPCIÓN</label>
 
@@ -478,110 +366,32 @@
                     </div>
                 }
 
-                <div class="modal-actions edit-actions">
-
-                    <button type="button"
-                            class="btn-eliminar"
-                            disabled="@(guardando || eliminando)"
-                            @onclick="AbrirConfirmacionEliminar">
-
-                        <i class="bi bi-trash3"></i>
-                        Eliminar
-
-                    </button>
-
-                    <div class="right-actions">
-
-                        <button type="button"
-                                class="btn-cancelar"
-                                disabled="@(guardando || eliminando)"
-                                @onclick="SolicitarCancelarEdicion">
-
-                            Cancelar
-
-                        </button>
-
-                        <button type="submit"
-                                class="btn-guardar"
-                                disabled="@(guardando || eliminando)">
-
-                            @if (guardando)
-                            {
-                                <span class="spinner-border spinner-border-sm"></span>
-                                <span>Guardando...</span>
-                            }
-                            else
-                            {
-                                <span>Guardar Cambios</span>
-                            }
-
-                        </button>
-
-                    </div>
-
                 </div>
+                <footer class="administracion-acciones">
+                    <button type="button" disabled="@guardando" @onclick="SolicitarCancelarEdicion">Cancelar</button>
+                    <button type="submit" class="administracion-primario" disabled="@(guardando || eliminando)">
+                        @(guardando ? "Guardando…" : "Guardar cambios")
+                    </button>
+                </footer>
 
             </EditForm>
 
-        </div>
-
-    </div>
+    </ModalAdministracion>
 }
 
 @* Confirmación de eliminación *@
 
 @if (mostrarConfirmacionEliminar)
 {
-    <div class="delete-modal-overlay">
-
-        <div class="delete-modal">
-
-            <div class="delete-warning-icon">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-
-            <h2>
-                ¿Estás seguro que querés eliminar este diagnóstico?
-            </h2>
-
-            <p>
-                Esta acción no se puede deshacer.
-                El diagnóstico será eliminado definitivamente. Si está asignado a pacientes activos, no se podrá eliminar.
-            </p>
-
-            <div class="delete-modal-actions">
-
-                <button type="button"
-                        class="confirm-delete-button"
-                        disabled="@eliminando"
-                        @onclick="ConfirmarEliminar">
-
-                    @if (eliminando)
-                    {
-                        <span class="spinner-border spinner-border-sm"></span>
-                        <span>Eliminando...</span>
-                    }
-                    else
-                    {
-                        <span>Eliminar</span>
-                    }
-
-                </button>
-
-                <button type="button"
-                        class="modal-cancel-button"
-                        disabled="@eliminando"
-                        @onclick="CerrarConfirmacionEliminar">
-
-                    Cancelar
-
-                </button>
-
-            </div>
-
+    <ModalAdministracion Titulo="¿Eliminar este registro?" Ocupado="@eliminando" AlCerrar="CerrarConfirmacionEliminar">
+        <div class="administracion-cuerpo">
+            <p>Si confirmás, el registro dejará de estar disponible.</p>
         </div>
-
-    </div>
+        <footer class="administracion-acciones">
+            <button type="button" disabled="@eliminando" @onclick="CerrarConfirmacionEliminar">Cancelar</button>
+            <button type="button" class="administracion-peligro" disabled="@eliminando" @onclick="ConfirmarEliminar">@(eliminando ? "Eliminando…" : "Eliminar")</button>
+        </footer>
+    </ModalAdministracion>
 }
 
 @if (salidaPendiente is not null)

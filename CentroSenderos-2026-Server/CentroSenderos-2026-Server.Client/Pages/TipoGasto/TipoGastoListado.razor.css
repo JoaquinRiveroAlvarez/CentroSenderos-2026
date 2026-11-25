@@ -148,7 +148,7 @@
 .list-header,
 .tipo-gasto-row {
     display: grid;
-    grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.5fr) 110px;
+    grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.5fr) 22px;
     align-items: center;
     gap: 20px;
     padding: 0 24px;
@@ -333,6 +333,14 @@
     .tipo-gasto-actions {
         justify-content: flex-start;
     }
+}
+
+/* #endregion */
+
+/* #region Acción del estado vacío */
+
+.state-card > .new-button {
+    margin-top: 16px;
 }
 
 /* #endregion */

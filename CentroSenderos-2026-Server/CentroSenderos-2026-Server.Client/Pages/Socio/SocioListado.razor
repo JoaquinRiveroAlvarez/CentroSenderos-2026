@@ -8,7 +8,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="socios-page" inert="@(salidaPendiente is not null)">
+<div class="socios-page" inert="@(modalActual != ModalSocio.Ninguno)">
     <div class="page-header">
         <div class="header-title">
             <button type="button"
@@ -35,9 +35,7 @@
         </div>
     </div>
 
-    <div class="catalogo-herramientas">
-        <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar socios" Placeholder="Buscar por profesional, área u observación..." />
-    </div>
+    <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar socios" Placeholder="Buscar por profesional, área u observación..." />
 
     @if (cargando)
     {
@@ -104,8 +102,8 @@
                 @foreach (var item in SociosFiltrados)
                 {
                     <div @key="item.Id"
-                         class="socio-row"
-                         @onclick="() => AbrirDetalle(item.Id)">
+                         class="socio-row" style="position: relative">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {NombreSocio(item)}")" Abrir="() => AbrirDetalle(item.Id)" />
 
                         <div class="socio-info">
                             <div class="socio-avatar">
@@ -141,7 +139,7 @@
                         </div>
 
                         <div class="socio-action">
-                            <i class="bi bi-chevron-right"></i>
+                            
                         </div>
                     </div>
                 }
@@ -171,27 +169,8 @@
 
 @if (modalActual == ModalSocio.Crear)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
-        <div class="admin-modal"
-             role="dialog"
-             aria-modal="true"
-             aria-labelledby="titulo-crear-socio">
+    <ModalAdministracion Titulo="Nuevo socio" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
 
-            <div class="modal-header">
-                <div>
-                    <h2 id="titulo-crear-socio">Nuevo socio</h2>
-                    <p>Seleccione el profesional y complete la observación.</p>
-                </div>
-
-                <button type="button"
-                        class="close-button"
-                        title="Cerrar"
-                        aria-label="Cerrar formulario"
-                        disabled="@guardando"
-                        @onclick="SolicitarCerrarModal">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
 
             @if (cargandoProfesionales)
             {
@@ -207,12 +186,13 @@
             {
                 <EditForm Model="@modelo"
                           OnValidSubmit="CrearSocio"
-                          FormName="CrearSocioModalForm">
+                          FormName="CrearSocioModalForm" class="administracion-formulario">
+                <div class="administracion-cuerpo">
 
                     <DataAnnotationsValidator />
                     <ValidationSummary class="validation-summary" />
 
-                    <div class="field-group">
+                    <div class="field-group administracion-campo">
                         <label for="crear-socio-profesional">PROFESIONAL</label>
 
                         <InputSelect id="crear-socio-profesional"
@@ -241,7 +221,7 @@
                         <ValidationMessage For="@(() => modelo.ProfesionalId)" />
                     </div>
 
-                    <div class="field-group">
+                    <div class="field-group administracion-campo">
                         <label for="crear-socio-observacion">OBSERVACIÓN</label>
 
                         <InputTextArea id="crear-socio-observacion"
@@ -261,42 +241,21 @@
                         </div>
                     }
 
-                    <div class="modal-actions">
-                        <button type="button"
-                                class="btn-cancelar"
-                                disabled="@guardando"
-                                @onclick="SolicitarCerrarModal">
-                            Cancelar
-                        </button>
-
-                        <button type="submit"
-                                class="btn-guardar"
-                                disabled="@(guardando || !profesionalesCargados)">
-                            @if (guardando)
-                            {
-                                <span class="spinner-border spinner-border-sm"
-                                      aria-hidden="true"></span>
-                                <span>Guardando...</span>
-                            }
-                            else
-                            {
-                                <span>Guardar socio</span>
-                            }
-                        </button>
-                    </div>
+                </div>
+                <footer class="administracion-acciones">
+                    <button type="button" disabled="@guardando" @onclick="SolicitarCerrarModal">Cancelar</button>
+                    <button type="submit" class="administracion-primario" disabled="@(guardando || !profesionalesCargados)">
+                        @(guardando ? "Guardando…" : "Guardar")
+                    </button>
+                </footer>
                 </EditForm>
             }
-        </div>
-    </div>
+    </ModalAdministracion>
 }
 
 @if (modalActual == ModalSocio.Detalle)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
-        <div class="admin-modal"
-             role="dialog"
-             aria-modal="true"
-             aria-labelledby="titulo-detalle-socio">
+    <ModalAdministracion Titulo="Detalle de socio" CerrarAlTocarFondo="true" Ocupado="@(cargandoDetalle || eliminando)" Inactivo="@mostrarConfirmacionEliminar" AlCerrar="SolicitarCerrarModal">
 
             @if (cargandoDetalle)
             {
@@ -310,25 +269,9 @@
             }
             else
             {
-                <div class="modal-header">
-                    <div>
-                        <h2 id="titulo-detalle-socio">
-                            @(modelo.EsCaja ? "Detalle Caja Senderos" : "Detalle socio")
-                        </h2>
+                <div class="administracion-cuerpo">
 
-                        <p>Información del registro seleccionado.</p>
-                    </div>
-
-                    <button type="button"
-                            class="close-button"
-                            title="Cerrar"
-                            aria-label="Cerrar detalle"
-                            @onclick="SolicitarCerrarModal">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
-
-                <div class="field-group">
+                <div class="field-group administracion-campo">
                     <label>@(modelo.EsCaja ? "CAJA" : "PROFESIONAL")</label>
 
                     <div class="detail-profesional">
@@ -354,10 +297,10 @@
                     </div>
                 </div>
 
-                <div class="field-group">
+                <div class="field-group administracion-campo">
                     <label>OBSERVACIÓN</label>
 
-                    <div class="detail-value detail-value-large">
+                    <div class="administracion-valor detail-value detail-value-large">
                         @if (string.IsNullOrWhiteSpace(modelo.Observacion))
                         {
                             <span class="sin-dato">Sin observación</span>
@@ -377,55 +320,23 @@
                     </div>
                 }
 
-                <div class="modal-actions detail-actions">
-                    <button type="button"
-                            class="btn-cerrar"
-                            @onclick="SolicitarCerrarModal">
-                        Cerrar
-                    </button>
-
-                    <button type="button"
-                            class="btn-editar"
-                            @onclick="AbrirEditar">
-                        <i class="bi bi-pencil-square"></i>
-                        Editar
-                    </button>
                 </div>
+                <footer class="administracion-acciones">
+                    @if (!modelo.EsCaja)
+                    {
+                        <button type="button" class="administracion-eliminar" @onclick="AbrirConfirmacionEliminar">Eliminar</button>
+                    }
+                    <button type="button" @onclick="SolicitarCerrarModal">Cerrar</button>
+                    <button type="button" class="administracion-primario" @onclick="AbrirEditar">Editar</button>
+                </footer>
             }
-        </div>
-    </div>
+    </ModalAdministracion>
 }
 
 @if (modalActual == ModalSocio.Editar)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
-        <div class="admin-modal"
-             role="dialog"
-             aria-modal="true"
-             aria-labelledby="titulo-editar-socio">
+    <ModalAdministracion Titulo="Editar socio" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
 
-            <div class="modal-header">
-                <div>
-                    <h2 id="titulo-editar-socio">
-                        @(modelo.EsCaja ? "Editar Caja Senderos" : "Editar socio")
-                    </h2>
-
-                    <p>
-                        @(modelo.EsCaja
-                            ? "Modifique la observación de Caja Senderos."
-                            : "Modifique los datos asociados al socio.")
-                    </p>
-                </div>
-
-                <button type="button"
-                        class="close-button"
-                        title="Volver al detalle"
-                        aria-label="Volver al detalle"
-                        disabled="@(guardando || cargandoProfesionales)"
-                        @onclick="SolicitarCancelarEdicion">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
 
             @if (cargandoProfesionales)
             {
@@ -441,21 +352,22 @@
             {
                 <EditForm Model="@modelo"
                           OnValidSubmit="GuardarCambios"
-                          FormName="EditarSocioModalForm">
+                          FormName="EditarSocioModalForm" class="administracion-formulario">
+                <div class="administracion-cuerpo">
 
                     <DataAnnotationsValidator />
                     <ValidationSummary class="validation-summary" />
 
                     @if (modelo.EsCaja)
                     {
-                        <div class="field-group">
+                        <div class="field-group administracion-campo">
                             <label>NOMBRE</label>
-                            <div class="detail-value">Caja Senderos</div>
+                            <div class="administracion-valor detail-value">Caja Senderos</div>
                         </div>
                     }
                     else
                     {
-                        <div class="field-group">
+                        <div class="field-group administracion-campo">
                             <label for="editar-socio-profesional">PROFESIONAL</label>
 
                             <InputSelect id="editar-socio-profesional"
@@ -493,7 +405,7 @@
                         </div>
                     }
 
-                    <div class="field-group">
+                    <div class="field-group administracion-campo">
                         <label for="editar-socio-observacion">OBSERVACIÓN</label>
 
                         <InputTextArea id="editar-socio-observacion"
@@ -513,95 +425,29 @@
                         </div>
                     }
 
-                    <div class="modal-actions edit-actions">
-                        @if (!modelo.EsCaja)
-                        {
-                            <button type="button"
-                                    class="btn-eliminar"
-                                    disabled="@guardando"
-                                    @onclick="AbrirConfirmacionEliminar">
-                                <i class="bi bi-trash3"></i>
-                                Eliminar socio
-                            </button>
-                        }
-
-                        <div class="right-actions">
-                            <button type="button"
-                                    class="btn-cancelar"
-                                    disabled="@guardando"
-                                    @onclick="SolicitarCancelarEdicion">
-                                Cancelar
-                            </button>
-
-                            <button type="submit"
-                                    class="btn-guardar"
-                                    disabled="@guardando">
-                                @if (guardando)
-                                {
-                                    <span class="spinner-border spinner-border-sm"
-                                          aria-hidden="true"></span>
-                                    <span>Guardando...</span>
-                                }
-                                else
-                                {
-                                    <span>Guardar cambios</span>
-                                }
-                            </button>
-                        </div>
-                    </div>
+                </div>
+                <footer class="administracion-acciones">
+                    <button type="button" disabled="@guardando" @onclick="SolicitarCancelarEdicion">Cancelar</button>
+                    <button type="submit" class="administracion-primario" disabled="@(guardando)">
+                        @(guardando ? "Guardando…" : "Guardar cambios")
+                    </button>
+                </footer>
                 </EditForm>
             }
-        </div>
-    </div>
+    </ModalAdministracion>
 }
 
 @if (mostrarConfirmacionEliminar)
 {
-    <div class="delete-modal-overlay">
-        <div class="delete-modal"
-             role="dialog"
-             aria-modal="true"
-             aria-labelledby="titulo-eliminar-socio">
-
-            <div class="delete-warning-icon">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-
-            <h2 id="titulo-eliminar-socio">
-                ¿Querés dar de baja este socio?
-            </h2>
-
-            <p>
-                El socio dejará de aparecer en el listado activo.
-                Sus movimientos registrados se conservarán.
-            </p>
-
-            <div class="delete-modal-actions">
-                <button type="button"
-                        class="confirm-delete-button"
-                        disabled="@eliminando"
-                        @onclick="ConfirmarEliminar">
-                    @if (eliminando)
-                    {
-                        <span class="spinner-border spinner-border-sm"
-                              aria-hidden="true"></span>
-                        <span>Eliminando...</span>
-                    }
-                    else
-                    {
-                        <span>Eliminar</span>
-                    }
-                </button>
-
-                <button type="button"
-                        class="modal-cancel-button"
-                        disabled="@eliminando"
-                        @onclick="CerrarConfirmacionEliminar">
-                    Cancelar
-                </button>
-            </div>
+    <ModalAdministracion Titulo="¿Eliminar este registro?" Ocupado="@eliminando" AlCerrar="CerrarConfirmacionEliminar">
+        <div class="administracion-cuerpo">
+            <p>Si confirmás, el registro dejará de estar disponible.</p>
         </div>
-    </div>
+        <footer class="administracion-acciones">
+            <button type="button" disabled="@eliminando" @onclick="CerrarConfirmacionEliminar">Cancelar</button>
+            <button type="button" class="administracion-peligro" disabled="@eliminando" @onclick="ConfirmarEliminar">@(eliminando ? "Eliminando…" : "Eliminar")</button>
+        </footer>
+    </ModalAdministracion>
 }
 
 @if (salidaPendiente is not null)

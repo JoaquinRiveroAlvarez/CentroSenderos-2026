@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="areas-page">
+<div class="areas-page" inert="@(vista != Vista.Ninguna)">
     <div class="page-header">
         <div>
 
@@ -21,7 +21,7 @@
             <p>Administrá las áreas disponibles para los profesionales.</p>
         </div>
 
-        <button type="button" class="new-button" @onclick="IrACrear">
+        <button type="button" class="new-button" @onclick="AbrirCrear">
             <i class="bi bi-plus-lg"></i>
             <span>Nueva área</span>
         </button>
@@ -62,6 +62,10 @@
             <i class="bi bi-diagram-3"></i>
             <h2>No hay tipos de área registrados</h2>
             <p>Creá el primero para asignarlo a los profesionales.</p>
+            <button type="button" class="new-button" @onclick="AbrirCrear">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                <span>Nueva área</span>
+            </button>
         </div>
     }
     else if (!AreasFiltradas.Any())
@@ -78,12 +82,13 @@
             <div class="list-header">
                 <span>Área</span>
                 <span>Descripción</span>
-                <span class="actions-heading">Acción</span>
+                <span aria-hidden="true"></span>
             </div>
 
             @foreach (var area in AreasFiltradas)
             {
-                <div class="area-row" @key="area.Id">
+                <div class="area-row" style="position: relative" @key="area.Id">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {area.Tipo}")" Abrir="() => AbrirDetalle(area.Id)" />
                     <div class="area-name">
                         <i class="bi bi-diagram-3"></i>
                         <strong>@area.Tipo</strong>
@@ -95,15 +100,7 @@
                             : area.Descripcion)
                     </div>
 
-                    <div class="area-actions">
-                        <button type="button"
-                                class="edit-button"
-                                title="Editar"
-                                aria-label="@($"Editar {area.Tipo}")"
-                                @onclick="() => IrAEditar(area.Id)">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                    </div>
+                    <div class="area-actions" aria-hidden="true"></div>
                 </div>
             }
 
@@ -114,7 +111,279 @@
     }
 </div>
 
+@if (vista == Vista.Detalle)
+{
+    <ModalAdministracion Titulo="Detalle de área" CerrarAlTocarFondo="true"
+                         Ocupado="@ocupado" Inactivo="@confirmarEliminar" AlCerrar="CerrarModal">
+        <div class="administracion-cuerpo">
+            @if (ocupado)
+            {
+                <p role="status">Cargando área…</p>
+            }
+            else if (modelo is not null)
+            {
+                <dl class="administracion-campo"><dt>Área</dt><dd>@modelo.Tipo</dd></dl>
+                <dl class="administracion-campo"><dt>Descripción</dt><dd>@(string.IsNullOrWhiteSpace(modelo.Descripcion) ? "Sin descripción" : modelo.Descripcion)</dd></dl>
+            }
+            @if (!string.IsNullOrWhiteSpace(mensajeModal))
+            {
+                <p class="administracion-error" role="alert">@mensajeModal</p>
+            }
+        </div>
+        @if (!ocupado)
+        {
+            <footer class="administracion-acciones">
+                @if (modelo is not null)
+                {
+                    <button type="button" class="administracion-eliminar" @onclick="() => confirmarEliminar = true">Eliminar</button>
+                }
+                <button type="button" @onclick="CerrarModal">Cerrar</button>
+                @if (modelo is not null)
+                {
+                    <button type="button" class="administracion-primario" @onclick="AbrirEditar">Editar</button>
+                }
+            </footer>
+        }
+    </ModalAdministracion>
+}
+
+@if ((vista is Vista.Crear or Vista.Editar) && modelo is not null)
+{
+    var editando = vista == Vista.Editar;
+    <ModalAdministracion Titulo="@(editando ? "Editar área" : "Nueva área")"
+                         Ocupado="@ocupado" Inactivo="@confirmarDescarte" AlCerrar="SolicitarCerrar">
+        <EditForm Model="@modelo" OnValidSubmit="Guardar" class="administracion-formulario">
+            <DataAnnotationsValidator />
+            <div class="administracion-cuerpo">
+                <ValidationSummary />
+                <div class="administracion-campo">
+                    <label for="administracion-area-nombre">Área</label>
+                    <InputText id="administracion-area-nombre" @bind-Value="modelo.Tipo" disabled="@ocupado" />
+                    <ValidationMessage For="@(() => modelo!.Tipo)" />
+                </div>
+                <div class="administracion-campo">
+                    <label for="administracion-area-descripcion">Descripción</label>
+                    <InputTextArea id="administracion-area-descripcion" @bind-Value="modelo.Descripcion" disabled="@ocupado" />
+                    <ValidationMessage For="@(() => modelo!.Descripcion)" />
+                </div>
+                @if (!string.IsNullOrWhiteSpace(mensajeModal))
+                {
+                    <p class="administracion-error" role="alert">@mensajeModal</p>
+                }
+            </div>
+            <footer class="administracion-acciones">
+                <button type="button" disabled="@ocupado" @onclick="SolicitarCerrar">Cancelar</button>
+                <button type="submit" class="administracion-primario" disabled="@ocupado">
+                    @(ocupado ? "Guardando…" : editando ? "Guardar cambios" : "Guardar")
+                </button>
+            </footer>
+        </EditForm>
+    </ModalAdministracion>
+}
+
+@if (confirmarEliminar)
+{
+    <ModalAdministracion Titulo="¿Eliminar el área?" Ocupado="@ocupado" AlCerrar="CerrarConfirmacionEliminar">
+        <div class="administracion-cuerpo">
+            <p>El área <strong>@modelo?.Tipo</strong> dejará de estar disponible.</p>
+            @if (!string.IsNullOrWhiteSpace(mensajeModal))
+            {
+                <p class="administracion-error" role="alert">@mensajeModal</p>
+            }
+        </div>
+        <footer class="administracion-acciones">
+            <button type="button" disabled="@ocupado" @onclick="CerrarConfirmacionEliminar">Cancelar</button>
+            <button type="button" class="administracion-peligro" disabled="@ocupado" @onclick="Eliminar">
+                @(ocupado ? "Eliminando…" : "Eliminar")
+            </button>
+        </footer>
+    </ModalAdministracion>
+}
+
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false" OnDescartar="DescartarCambios" />
+}
+
 @code {
+    private enum Vista { Ninguna, Crear, Editar, Detalle }
+    private Vista vista;
+    private TipoDTO? modelo;
+    private (string? Tipo, string? Descripcion) estadoInicial;
+    private int idSeleccionado;
+    private bool ocupado;
+    private bool confirmarDescarte;
+    private bool confirmarEliminar;
+    private string mensajeModal = string.Empty;
+    private string resultadoLocal = string.Empty;
+
+    private void AbrirCrear()
+    {
+        resultadoLocal = string.Empty;
+        PrepararFormulario(new TipoDTO { Tipo = string.Empty, Descripcion = string.Empty }, Vista.Crear);
+    }
+
+    private void AbrirEditar()
+    {
+        if (modelo is not null)
+            PrepararFormulario(modelo, Vista.Editar);
+    }
+
+    private void PrepararFormulario(TipoDTO datos, Vista destino)
+    {
+        modelo = datos;
+        estadoInicial = (datos.Tipo, datos.Descripcion);
+        mensajeModal = string.Empty;
+        vista = destino;
+    }
+
+    private async Task AbrirDetalle(int id)
+    {
+        idSeleccionado = id;
+        vista = Vista.Detalle;
+        modelo = null;
+        mensajeModal = string.Empty;
+        ocupado = true;
+
+        try
+        {
+            var respuesta = await Http.Get<TipoDTO>($"api/tipoarea/{id}");
+            modelo = respuesta.Error ? null : respuesta.Respuesta;
+            if (modelo is null)
+                mensajeModal = respuesta.Error ? respuesta.ObtenerError() : "No se encontró el área.";
+        }
+        catch
+        {
+            mensajeModal = "No pudimos consultar el área. Intentá nuevamente.";
+        }
+        finally
+        {
+            ocupado = false;
+        }
+    }
+
+    private void SolicitarCerrar()
+    {
+        if (ocupado)
+            return;
+
+        if (modelo is not null && estadoInicial != (modelo.Tipo, modelo.Descripcion))
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        DescartarCambios();
+    }
+
+    private void DescartarCambios()
+    {
+        confirmarDescarte = false;
+        if (vista == Vista.Editar && modelo is not null)
+        {
+            modelo.Tipo = estadoInicial.Tipo ?? string.Empty;
+            modelo.Descripcion = estadoInicial.Descripcion ?? string.Empty;
+            mensajeModal = string.Empty;
+            vista = Vista.Detalle;
+            return;
+        }
+
+        CerrarModal();
+    }
+
+    private void CerrarModal()
+    {
+        if (ocupado || confirmarEliminar)
+            return;
+
+        vista = Vista.Ninguna;
+        modelo = null;
+        mensajeModal = string.Empty;
+    }
+
+    private async Task Guardar()
+    {
+        if (ocupado || modelo is null)
+            return;
+
+        var editando = vista == Vista.Editar;
+        ocupado = true;
+        mensajeModal = string.Empty;
+
+        try
+        {
+            if (editando)
+            {
+                var respuesta = await Http.Put<TipoDTO, RespuestaDTO>($"api/tipoarea/{idSeleccionado}", modelo);
+                if (respuesta.Error)
+                {
+                    mensajeModal = respuesta.ObtenerError();
+                    return;
+                }
+            }
+            else
+            {
+                var respuesta = await Http.Post<TipoDTO, int>("api/tipoarea", modelo);
+                if (respuesta.Error)
+                {
+                    mensajeModal = respuesta.ObtenerError();
+                    return;
+                }
+            }
+
+            vista = editando ? Vista.Detalle : Vista.Ninguna;
+            resultadoLocal = editando ? "actualizado" : "creado";
+            await Cargar();
+        }
+        catch
+        {
+            mensajeModal = "No pudimos guardar el área. Intentá nuevamente.";
+        }
+        finally
+        {
+            ocupado = false;
+        }
+    }
+
+    private void CerrarConfirmacionEliminar()
+    {
+        confirmarEliminar = false;
+        mensajeModal = string.Empty;
+    }
+
+    private async Task Eliminar()
+    {
+        if (ocupado)
+            return;
+
+        ocupado = true;
+        mensajeModal = string.Empty;
+
+        try
+        {
+            var respuesta = await Http.Delete($"api/tipoarea/{idSeleccionado}");
+            if (respuesta.Error)
+            {
+                mensajeModal = respuesta.ObtenerError();
+                return;
+            }
+
+            confirmarEliminar = false;
+            vista = Vista.Ninguna;
+            modelo = null;
+            resultadoLocal = "eliminado";
+            await Cargar();
+        }
+        catch
+        {
+            mensajeModal = "No pudimos eliminar el área. Intentá nuevamente.";
+        }
+        finally
+        {
+            ocupado = false;
+        }
+    }
+
     [SupplyParameterFromQuery(Name = "estado")]
     public string? Estado { get; set; }
 
@@ -123,7 +392,7 @@
     private string MensajeCarga = string.Empty;
     private bool cargando = true;
 
-    private string MensajeExito => Estado switch
+    private string MensajeExito => (string.IsNullOrEmpty(resultadoLocal) ? Estado : resultadoLocal) switch
     {
         "creado" => "Tipo de área creado correctamente.",
         "actualizado" => "Tipo de área actualizado correctamente.",
@@ -186,12 +455,6 @@
         if (rutaActual == $"tipoarea?estado={Estado}")
             Nav.NavigateTo("/tipoarea", replace: true);
     }
-
-    private void IrACrear() =>
-        Nav.NavigateTo("/tipoarea/crear");
-
-    private void IrAEditar(int id) =>
-        Nav.NavigateTo($"/tipoarea/editar/{id}");
 
     private void Volver() => Nav.NavigateTo("/admin");
 }

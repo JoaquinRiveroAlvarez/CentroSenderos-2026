@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="turnos-page" inert="@(salidaPendiente is not null)">
+<div class="turnos-page" inert="@(modalActual != ModalTurno.Ninguno)">
 
     <div class="page-header">
 
@@ -40,9 +40,7 @@
 
     </div>
 
-    <div class="catalogo-herramientas">
-        <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar tipo de turno" Placeholder="Buscar tipo de turno..." />
-    </div>
+    <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar tipo de turno" Placeholder="Buscar tipo de turno..." />
 
     @if (cargando)
     {
@@ -118,8 +116,8 @@
 
                 @foreach (var item in TurnosFiltrados)
                 {
-                    <div class="turno-row"
-                         @onclick="() => AbrirDetalle(item.Id)">
+                    <div class="turno-row" style="position: relative">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {item.Tipo}")" Abrir="() => AbrirDetalle(item.Id)" />
 
                         <div class="turno-info">
 
@@ -170,7 +168,7 @@
                         </div>
 
                         <div class="turno-action">
-                            <i class="bi bi-chevron-right"></i>
+                            
                         </div>
 
                     </div>
@@ -208,9 +206,7 @@
 
 @if (modalActual == ModalTurno.Detalle)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
-
-        <div class="admin-modal">
+    <ModalAdministracion Titulo="Detalle de tipo de turno" CerrarAlTocarFondo="true" Ocupado="@(cargandoDetalle || eliminando)" Inactivo="@mostrarConfirmacionEliminar" AlCerrar="SolicitarCerrarModal">
 
             @if (cargandoDetalle)
             {
@@ -226,44 +222,25 @@
             }
             else
             {
-                <div class="modal-header">
-
-                    <div>
-
-                        <h2>Detalle Tipo de Turno</h2>
-
-                        <p>
-                            Información del tipo de turno seleccionado.
-                        </p>
-
-                    </div>
-
-                    <button type="button"
-                            class="close-button"
-                            title="Cerrar"
-                            @onclick="SolicitarCerrarModal">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-
-                </div>
+                <div class="administracion-cuerpo">
 
                 <div class="detail-grid">
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>TIPO DE TURNO</label>
 
-                        <div class="detail-value">
+                        <div class="administracion-valor detail-value">
                             @MostrarValor(modelo.Tipo)
                         </div>
 
                     </div>
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>DESCRIPCIÓN</label>
 
-                        <div class="detail-value detail-value-large">
+                        <div class="administracion-valor detail-value detail-value-large">
 
                             @if (string.IsNullOrWhiteSpace(modelo.Descripcion))
                             {
@@ -278,7 +255,7 @@
 
                     </div>
 
-                    <div class="field-group field-duration">
+                    <div class="field-group administracion-campo field-duration">
 
                         <label>DURACIÓN</label>
 
@@ -300,7 +277,7 @@
 
                     </div>
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>PACIENTES</label>
 
@@ -314,61 +291,27 @@
 
                 </div>
 
-                <div class="modal-actions detail-actions">
-
-                    <button type="button"
-                            class="btn-cerrar"
-                            @onclick="SolicitarCerrarModal">
-                        Cerrar
-                    </button>
-
-                    <button type="button"
-                            class="btn-editar"
-                            @onclick="AbrirEditar">
-                        <i class="bi bi-pencil-square"></i>
-                        Editar
-                    </button>
-
                 </div>
+                <footer class="administracion-acciones">
+                    <button type="button" class="administracion-eliminar" @onclick="AbrirConfirmacionEliminar">Eliminar</button>
+                    <button type="button" @onclick="SolicitarCerrarModal">Cerrar</button>
+                    <button type="button" class="administracion-primario" @onclick="AbrirEditar">Editar</button>
+                </footer>
             }
 
-        </div>
-
-    </div>
+    </ModalAdministracion>
 }
 
 @* Modal Crear *@
 
 @if (modalActual == ModalTurno.Crear)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
+    <ModalAdministracion Titulo="Nuevo tipo de turno" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
 
-        <div class="admin-modal">
-
-            <div class="modal-header">
-
-                <div>
-
-                    <h2>Nuevo Tipo de Turno</h2>
-
-                    <p>
-                        Complete los datos del tipo de turno.
-                    </p>
-
-                </div>
-
-                <button type="button"
-                        class="close-button"
-                        disabled="@guardando"
-                        title="Cerrar"
-                        @onclick="SolicitarCerrarModal">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-
-            </div>
 
             <EditForm Model="@modelo"
-                      OnValidSubmit="CrearTurno">
+                      OnValidSubmit="CrearTurno" class="administracion-formulario">
+                <div class="administracion-cuerpo">
 
                 <DataAnnotationsValidator />
 
@@ -376,7 +319,7 @@
 
                 <div class="form-grid">
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>TIPO DE TURNO</label>
 
@@ -388,7 +331,7 @@
 
                     </div>
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>DESCRIPCIÓN</label>
 
@@ -400,7 +343,7 @@
 
                     </div>
 
-                    <div class="field-group field-duration">
+                    <div class="field-group administracion-campo field-duration">
 
                         <label>DURACIÓN</label>
 
@@ -423,7 +366,7 @@
 
                     </div>
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label class="tipo-turno-regla">
 
@@ -457,72 +400,29 @@
                     </div>
                 }
 
-                <div class="modal-actions">
-
-                    <button type="button"
-                            class="btn-cancelar"
-                            disabled="@guardando"
-                            @onclick="SolicitarCerrarModal">
-                        Cancelar
-                    </button>
-
-                    <button type="submit"
-                            class="btn-guardar"
-                            disabled="@guardando">
-
-                        @if (guardando)
-                        {
-                            <span class="spinner-border spinner-border-sm"></span>
-                            <span>Guardando...</span>
-                        }
-                        else
-                        {
-                            <span>Guardar</span>
-                        }
-
-                    </button>
-
                 </div>
+                <footer class="administracion-acciones">
+                    <button type="button" disabled="@guardando" @onclick="SolicitarCerrarModal">Cancelar</button>
+                    <button type="submit" class="administracion-primario" disabled="@guardando">
+                        @(guardando ? "Guardando…" : "Guardar")
+                    </button>
+                </footer>
 
             </EditForm>
 
-        </div>
-
-    </div>
+    </ModalAdministracion>
 }
 
 @* Modal Editar *@
 
 @if (modalActual == ModalTurno.Editar)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
+    <ModalAdministracion Titulo="Editar tipo de turno" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
 
-        <div class="admin-modal">
-
-            <div class="modal-header">
-
-                <div>
-
-                    <h2>Editar Tipo de Turno</h2>
-
-                    <p>
-                        Modifique los datos del tipo de turno.
-                    </p>
-
-                </div>
-
-                <button type="button"
-                        class="close-button"
-                        disabled="@guardando"
-                        title="Volver al detalle"
-                        @onclick="SolicitarCancelarEdicion">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-
-            </div>
 
             <EditForm Model="@modelo"
-                      OnValidSubmit="GuardarCambios">
+                      OnValidSubmit="GuardarCambios" class="administracion-formulario">
+                <div class="administracion-cuerpo">
 
                 <DataAnnotationsValidator />
 
@@ -530,7 +430,7 @@
 
                 <div class="form-grid">
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>TIPO DE TURNO</label>
 
@@ -542,7 +442,7 @@
 
                     </div>
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>DESCRIPCIÓN</label>
 
@@ -554,7 +454,7 @@
 
                     </div>
 
-                    <div class="field-group field-duration">
+                    <div class="field-group administracion-campo field-duration">
 
                         <label>DURACIÓN</label>
 
@@ -577,7 +477,7 @@
 
                     </div>
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label class="tipo-turno-regla">
 
@@ -611,104 +511,32 @@
                     </div>
                 }
 
-                <div class="modal-actions edit-actions">
-
-                    <button type="button"
-                            class="btn-eliminar"
-                            disabled="@guardando"
-                            @onclick="AbrirConfirmacionEliminar">
-                        <i class="bi bi-trash3"></i>
-                        Eliminar Tipo de Turno
-                    </button>
-
-                    <div class="right-actions">
-
-                        <button type="button"
-                                class="btn-cancelar"
-                                disabled="@guardando"
-                                @onclick="SolicitarCancelarEdicion">
-                            Cancelar
-                        </button>
-
-                        <button type="submit"
-                                class="btn-guardar"
-                                disabled="@guardando">
-
-                            @if (guardando)
-                            {
-                                <span class="spinner-border spinner-border-sm"></span>
-                                <span>Guardando...</span>
-                            }
-                            else
-                            {
-                                <span>Guardar Cambios</span>
-                            }
-
-                        </button>
-
-                    </div>
-
                 </div>
+                <footer class="administracion-acciones">
+                    <button type="button" disabled="@guardando" @onclick="SolicitarCancelarEdicion">Cancelar</button>
+                    <button type="submit" class="administracion-primario" disabled="@guardando">
+                        @(guardando ? "Guardando…" : "Guardar cambios")
+                    </button>
+                </footer>
 
             </EditForm>
 
-        </div>
-
-    </div>
+    </ModalAdministracion>
 }
 
 @* Confirmar eliminación *@
 
 @if (mostrarConfirmacionEliminar)
 {
-    <div class="delete-modal-overlay">
-
-        <div class="delete-modal">
-
-            <div class="delete-warning-icon">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-
-            <h2>
-                ¿Estás seguro que querés eliminar este tipo de turno?
-            </h2>
-
-            <p>
-                Esta acción no se puede deshacer.
-                El tipo de turno será eliminado definitivamente.
-            </p>
-
-            <div class="delete-modal-actions">
-
-                <button type="button"
-                        class="confirm-delete-button"
-                        disabled="@eliminando"
-                        @onclick="ConfirmarEliminar">
-
-                    @if (eliminando)
-                    {
-                        <span class="spinner-border spinner-border-sm"></span>
-                        <span>Eliminando...</span>
-                    }
-                    else
-                    {
-                        <span>Eliminar</span>
-                    }
-
-                </button>
-
-                <button type="button"
-                        class="modal-cancel-button"
-                        disabled="@eliminando"
-                        @onclick="CerrarConfirmacionEliminar">
-                    Cancelar
-                </button>
-
-            </div>
-
+    <ModalAdministracion Titulo="¿Eliminar este registro?" Ocupado="@eliminando" AlCerrar="CerrarConfirmacionEliminar">
+        <div class="administracion-cuerpo">
+            <p>Si confirmás, el registro dejará de estar disponible.</p>
         </div>
-
-    </div>
+        <footer class="administracion-acciones">
+            <button type="button" disabled="@eliminando" @onclick="CerrarConfirmacionEliminar">Cancelar</button>
+            <button type="button" class="administracion-peligro" disabled="@eliminando" @onclick="ConfirmarEliminar">@(eliminando ? "Eliminando…" : "Eliminar")</button>
+        </footer>
+    </ModalAdministracion>
 }
 
 @if (salidaPendiente is not null)

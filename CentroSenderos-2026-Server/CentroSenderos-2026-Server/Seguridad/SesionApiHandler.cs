@@ -8,6 +8,24 @@ namespace CentroSenderos_2026_Server.Seguridad;
 
 public sealed class SesionApiHandler : DelegatingHandler
 {
+    private static readonly PathString[] RutasProtegidas =
+    [
+        new("/api/paciente"),
+        new("/api/profesional"),
+        new("/api/turno"),
+        new("/api/seguridad"),
+        new("/api/socio"),
+        new("/api/tipoarea"),
+        new("/api/tipoconsultorio"),
+        new("/api/tipodiagnostico"),
+        new("/api/tipodocumento"),
+        new("/api/tipogasto"),
+        new("/api/tipoobrasocial"),
+        new("/api/tipoplanillas"),
+        new("/api/tipoprestacion"),
+        new("/api/tipoturno")
+    ];
+
     private readonly AuthenticationStateProvider autenticacion;
     private readonly Uri destino;
     private readonly string nombreCookie;
@@ -55,19 +73,8 @@ public sealed class SesionApiHandler : DelegatingHandler
                 "El cliente interno solo puede llamar al origen de su API.");
         }
 
-        var path = uri.AbsolutePath;
-
-        var consultaCatalogosTurnos = request.Method == HttpMethod.Get
-            && (path.Equals("/api/tipoturno/ListaTipoTurno", StringComparison.OrdinalIgnoreCase)
-                || path.Equals("/api/tipoconsultorio/ListaTipoConsultorio", StringComparison.OrdinalIgnoreCase));
-
-        var protegida = path.Equals("/api/paciente", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("/api/paciente/", StringComparison.OrdinalIgnoreCase)
-            || path.Equals("/api/profesional", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("/api/profesional/", StringComparison.OrdinalIgnoreCase)
-            || path.Equals("/api/turno", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("/api/turno/", StringComparison.OrdinalIgnoreCase)
-            || consultaCatalogosTurnos;
+        var path = new PathString(uri.AbsolutePath);
+        var protegida = RutasProtegidas.Any(ruta => path.StartsWithSegments(ruta));
 
         if (protegida)
         {

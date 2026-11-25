@@ -16,7 +16,6 @@
 
 .page-header {
     width: 100%;
-    max-width: 760px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
@@ -182,7 +181,6 @@
 
 .list-card {
     width: 100%;
-    max-width: 760px;
     margin: 0 auto;
     overflow: hidden;
     background: #fffdf9;
@@ -337,7 +335,6 @@
 
 .estado-card {
     width: 100%;
-    max-width: 760px;
     min-height: 270px;
     display: flex;
     flex-direction: column;
@@ -423,7 +420,6 @@
 
 .mensaje-error {
     width: 100%;
-    max-width: 760px;
     display: flex;
     align-items: center;
     gap: 9px;
@@ -1144,7 +1140,6 @@
 
 .catalogo-herramientas {
     width: 100%;
-    max-width: 760px;
     margin: 0 auto 20px;
 }
 

@@ -1,193 +1,323 @@
-﻿@page "/roles"
+@page "/roles"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Socio,admin,Calendario")]
 @using Microsoft.AspNetCore.Authorization
+@using System.Net.Http
 @using CentroSenderos_2026_Shared.DTO
 @inject IHttpServicio Http
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="roles-page" inert="@(salidaPendiente is not null)">
+<PageTitle>Gestión de roles | Centro Senderos</PageTitle>
 
-    <div class="page-header">
-        <div class="header-title">
-            <button type="button"
-                    class="back-button"
-                    @onclick="Volver">
-                <i class="bi bi-arrow-left"></i>
-                <span>Volver</span>
-            </button>
+<div class="roles-page" inert="@(usuarioSeleccionado is not null)">
+    <header class="page-header">
+        <button type="button" class="back-button" @onclick="Volver">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            Volver
+        </button>
+        <h1>Gestión de roles</h1>
+        <p>Consultá las cuentas del sistema y administrá sus roles.</p>
+    </header>
 
-            <h1>Gestión de Roles</h1>
-            <p>Asigná o remové roles a los usuarios del sistema.</p>
-        </div>
-
-        <div class="header-actions">
-            <div class="search-box">
-                <i class="bi bi-search"></i>
-                <input type="text"
-                       placeholder="Buscar usuario..."
-                       @bind="textoBusqueda"
-                       @bind:event="oninput" />
-            </div>
-        </div>
-    </div>
-
-    @if (!string.IsNullOrWhiteSpace(errorAccion))
-    {
-        <p role="alert">@errorAccion</p>
-    }
-
-    @if (!string.IsNullOrWhiteSpace(avisoAccion))
-    {
-        <p role="status">@avisoAccion</p>
-    }
-
-    @if (cuentaRestablecer is not null)
-    {
-        <section class="estado-card" aria-labelledby="titulo-restablecer">
-            <h2 id="titulo-restablecer">Restablecer contraseña de @cuentaRestablecer.Email</h2>
-            <EditForm Model="restablecimiento" OnValidSubmit="RestablecerContrasena">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-                <label for="nueva-contrasena">Nueva contraseña</label>
-                <InputText id="nueva-contrasena" type="password" autocomplete="new-password"
-                           @bind-Value="restablecimiento.NuevaContrasena" disabled="@guardando" />
-                <label for="confirmacion-contrasena">Confirmá la nueva contraseña</label>
-                <InputText id="confirmacion-contrasena" type="password" autocomplete="new-password"
-                           @bind-Value="restablecimiento.Confirmacion" disabled="@guardando" />
-                <button type="submit" class="btn-rol" disabled="@guardando">Guardar contraseña</button>
-                <button type="button" class="btn-rol" disabled="@guardando" @onclick="SolicitarCerrarRestablecimiento">Cancelar</button>
-            </EditForm>
-        </section>
-    }
+    <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar usuario"
+                           Placeholder="Buscar por correo electrónico…" />
 
     @if (cargando)
     {
-        <div class="estado-card">
-            <div class="spinner-border" role="status"></div>
-            <span>Cargando usuarios...</span>
-        </div>
+        <div class="state-card" role="status">Cargando usuarios…</div>
     }
-    else if (!string.IsNullOrWhiteSpace(Mensaje))
+    else if (!string.IsNullOrWhiteSpace(mensajeCarga))
     {
-        <div class="estado-card error">
-            <div class="estado-icon"><i class="bi bi-exclamation-circle"></i></div>
-            <h3>Error al cargar usuarios</h3>
-            <p>@Mensaje</p>
-            <button type="button"
-                    class="estado-button secundario"
-                    @onclick="CargarUsuarios">
-                <i class="bi bi-arrow-clockwise"></i>
+        <div class="state-card" role="alert">
+            <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+            <h2>Error al cargar usuarios</h2>
+            <p>@mensajeCarga</p>
+            <button type="button" class="state-button" @onclick="CargarUsuarios">
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
                 Reintentar
             </button>
         </div>
     }
-    else if (usuarios == null || usuarios.Count == 0)
+    else if (usuarios.Count == 0)
     {
-        <div class="estado-card">
-            <div class="estado-icon"><i class="bi bi-people"></i></div>
+        <div class="state-card">
+            <i class="bi bi-people" aria-hidden="true"></i>
             <h2>No hay usuarios registrados</h2>
-            <p>Actualmente no existen usuarios en el sistema.</p>
         </div>
     }
     else if (!UsuariosFiltrados.Any())
     {
-        <div class="estado-card">
-            <div class="estado-icon"><i class="bi bi-search"></i></div>
-            <h3>No encontramos resultados</h3>
-            <p>No hay usuarios que coincidan con <strong>"@textoBusqueda"</strong>.</p>
-            <button type="button"
-                    class="estado-button secundario"
-                    @onclick="LimpiarBusqueda">
-                <i class="bi bi-x-circle"></i>
-                Limpiar búsqueda
-            </button>
+        <div class="state-card">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <h2>Sin resultados</h2>
+            <p>Probá con otro correo electrónico.</p>
+            <BotonLimpiarFiltros AlLimpiar="LimpiarBusqueda" />
         </div>
     }
     else
     {
         <div class="list-card">
             <div class="list-header">
-                <div>EMAIL</div>
-                <div>ROLES</div>
-                <div>ACCIONES</div>
+                <span>Correo electrónico</span>
+                <span>Roles</span>
             </div>
-
-            <div class="list-body">
-                @foreach (var u in UsuariosFiltrados)
-                {
-                    <div class="socio-row">
-                        <div class="socio-nombre">@u.Email</div>
-                        <div class="socio-observacion">
-                            @(u.Roles.Any() ? string.Join(", ", u.Roles.Select(NombreRol)) : "Sin roles")
-                        </div>
-                        <div class="socio-action">
-                            @foreach (var (rol, nombre) in RolesDisponibles)
-                            {
-                                var asignado = u.Roles.Contains(rol, StringComparer.OrdinalIgnoreCase);
-                                if (rol is not ("Socio" or "admin") || PuedeGestionarPrivilegiados)
-                                {
-                                    <button type="button" class="btn-rol" disabled="@guardando"
-                                            @onclick="() => CambiarRol(u.Email, rol, asignado)">
-                                        @(asignado ? $"Quitar {nombre}" : $"Asignar {nombre}")
-                                    </button>
-                                }
-                            }
-                            @if (PuedeGestionarPrivilegiados)
-                            {
-                                <button type="button" class="btn-rol" disabled="@guardando"
-                                        @onclick="() => AbrirRestablecimiento(u)">Restablecer contraseña</button>
-                            }
-                        </div>
+            @foreach (var cuentaListado in UsuariosFiltrados)
+            {
+                <div class="user-row" @key="cuentaListado.Id">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {CorreoVisible(cuentaListado)}")"
+                                                 Abrir="() => AbrirDetalle(cuentaListado)" />
+                    <div class="user-email">
+                        <i class="bi bi-person-circle" aria-hidden="true"></i>
+                        <strong>@CorreoVisible(cuentaListado)</strong>
                     </div>
-                }
-            </div>
-
-            <div class="list-footer">
-                Mostrando <strong>@UsuariosFiltrados.Count()</strong> de <strong>@usuarios.Count</strong> usuarios
-            </div>
+                    <div class="role-badges">
+                        @if (cuentaListado.Roles.Count == 0)
+                        {
+                            <span class="muted">Sin roles</span>
+                        }
+                        @foreach (var rol in cuentaListado.Roles)
+                        {
+                            <span class="role-badge @ColorRol(rol)">@NombreRol(rol)</span>
+                        }
+                    </div>
+                </div>
+            }
+            <div class="list-footer">Mostrando @UsuariosFiltrados.Count() de @usuarios.Count usuarios</div>
         </div>
     }
 </div>
 
-@if (salidaPendiente is not null)
+@if (usuarioSeleccionado is { } cuenta)
 {
-    <ConfirmacionDescarte OnContinuar="SeguirEditando"
-                          OnDescartar="DescartarCambios" />
+    <ModalAdministracion Titulo="@TituloModal" CerrarAlTocarFondo="@(vista == Vista.Detalle)"
+                         Ocupado="@guardando" Inactivo="@confirmarDescarte" AlCerrar="SolicitarCerrar">
+        @if (vista == Vista.Contrasena)
+        {
+            <EditForm Model="restablecimiento" OnValidSubmit="RestablecerContrasena" class="administracion-formulario">
+                <DataAnnotationsValidator />
+                <div class="administracion-cuerpo">
+                    <dl class="administracion-campo"><dt>Correo electrónico</dt><dd>@CorreoVisible(cuenta)</dd></dl>
+                    <ValidationSummary />
+                    <div class="administracion-campo">
+                        <label for="nueva-contrasena">Nueva contraseña</label>
+                        <InputText id="nueva-contrasena" type="password" autocomplete="new-password"
+                                   @bind-Value="restablecimiento.NuevaContrasena" disabled="@guardando" />
+                    </div>
+                    <div class="administracion-campo">
+                        <label for="confirmacion-contrasena">Confirmá la nueva contraseña</label>
+                        <InputText id="confirmacion-contrasena" type="password" autocomplete="new-password"
+                                   @bind-Value="restablecimiento.Confirmacion" disabled="@guardando" />
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(errorAccion))
+                    {
+                        <p class="administracion-error" role="alert">@errorAccion</p>
+                    }
+                </div>
+                <footer class="administracion-acciones">
+                    <button type="button" disabled="@guardando" @onclick="SolicitarCerrar">Cancelar</button>
+                    <button type="submit" class="administracion-primario" disabled="@guardando">
+                        @(guardando ? "Guardando…" : "Guardar contraseña")
+                    </button>
+                </footer>
+            </EditForm>
+        }
+        else
+        {
+            <div class="administracion-cuerpo">
+                <dl class="administracion-campo"><dt>Correo electrónico</dt><dd>@CorreoVisible(cuenta)</dd></dl>
+
+                @if (vista == Vista.Detalle)
+                {
+                    <dl class="administracion-campo">
+                        <dt>Roles asignados</dt>
+                        <dd class="role-badges">
+                            @if (cuenta.Roles.Count == 0)
+                            {
+                                <span class="muted">Sin roles</span>
+                            }
+                            @foreach (var rol in cuenta.Roles)
+                            {
+                                <span class="role-badge @ColorRol(rol)">@NombreRol(rol)</span>
+                            }
+                        </dd>
+                    </dl>
+                }
+                else if (cambioPendiente is not null)
+                {
+                    <div class="role-warning">
+                        <strong>Se eliminarán las planillas privadas de esta cuenta.</strong>
+                        <p>Esta acción quita el rol Profesional. Las planillas eliminadas no se pueden recuperar desde la aplicación.</p>
+                    </div>
+                }
+                else
+                {
+                    <p class="role-hint">Los cambios de rol se guardan al aplicarlos.</p>
+                    <ul class="role-options">
+                        @foreach (var (rol, nombre) in RolesDisponibles)
+                        {
+                            var asignado = TieneRol(cuenta, rol);
+                            <li @key="rol">
+                                <div>
+                                    <strong class="role-badge @ColorRol(rol)">@nombre</strong>
+                                    <span class="role-badge @(asignado ? null : "role-badge-inactive")">
+                                        <i class="bi @(asignado ? "bi-check-circle-fill" : "bi-circle")" aria-hidden="true"></i>
+                                        @(asignado ? "Asignado" : "Sin asignar")
+                                    </span>
+                                </div>
+                                @if (PuedeGestionarRol(rol))
+                                {
+                                    <button type="button" class="role-button @(asignado ? "role-button-remove" : "role-button-assign")" disabled="@(guardando || !string.IsNullOrEmpty(mensajeCarga))"
+                                            aria-label="@(asignado ? $"Quitar rol {nombre}" : $"Asignar rol {nombre}")"
+                                            @onclick="() => SolicitarCambio(cuenta, rol, asignado)">
+                                        <i class="bi @(asignado ? "bi-dash-circle" : "bi-plus-circle")" aria-hidden="true"></i>
+                                        @(asignado ? "Quitar" : "Asignar")
+                                    </button>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(errorAccion))
+                {
+                    <p class="administracion-error" role="alert">@errorAccion</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(avisoAccion))
+                {
+                    <p class="role-notice" role="status">@avisoAccion</p>
+                }
+            </div>
+            <footer class="administracion-acciones">
+                @if (vista == Vista.Detalle)
+                {
+                    <button type="button" @onclick="SolicitarCerrar">Cerrar</button>
+                    @if (puedeGestionarPrivilegiados)
+                    {
+                        <button type="button" @onclick="() => AbrirRestablecimiento(cuenta)">Restablecer contraseña</button>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(cuenta.Email))
+                    {
+                        <button type="button" class="administracion-primario" @onclick="() => IrAVista(Vista.Roles)">Gestionar roles</button>
+                    }
+                }
+                else if (cambioPendiente is { } pendiente)
+                {
+                    <button type="button" disabled="@guardando" @onclick="CancelarCambio">Cancelar</button>
+                    <button type="button" class="administracion-peligro" disabled="@guardando"
+                            @onclick="() => CambiarRol(cuenta, pendiente.Rol, pendiente.Quitar)">
+                        @(guardando ? "Aplicando…" : "Confirmar cambio")
+                    </button>
+                }
+                else
+                {
+                    @if (!string.IsNullOrEmpty(mensajeCarga))
+                    {
+                        <button type="button" disabled="@guardando" @onclick="ActualizarRoles">Actualizar roles</button>
+                    }
+                    <button type="button" disabled="@guardando" @onclick="SolicitarCerrar">Volver al detalle</button>
+                }
+            </footer>
+        }
+    </ModalAdministracion>
+}
+
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false" OnDescartar="CerrarRestablecimiento" />
 }
 
 @code {
-    private Action? salidaPendiente;
-    [CascadingParameter]
-    private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState> EstadoAutenticacion { get; set; } = default!;
+    private enum Vista { Detalle, Roles, Contrasena }
 
     private static readonly (string Rol, string Nombre)[] RolesDisponibles =
         [("Socio", "Socio"), ("admin", "Admin"), ("Calendario", "Calendario"),
          ("equipo", "Equipo"), ("profesional", "Profesional")];
-    private bool PuedeGestionarPrivilegiados;
-    private bool guardando;
-    private string errorAccion = string.Empty;
 
-    private string avisoAccion = string.Empty;
-    private UsuarioDTO? cuentaRestablecer;
+    [CascadingParameter]
+    private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState> EstadoAutenticacion { get; set; } = default!;
+
+    private List<UsuarioDTO> usuarios = new();
+    private UsuarioDTO? usuarioSeleccionado;
     private RestablecerContrasenaDTO restablecimiento = new();
+    private (string Rol, bool Quitar)? cambioPendiente;
+    private Vista vista;
+    private bool puedeGestionarPrivilegiados;
+    private bool cargando = true;
+    private bool guardando;
+    private bool confirmarDescarte;
+    private string textoBusqueda = string.Empty;
+    private string mensajeCarga = string.Empty;
+    private string errorAccion = string.Empty;
+    private string avisoAccion = string.Empty;
+
+    private string TituloModal => vista switch
+    {
+        Vista.Contrasena => "Restablecer contraseña",
+        Vista.Roles when cambioPendiente is not null => "Confirmar cambio de rol",
+        Vista.Roles => "Gestionar roles",
+        _ => "Detalle del usuario"
+    };
+
+    private IEnumerable<UsuarioDTO> UsuariosFiltrados =>
+        usuarios.Where(cuenta => cuenta.Email.Contains(textoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        var usuario = (await EstadoAutenticacion).User;
+        puedeGestionarPrivilegiados = usuario.IsInRole("Socio") || usuario.IsInRole("admin");
+        await CargarUsuarios();
+    }
+
+    private async Task CargarUsuarios()
+    {
+        cargando = true;
+        mensajeCarga = string.Empty;
+        try
+        {
+            var respuesta = await Http.Get<List<UsuarioDTO>>("api/seguridad/usuarios");
+            if (respuesta.Error)
+                mensajeCarga = respuesta.ObtenerError();
+            else
+            {
+                usuarios = respuesta.Respuesta ?? new();
+                if (usuarioSeleccionado is { } cuentaActual)
+                    usuarioSeleccionado = usuarios.FirstOrDefault(item => item.Id == cuentaActual.Id);
+            }
+        }
+        catch (HttpRequestException)
+        {
+            mensajeCarga = "No se pudo conectar con el servidor.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void AbrirDetalle(UsuarioDTO cuenta)
+    {
+        usuarioSeleccionado = cuenta;
+        IrAVista(Vista.Detalle);
+    }
+
+    private void IrAVista(Vista destino)
+    {
+        vista = destino;
+        errorAccion = string.Empty;
+        avisoAccion = string.Empty;
+    }
 
     private void AbrirRestablecimiento(UsuarioDTO cuenta)
     {
-        errorAccion = string.Empty;
-        avisoAccion = string.Empty;
-        cuentaRestablecer = cuenta;
         restablecimiento = new() { UsuarioId = cuenta.Id };
-    }
-
-    private void CerrarRestablecimiento()
-    {
-        cuentaRestablecer = null;
-        restablecimiento = new();
+        IrAVista(Vista.Contrasena);
     }
 
     private async Task RestablecerContrasena()
     {
+        if (guardando)
+            return;
+
         guardando = true;
         errorAccion = string.Empty;
         try
@@ -200,8 +330,12 @@
                 return;
             }
 
-            avisoAccion = $"Se restableció la contraseña de {cuentaRestablecer?.Email}.";
             CerrarRestablecimiento();
+            avisoAccion = "Contraseña restablecida.";
+        }
+        catch (HttpRequestException)
+        {
+            errorAccion = "No se pudo verificar el restablecimiento. Volvé a intentarlo.";
         }
         finally
         {
@@ -211,50 +345,51 @@
         }
     }
 
-    private List<UsuarioDTO> usuarios = new();
-    private string textoBusqueda = string.Empty;
-    private bool cargando = true;
-    private string Mensaje = string.Empty;
-
-    private IEnumerable<UsuarioDTO> UsuariosFiltrados =>
-        string.IsNullOrWhiteSpace(textoBusqueda)
-            ? usuarios
-            : usuarios.Where(u => u.Email.Contains(textoBusqueda, StringComparison.OrdinalIgnoreCase));
-
-    protected override async Task OnInitializedAsync()
+    private Task SolicitarCambio(UsuarioDTO cuenta, string rol, bool quitar)
     {
-        var usuario = (await EstadoAutenticacion).User;
-        PuedeGestionarPrivilegiados = usuario.IsInRole("Socio") || usuario.IsInRole("admin");
-        await CargarUsuarios();
+        if (guardando || cambioPendiente is not null)
+            return Task.CompletedTask;
+
+        if ((quitar && rol == "profesional") || (!quitar && rol == "equipo" && TieneRol(cuenta, "profesional")))
+        {
+            errorAccion = string.Empty;
+            avisoAccion = string.Empty;
+            cambioPendiente = (rol, quitar);
+            return Task.CompletedTask;
+        }
+
+        return CambiarRol(cuenta, rol, quitar);
     }
 
-    private async Task CargarUsuarios()
+    private async Task CambiarRol(UsuarioDTO cuenta, string rol, bool quitar)
     {
-        cargando = true;
-        Mensaje = string.Empty;
+        if (guardando || !PuedeGestionarRol(rol))
+            return;
 
-        var resp = await Http.Get<List<UsuarioDTO>>("api/seguridad/usuarios");
-        if (!resp.Error && resp.Respuesta != null)
-            usuarios = resp.Respuesta;
-        else
-            Mensaje = resp.ObtenerError();
-
-        cargando = false;
-    }
-
-    private async Task CambiarRol(string email, string rol, bool asignado)
-    {
         guardando = true;
         errorAccion = string.Empty;
+        avisoAccion = string.Empty;
         try
         {
-            var operacion = asignado ? "removerRol" : "asignarRol";
-            var resp = await Http.Post<RolAsignacionDTO, string>(
-                $"api/seguridad/{operacion}", new RolAsignacionDTO { Email = email, Rol = rol });
-            if (resp.Error)
-                errorAccion = resp.ObtenerError();
-            else
-                await CargarUsuarios();
+            var operacion = quitar ? "removerRol" : "asignarRol";
+            var respuesta = await Http.Post<RolAsignacionDTO, string>(
+                $"api/seguridad/{operacion}", new RolAsignacionDTO { Email = cuenta.Email, Rol = rol });
+
+            if (respuesta.Error)
+            {
+                errorAccion = respuesta.ObtenerError();
+                return;
+            }
+
+            cambioPendiente = null;
+            avisoAccion = quitar ? $"Se quitó el rol {NombreRol(rol)}." : $"Se asignó el rol {NombreRol(rol)}.";
+            await RecargarRoles();
+        }
+        catch (HttpRequestException)
+        {
+            cambioPendiente = null;
+            await RecargarRoles();
+            errorAccion = "No se pudo confirmar el cambio. Revisá los roles antes de volver a intentarlo.";
         }
         finally
         {
@@ -262,46 +397,81 @@
         }
     }
 
-    private static string NombreRol(string rol)
+    private async Task ActualizarRoles()
     {
-        foreach (var opcion in RolesDisponibles)
-            if (string.Equals(opcion.Rol, rol, StringComparison.OrdinalIgnoreCase))
-                return opcion.Nombre;
-
-        return rol;
-    }
-
-    private void LimpiarBusqueda()
-    {
-        textoBusqueda = string.Empty;
-    }
-
-    private void SolicitarCerrarRestablecimiento() => SolicitarSalida(CerrarRestablecimiento);
-
-    private void Volver() => SolicitarSalida(() => Nav.NavigateTo("/admin"));
-
-    private void SolicitarSalida(Action salir)
-    {
-        if (guardando || salidaPendiente is not null)
-            return;
-
-        if (cuentaRestablecer is not null &&
-            (!string.IsNullOrEmpty(restablecimiento.NuevaContrasena) ||
-             !string.IsNullOrEmpty(restablecimiento.Confirmacion)))
+        guardando = true;
+        try
         {
-            salidaPendiente = salir;
-            return;
+            await RecargarRoles();
         }
-
-        salir();
+        finally
+        {
+            guardando = false;
+        }
     }
 
-    private void SeguirEditando() => salidaPendiente = null;
-
-    private void DescartarCambios()
+    private async Task RecargarRoles()
     {
-        var salir = salidaPendiente;
-        salidaPendiente = null;
-        salir?.Invoke();
+        await CargarUsuarios();
+        errorAccion = string.IsNullOrEmpty(mensajeCarga) ? string.Empty : "No se pudieron actualizar los roles en pantalla. " + mensajeCarga;
     }
+
+    private void SolicitarCerrar()
+    {
+        if (guardando || confirmarDescarte)
+            return;
+
+        if (vista == Vista.Contrasena)
+        {
+            if (!string.IsNullOrEmpty(restablecimiento.NuevaContrasena) || !string.IsNullOrEmpty(restablecimiento.Confirmacion))
+                confirmarDescarte = true;
+            else
+                CerrarRestablecimiento();
+        }
+        else if (cambioPendiente is not null)
+            CancelarCambio();
+        else if (vista == Vista.Roles)
+            IrAVista(Vista.Detalle);
+        else
+            usuarioSeleccionado = null;
+    }
+
+    private void CerrarRestablecimiento()
+    {
+        confirmarDescarte = false;
+        restablecimiento = new();
+        IrAVista(Vista.Detalle);
+    }
+
+    private void CancelarCambio()
+    {
+        cambioPendiente = null;
+        errorAccion = string.Empty;
+    }
+
+    private bool PuedeGestionarRol(string rol) =>
+        rol is not ("Socio" or "admin") || puedeGestionarPrivilegiados;
+
+    private static bool TieneRol(UsuarioDTO cuenta, string rol) =>
+        cuenta.Roles.Contains(rol, StringComparer.OrdinalIgnoreCase);
+
+    private static string NombreRol(string rol) =>
+        RolesDisponibles.FirstOrDefault(opcion => string.Equals(opcion.Rol, rol, StringComparison.OrdinalIgnoreCase)).Nombre ?? rol;
+
+    private static string ColorRol(string rol) => rol.ToLowerInvariant() switch
+    {
+        "socio" => "role-badge-socio",
+        "admin" => "role-badge-admin",
+        "calendario" => "role-badge-calendario",
+        "equipo" => "role-badge-equipo",
+        "profesional" => "role-badge-profesional",
+        _ => "role-badge-inactive"
+    };
+
+    private static string CorreoVisible(UsuarioDTO cuenta) =>
+        string.IsNullOrWhiteSpace(cuenta.Email) ? "Cuenta sin correo" : cuenta.Email;
+
+    private void LimpiarBusqueda() => textoBusqueda = string.Empty;
+
+    private void Volver() => Nav.NavigateTo("/admin");
 }
