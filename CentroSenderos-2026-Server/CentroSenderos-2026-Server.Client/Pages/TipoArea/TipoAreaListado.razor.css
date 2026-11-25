@@ -335,3 +335,11 @@
 }
 
 /* #endregion */
+
+/* #region Acción del estado vacío */
+
+.state-card > .new-button {
+    margin-top: 16px;
+}
+
+/* #endregion */

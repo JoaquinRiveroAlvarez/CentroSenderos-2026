@@ -33,15 +33,19 @@
     {
         <div class="state-card">Cargando tipos de planilla...</div>
     }
-    else if (lista.Count == 0)
+    else if (lista.Count == 0 && string.IsNullOrWhiteSpace(Mensaje))
     {
         <div class="state-card">
             <i class="bi bi-file-earmark-text"></i>
             <h2>No hay tipos de planilla registrados</h2>
             <p>Creá el primero para comenzar a organizarlos.</p>
+            <button type="button" class="new-button" @onclick="AbrirCrear">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                <span>Nuevo tipo</span>
+            </button>
         </div>
     }
-    else if (!TiposFiltrados.Any())
+    else if (lista.Count > 0 && !TiposFiltrados.Any())
     {
         <div class="state-card">
             <i class="bi bi-search"></i>
@@ -49,7 +53,7 @@
             <p>Probá con otro nombre o descripción.</p>
         </div>
     }
-    else
+    else if (lista.Count > 0)
     {
         <div class="list-card">
             <div class="list-header">

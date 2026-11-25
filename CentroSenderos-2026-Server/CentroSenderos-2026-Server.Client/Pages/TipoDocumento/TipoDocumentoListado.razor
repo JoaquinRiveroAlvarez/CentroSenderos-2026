@@ -62,6 +62,10 @@
             <i class="bi bi-file-earmark-text"></i>
             <h2>No hay tipos de documento registrados</h2>
             <p>Creá el primero para organizar los documentos de los pacientes.</p>
+            <button type="button" class="new-button" @onclick="AbrirCrear">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                <span>Nuevo tipo</span>
+            </button>
         </div>
     }
     else if (!DocumentosFiltrados.Any())

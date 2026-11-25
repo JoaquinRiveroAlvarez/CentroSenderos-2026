@@ -62,6 +62,10 @@
             <i class="bi bi-diagram-3"></i>
             <h2>No hay tipos de área registrados</h2>
             <p>Creá el primero para asignarlo a los profesionales.</p>
+            <button type="button" class="new-button" @onclick="AbrirCrear">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                <span>Nueva área</span>
+            </button>
         </div>
     }
     else if (!AreasFiltradas.Any())

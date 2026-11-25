@@ -58,7 +58,7 @@
 
         </div>
     }
-    else if (lista.Count == 0)
+    else if (lista.Count == 0 && string.IsNullOrWhiteSpace(Mensaje))
     {
         <div class="estado-card">
 
@@ -83,7 +83,7 @@
 
         </div>
     }
-    else if (!DiagnosticosFiltrados.Any())
+    else if (lista.Count > 0 && !DiagnosticosFiltrados.Any())
     {
         <div class="estado-card">
 
@@ -100,7 +100,7 @@
 
         </div>
     }
-    else
+    else if (lista.Count > 0)
     {
         <div class="list-card">
 

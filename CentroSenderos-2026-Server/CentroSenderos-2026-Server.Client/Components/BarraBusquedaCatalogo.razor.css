@@ -50,6 +50,18 @@
     min-width: 0;
 }
 
+@media (min-width: 601px) {
+    .catalogo-busqueda-con-filtros {
+        align-items: flex-end;
+    }
+
+    .catalogo-busqueda-con-filtros .catalogo-busqueda,
+    .catalogo-busqueda-con-filtros ::deep .limpiar-filtros-catalogo,
+    .catalogo-filtros-compartidos ::deep .selector-buscable-boton {
+        min-height: 43px;
+    }
+}
+
 @media (max-width: 600px) {
     .catalogo-filtros-compartidos {
         flex-basis: 100%;
