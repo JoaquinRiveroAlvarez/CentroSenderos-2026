@@ -113,7 +113,7 @@
 
 @if (vista == Vista.Detalle)
 {
-    <ModalAdministracion Titulo="Detalle de área" CerrarAlTocarFondo="true"
+    <ModalAdministracion Icono="bi-diagram-3" Titulo="Detalle de área" CerrarAlTocarFondo="true"
                          Ocupado="@ocupado" Inactivo="@confirmarEliminar" AlCerrar="CerrarModal">
         <div class="administracion-cuerpo">
             @if (ocupado)
@@ -150,7 +150,7 @@
 @if ((vista is Vista.Crear or Vista.Editar) && modelo is not null)
 {
     var editando = vista == Vista.Editar;
-    <ModalAdministracion IconoFormulario="bi-diagram-3" Titulo="@(editando ? "Editar área" : "Nueva área")"
+    <ModalAdministracion Icono="bi-diagram-3" Titulo="@(editando ? "Editar área" : "Nueva área")"
                          Ocupado="@ocupado" Inactivo="@confirmarDescarte" AlCerrar="SolicitarCerrar">
         <EditForm Model="@modelo" OnValidSubmit="Guardar" class="administracion-formulario">
             <DataAnnotationsValidator />

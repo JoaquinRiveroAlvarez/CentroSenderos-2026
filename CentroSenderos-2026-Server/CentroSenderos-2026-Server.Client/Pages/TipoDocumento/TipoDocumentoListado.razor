@@ -113,7 +113,7 @@
 
 @if (vista == Vista.Detalle)
 {
-    <ModalAdministracion Titulo="Detalle de tipo de documento" CerrarAlTocarFondo="true"
+    <ModalAdministracion Icono="bi-file-earmark-text" Titulo="Detalle de tipo de documento" CerrarAlTocarFondo="true"
                          Ocupado="@ocupado" Inactivo="@confirmarEliminar" AlCerrar="CerrarModal">
         <div class="administracion-cuerpo">
             @if (ocupado)
@@ -150,7 +150,7 @@
 @if ((vista is Vista.Crear or Vista.Editar) && modelo is not null)
 {
     var editando = vista == Vista.Editar;
-    <ModalAdministracion IconoFormulario="bi-file-earmark-text" Titulo="@(editando ? "Editar tipo de documento" : "Nuevo tipo de documento")"
+    <ModalAdministracion Icono="bi-file-earmark-text" Titulo="@(editando ? "Editar tipo de documento" : "Nuevo tipo de documento")"
                          Ocupado="@ocupado" Inactivo="@confirmarDescarte" AlCerrar="SolicitarCerrar">
         <EditForm Model="@modelo" OnValidSubmit="Guardar" class="administracion-formulario">
             <DataAnnotationsValidator />

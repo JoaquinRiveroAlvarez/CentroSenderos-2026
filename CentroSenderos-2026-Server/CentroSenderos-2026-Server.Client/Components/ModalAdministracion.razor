@@ -1,10 +1,10 @@
-<div class="administracion-fondo @(IconoFormulario is null ? null : "administracion-fondo-formulario")" inert="@Inactivo" @onclick="CerrarDesdeFondo">
+<div class="administracion-fondo @(Icono is null ? null : "administracion-fondo-ficha")" inert="@Inactivo" @onclick="CerrarDesdeFondo">
     <section class="administracion-modal" role="dialog" aria-modal="true"
              aria-labelledby="@idTitulo" @onclick:stopPropagation="true">
         <header class="administracion-cabecera">
-            @if (IconoFormulario is not null)
+            @if (Icono is not null)
             {
-                <span class="administracion-icono" aria-hidden="true"><i class="bi @IconoFormulario"></i></span>
+                <span class="administracion-icono" aria-hidden="true"><i class="bi @Icono"></i></span>
                 <div>
                     <span class="administracion-seccion">Administración</span>
                     <h2 id="@idTitulo">@Titulo</h2>
@@ -25,7 +25,7 @@
 
 @code {
     [Parameter, EditorRequired] public string Titulo { get; set; } = string.Empty;
-    [Parameter] public string? IconoFormulario { get; set; }
+    [Parameter] public string? Icono { get; set; }
     [Parameter] public bool CerrarAlTocarFondo { get; set; }
     [Parameter] public bool Ocupado { get; set; }
     [Parameter] public bool Inactivo { get; set; }

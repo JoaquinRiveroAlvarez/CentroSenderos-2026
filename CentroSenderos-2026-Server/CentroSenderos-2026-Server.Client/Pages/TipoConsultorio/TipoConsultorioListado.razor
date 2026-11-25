@@ -235,7 +235,7 @@
 
 @if (modalActual == ModalConsultorio.Detalle)
 {
-    <ModalAdministracion Titulo="Detalle de consultorio" CerrarAlTocarFondo="true" Ocupado="@(cargandoDetalle || eliminando)" Inactivo="@mostrarConfirmacionEliminar" AlCerrar="SolicitarCerrarModal">
+    <ModalAdministracion Icono="bi-door-open" Titulo="Detalle de consultorio" CerrarAlTocarFondo="true" Ocupado="@(cargandoDetalle || eliminando)" Inactivo="@mostrarConfirmacionEliminar" AlCerrar="SolicitarCerrarModal">
 
             @if (cargandoDetalle)
             {
@@ -324,7 +324,7 @@
 
 @if (modalActual == ModalConsultorio.Crear)
 {
-    <ModalAdministracion IconoFormulario="bi-door-open" Titulo="Nuevo consultorio" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
+    <ModalAdministracion Icono="bi-door-open" Titulo="Nuevo consultorio" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
 
 
 
@@ -416,7 +416,7 @@
 
 @if (modalActual == ModalConsultorio.Editar)
 {
-    <ModalAdministracion IconoFormulario="bi-door-open" Titulo="Editar consultorio" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
+    <ModalAdministracion Icono="bi-door-open" Titulo="Editar consultorio" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
 
 
 

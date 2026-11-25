@@ -196,7 +196,7 @@
 
 @if (modalActual == ModalObraSocial.Detalle)
 {
-    <ModalAdministracion Titulo="Detalle de obra social" CerrarAlTocarFondo="true"
+    <ModalAdministracion Icono="bi-shield-plus" Titulo="Detalle de obra social" CerrarAlTocarFondo="true"
                          Ocupado="@(cargandoDetalle || eliminando)" Inactivo="@mostrarConfirmacionEliminar"
                          AlCerrar="SolicitarCerrarModal">
         <div class="administracion-cuerpo">
@@ -229,7 +229,7 @@
 @if (modalActual is ModalObraSocial.Crear or ModalObraSocial.Editar)
 {
     var editando = modalActual == ModalObraSocial.Editar;
-    <ModalAdministracion IconoFormulario="bi-shield-plus" Titulo="@(editando ? "Editar obra social" : "Nueva obra social")"
+    <ModalAdministracion Icono="bi-shield-plus" Titulo="@(editando ? "Editar obra social" : "Nueva obra social")"
                          Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)"
                          AlCerrar="CerrarFormulario">
         <EditForm Model="@modelo" OnValidSubmit="GuardarFormulario" class="administracion-formulario">
