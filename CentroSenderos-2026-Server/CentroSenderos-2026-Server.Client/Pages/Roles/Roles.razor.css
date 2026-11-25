@@ -160,6 +160,36 @@
     overflow-wrap: anywhere;
 }
 
+.role-badge-socio {
+    border-color: #d0ddc5;
+    background: #e8efdf;
+    color: #3e5630;
+}
+
+.role-badge-admin {
+    border-color: #d8c6e4;
+    background: #f0e7f6;
+    color: #603a73;
+}
+
+.role-badge-calendario {
+    border-color: #bfd7e8;
+    background: #e6f1fa;
+    color: #295878;
+}
+
+.role-badge-equipo {
+    border-color: #b7dcd6;
+    background: #e0f2ee;
+    color: #215d56;
+}
+
+.role-badge-profesional {
+    border-color: #ebc9b7;
+    background: #f9ebe1;
+    color: #7c482f;
+}
+
 .role-badge-inactive {
     border-color: #e5d2a3;
     background: #fff2d6;
