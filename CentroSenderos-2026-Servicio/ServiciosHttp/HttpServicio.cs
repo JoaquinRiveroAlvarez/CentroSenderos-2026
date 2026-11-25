@@ -132,14 +132,45 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
         {
             if (string.IsNullOrWhiteSpace(raw)) return null;
             var trimmed = raw.Trim();
-            if (trimmed.StartsWith("\"") && trimmed.EndsWith("\"") && trimmed.Length >= 2)
-            {
-                trimmed = trimmed.Substring(1, trimmed.Length - 2);
-            }
-            // Una página de error o de inicio de sesión no es un mensaje de la API.
-            // Se utiliza el mensaje correspondiente al estado HTTP, sin mostrar HTML.
             if (trimmed.StartsWith("<", StringComparison.Ordinal)) return null;
-            return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
+
+            if (trimmed[0] is not ('{' or '[' or '"'))
+                return trimmed;
+
+            try
+            {
+                using var documento = JsonDocument.Parse(trimmed);
+                var raiz = documento.RootElement;
+                if (raiz.ValueKind == JsonValueKind.String)
+                    return raiz.GetString();
+
+                if (raiz.ValueKind != JsonValueKind.Object)
+                    return null;
+
+                if (raiz.TryGetProperty("errors", out var errores) && errores.ValueKind == JsonValueKind.Object)
+                {
+                    var mensajes = errores.EnumerateObject()
+                        .Where(campo => campo.Value.ValueKind == JsonValueKind.Array)
+                        .SelectMany(campo => campo.Value.EnumerateArray())
+                        .Where(mensaje => mensaje.ValueKind == JsonValueKind.String)
+                        .Select(mensaje => mensaje.GetString())
+                        .Where(mensaje => !string.IsNullOrWhiteSpace(mensaje))
+                        .Distinct();
+                    return string.Join("\n", mensajes);
+                }
+
+                foreach (var propiedad in new[] { "mensaje", "detail", "message" })
+                {
+                    if (raiz.TryGetProperty(propiedad, out var mensaje) && mensaje.ValueKind == JsonValueKind.String)
+                        return mensaje.GetString();
+                }
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+
+            return null;
         }
 
         private async Task<T?> DesSerializar<T>(HttpResponseMessage response)

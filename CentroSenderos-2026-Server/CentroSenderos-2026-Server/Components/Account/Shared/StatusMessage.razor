@@ -1,9 +1,8 @@
-﻿@if (!string.IsNullOrEmpty(DisplayMessage))
+@if (!string.IsNullOrEmpty(DisplayMessage))
 {
-    var statusMessageClass = DisplayMessage.StartsWith("Error") ? "danger" : "success";
-    <div class="alert alert-@statusMessageClass" role="alert">
-        @DisplayMessage
-    </div>
+    var esError = DisplayMessage.StartsWith("Error", StringComparison.OrdinalIgnoreCase);
+    <CentroSenderos_2026_Server.Client.Components.AvisoSenderos
+        Mensaje="@(esError ? DisplayMessage[5..].TrimStart(':', ' ') : DisplayMessage)" Exito="@(!esError)" />
 }
 
 @code {

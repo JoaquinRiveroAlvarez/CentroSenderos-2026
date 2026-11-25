@@ -11,6 +11,7 @@ using Microsoft.OpenApi;
 using CentroSenderos_2026_Server.Seguridad;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
+using CentroSenderos_2026_Shared.DTO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -99,13 +100,19 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<MiUsuario>(options =>
 {
+    options.Password.RequiredLength = RequisitosContrasena.Minimo;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireDigit = true;
+    options.Password.RequireNonAlphanumeric = true;
     options.SignIn.RequireConfirmedAccount = false;
     options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
 })
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddSignInManager()
-.AddDefaultTokenProviders();
+.AddDefaultTokenProviders()
+.AddErrorDescriber<ErroresIdentityEnEspanol>();
 
 // Identity revalida la cuenta y reconstruye los roles en la siguiente solicitud.
 builder.Services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.Zero);

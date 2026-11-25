@@ -32,28 +32,26 @@ namespace CentroSenderos_2026_Servicio.ServiciosHttp
                 return string.Empty;
             }
 
-            if (!string.IsNullOrWhiteSpace(MensajeErrorServidor))
-            {
-                return MensajeErrorServidor;
-            }
-
             var statuscode = HttpResponseMessage.StatusCode;
 
             if ((int)statuscode >= 500)
                 return "El servidor no pudo completar la solicitud. Intentá nuevamente. Si continúa, avisá a administración.";
+
+            if (!string.IsNullOrWhiteSpace(MensajeErrorServidor))
+                return MensajeErrorServidor;
 
             switch (statuscode)
             {
                 case HttpStatusCode.NotFound:
                     return "No hay datos disponibles.";
                 case HttpStatusCode.Unauthorized:
-                    return "No está logueado.";
+                    return "Iniciá sesión para continuar.";
                 case HttpStatusCode.Forbidden:
-                    return "No tiene autorización a ejecutar este proceso.";
+                    return "Tu cuenta no tiene permiso para realizar esta acción.";
                 case HttpStatusCode.BadRequest:
-                    return "No se pudo procesar la información.";
+                    return "Revisá los datos ingresados e intentá nuevamente.";
                 default:
-                    return $"Error en la llamada HTTP. Código de estado: {statuscode}";
+                    return "No pudimos completar la solicitud. Intentá nuevamente.";
             }
         }
     }

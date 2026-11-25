@@ -123,7 +123,17 @@ namespace CentroSenderos_2026_Server.Controllers
             var token = await _userManager.GeneratePasswordResetTokenAsync(usuario);
             var resultado = await _userManager.ResetPasswordAsync(usuario, token, dto.NuevaContrasena);
             if (!resultado.Succeeded)
-                return BadRequest(string.Join(" ", resultado.Errors.Select(error => error.Description)));
+            {
+                foreach (var error in resultado.Errors)
+                {
+                    var campo = error.Code.StartsWith("Password", StringComparison.Ordinal)
+                        ? nameof(RestablecerContrasenaDTO.NuevaContrasena)
+                        : string.Empty;
+                    ModelState.AddModelError(campo, error.Description);
+                }
+
+                return ValidationProblem(ModelState);
+            }
 
             return NoContent();
         }
@@ -142,7 +152,7 @@ namespace CentroSenderos_2026_Server.Controllers
             if (usuario == null) return NotFound("Usuario no encontrado");
 
             var resultado = await AsignacionRoles.QuitarAsync(_context, _userManager, usuario, rol);
-            if (!resultado.Succeeded) return BadRequest(resultado.Errors);
+            if (!resultado.Succeeded) return BadRequest(string.Join(" ", resultado.Errors.Select(error => error.Description)));
 
             return Ok();
         }

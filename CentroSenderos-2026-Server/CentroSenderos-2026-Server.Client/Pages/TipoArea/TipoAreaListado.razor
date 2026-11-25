@@ -31,10 +31,7 @@
 
     @if (!string.IsNullOrWhiteSpace(MensajeExito))
     {
-        <div class="success-message" role="status">
-            <i class="bi bi-check-circle-fill"></i>
-            <span>@MensajeExito</span>
-        </div>
+        <AvisoSenderos Mensaje="@MensajeExito" Exito="true" />
     }
 
     @if (cargando)
@@ -72,7 +69,7 @@
     {
         <div class="state-card">
             <i class="bi bi-search"></i>
-            <h2>Sin resultados</h2>
+            <h2>No encontramos coincidencias</h2>
             <p>Probá con otro nombre o descripción.</p>
         </div>
     }
@@ -127,7 +124,7 @@
             }
             @if (!string.IsNullOrWhiteSpace(mensajeModal))
             {
-                <p class="administracion-error" role="alert">@mensajeModal</p>
+                <AvisoSenderos Mensaje="@mensajeModal" />
             }
         </div>
         @if (!ocupado)
@@ -168,7 +165,7 @@
                 </div>
                 @if (!string.IsNullOrWhiteSpace(mensajeModal))
                 {
-                    <p class="administracion-error" role="alert">@mensajeModal</p>
+                    <AvisoSenderos Mensaje="@mensajeModal" />
                 }
             </div>
             <footer class="administracion-acciones">
@@ -188,7 +185,7 @@
             <p>El área <strong>@modelo?.Tipo</strong> dejará de estar disponible.</p>
             @if (!string.IsNullOrWhiteSpace(mensajeModal))
             {
-                <p class="administracion-error" role="alert">@mensajeModal</p>
+                <AvisoSenderos Mensaje="@mensajeModal" />
             }
         </div>
         <footer class="administracion-acciones">
