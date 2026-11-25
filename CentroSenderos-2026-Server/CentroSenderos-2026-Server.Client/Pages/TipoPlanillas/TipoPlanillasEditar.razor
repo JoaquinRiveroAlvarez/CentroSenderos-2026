@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="editar-planilla-page">
+<div class="editar-planilla-page" inert="@confirmarDescarte">
 
     <button type="button"
             class="back-button"
@@ -153,6 +153,12 @@
     </div>
 }
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
     [Parameter]
     public int id { get; set; }
@@ -166,6 +172,7 @@
     private bool cargando = true;
     private bool errorCarga;
     private bool guardando;
+    private bool confirmarDescarte;
     private bool eliminando;
     private bool mostrarConfirmacionEliminar;
 
@@ -179,6 +186,7 @@
         if (!resp.Error && resp.Respuesta != null)
         {
             modelo = resp.Respuesta;
+            estadoInicial = (modelo.Tipo, modelo.Descripcion);
         }
         else
         {
@@ -248,7 +256,25 @@
         }
     }
 
-    private void Cancelar() => Nav.NavigateTo("/tipoplanillas");
+    private (string Tipo, string Descripcion)? estadoInicial;
+    private bool TieneCambios => estadoInicial is { } inicial &&
+        inicial != (modelo.Tipo, modelo.Descripcion);
 
-    private void Volver() => Nav.NavigateTo("/tipoplanillas");
+    private void Cancelar() => Volver();
+
+    private void Volver()
+    {
+        if (guardando || confirmarDescarte || eliminando || mostrarConfirmacionEliminar)
+            return;
+
+        if (TieneCambios)
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
+    }
+
+    private void SalirDelFormulario() => Nav.NavigateTo("/tipoplanillas");
 }

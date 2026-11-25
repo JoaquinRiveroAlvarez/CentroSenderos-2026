@@ -8,7 +8,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="crear-planilla-page">
+<div class="crear-planilla-page" inert="@confirmarDescarte">
 
     <button type="button"
             class="back-button"
@@ -208,6 +208,13 @@
                Etiqueta="tipo de planilla"
                Creado="TipoPlanillaCreado" />
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte Mensaje="Se perderán los cambios y la selección del PDF que todavía no guardaste."
+                          OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
     #region Tipo de planilla
 
@@ -269,6 +276,7 @@
 
     private bool cargando = true;
     private bool guardando;
+    private bool confirmarDescarte;
 
     private string Mensaje = string.Empty;
     private string MensajeArchivo = string.Empty;
@@ -276,6 +284,7 @@
     protected override async Task OnParametersSetAsync()
     {
         cargando = true;
+        confirmarDescarte = false;
         nombre = descripcion = Mensaje = MensajeArchivo = string.Empty;
         tiposPlanilla.Clear();
         tipoPlanillaId = 0;
@@ -424,15 +433,24 @@
         }
     }
 
-    private void Cancelar()
-    {
-        if (!guardando)
-            Nav.NavigateTo(Regreso);
-    }
+    private bool TieneCambios => nombre.Length > 0 || descripcion.Length > 0 ||
+        tipoPlanillaId != 0 || privada || archivo is not null;
+
+    private void Cancelar() => Volver();
 
     private void Volver()
     {
-        if (!guardando)
-            Nav.NavigateTo(Regreso);
+        if (guardando || confirmarDescarte)
+            return;
+
+        if (TieneCambios)
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
     }
+
+    private void SalirDelFormulario() => Nav.NavigateTo(Regreso);
 }

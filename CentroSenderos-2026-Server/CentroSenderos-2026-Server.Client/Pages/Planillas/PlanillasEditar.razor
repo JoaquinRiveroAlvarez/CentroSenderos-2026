@@ -8,7 +8,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="editar-planilla-page">
+<div class="editar-planilla-page" inert="@confirmarDescarte">
 
     <button type="button"
             class="back-button"
@@ -216,6 +216,13 @@
                Etiqueta="tipo de planilla"
                Creado="TipoPlanillaCreado" />
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte Mensaje="Se perderán los cambios y la selección del PDF que todavía no guardaste."
+                          OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
     #region Tipo de planilla
 
@@ -270,6 +277,7 @@
 
     private bool cargando = true;
     private bool guardando;
+    private bool confirmarDescarte;
 
     private string Mensaje = string.Empty;
     private string MensajeArchivo = string.Empty;
@@ -278,6 +286,8 @@
     {
         cargando = true;
         actual = null;
+        estadoInicial = null;
+        confirmarDescarte = false;
         tiposPlanilla.Clear();
         nombre = descripcion = Mensaje = MensajeArchivo = string.Empty;
         tipoPlanillaId = 0;
@@ -310,6 +320,7 @@
             nombre = actual.Nombre;
             descripcion = actual.Descripcion;
             tipoPlanillaId = actual.TipoPlanillaId;
+            estadoInicial = (nombre, descripcion, tipoPlanillaId);
             if (tiposPlanilla.All(t => t.Id != actual.TipoPlanillaId))
                 tiposPlanilla.Add(new TipoListadoDTO { Id = actual.TipoPlanillaId, Tipo = actual.TipoPlanillaNombre });
         }
@@ -437,15 +448,25 @@
         }
     }
 
-    private void Cancelar()
-    {
-        if (!guardando)
-            Nav.NavigateTo(Regreso);
-    }
+    private (string Nombre, string Descripcion, int TipoId)? estadoInicial;
+    private bool TieneCambios => estadoInicial is { } inicial &&
+        (inicial != (nombre, descripcion, tipoPlanillaId) || archivo is not null);
+
+    private void Cancelar() => Volver();
 
     private void Volver()
     {
-        if (!guardando)
-            Nav.NavigateTo(Regreso);
+        if (guardando || confirmarDescarte || confirmarReemplazo)
+            return;
+
+        if (TieneCambios)
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
     }
+
+    private void SalirDelFormulario() => Nav.NavigateTo(Regreso);
 }
