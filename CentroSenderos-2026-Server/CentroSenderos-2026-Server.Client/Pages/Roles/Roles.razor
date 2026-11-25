@@ -109,13 +109,13 @@
     }
 </div>
 
-@if (correoSeleccionado is { } correo && usuarios.FirstOrDefault(item => item.Email == correo) is { } u)
+@if (correoSeleccionado is { } correo && usuarios.FirstOrDefault(item => item.Email == correo) is { } usuarioDetalle)
 {
     <ModalAdministracion Titulo="Detalle del usuario" CerrarAlTocarFondo="@(cuentaRestablecer is null)"
                          Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarDetalle">
         <div class="administracion-cuerpo">
-            <dl class="administracion-campo"><dt>Correo electrónico</dt><dd>@u.Email</dd></dl>
-            <dl class="administracion-campo"><dt>Roles</dt><dd>@(u.Roles.Any() ? string.Join(", ", u.Roles.Select(NombreRol)) : "Sin roles")</dd></dl>
+            <dl class="administracion-campo"><dt>Correo electrónico</dt><dd>@usuarioDetalle.Email</dd></dl>
+            <dl class="administracion-campo"><dt>Roles</dt><dd>@(usuarioDetalle.Roles.Any() ? string.Join(", ", usuarioDetalle.Roles.Select(NombreRol)) : "Sin roles")</dd></dl>
             @if (!string.IsNullOrWhiteSpace(errorAccion))
             {
                 <p class="administracion-error" role="alert">@errorAccion</p>
@@ -129,11 +129,11 @@
                 <div class="socio-action">
                     @foreach (var (rol, nombre) in RolesDisponibles)
                     {
-                        var asignado = u.Roles.Contains(rol, StringComparer.OrdinalIgnoreCase);
+                        var asignado = usuarioDetalle.Roles.Contains(rol, StringComparer.OrdinalIgnoreCase);
                         if (rol is not ("Socio" or "admin") || PuedeGestionarPrivilegiados)
                         {
                             <button type="button" class="btn-rol" disabled="@guardando"
-                                    @onclick="() => CambiarRol(u.Email, rol, asignado)">
+                                    @onclick="() => CambiarRol(usuarioDetalle.Email, rol, asignado)">
                                 @(asignado ? $"Quitar {nombre}" : $"Asignar {nombre}")
                             </button>
                         }
@@ -141,7 +141,7 @@
                     @if (PuedeGestionarPrivilegiados)
                     {
                         <button type="button" class="btn-rol" disabled="@guardando"
-                                @onclick="() => AbrirRestablecimiento(u)">Restablecer contraseña</button>
+                                @onclick="() => AbrirRestablecimiento(usuarioDetalle)">Restablecer contraseña</button>
                     }
                 </div>
             }
