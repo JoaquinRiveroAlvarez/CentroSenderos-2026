@@ -1,0 +1,39 @@
+<div class="confirmacion-fondo">
+    <section class="confirmacion-descarte" role="alertdialog" aria-modal="true"
+             aria-label="¿Descartar los cambios?" aria-describedby="@idMensaje"
+             @onkeydown="ManejarTecla">
+        <div class="confirmacion-mensaje">
+            <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+            <div>
+                <strong>¿Descartar los cambios?</strong>
+                <p id="@idMensaje">@Mensaje</p>
+            </div>
+        </div>
+        <div class="confirmacion-acciones">
+            <button type="button" class="continuar" @ref="botonContinuar" @onclick="OnContinuar">
+                Seguir editando
+            </button>
+            <button type="button" class="descartar" @onclick="OnDescartar">
+                Descartar cambios
+            </button>
+        </div>
+    </section>
+</div>
+
+@code {
+    [Parameter] public string Mensaje { get; set; } = "Se perderán los cambios que todavía no guardaste.";
+    [Parameter] public EventCallback OnContinuar { get; set; }
+    [Parameter] public EventCallback OnDescartar { get; set; }
+
+    private readonly string idMensaje = $"descarte-{Guid.NewGuid():N}";
+    private ElementReference botonContinuar;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await botonContinuar.FocusAsync();
+    }
+
+    private Task ManejarTecla(KeyboardEventArgs evento) =>
+        evento.Key == "Escape" ? OnContinuar.InvokeAsync() : Task.CompletedTask;
+}
