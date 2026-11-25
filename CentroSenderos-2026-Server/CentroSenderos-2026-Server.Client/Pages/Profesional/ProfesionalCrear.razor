@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="crear-profesional-page">
+<div class="crear-profesional-page" inert="@confirmarDescarte">
 
     <button type="button"
             class="back-button"
@@ -233,6 +233,12 @@
 
 <CrearCatalogo @ref="tipoprestacionModal" Recurso="tipoprestacion" Etiqueta="prestación" Creado="PrestacionCreada" />
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
     #region Opciones de los buscadores
 
@@ -298,6 +304,8 @@
     private int? prestacionSeleccionadaId;
 
     private bool guardando;
+    private bool confirmarDescarte;
+    private string? estadoInicial;
     private string Mensaje = string.Empty;
 
     private IEnumerable<TipoPrestacionListadoDTO> PrestacionesDisponibles =>
@@ -308,6 +316,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        estadoInicial = CapturarEstado();
         await CargarTipoPrestaciones();
     }
 
@@ -386,13 +395,37 @@
         );
     }
 
-    private void Cancelar()
+    private string CapturarEstado() => System.Text.Json.JsonSerializer.Serialize(new
     {
-        Nav.NavigateTo(ContextoListado);
-    }
+        modelo.Nombre,
+        modelo.Cuit,
+        modelo.RNP,
+        modelo.Telefono,
+        modelo.Email,
+        modelo.RolAsignado,
+        Prestaciones = modelo.TipoPrestacionIds.OrderBy(id => id)
+            .Select(id => new
+            {
+                Id = id,
+                Matricula = modelo.MatriculasPorPrestacion.GetValueOrDefault(id) ?? string.Empty
+            })
+    });
+
+    private void Cancelar() => Volver();
 
     private void Volver()
     {
-        Nav.NavigateTo(ContextoListado);
+        if (guardando || confirmarDescarte)
+            return;
+
+        if (estadoInicial is not null && estadoInicial != CapturarEstado())
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
     }
+
+    private void SalirDelFormulario() => Nav.NavigateTo(ContextoListado);
 }

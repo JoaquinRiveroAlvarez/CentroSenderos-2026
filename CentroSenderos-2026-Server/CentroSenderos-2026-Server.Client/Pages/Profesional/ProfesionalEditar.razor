@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="editar-profesional-page">
+<div class="editar-profesional-page" inert="@confirmarDescarte">
 
     <button type="button"
             class="back-button"
@@ -291,6 +291,12 @@
 
 <CrearCatalogo @ref="tipoprestacionModal" Recurso="tipoprestacion" Etiqueta="prestación" Creado="PrestacionCreada" />
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="SalirDelFormulario" />
+}
+
 @code {
     #region Opciones de los buscadores
 
@@ -365,6 +371,8 @@
     private bool cargando = true;
     private bool errorCarga;
     private bool guardando;
+    private bool confirmarDescarte;
+    private string? estadoInicial;
     private bool eliminando;
     private bool mostrarConfirmacionEliminar;
 
@@ -385,6 +393,8 @@
     private async Task CargarDatos()
     {
         cargando = true;
+        estadoInicial = null;
+        confirmarDescarte = false;
         errorCarga = false;
         mostrarConfirmacionEliminar = false;
         Mensaje = string.Empty;
@@ -441,6 +451,9 @@
         }
         finally
         {
+            if (!errorCarga)
+                estadoInicial = CapturarEstado();
+
             cargando = false;
         }
     }
@@ -566,15 +579,39 @@
         };
     }
 
-    private void Cancelar()
+    private string CapturarEstado() => System.Text.Json.JsonSerializer.Serialize(new
     {
-        Nav.NavigateTo(UrlFicha);
-    }
+        modelo.Nombre,
+        modelo.Cuit,
+        modelo.RNP,
+        modelo.Telefono,
+        modelo.Email,
+        modelo.RolAsignado,
+        Prestaciones = modelo.TipoPrestacionIds.OrderBy(id => id)
+            .Select(id => new
+            {
+                Id = id,
+                Matricula = modelo.MatriculasPorPrestacion.GetValueOrDefault(id) ?? string.Empty
+            })
+    });
+
+    private void Cancelar() => Volver();
 
     private void Volver()
     {
-        Nav.NavigateTo(UrlFicha);
+        if (guardando || eliminando || confirmarDescarte)
+            return;
+
+        if (estadoInicial is not null && estadoInicial != CapturarEstado())
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        SalirDelFormulario();
     }
+
+    private void SalirDelFormulario() => Nav.NavigateTo(UrlFicha);
 
     private static ProfesionalDTO CrearModeloVacio()
     {
