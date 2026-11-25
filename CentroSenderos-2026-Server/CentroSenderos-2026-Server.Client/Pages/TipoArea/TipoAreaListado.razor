@@ -78,12 +78,13 @@
             <div class="list-header">
                 <span>Área</span>
                 <span>Descripción</span>
-                <span class="actions-heading">Acción</span>
+                <span aria-hidden="true"></span>
             </div>
 
             @foreach (var area in AreasFiltradas)
             {
-                <div class="area-row" @key="area.Id">
+                <div class="area-row" style="position: relative" @key="area.Id">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {area.Tipo}")" Abrir="() => AbrirDetalle(area.Id)" />
                     <div class="area-name">
                         <i class="bi bi-diagram-3"></i>
                         <strong>@area.Tipo</strong>
@@ -95,15 +96,7 @@
                             : area.Descripcion)
                     </div>
 
-                    <div class="area-actions">
-                        <button type="button"
-                                class="edit-button"
-                                title="Ver detalle"
-                                aria-label="@($"Ver detalle de {area.Tipo}")"
-                                @onclick="() => AbrirDetalle(area.Id)">
-                            <i class="bi bi-eye" aria-hidden="true"></i>
-                        </button>
-                    </div>
+                    <div class="area-actions" aria-hidden="true"></div>
                 </div>
             }
 

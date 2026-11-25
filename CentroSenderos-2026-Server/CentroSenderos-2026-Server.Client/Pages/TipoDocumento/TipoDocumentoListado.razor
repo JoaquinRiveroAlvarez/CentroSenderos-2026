@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="documentos-page">
+<div class="documentos-page" inert="@(seleccionado is not null)">
     <div class="page-header">
         <div>
 
@@ -78,12 +78,13 @@
             <div class="list-header">
                 <span>Tipo de documento</span>
                 <span>Descripción</span>
-                <span class="actions-heading">Acción</span>
+                <span aria-hidden="true"></span>
             </div>
 
             @foreach (var item in DocumentosFiltrados)
             {
-                <div class="documento-row" @key="item.Id">
+                <div class="documento-row" style="position: relative" @key="item.Id">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {item.Tipo}")" Abrir="() => SeleccionarDetalle(item)" />
                     <div class="documento-name">
                         <i class="bi bi-file-earmark-text"></i>
                         <strong>@item.Tipo</strong>
@@ -95,15 +96,7 @@
                             : item.Descripcion)
                     </div>
 
-                    <div class="documento-actions">
-                        <button type="button"
-                                class="edit-button"
-                                title="Editar"
-                                aria-label="@($"Editar {item.Tipo}")"
-                                @onclick="() => IrAEditar(item.Id)">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                    </div>
+                    <div class="documento-actions" aria-hidden="true"></div>
                 </div>
             }
 
@@ -114,7 +107,34 @@
     }
 </div>
 
+@if (seleccionado is { } detalle)
+{
+    <ModalAdministracion Titulo="Detalle de tipo de documento"
+                         CerrarAlTocarFondo="true" AlCerrar="CerrarDetalle">
+        <div class="administracion-cuerpo">
+            <dl class="administracion-campo">
+                <dt>Nombre</dt>
+                <dd>@detalle.Tipo</dd>
+            </dl>
+            <dl class="administracion-campo">
+                <dt>Descripción</dt>
+                <dd>@(string.IsNullOrWhiteSpace(detalle.Descripcion) ? "Sin descripción" : detalle.Descripcion)</dd>
+            </dl>
+        </div>
+        <footer class="administracion-acciones">
+            <button type="button" @onclick="CerrarDetalle">Cerrar</button>
+            <button type="button" class="administracion-primario" @onclick="() => IrAEditar(detalle.Id)">Editar</button>
+        </footer>
+    </ModalAdministracion>
+}
+
 @code {
+    private TipoDocumentoDTO? seleccionado;
+
+    private void SeleccionarDetalle(TipoDocumentoDTO item) => seleccionado = item;
+
+    private void CerrarDetalle() => seleccionado = null;
+
     [SupplyParameterFromQuery(Name = "estado")]
     public string? Estado { get; set; }
 

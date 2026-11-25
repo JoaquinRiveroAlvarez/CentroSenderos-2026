@@ -44,9 +44,7 @@
 
     </div>
 
-    <div class="catalogo-herramientas">
-        <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar por nombre, CUIT o descripción" Placeholder="Buscar por nombre, CUIT o descripción..." />
-    </div>
+    <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar por nombre, CUIT o descripción" Placeholder="Buscar por nombre, CUIT o descripción..." />
 
     @if (cargando)
     {
@@ -127,8 +125,8 @@
 
                 @foreach (var item in ObrasSocialesFiltradas)
                 {
-                    <div class="obra-row"
-                         @onclick="() => AbrirDetalle(item.Id)">
+                    <div class="obra-row" style="position: relative">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {item.Tipo}")" Abrir="() => AbrirDetalle(item.Id)" />
 
                         <div class="obra-info">
 
@@ -162,7 +160,7 @@
                         </div>
 
                         <div class="obra-action">
-                            <i class="bi bi-chevron-right"></i>
+                            
                         </div>
 
                     </div>

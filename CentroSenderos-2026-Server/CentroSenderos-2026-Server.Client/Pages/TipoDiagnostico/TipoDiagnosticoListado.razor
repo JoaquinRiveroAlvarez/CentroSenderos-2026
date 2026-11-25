@@ -44,9 +44,7 @@
 
     </div>
 
-    <div class="catalogo-herramientas">
-        <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar por nombre o descripción" Placeholder="Buscar por nombre o descripción..." />
-    </div>
+    <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar por nombre o descripción" Placeholder="Buscar por nombre o descripción..." />
 
     @if (cargando)
     {
@@ -118,8 +116,8 @@
 
                 @foreach (var item in DiagnosticosFiltrados)
                 {
-                    <div class="diagnostico-row"
-                         @onclick="() => AbrirDetalle(item.Id)">
+                    <div class="diagnostico-row" style="position: relative">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {item.Tipo}")" Abrir="() => AbrirDetalle(item.Id)" />
 
                         <div class="diagnostico-info">
 
@@ -149,7 +147,7 @@
                         </div>
 
                         <div class="diagnostico-action">
-                            <i class="bi bi-chevron-right"></i>
+                            
                         </div>
 
                     </div>
@@ -187,9 +185,9 @@
 
 @if (modalActual == ModalDiagnostico.Detalle)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)" @onclick="SolicitarCerrarModal">
 
-        <div class="admin-modal">
+        <div class="admin-modal" @onclick:stopPropagation="true">
 
             @if (cargandoDetalle)
             {

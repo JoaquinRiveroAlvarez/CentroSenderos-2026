@@ -35,9 +35,7 @@
         </div>
     </div>
 
-    <div class="catalogo-herramientas">
-        <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar socios" Placeholder="Buscar por profesional, área u observación..." />
-    </div>
+    <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar socios" Placeholder="Buscar por profesional, área u observación..." />
 
     @if (cargando)
     {
@@ -104,8 +102,8 @@
                 @foreach (var item in SociosFiltrados)
                 {
                     <div @key="item.Id"
-                         class="socio-row"
-                         @onclick="() => AbrirDetalle(item.Id)">
+                         class="socio-row" style="position: relative">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {NombreSocio(item)}")" Abrir="() => AbrirDetalle(item.Id)" />
 
                         <div class="socio-info">
                             <div class="socio-avatar">
@@ -141,7 +139,7 @@
                         </div>
 
                         <div class="socio-action">
-                            <i class="bi bi-chevron-right"></i>
+                            
                         </div>
                     </div>
                 }
@@ -292,11 +290,11 @@
 
 @if (modalActual == ModalSocio.Detalle)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)" @onclick="SolicitarCerrarModal">
         <div class="admin-modal"
              role="dialog"
              aria-modal="true"
-             aria-labelledby="titulo-detalle-socio">
+             aria-labelledby="titulo-detalle-socio" @onclick:stopPropagation="true">
 
             @if (cargandoDetalle)
             {

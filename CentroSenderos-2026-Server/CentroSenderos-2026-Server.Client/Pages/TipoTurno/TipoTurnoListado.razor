@@ -40,9 +40,7 @@
 
     </div>
 
-    <div class="catalogo-herramientas">
-        <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar tipo de turno" Placeholder="Buscar tipo de turno..." />
-    </div>
+    <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar tipo de turno" Placeholder="Buscar tipo de turno..." />
 
     @if (cargando)
     {
@@ -118,8 +116,8 @@
 
                 @foreach (var item in TurnosFiltrados)
                 {
-                    <div class="turno-row"
-                         @onclick="() => AbrirDetalle(item.Id)">
+                    <div class="turno-row" style="position: relative">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {item.Tipo}")" Abrir="() => AbrirDetalle(item.Id)" />
 
                         <div class="turno-info">
 
@@ -170,7 +168,7 @@
                         </div>
 
                         <div class="turno-action">
-                            <i class="bi bi-chevron-right"></i>
+                            
                         </div>
 
                     </div>
@@ -208,9 +206,9 @@
 
 @if (modalActual == ModalTurno.Detalle)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)" @onclick="SolicitarCerrarModal">
 
-        <div class="admin-modal">
+        <div class="admin-modal" @onclick:stopPropagation="true">
 
             @if (cargandoDetalle)
             {

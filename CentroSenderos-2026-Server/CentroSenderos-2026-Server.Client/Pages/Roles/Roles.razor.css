@@ -60,7 +60,7 @@
 .list-header {
     min-height: 46px;
     display: grid;
-    grid-template-columns: minmax(230px, .6fr) minmax(280px, 1fr) minmax(200px, .8fr);
+    grid-template-columns: minmax(0, .7fr) minmax(0, 1fr) 22px;
     align-items: center;
     gap: 18px;
     padding: 0 22px;
@@ -74,7 +74,7 @@
 .socio-row {
     min-height: 70px;
     display: grid;
-    grid-template-columns: minmax(230px, .6fr) minmax(280px, 1fr) minmax(200px, .8fr);
+    grid-template-columns: minmax(0, .7fr) minmax(0, 1fr) 22px;
     align-items: center;
     gap: 18px;
     padding: 0 22px;

@@ -48,14 +48,11 @@
 
     </div>
 
-    <div class="catalogo-herramientas">
-        <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar prestación" Placeholder="Buscar prestación..." AlLimpiar="LimpiarFiltrosCatalogo" />
-    </div>
-
-
-    <section class="catalogo-filtros" aria-label="Filtros de prestaciones">
-        <SelectorConBusqueda Id="filtroAreasPrestaciones" Etiqueta="Área" Placeholder="Todas las áreas" Opciones="OpcionesAreasFiltro" @bind-Seleccionadas="areasFiltro" VersionLimpieza="versionLimpieza" />
-    </section>
+    <BarraBusquedaCatalogo @bind-Busqueda="textoBusqueda" Etiqueta="Buscar prestación" Placeholder="Buscar prestación..." AlLimpiar="LimpiarFiltrosCatalogo">
+        <Filtros>
+            <SelectorConBusqueda Id="filtroAreasPrestaciones" Etiqueta="Área" Placeholder="Todas las áreas" Opciones="OpcionesAreasFiltro" @bind-Seleccionadas="areasFiltro" VersionLimpieza="versionLimpieza" />
+        </Filtros>
+    </BarraBusquedaCatalogo>
 
     <!-- =====================================================
          LISTADO
@@ -143,10 +140,8 @@
 
                 @foreach (var item in PrestacionesFiltradas)
                 {
-                    <div class="prestacion-row"
-                         role="button"
-                         tabindex="0"
-                         @onclick="() => AbrirDetalle(item.Id)">
+                    <div class="prestacion-row" style="position: relative">
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {item.Tipo}")" Abrir="() => AbrirDetalle(item.Id)" />
 
                         <div class="prestacion-info">
 
@@ -220,7 +215,7 @@
                         </div>
 
                         <div class="prestacion-action">
-                            <i class="bi bi-chevron-right"></i>
+                            
                         </div>
 
                     </div>
@@ -265,9 +260,9 @@
 ========================================================= -->
 @if (modalActual == ModalPrestacion.Detalle)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
+    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)" @onclick="SolicitarCerrarModal">
 
-        <div class="admin-modal">
+        <div class="admin-modal" @onclick:stopPropagation="true">
 
             @if (cargandoDetalle)
             {
