@@ -11,7 +11,7 @@
 
 <NavigationLock ConfirmExternalNavigation="TieneCambios" OnBeforeInternalNavigation="AntesDeNavegar" />
 
-<div class="crear-paciente-page">
+<div class="crear-paciente-page" inert="@(destinoPendiente is not null)">
 
     <button type="button"
             class="back-button"
@@ -376,19 +376,11 @@
 </div>
 
 
-@if (destinoPendiente != null)
+@if (destinoPendiente is not null)
 {
-    <div class="salida-fondo">
-        <section class="salida-modal" role="dialog" aria-modal="true" aria-labelledby="salida-titulo">
-            <span class="salida-icono"><i class="bi bi-exclamation-circle" aria-hidden="true"></i></span>
-            <h2 id="salida-titulo">Hay cambios sin guardar</h2>
-            <p>Si salís ahora, se perderán las modificaciones del formulario.</p>
-            <div class="salida-acciones">
-                <button type="button" class="cancel-button" @onclick="SeguirEditando">Seguir editando</button>
-                <button type="button" class="salida-confirmar" @onclick="SalirSinGuardar">Salir sin guardar</button>
-            </div>
-        </section>
-    </div>
+    <ConfirmacionDescarte Mensaje="Se perderán los cambios del formulario y los documentos que todavía no guardaste."
+                          OnContinuar="SeguirEditando"
+                          OnDescartar="SalirSinGuardar" />
 }
 
 <CrearCatalogo @ref="tipoobrasocialModal" Recurso="tipoobrasocial" Etiqueta="obra social" Creado="ObraCreada" />
