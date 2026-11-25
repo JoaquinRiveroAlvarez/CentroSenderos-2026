@@ -83,8 +83,9 @@
     font-weight: 600;
 }
 
-.administracion-modal ::deep .administracion-campo input,
+.administracion-modal ::deep .administracion-campo input:not([type="checkbox"]):not([type="radio"]),
 .administracion-modal ::deep .administracion-campo textarea,
+.administracion-modal ::deep .administracion-valor,
 .administracion-modal ::deep .administracion-campo dd {
     box-sizing: border-box;
     width: 100%;

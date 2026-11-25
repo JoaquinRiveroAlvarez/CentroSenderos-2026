@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="documentos-page" inert="@(seleccionado is not null)">
+<div class="documentos-page" inert="@(vista != Vista.Ninguna)">
     <div class="page-header">
         <div>
 
@@ -21,7 +21,7 @@
             <p>Administrá los tipos de documentos que se pueden cargar a los pacientes.</p>
         </div>
 
-        <button type="button" class="new-button" @onclick="IrACrear">
+        <button type="button" class="new-button" @onclick="AbrirCrear">
             <i class="bi bi-plus-lg"></i>
             <span>Nuevo tipo</span>
         </button>
@@ -84,7 +84,7 @@
             @foreach (var item in DocumentosFiltrados)
             {
                 <div class="documento-row" style="position: relative" @key="item.Id">
-                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {item.Tipo}")" Abrir="() => SeleccionarDetalle(item)" />
+                    <AccesoDetalleAdministracion Etiqueta="@($"Ver detalle de {item.Tipo}")" Abrir="() => AbrirDetalle(item.Id)" />
                     <div class="documento-name">
                         <i class="bi bi-file-earmark-text"></i>
                         <strong>@item.Tipo</strong>
@@ -107,33 +107,278 @@
     }
 </div>
 
-@if (seleccionado is { } detalle)
+@if (vista == Vista.Detalle)
 {
-    <ModalAdministracion Titulo="Detalle de tipo de documento"
-                         CerrarAlTocarFondo="true" AlCerrar="CerrarDetalle">
+    <ModalAdministracion Titulo="Detalle de tipo de documento" CerrarAlTocarFondo="true"
+                         Ocupado="@ocupado" Inactivo="@confirmarEliminar" AlCerrar="CerrarModal">
         <div class="administracion-cuerpo">
-            <dl class="administracion-campo">
-                <dt>Nombre</dt>
-                <dd>@detalle.Tipo</dd>
-            </dl>
-            <dl class="administracion-campo">
-                <dt>Descripción</dt>
-                <dd>@(string.IsNullOrWhiteSpace(detalle.Descripcion) ? "Sin descripción" : detalle.Descripcion)</dd>
-            </dl>
+            @if (ocupado)
+            {
+                <p role="status">Cargando tipo de documento…</p>
+            }
+            else if (modelo is not null)
+            {
+                <dl class="administracion-campo"><dt>Nombre</dt><dd>@modelo.Tipo</dd></dl>
+                <dl class="administracion-campo"><dt>Descripción</dt><dd>@(string.IsNullOrWhiteSpace(modelo.Descripcion) ? "Sin descripción" : modelo.Descripcion)</dd></dl>
+            }
+            @if (!string.IsNullOrWhiteSpace(mensajeModal))
+            {
+                <p class="administracion-error" role="alert">@mensajeModal</p>
+            }
+        </div>
+        @if (!ocupado)
+        {
+            <footer class="administracion-acciones">
+                @if (modelo is not null)
+                {
+                    <button type="button" class="administracion-eliminar" @onclick="() => confirmarEliminar = true">Eliminar</button>
+                }
+                <button type="button" @onclick="CerrarModal">Cerrar</button>
+                @if (modelo is not null)
+                {
+                    <button type="button" class="administracion-primario" @onclick="AbrirEditar">Editar</button>
+                }
+            </footer>
+        }
+    </ModalAdministracion>
+}
+
+@if ((vista is Vista.Crear or Vista.Editar) && modelo is not null)
+{
+    var editando = vista == Vista.Editar;
+    <ModalAdministracion Titulo="@(editando ? "Editar tipo de documento" : "Nuevo tipo de documento")"
+                         Ocupado="@ocupado" Inactivo="@confirmarDescarte" AlCerrar="SolicitarCerrar">
+        <EditForm Model="@modelo" OnValidSubmit="Guardar" class="administracion-formulario">
+            <DataAnnotationsValidator />
+            <div class="administracion-cuerpo">
+                <ValidationSummary />
+                <div class="administracion-campo">
+                    <label for="administracion-tipodocumento-nombre">Nombre</label>
+                    <InputText id="administracion-tipodocumento-nombre" @bind-Value="modelo.Tipo" disabled="@ocupado" />
+                    <ValidationMessage For="@(() => modelo!.Tipo)" />
+                </div>
+                <div class="administracion-campo">
+                    <label for="administracion-tipodocumento-descripcion">Descripción</label>
+                    <InputTextArea id="administracion-tipodocumento-descripcion" @bind-Value="modelo.Descripcion" disabled="@ocupado" />
+                    <ValidationMessage For="@(() => modelo!.Descripcion)" />
+                </div>
+                @if (!string.IsNullOrWhiteSpace(mensajeModal))
+                {
+                    <p class="administracion-error" role="alert">@mensajeModal</p>
+                }
+            </div>
+            <footer class="administracion-acciones">
+                <button type="button" disabled="@ocupado" @onclick="SolicitarCerrar">Cancelar</button>
+                <button type="submit" class="administracion-primario" disabled="@ocupado">
+                    @(ocupado ? "Guardando…" : editando ? "Guardar cambios" : "Guardar")
+                </button>
+            </footer>
+        </EditForm>
+    </ModalAdministracion>
+}
+
+@if (confirmarEliminar)
+{
+    <ModalAdministracion Titulo="¿Eliminar el tipo de documento?" Ocupado="@ocupado" AlCerrar="CerrarConfirmacionEliminar">
+        <div class="administracion-cuerpo">
+            <p>El tipo de documento <strong>@modelo?.Tipo</strong> dejará de estar disponible.</p>
+            @if (!string.IsNullOrWhiteSpace(mensajeModal))
+            {
+                <p class="administracion-error" role="alert">@mensajeModal</p>
+            }
         </div>
         <footer class="administracion-acciones">
-            <button type="button" @onclick="CerrarDetalle">Cerrar</button>
-            <button type="button" class="administracion-primario" @onclick="() => IrAEditar(detalle.Id)">Editar</button>
+            <button type="button" disabled="@ocupado" @onclick="CerrarConfirmacionEliminar">Cancelar</button>
+            <button type="button" class="administracion-peligro" disabled="@ocupado" @onclick="Eliminar">
+                @(ocupado ? "Eliminando…" : "Eliminar")
+            </button>
         </footer>
     </ModalAdministracion>
 }
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte OnContinuar="() => confirmarDescarte = false" OnDescartar="DescartarCambios" />
+}
+
 @code {
-    private TipoDocumentoDTO? seleccionado;
+    private enum Vista { Ninguna, Crear, Editar, Detalle }
+    private Vista vista;
+    private TipoDocumentoDTO? modelo;
+    private (string? Tipo, string? Descripcion) estadoInicial;
+    private int idSeleccionado;
+    private bool ocupado;
+    private bool confirmarDescarte;
+    private bool confirmarEliminar;
+    private string mensajeModal = string.Empty;
+    private string resultadoLocal = string.Empty;
 
-    private void SeleccionarDetalle(TipoDocumentoDTO item) => seleccionado = item;
+    private void AbrirCrear()
+    {
+        resultadoLocal = string.Empty;
+        PrepararFormulario(new TipoDocumentoDTO { Tipo = string.Empty, Descripcion = string.Empty }, Vista.Crear);
+    }
 
-    private void CerrarDetalle() => seleccionado = null;
+    private void AbrirEditar()
+    {
+        if (modelo is not null)
+            PrepararFormulario(modelo, Vista.Editar);
+    }
+
+    private void PrepararFormulario(TipoDocumentoDTO datos, Vista destino)
+    {
+        modelo = datos;
+        estadoInicial = (datos.Tipo, datos.Descripcion);
+        mensajeModal = string.Empty;
+        vista = destino;
+    }
+
+    private async Task AbrirDetalle(int id)
+    {
+        idSeleccionado = id;
+        vista = Vista.Detalle;
+        modelo = null;
+        mensajeModal = string.Empty;
+        ocupado = true;
+
+        try
+        {
+            var respuesta = await Http.Get<TipoDocumentoDTO>($"api/tipodocumento/{id}");
+            modelo = respuesta.Error ? null : respuesta.Respuesta;
+            if (modelo is null)
+                mensajeModal = respuesta.Error ? respuesta.ObtenerError() : "No se encontró el tipo de documento.";
+        }
+        catch
+        {
+            mensajeModal = "No pudimos consultar el tipo de documento. Intentá nuevamente.";
+        }
+        finally
+        {
+            ocupado = false;
+        }
+    }
+
+    private void SolicitarCerrar()
+    {
+        if (ocupado)
+            return;
+
+        if (modelo is not null && estadoInicial != (modelo.Tipo, modelo.Descripcion))
+        {
+            confirmarDescarte = true;
+            return;
+        }
+
+        DescartarCambios();
+    }
+
+    private void DescartarCambios()
+    {
+        confirmarDescarte = false;
+        if (vista == Vista.Editar && modelo is not null)
+        {
+            modelo.Tipo = estadoInicial.Tipo ?? string.Empty;
+            modelo.Descripcion = estadoInicial.Descripcion ?? string.Empty;
+            mensajeModal = string.Empty;
+            vista = Vista.Detalle;
+            return;
+        }
+
+        CerrarModal();
+    }
+
+    private void CerrarModal()
+    {
+        if (ocupado || confirmarEliminar)
+            return;
+
+        vista = Vista.Ninguna;
+        modelo = null;
+        mensajeModal = string.Empty;
+    }
+
+    private async Task Guardar()
+    {
+        if (ocupado || modelo is null)
+            return;
+
+        var editando = vista == Vista.Editar;
+        ocupado = true;
+        mensajeModal = string.Empty;
+
+        try
+        {
+            if (editando)
+            {
+                var respuesta = await Http.Put<TipoDocumentoDTO, RespuestaDTO>($"api/tipodocumento/{idSeleccionado}", modelo);
+                if (respuesta.Error)
+                {
+                    mensajeModal = respuesta.ObtenerError();
+                    return;
+                }
+            }
+            else
+            {
+                var respuesta = await Http.Post<TipoDocumentoDTO, int>("api/tipodocumento", modelo);
+                if (respuesta.Error)
+                {
+                    mensajeModal = respuesta.ObtenerError();
+                    return;
+                }
+            }
+
+            vista = editando ? Vista.Detalle : Vista.Ninguna;
+            resultadoLocal = editando ? "actualizado" : "creado";
+            await Cargar();
+        }
+        catch
+        {
+            mensajeModal = "No pudimos guardar el tipo de documento. Intentá nuevamente.";
+        }
+        finally
+        {
+            ocupado = false;
+        }
+    }
+
+    private void CerrarConfirmacionEliminar()
+    {
+        confirmarEliminar = false;
+        mensajeModal = string.Empty;
+    }
+
+    private async Task Eliminar()
+    {
+        if (ocupado)
+            return;
+
+        ocupado = true;
+        mensajeModal = string.Empty;
+
+        try
+        {
+            var respuesta = await Http.Delete($"api/tipodocumento/{idSeleccionado}");
+            if (respuesta.Error)
+            {
+                mensajeModal = respuesta.ObtenerError();
+                return;
+            }
+
+            confirmarEliminar = false;
+            vista = Vista.Ninguna;
+            modelo = null;
+            resultadoLocal = "eliminado";
+            await Cargar();
+        }
+        catch
+        {
+            mensajeModal = "No pudimos eliminar el tipo de documento. Intentá nuevamente.";
+        }
+        finally
+        {
+            ocupado = false;
+        }
+    }
 
     [SupplyParameterFromQuery(Name = "estado")]
     public string? Estado { get; set; }
@@ -199,11 +444,6 @@
         cargando = false;
     }
 
-    private void IrACrear() =>
-        Nav.NavigateTo("/tipodocumento/crear");
-
-    private void IrAEditar(int id) =>
-        Nav.NavigateTo($"/tipodocumento/editar/{id}");
 
     private void Volver() => Nav.NavigateTo("/admin");
 }

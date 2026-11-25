@@ -6,7 +6,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveAuto
 
-<div class="prestaciones-page" inert="@(salidaPendiente is not null)">
+<div class="prestaciones-page" inert="@(modalActual != ModalPrestacion.Ninguno)">
 
     <!-- =====================================================
          HEADER
@@ -260,9 +260,7 @@
 ========================================================= -->
 @if (modalActual == ModalPrestacion.Detalle)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)" @onclick="SolicitarCerrarModal">
-
-        <div class="admin-modal" @onclick:stopPropagation="true">
+    <ModalAdministracion Titulo="Detalle de prestación" CerrarAlTocarFondo="true" Ocupado="@(cargandoDetalle || eliminando)" Inactivo="@mostrarConfirmacionEliminar" AlCerrar="SolicitarCerrarModal">
 
             @if (cargandoDetalle)
             {
@@ -278,54 +276,32 @@
             }
             else
             {
-                <div class="modal-header">
-
-                    <div>
-
-                        <h2>Detalle Prestación</h2>
-
-                        <p>
-                            Información del tipo de prestación seleccionado.
-                        </p>
-
-                    </div>
-
-
-                    <button type="button"
-                            class="close-button"
-                            title="Cerrar"
-                            @onclick="SolicitarCerrarModal">
-
-                        <i class="bi bi-x-lg"></i>
-
-                    </button>
-
-                </div>
+                <div class="administracion-cuerpo">
 
 
                 <div class="detail-grid">
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>TIPO DE PRESTACIÓN</label>
 
-                        <div class="detail-value">
+                        <div class="administracion-valor detail-value">
                             @MostrarValor(modelo.Tipo)
                         </div>
 
                     </div>
 
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
                         <label>ÁREA</label>
-                        <div class="detail-value">@MostrarArea(modelo.TipoAreaNombre)</div>
+                        <div class="administracion-valor detail-value">@MostrarArea(modelo.TipoAreaNombre)</div>
                     </div>
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>DESCRIPCIÓN</label>
 
-                        <div class="detail-value detail-value-large">
+                        <div class="administracion-valor detail-value detail-value-large">
 
                             @if (string.IsNullOrWhiteSpace(modelo.Descripcion))
                             {
@@ -343,18 +319,18 @@
                     </div>
 
 
-                    <div class="field-group">
+                    <div class="field-group administracion-campo">
 
                         <label>CÓDIGO</label>
 
-                        <div class="detail-value">
+                        <div class="administracion-valor detail-value">
                             @MostrarValor(modelo.Cod)
                         </div>
 
                     </div>
 
 
-                    <div class="field-group">
+                    <div class="field-group administracion-campo">
                         <label>MONTO POR SESIÓN</label>
                         <div class="detail-money">
                             <span class="detail-money-prefix">$</span>
@@ -364,7 +340,7 @@
                         </div>
                     </div>
 
-                    <div class="field-group">
+                    <div class="field-group administracion-campo">
                         <label>% RETENCIÓN CENTRO</label>
                         <div class="detail-retencion">
                             <span class="retencion-badge @(modelo.PorcentajeRetencion >= 100 ? "retencion-badge-completa" : "retencion-badge-normal")">
@@ -389,32 +365,15 @@
                 </div>
 
 
-                <div class="modal-actions detail-actions">
-
-                    <button type="button"
-                            class="btn-cerrar"
-                            @onclick="SolicitarCerrarModal">
-
-                        Cerrar
-
-                    </button>
-
-
-                    <button type="button"
-                            class="btn-editar"
-                            @onclick="AbrirEditar">
-
-                        <i class="bi bi-pencil-square"></i>
-                        Editar
-
-                    </button>
-
                 </div>
+                <footer class="administracion-acciones">
+                    <button type="button" class="administracion-eliminar" @onclick="AbrirConfirmacionEliminar">Eliminar</button>
+                    <button type="button" @onclick="SolicitarCerrarModal">Cerrar</button>
+                    <button type="button" class="administracion-primario" @onclick="AbrirEditar">Editar</button>
+                </footer>
             }
 
-        </div>
-
-    </div>
+    </ModalAdministracion>
 }
 
 
@@ -423,38 +382,13 @@
 ========================================================= -->
 @if (modalActual == ModalPrestacion.Crear)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
+    <ModalAdministracion Titulo="Nueva prestación" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCerrarModal">
 
-        <div class="admin-modal">
-
-            <div class="modal-header">
-
-                <div>
-
-                    <h2>Nueva Prestación</h2>
-
-                    <p>
-                        Complete los datos del tipo de prestación.
-                    </p>
-
-                </div>
-
-
-                <button type="button"
-                        class="close-button"
-                        title="Cerrar"
-                        disabled="@guardando"
-                        @onclick="SolicitarCerrarModal">
-
-                    <i class="bi bi-x-lg"></i>
-
-                </button>
-
-            </div>
 
 
             <EditForm Model="@modelo"
-                      OnValidSubmit="CrearPrestacion">
+                      OnValidSubmit="CrearPrestacion" class="administracion-formulario">
+                <div class="administracion-cuerpo">
 
                 <DataAnnotationsValidator />
 
@@ -463,7 +397,7 @@
 
                 <div class="form-grid">
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label for="areaPrestacion">ÁREA</label>
 
@@ -506,7 +440,7 @@
 
                     </div>
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>TIPO DE PRESTACIÓN</label>
 
@@ -519,7 +453,7 @@
                     </div>
 
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>DESCRIPCIÓN</label>
 
@@ -532,7 +466,7 @@
                     </div>
 
 
-                    <div class="field-group">
+                    <div class="field-group administracion-campo">
 
                         <label>CÓDIGO</label>
 
@@ -545,7 +479,7 @@
                     </div>
 
 
-                    <div class="field-group">
+                    <div class="field-group administracion-campo">
                         <label>MONTO POR SESIÓN</label>
                         <div class="money-input-group">
                             <span class="money-prefix">$</span>
@@ -556,7 +490,7 @@
                         <ValidationMessage For="@(() => modelo.MontoSesion)" />
                     </div>
 
-                    <div class="field-group">
+                    <div class="field-group administracion-campo">
                         <label>% RETENCIÓN CENTRO</label>
                         <div class="money-input-group">
                             <InputNumber class="money-input"
@@ -585,41 +519,17 @@
                 }
 
 
-                <div class="modal-actions">
-
-                    <button type="button"
-                            class="btn-cancelar"
-                            disabled="@guardando"
-                            @onclick="SolicitarCerrarModal">
-
-                        Cancelar
-
-                    </button>
-
-
-                    <button type="submit"
-                            class="btn-guardar"
-                            disabled="@(guardando || !AreasDisponibles)">
-
-                        @if (guardando)
-                        {
-                            <span class="spinner-border spinner-border-sm"></span>
-                            <span>Guardando...</span>
-                        }
-                        else
-                        {
-                            <span>Guardar</span>
-                        }
-
-                    </button>
-
                 </div>
+                <footer class="administracion-acciones">
+                    <button type="button" disabled="@guardando" @onclick="SolicitarCerrarModal">Cancelar</button>
+                    <button type="submit" class="administracion-primario" disabled="@(guardando || !AreasDisponibles)">
+                        @(guardando ? "Guardando…" : "Guardar")
+                    </button>
+                </footer>
 
             </EditForm>
 
-        </div>
-
-    </div>
+    </ModalAdministracion>
 }
 
 
@@ -628,38 +538,13 @@
 ========================================================= -->
 @if (modalActual == ModalPrestacion.Editar)
 {
-    <div class="admin-modal-overlay" inert="@(salidaPendiente is not null)">
+    <ModalAdministracion Titulo="Editar prestación" Ocupado="@guardando" Inactivo="@(salidaPendiente is not null)" AlCerrar="SolicitarCancelarEdicion">
 
-        <div class="admin-modal">
-
-            <div class="modal-header">
-
-                <div>
-
-                    <h2>Editar Prestación</h2>
-
-                    <p>
-                        Modifique los datos del tipo de prestación.
-                    </p>
-
-                </div>
-
-
-                <button type="button"
-                        class="close-button"
-                        title="Volver al detalle"
-                        disabled="@guardando"
-                        @onclick="SolicitarCancelarEdicion">
-
-                    <i class="bi bi-x-lg"></i>
-
-                </button>
-
-            </div>
 
 
             <EditForm Model="@modelo"
-                      OnValidSubmit="GuardarCambios">
+                      OnValidSubmit="GuardarCambios" class="administracion-formulario">
+                <div class="administracion-cuerpo">
 
                 <DataAnnotationsValidator />
 
@@ -668,7 +553,7 @@
 
                 <div class="form-grid">
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label for="areaPrestacion">ÁREA</label>
 
@@ -711,7 +596,7 @@
 
                     </div>
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>TIPO DE PRESTACIÓN</label>
 
@@ -724,7 +609,7 @@
                     </div>
 
 
-                    <div class="field-group field-full">
+                    <div class="field-group administracion-campo field-full">
 
                         <label>DESCRIPCIÓN</label>
 
@@ -737,7 +622,7 @@
                     </div>
 
 
-                    <div class="field-group">
+                    <div class="field-group administracion-campo">
 
                         <label>CÓDIGO</label>
 
@@ -750,7 +635,7 @@
                     </div>
 
 
-                    <div class="field-group">
+                    <div class="field-group administracion-campo">
                         <label>MONTO POR SESIÓN</label>
                         <div class="money-input-group">
                             <span class="money-prefix">$</span>
@@ -761,7 +646,7 @@
                         <ValidationMessage For="@(() => modelo.MontoSesion)" />
                     </div>
 
-                    <div class="field-group">
+                    <div class="field-group administracion-campo">
                         <label>% RETENCIÓN CENTRO</label>
                         <div class="money-input-group">
                             <InputNumber class="money-input"
@@ -790,57 +675,17 @@
                 }
 
 
-                <div class="modal-actions edit-actions">
-
-                    <button type="button"
-                            class="btn-eliminar"
-                            disabled="@guardando"
-                            @onclick="AbrirConfirmacionEliminar">
-
-                        <i class="bi bi-trash3"></i>
-
-                        Eliminar Prestación
-
-                    </button>
-
-
-                    <div class="right-actions">
-
-                        <button type="button"
-                                class="btn-cancelar"
-                                disabled="@guardando"
-                                @onclick="SolicitarCancelarEdicion">
-
-                            Cancelar
-
-                        </button>
-
-
-                        <button type="submit"
-                                class="btn-guardar"
-                                disabled="@(guardando || !AreasDisponibles)">
-
-                            @if (guardando)
-                            {
-                                <span class="spinner-border spinner-border-sm"></span>
-                                <span>Guardando...</span>
-                            }
-                            else
-                            {
-                                <span>Guardar Cambios</span>
-                            }
-
-                        </button>
-
-                    </div>
-
                 </div>
+                <footer class="administracion-acciones">
+                    <button type="button" disabled="@guardando" @onclick="SolicitarCancelarEdicion">Cancelar</button>
+                    <button type="submit" class="administracion-primario" disabled="@(guardando || !AreasDisponibles)">
+                        @(guardando ? "Guardando…" : "Guardar cambios")
+                    </button>
+                </footer>
 
             </EditForm>
 
-        </div>
-
-    </div>
+    </ModalAdministracion>
 }
 
 
@@ -849,60 +694,15 @@
 ========================================================= -->
 @if (mostrarConfirmacionEliminar)
 {
-    <div class="delete-modal-overlay">
-
-        <div class="delete-modal">
-
-            <div class="delete-warning-icon">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-
-
-            <h2>
-                ¿Estás seguro que querés eliminar esta prestación?
-            </h2>
-
-
-            <p>
-                Esta acción no se puede deshacer.
-                La prestación será eliminada definitivamente.
-            </p>
-
-
-            <div class="delete-modal-actions">
-
-                <button type="button"
-                        class="confirm-delete-button"
-                        disabled="@eliminando"
-                        @onclick="ConfirmarEliminar">
-
-                    @if (eliminando)
-                    {
-                        <span class="spinner-border spinner-border-sm"></span>
-                        <span>Eliminando...</span>
-                    }
-                    else
-                    {
-                        <span>Eliminar</span>
-                    }
-
-                </button>
-
-
-                <button type="button"
-                        class="modal-cancel-button"
-                        disabled="@eliminando"
-                        @onclick="CerrarConfirmacionEliminar">
-
-                    Cancelar
-
-                </button>
-
-            </div>
-
+    <ModalAdministracion Titulo="¿Eliminar este registro?" Ocupado="@eliminando" AlCerrar="CerrarConfirmacionEliminar">
+        <div class="administracion-cuerpo">
+            <p>Si confirmás, el registro dejará de estar disponible.</p>
         </div>
-
-    </div>
+        <footer class="administracion-acciones">
+            <button type="button" disabled="@eliminando" @onclick="CerrarConfirmacionEliminar">Cancelar</button>
+            <button type="button" class="administracion-peligro" disabled="@eliminando" @onclick="ConfirmarEliminar">@(eliminando ? "Eliminando…" : "Eliminar")</button>
+        </footer>
+    </ModalAdministracion>
 }
 
 
