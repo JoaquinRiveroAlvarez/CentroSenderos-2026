@@ -148,20 +148,22 @@
 
 .role-badge {
     display: inline-flex;
+    align-items: center;
+    gap: 5px;
     padding: 3px 9px;
-    border: 1px solid #dce5d8;
+    border: 1px solid #b8d3ae;
     border-radius: 14px;
-    background: #eef4eb;
-    color: #40563b;
+    background: #e1efda;
+    color: #315229;
     font-size: 12px;
     font-weight: 600;
     overflow-wrap: anywhere;
 }
 
 .role-badge-inactive {
-    border-color: #e7e3dc;
-    background: #f5f3ef;
-    color: #64695f;
+    border-color: #e5d2a3;
+    background: #fff2d6;
+    color: #6b4c19;
 }
 
 .muted,
@@ -212,9 +214,29 @@
     cursor: pointer;
 }
 
-.role-button:hover:not(:disabled),
 .state-button:hover {
     background: #e8efe4;
+}
+
+.role-button-assign {
+    border-color: #496443;
+    background: #496443;
+    color: #fff;
+}
+
+.role-button-assign:hover:not(:disabled) {
+    border-color: #374f32;
+    background: #374f32;
+}
+
+.role-button-remove {
+    border-color: #e4b6af;
+    background: #fae6e2;
+    color: #852f29;
+}
+
+.role-button-remove:hover:not(:disabled) {
+    background: #f4d5cf;
 }
 
 .role-hint,

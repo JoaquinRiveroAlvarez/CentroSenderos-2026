@@ -160,14 +160,16 @@
                                 <div>
                                     <strong>@nombre</strong>
                                     <span class="role-badge @(asignado ? null : "role-badge-inactive")">
+                                        <i class="bi @(asignado ? "bi-check-circle-fill" : "bi-circle")" aria-hidden="true"></i>
                                         @(asignado ? "Asignado" : "Sin asignar")
                                     </span>
                                 </div>
                                 @if (PuedeGestionarRol(rol))
                                 {
-                                    <button type="button" class="role-button" disabled="@(guardando || !string.IsNullOrEmpty(mensajeCarga))"
+                                    <button type="button" class="role-button @(asignado ? "role-button-remove" : "role-button-assign")" disabled="@(guardando || !string.IsNullOrEmpty(mensajeCarga))"
                                             aria-label="@(asignado ? $"Quitar rol {nombre}" : $"Asignar rol {nombre}")"
                                             @onclick="() => SolicitarCambio(cuenta, rol, asignado)">
+                                        <i class="bi @(asignado ? "bi-dash-circle" : "bi-plus-circle")" aria-hidden="true"></i>
                                         @(asignado ? "Quitar" : "Asignar")
                                     </button>
                                 }
