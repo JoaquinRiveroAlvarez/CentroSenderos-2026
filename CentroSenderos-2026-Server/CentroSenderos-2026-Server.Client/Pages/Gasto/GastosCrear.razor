@@ -5,7 +5,7 @@
 
 @inject IHttpServicio Http
 
-<div class="gasto-overlay" inert="@mostrarAltaTipo">
+<div class="gasto-overlay" inert="@(mostrarAltaTipo || confirmarDescarte)">
     <section class="gasto-modal"
              role="dialog"
              aria-modal="true"
@@ -339,6 +339,13 @@
     <TipoGastoAltaRapida OnGuardado="SeleccionarTipoCreado" OnCerrar="() => mostrarAltaTipo = false" />
 }
 
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte Mensaje="Se perderán las modificaciones y los cambios de comprobantes que no guardaste."
+                          OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="DescartarCambios" />
+}
+
 @code {
     private bool mostrarAltaTipo;
 
@@ -380,6 +387,8 @@
 
     private bool cargando = true;
     private bool datosCargados;
+    private bool confirmarDescarte;
+    private string? estadoInicial;
     private bool guardando;
     private bool leyendoComprobante;
     private (DateTime Fecha, int TipoGastoId, decimal Monto)? datosAdvertidos;
@@ -462,6 +471,7 @@
                     modelo.GastoSocios.Count != origen.GastoSocios.Count;
             }
 
+            estadoInicial = CapturarEstado();
             datosCargados = true;
         }
         catch (TaskCanceledException)
@@ -567,7 +577,7 @@
 
     private async Task Guardar()
     {
-        if (guardando || leyendoComprobante)
+        if (guardando || leyendoComprobante || confirmarDescarte)
             return;
 
         mensaje = string.Empty;
@@ -643,11 +653,29 @@
         }
     }
 
+    private string CapturarEstado() => System.Text.Json.JsonSerializer.Serialize(new
+    {
+        modelo.TipoGastoId,
+        Fecha = modelo.Fecha?.Date,
+        modelo.Descripcion,
+        Aportes = modelo.GastoSocios.OrderBy(aporte => aporte.SocioId)
+            .Select(aporte => new { aporte.SocioId, aporte.Monto }),
+        ComprobantesNuevos = modelo.ComprobantesNuevos.Count
+    });
+
     private async Task Cerrar()
     {
-        if (guardando)
+        if (guardando || leyendoComprobante || confirmarDescarte)
             return;
+
+        if (datosCargados && estadoInicial != CapturarEstado())
+        {
+            confirmarDescarte = true;
+            return;
+        }
 
         await OnCerrar.InvokeAsync();
     }
+
+    private Task DescartarCambios() => OnCerrar.InvokeAsync();
 }

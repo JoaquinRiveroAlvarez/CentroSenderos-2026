@@ -6,7 +6,7 @@
 
 @inject IHttpServicio Http
 
-<div class="gasto-overlay" inert="@mostrarAltaTipo">
+<div class="gasto-overlay" inert="@(mostrarAltaTipo || confirmarDescarte)">
     <section class="gasto-modal"
              role="dialog"
              aria-modal="true"
@@ -278,56 +278,26 @@
                 }
 
                 <footer class="form-actions">
-                    @if (confirmarDescarte)
-                    {
-                        <div class="descarte-gasto">
-                            <div class="descarte-gasto__mensaje" role="alert">
-                                <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
-                                <div>
-                                    <strong>¿Descartar los cambios?</strong>
-                                    <p>Se perderán las modificaciones y los cambios de comprobantes que no guardaste.</p>
-                                </div>
-                            </div>
+                    <button type="button"
+                            class="secondary-button"
+                            disabled="@guardando"
+                            @onclick="Cerrar">
+                        Cancelar
+                    </button>
 
-                            <div class="descarte-gasto__acciones">
-                                <button type="button"
-                                        class="secondary-button"
-                                        @ref="botonSeguirEditando"
-                                        @onclick="() => confirmarDescarte = false">
-                                    Seguir editando
-                                </button>
-
-                                <button type="button"
-                                        class="secondary-button descarte-gasto__confirmar"
-                                        @onclick="DescartarCambios">
-                                    Descartar cambios
-                                </button>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <button type="button"
-                                class="secondary-button"
-                                disabled="@guardando"
-                                @onclick="Cerrar">
-                            Cancelar
-                        </button>
-
-                        <button type="submit"
-                                class="save-button"
-                                disabled="@(guardando || leyendoComprobante)">
-                            @if (guardando)
-                            {
-                                <span class="spinner-border spinner-border-sm"></span>
-                                <span>Guardando...</span>
-                            }
-                            else
-                            {
-                                <span>Guardar cambios</span>
-                            }
-                        </button>
-                    }
+                    <button type="submit"
+                            class="save-button"
+                            disabled="@(guardando || leyendoComprobante)">
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar cambios</span>
+                        }
+                    </button>
                 </footer>
             </EditForm>
         }
@@ -337,6 +307,13 @@
 @if (mostrarAltaTipo)
 {
     <TipoGastoAltaRapida OnGuardado="SeleccionarTipoCreado" OnCerrar="() => mostrarAltaTipo = false" />
+}
+
+@if (confirmarDescarte)
+{
+    <ConfirmacionDescarte Mensaje="Se perderán las modificaciones y los cambios de comprobantes que no guardaste."
+                          OnContinuar="() => confirmarDescarte = false"
+                          OnDescartar="DescartarCambios" />
 }
 
 @code {
@@ -377,8 +354,6 @@
     private bool datosCargados;
     private string? estadoInicial;
     private bool confirmarDescarte;
-    private bool enfocarConfirmacion;
-    private ElementReference botonSeguirEditando;
     private bool guardando;
     private bool leyendoComprobante;
 
@@ -823,20 +798,10 @@
         if (datosCargados && estadoInicial != CapturarEstado())
         {
             confirmarDescarte = true;
-            enfocarConfirmacion = true;
             return;
         }
 
         await OnCerrar.InvokeAsync();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!enfocarConfirmacion)
-            return;
-
-        enfocarConfirmacion = false;
-        await botonSeguirEditando.FocusAsync();
     }
 
     private Task DescartarCambios() => OnCerrar.InvokeAsync();
