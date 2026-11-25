@@ -135,3 +135,34 @@ h1:focus {
 }
 
 /* #endregion */
+
+/* #region Alta rápida de área */
+
+.prestacion-area-nueva {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    gap: 6px;
+    min-height: 34px;
+    margin-top: 6px;
+    padding: 5px 10px;
+    border: 1px solid #d4e0cf;
+    border-radius: 8px;
+    background: #eef4eb;
+    color: #40563b;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.prestacion-area-nueva:hover:not(:disabled) {
+    background: #e1ebdd;
+}
+
+.prestacion-area-nueva:focus-visible {
+    outline: 2px solid #556f4f;
+    outline-offset: 2px;
+}
+
+/* #endregion */
