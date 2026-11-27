@@ -23,9 +23,13 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         public int ProfesionalId { get; set; }
         public Profesional? Profesionales { get; set; }
 
-        [Required(ErrorMessage = "El socio es obligatorio")]
-        public int SocioId { get; set; }
+        // Opcional: permite gestionar liquidaciones por rol "Socio" sin requerir registro en tabla Socios
+        public int? SocioId { get; set; }
         public Socio? Socios { get; set; }
+
+        // Usuario autenticado responsable de la liquidación
+        [MaxLength(150)]
+        public string? UsuarioResponsable { get; set; }
 
         // Estado general de la liquidación del profesional para este período
         [Required(ErrorMessage = "El estado de pago es obligatorio")]

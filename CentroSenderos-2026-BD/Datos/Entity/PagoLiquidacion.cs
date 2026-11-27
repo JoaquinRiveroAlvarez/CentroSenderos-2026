@@ -19,18 +19,32 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         [Precision(18, 2)]
         public decimal MontoTotal { get; set; } = 0;
 
-        [MaxLength(100)]
+        [MaxLength(150)]
         public string? RegistradoPor { get; set; }
 
         public bool Anulado { get; set; } = false;
 
         public DateTime? FechaAnulacion { get; set; }
 
-        [MaxLength(100)]
+        [MaxLength(150)]
         public string? AnuladoPor { get; set; }
 
         [MaxLength(500)]
         public string? MotivoAnulacion { get; set; }
+
+        // Trazabilidad de modificaciones en el historial sin borrar registros
+        public bool Modificado { get; set; } = false;
+
+        public DateTime? FechaModificacion { get; set; }
+
+        [MaxLength(150)]
+        public string? ModificadoPor { get; set; }
+
+        [MaxLength(500)]
+        public string? MotivoModificacion { get; set; }
+
+        public int? PagoOriginalId { get; set; }
+        public PagoLiquidacion? PagoOriginal { get; set; }
 
         // Colecciones relacionadas
         public List<PagoLiquidacionMetodo> MetodosPago { get; set; } = new();

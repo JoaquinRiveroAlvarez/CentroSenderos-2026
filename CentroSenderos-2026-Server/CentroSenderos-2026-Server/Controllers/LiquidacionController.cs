@@ -5,6 +5,7 @@ using CentroSenderos_2026_Shared.Enum;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CentroSenderos_2026_Server.Controllers
@@ -19,6 +20,13 @@ namespace CentroSenderos_2026_Server.Controllers
         public LiquidacionController(ILiquidacionRepositorio liquidacionRepositorio)
         {
             this.liquidacionRepositorio = liquidacionRepositorio;
+        }
+
+        private string ObtenerUsuarioActual()
+        {
+            return User?.Identity?.Name
+                ?? User?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                ?? "Usuario";
         }
 
         // GET: api/liquidacion?fechaDesde=2026-10-01&fechaHasta=2026-10-31&profesionalId=5
@@ -62,6 +70,17 @@ namespace CentroSenderos_2026_Server.Controllers
             return Ok(turnos);
         }
 
+        // POST: api/liquidacion/turnos-por-ids?pacienteId=1&profesionalId=2
+        [HttpPost("turnos-por-ids")]
+        public async Task<ActionResult<List<TurnoLiquidacionItemDTO>>> ObtenerTurnosPorIds(
+            [FromBody] List<int> turnoIds,
+            [FromQuery] int? pacienteId,
+            [FromQuery] int? profesionalId)
+        {
+            var turnos = await liquidacionRepositorio.ObtenerTurnosPorIds(turnoIds, pacienteId, profesionalId);
+            return Ok(turnos);
+        }
+
         // GET: api/liquidacion/turnos-pendientes?profesionalId=5&fechaDesde=2026-10-01&fechaHasta=2026-10-31
         [HttpGet("turnos-pendientes")]
         public async Task<ActionResult<List<TurnoLiquidacionItemDTO>>> GetTurnosPendientes(
@@ -80,6 +99,21 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
+        // POST: api/liquidacion/validar-detalle-manual
+        [HttpPost("validar-detalle-manual")]
+        public async Task<ActionResult<ValidarDetalleManualResponseDTO>> ValidarDetalleManual([FromBody] ValidarDetalleManualRequestDTO request)
+        {
+            try
+            {
+                var resultado = await liquidacionRepositorio.ValidarDetalleManualContraAgenda(request);
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = ex.Message });
+            }
+        }
+
         // POST: api/liquidacion
         [HttpPost]
         public async Task<ActionResult<int>> Guardar([FromBody] GuardarLiquidacionDTO dto)
@@ -87,8 +121,22 @@ namespace CentroSenderos_2026_Server.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var id = await liquidacionRepositorio.GuardarLiquidacionCompleta(dto);
-            return Ok(id);
+            if (string.IsNullOrWhiteSpace(dto.UsuarioResponsable))
+                dto.UsuarioResponsable = ObtenerUsuarioActual();
+
+            try
+            {
+                var id = await liquidacionRepositorio.GuardarLiquidacionCompleta(dto);
+                return Ok(id);
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al guardar la liquidación: " + ex.Message });
+            }
         }
 
         // PUT: api/liquidacion/5/estado-pago?nuevoEstado=4
@@ -120,10 +168,9 @@ namespace CentroSenderos_2026_Server.Controllers
             var liq = await liquidacionRepositorio.ObtenerPorIdCompleto(id);
             if (liq == null) return NotFound("No se encontró la liquidación.");
 
-            // Regla de negocio: Si ya tiene pagos registrados (Parcial o Pagado), no se puede anular
             if (liq.EstadoPago == EnumEstadoPagoLiquidacion.Parcial || liq.EstadoPago == EnumEstadoPagoLiquidacion.Pagado)
             {
-                return BadRequest("No se puede anular una liquidación que ya registra pagos.");
+                return BadRequest("No se puede anular una liquidación que ya registra cobros.");
             }
 
             var resultado = await liquidacionRepositorio.AnularLiquidacion(id);
@@ -138,6 +185,11 @@ namespace CentroSenderos_2026_Server.Controllers
         {
             var liq = await liquidacionRepositorio.ObtenerPorIdCompleto(id);
             if (liq == null) return NotFound("No se encontró la liquidación a eliminar.");
+
+            if (liq.EstadoPago == EnumEstadoPagoLiquidacion.Parcial || liq.EstadoPago == EnumEstadoPagoLiquidacion.Pagado)
+            {
+                return BadRequest("No se puede eliminar una liquidación que registra cobros.");
+            }
 
             var resultado = await liquidacionRepositorio.EliminarLiquidacion(id);
             if (!resultado) return BadRequest("No se pudo eliminar la liquidación.");
@@ -160,7 +212,7 @@ namespace CentroSenderos_2026_Server.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error al obtener historial de pagos: " + ex.Message });
+                return StatusCode(500, new { mensaje = "Error al obtener historial de cobros: " + ex.Message });
             }
         }
 
@@ -173,15 +225,20 @@ namespace CentroSenderos_2026_Server.Controllers
                 return BadRequest("Debe especificar la liquidación, al menos un método de pago y al menos un detalle imputado.");
             }
 
-            decimal totalMetodos = 0;
-            foreach (var m in dto.Metodos) totalMetodos += m.Monto;
+            if (string.IsNullOrWhiteSpace(dto.RegistradoPor))
+                dto.RegistradoPor = ObtenerUsuarioActual();
 
-            decimal totalImputado = 0;
-            foreach (var imp in dto.Imputaciones) totalImputado += imp.MontoImputado;
+            decimal totalMetodos = dto.Metodos.Sum(m => m.Monto);
+            decimal totalImputado = dto.Imputaciones.Sum(imp => imp.MontoImputado);
+
+            if (totalMetodos <= 0 || totalImputado <= 0)
+            {
+                return BadRequest("El monto del cobro debe ser mayor a cero.");
+            }
 
             if (Math.Abs(totalMetodos - totalImputado) > 0.01m)
             {
-                return BadRequest($"La suma de los métodos de pago (${totalMetodos:N2}) no coincide con el total de detalles imputados (${totalImputado:N2}).");
+                return BadRequest($"La suma de los métodos de pago (${totalMetodos:N2}) no coincide con el total de conceptos imputados (${totalImputado:N2}).");
             }
 
             try
@@ -202,8 +259,11 @@ namespace CentroSenderos_2026_Server.Controllers
         {
             if (dto.PagoId <= 0 || string.IsNullOrWhiteSpace(dto.Motivo))
             {
-                return BadRequest("Debe especificar el Id del pago y el motivo de la anulación.");
+                return BadRequest("Debe especificar el Id del cobro y el motivo de la anulación.");
             }
+
+            if (string.IsNullOrWhiteSpace(dto.AnuladoPor))
+                dto.AnuladoPor = ObtenerUsuarioActual();
 
             try
             {
@@ -214,6 +274,47 @@ namespace CentroSenderos_2026_Server.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { mensaje = "Error al anular el cobro: " + ex.Message });
+            }
+        }
+
+        // POST: api/liquidacion/modificar-cobro
+        [HttpPost("modificar-cobro")]
+        public async Task<IActionResult> ModificarCobro([FromBody] ModificarPagoLiquidacionDTO dto)
+        {
+            if (dto.PagoId <= 0 || string.IsNullOrWhiteSpace(dto.Motivo) || dto.Metodos == null || dto.Metodos.Count == 0 || dto.Imputaciones == null || dto.Imputaciones.Count == 0)
+            {
+                return BadRequest("Debe especificar el cobro, el motivo de modificación, al menos un método de pago y al menos un concepto.");
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.ModificadoPor))
+                dto.ModificadoPor = ObtenerUsuarioActual();
+
+            decimal totalMetodos = dto.Metodos.Sum(m => m.Monto);
+            decimal totalImputado = dto.Imputaciones.Sum(imp => imp.MontoImputado);
+
+            if (totalMetodos <= 0 || totalImputado <= 0)
+            {
+                return BadRequest("El monto del cobro modificado debe ser mayor a cero.");
+            }
+
+            if (Math.Abs(totalMetodos - totalImputado) > 0.01m)
+            {
+                return BadRequest($"La suma de los métodos de pago (${totalMetodos:N2}) no coincide con el total imputado (${totalImputado:N2}).");
+            }
+
+            try
+            {
+                var ok = await liquidacionRepositorio.ModificarCobro(dto);
+                if (!ok) return BadRequest("No se pudo modificar el cobro especificado (puede que ya esté anulado o modificado).");
+                return Ok(new { mensaje = "Cobro modificado y registrado en el historial correctamente." });
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al modificar el cobro: " + ex.Message });
             }
         }
     }

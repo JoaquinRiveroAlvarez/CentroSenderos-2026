@@ -11,6 +11,7 @@ namespace CentroSenderos_2026_Shared.DTO
         public string NumeroLiquidacion { get; set; } = string.Empty;
         public int ProfesionalId { get; set; }
         public string ProfesionalNombreCompleto { get; set; } = string.Empty;
+        public string? UsuarioResponsable { get; set; }
         public DateTime FechaDesde { get; set; }
         public DateTime FechaHasta { get; set; }
         public decimal TotalFacturacion { get; set; }
@@ -21,6 +22,7 @@ namespace CentroSenderos_2026_Shared.DTO
         public EnumEstadoPagoLiquidacion EstadoPago { get; set; }
         public int CantidadDetalles { get; set; }
         public List<string> Modalidades { get; set; } = new();
+        public Dictionary<string, decimal> FacturacionPorModalidad { get; set; } = new();
         public bool Anulada { get; set; } = false;
     }
 
@@ -36,8 +38,9 @@ namespace CentroSenderos_2026_Shared.DTO
         public DateTime FechaHasta { get; set; }
         public int ProfesionalId { get; set; }
         public string ProfesionalNombreCompleto { get; set; } = string.Empty;
-        public int SocioId { get; set; }
+        public int? SocioId { get; set; }
         public string SocioNombre { get; set; } = string.Empty;
+        public string? UsuarioResponsable { get; set; }
         public EnumEstadoPagoLiquidacion EstadoPago { get; set; }
         public decimal TotalFacturacion { get; set; }
         public decimal TotalRetencion { get; set; }
@@ -88,6 +91,28 @@ namespace CentroSenderos_2026_Shared.DTO
         public decimal Saldo { get; set; }
         public EnumEstadoPagoLiquidacion EstadoPago { get; set; }
         public string? Observaciones { get; set; }
+
+        // Snapshot persistido para resaltar campos modificados y mostrar diferencias al volver a editar
+        public int? TipoModalidadIdOriginal { get; set; }
+        public int? TipoPrestacionIdOriginal { get; set; }
+        public string? TipoPrestacionNombreOriginal { get; set; }
+        public int? TipoObraSocialIdOriginal { get; set; }
+        public string? TipoObraSocialNombreOriginal { get; set; }
+        public int? PacienteIdOriginal { get; set; }
+        public string? PacienteNombreOriginal { get; set; }
+        public decimal? MontoUnitarioOriginal { get; set; }
+        public int? CantidadOriginal { get; set; }
+        public decimal? MontoModuloCompletoOriginal { get; set; }
+        public int? CantidadModuloCompletoOriginal { get; set; }
+        public decimal? MontoMedioModuloOriginal { get; set; }
+        public int? CantidadMedioModuloOriginal { get; set; }
+        public decimal? PorcentajeOriginal { get; set; }
+        public bool ValoresModificadosManualmente { get; set; } = false;
+        public bool SinCoincidenciaAgenda { get; set; } = false;
+        public string? ResumenCambiosManuales { get; set; }
+
+        // Sesiones ya cobradas (imputaciones activas)
+        public decimal SesionesCobradas { get; set; } = 0;
 
         // Cantidad de turnos asignados a este detalle
         public int CantidadTurnosAsignados { get; set; }
@@ -140,6 +165,16 @@ namespace CentroSenderos_2026_Shared.DTO
         public List<TurnoLiquidacionItemDTO> TurnosAsociados { get; set; } = new();
     }
 
+    // Pacientes asignados a un turno (usado para Taller / Por Hora / Módulos y asistencia)
+    public class TurnoPacienteItemLiquidacionDTO
+    {
+        public int PacienteId { get; set; }
+        public string PacienteNombre { get; set; } = string.Empty;
+        public int? TipoObraSocialId { get; set; }
+        public string? ObraSocialNombre { get; set; }
+        public EnumAsistenciaPaciente? Asistencia { get; set; }
+    }
+
     // DTO para el sub-detalle de turnos con compatibilidad de nombres
     public class TurnoLiquidacionItemDTO
     {
@@ -150,12 +185,19 @@ namespace CentroSenderos_2026_Shared.DTO
         public TimeOnly HoraFin { get; set; }
         public string ConsultorioNombre { get; set; } = string.Empty;
         public string TipoTurnoNombre { get; set; } = string.Empty;
+        public string TipoTurnoOriginal { get; set; } = string.Empty;
         public string Prestacion
         {
             get => TipoTurnoNombre;
             set => TipoTurnoNombre = value;
         }
         public EnumEstadoTurno EstadoTurno { get; set; }
+
+        // Estado del paciente (asistencia) para el paciente vinculado a este detalle
+        public EnumAsistenciaPaciente? EstadoPaciente { get; set; }
+
+        // Lista completa de pacientes en el turno (útil para Taller / Por Hora / Módulos)
+        public List<TurnoPacienteItemLiquidacionDTO> PacientesTurno { get; set; } = new();
 
         // Profesional
         public int? ProfesionalId { get; set; }
@@ -198,8 +240,10 @@ namespace CentroSenderos_2026_Shared.DTO
             set => TipoObraSocialNombre = value;
         }
 
-        // Modalidad
+        // Modalidad y clasificación de módulos
         public int TipoModalidadId { get; set; } = 1;
+        public bool EsModuloCompleto { get; set; } = false;
+        public bool EsMedioModulo { get; set; } = false;
 
         // Montos (con alias para MontoSesion y Monto)
         public decimal MontoSugerido { get; set; }
@@ -229,7 +273,8 @@ namespace CentroSenderos_2026_Shared.DTO
         public DateTime FechaDesde { get; set; }
         public DateTime FechaHasta { get; set; }
         public int ProfesionalId { get; set; }
-        public int SocioId { get; set; }
+        public int? SocioId { get; set; }
+        public string? UsuarioResponsable { get; set; }
         public EnumEstadoPagoLiquidacion EstadoPago { get; set; } = EnumEstadoPagoLiquidacion.Pendiente;
         public string? Observaciones { get; set; }
 
@@ -269,8 +314,58 @@ namespace CentroSenderos_2026_Shared.DTO
         public EnumEstadoPagoLiquidacion EstadoPago { get; set; }
         public string? Observaciones { get; set; }
 
-        // IDs de los turnos que se asocian a este detalle
+        // Snapshot persistido de valores originales / diferencias
+        public int? TipoModalidadIdOriginal { get; set; }
+        public int? TipoPrestacionIdOriginal { get; set; }
+        public string? TipoPrestacionNombreOriginal { get; set; }
+        public int? TipoObraSocialIdOriginal { get; set; }
+        public string? TipoObraSocialNombreOriginal { get; set; }
+        public int? PacienteIdOriginal { get; set; }
+        public string? PacienteNombreOriginal { get; set; }
+        public decimal? MontoUnitarioOriginal { get; set; }
+        public int? CantidadOriginal { get; set; }
+        public decimal? MontoModuloCompletoOriginal { get; set; }
+        public int? CantidadModuloCompletoOriginal { get; set; }
+        public decimal? MontoMedioModuloOriginal { get; set; }
+        public int? CantidadMedioModuloOriginal { get; set; }
+        public decimal? PorcentajeOriginal { get; set; }
+        public bool ValoresModificadosManualmente { get; set; } = false;
+        public bool SinCoincidenciaAgenda { get; set; } = false;
+        public string? ResumenCambiosManuales { get; set; }
+
+        public decimal SesionesCobradas { get; set; } = 0;
+
+        // IDs de los turnos que se asocian a este detalle y sus datos para despliegue inline
         public List<int> TurnosIds { get; set; } = new();
+        public List<TurnoLiquidacionItemDTO> TurnosAsociados { get; set; } = new();
+    }
+
+    // === DTOs PARA VALIDACIÓN DE DETALLE MANUAL CONTRA AGENDA ===
+    public class ValidarDetalleManualRequestDTO
+    {
+        public int LiquidacionId { get; set; }
+        public int ProfesionalId { get; set; }
+        public DateTime FechaDesde { get; set; }
+        public DateTime FechaHasta { get; set; }
+        public int TipoModalidadId { get; set; }
+        public int? PacienteId { get; set; }
+        public int? TipoPrestacionId { get; set; }
+        public int? TipoObraSocialId { get; set; }
+        public List<int> TurnosYaEnLiquidacionActual { get; set; } = new();
+    }
+
+    public class ValidarDetalleManualResponseDTO
+    {
+        public string EstadoCoincidencia { get; set; } = "SinCoincidencia"; // "YaLiquidado", "CoincidePendiente", "SinCoincidencia"
+        public bool BloquearAgregado { get; set; } = false;
+        public string Mensaje { get; set; } = string.Empty;
+        public List<int> TurnosIdsCoincidentes { get; set; } = new();
+        public List<TurnoLiquidacionItemDTO> TurnosCoincidentes { get; set; } = new();
+        public int CantidadTurnosAgenda { get; set; }
+        public int CantidadModulosCompletosAgenda { get; set; }
+        public int CantidadMediosModulosAgenda { get; set; }
+        public decimal? MontoSugeridoAgenda { get; set; }
+        public decimal? PorcentajeRetencionAgenda { get; set; }
     }
 
     // === DTOs PARA HISTORIAL Y REGISTRO DE PAGOS / COBROS ===
@@ -293,14 +388,15 @@ namespace CentroSenderos_2026_Shared.DTO
             get => MontoImputado;
             set => MontoImputado = value;
         }
-        public int CantidadSesionesCobradas { get; set; } = 1;
-        public int CantidadSesiones
+        public decimal CantidadSesionesCobradas { get; set; } = 1;
+        public decimal CantidadSesiones
         {
             get => CantidadSesionesCobradas;
             set => CantidadSesionesCobradas = value;
         }
         public string? PacienteNombre { get; set; }
         public string? PrestacionNombre { get; set; }
+        public string? ModalidadNombre { get; set; }
         public string? Nota { get; set; }
     }
 
@@ -336,6 +432,14 @@ namespace CentroSenderos_2026_Shared.DTO
             get => MotivoAnulacion;
             set => MotivoAnulacion = value;
         }
+
+        // Auditoría de modificaciones en el historial
+        public bool Modificado { get; set; }
+        public DateTime? FechaModificacion { get; set; }
+        public string? ModificadoPor { get; set; }
+        public string? MotivoModificacion { get; set; }
+        public int? PagoOriginalId { get; set; }
+
         public List<CobroMetodoPagoDTO> Metodos { get; set; } = new();
         public List<CobroMetodoPagoDTO> MetodosPago
         {
@@ -360,5 +464,16 @@ namespace CentroSenderos_2026_Shared.DTO
             get => Motivo;
             set => Motivo = value;
         }
+    }
+
+    public class ModificarPagoLiquidacionDTO
+    {
+        public int PagoId { get; set; }
+        public int LiquidacionId { get; set; }
+        public string ModificadoPor { get; set; } = "";
+        public string Motivo { get; set; } = "";
+        public string? Observaciones { get; set; }
+        public List<CobroMetodoPagoDTO> Metodos { get; set; } = new();
+        public List<CobroDetalleImputacionDTO> Imputaciones { get; set; } = new();
     }
 }

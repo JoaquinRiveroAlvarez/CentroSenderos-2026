@@ -36,7 +36,16 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Property<int?>("CantidadMedioModulo")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("CantidadMedioModuloOriginal")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("CantidadModuloCompleto")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CantidadModuloCompletoOriginal")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CantidadOriginal")
                         .HasColumnType("integer");
 
                     b.Property<int>("EstadoPago")
@@ -56,11 +65,23 @@ namespace CentroSenderos_2026_BD.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<decimal?>("MontoMedioModuloOriginal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<decimal?>("MontoModuloCompleto")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<decimal?>("MontoModuloCompletoOriginal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<decimal>("MontoUnitario")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("MontoUnitarioOriginal")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
@@ -75,9 +96,24 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Property<int?>("PacienteId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("PacienteIdOriginal")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PacienteNombreOriginal")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
                     b.Property<decimal>("Porcentaje")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("PorcentajeOriginal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("ResumenCambiosManuales")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<decimal>("Retencion")
                         .HasPrecision(18, 2)
@@ -87,14 +123,37 @@ namespace CentroSenderos_2026_BD.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<bool>("SinCoincidenciaAgenda")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("TipoModalidadId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("TipoModalidadIdOriginal")
                         .HasColumnType("integer");
 
                     b.Property<int?>("TipoObraSocialId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("TipoObraSocialIdOriginal")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TipoObraSocialNombreOriginal")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
                     b.Property<int?>("TipoPrestacionId")
                         .HasColumnType("integer");
+
+                    b.Property<int?>("TipoPrestacionIdOriginal")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TipoPrestacionNombreOriginal")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<bool>("ValoresModificadosManualmente")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -109,6 +168,41 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasIndex("TipoPrestacionId");
 
                     b.ToTable("DetalleLiquidaciones");
+                });
+
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.DetalleLiquidacionTurno", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DetalleLiquidacionId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EstadoRegistro")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Observacion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("PacienteId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TurnoId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PacienteId");
+
+                    b.HasIndex("TurnoId");
+
+                    b.HasIndex("DetalleLiquidacionId", "TurnoId", "PacienteId");
+
+                    b.ToTable("DetalleLiquidacionTurnos");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Documento", b =>
@@ -391,7 +485,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Property<int>("ProfesionalId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("SocioId")
+                    b.Property<int?>("SocioId")
                         .HasColumnType("integer");
 
                     b.Property<decimal>("TotalFacturacion")
@@ -405,6 +499,10 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Property<decimal>("TotalSaldo")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("UsuarioResponsable")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.HasKey("Id");
 
@@ -530,8 +628,8 @@ namespace CentroSenderos_2026_BD.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("AnuladoPor")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<int>("EstadoRegistro")
                         .HasColumnType("integer");
@@ -539,11 +637,21 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Property<DateTime?>("FechaAnulacion")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("FechaPago")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("LiquidacionId")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("Modificado")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ModificadoPor")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<decimal>("MontoTotal")
                         .HasPrecision(18, 2)
@@ -553,17 +661,26 @@ namespace CentroSenderos_2026_BD.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<string>("MotivoModificacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<string>("Observacion")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("PagoOriginalId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("RegistradoPor")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("LiquidacionId");
+
+                    b.HasIndex("PagoOriginalId");
 
                     b.ToTable("PagosLiquidaciones");
                 });
@@ -576,8 +693,9 @@ namespace CentroSenderos_2026_BD.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CantidadSesiones")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("CantidadSesiones")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int>("DetalleLiquidacionId")
                         .HasColumnType("integer");
@@ -1725,6 +1843,32 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.Navigation("TipoPrestaciones");
                 });
 
+            modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.DetalleLiquidacionTurno", b =>
+                {
+                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.DetalleLiquidacion", "DetalleLiquidacion")
+                        .WithMany("DetalleLiquidacionTurnos")
+                        .HasForeignKey("DetalleLiquidacionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.Paciente", "Paciente")
+                        .WithMany()
+                        .HasForeignKey("PacienteId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.Turno", "Turno")
+                        .WithMany()
+                        .HasForeignKey("TurnoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DetalleLiquidacion");
+
+                    b.Navigation("Paciente");
+
+                    b.Navigation("Turno");
+                });
+
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.Documento", b =>
                 {
                     b.HasOne("CentroSenderos_2026_BD.Datos.Entity.Paciente", "Paciente")
@@ -1834,8 +1978,7 @@ namespace CentroSenderos_2026_BD.Migrations
                     b.HasOne("CentroSenderos_2026_BD.Datos.Entity.Socio", "Socios")
                         .WithMany()
                         .HasForeignKey("SocioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Profesionales");
 
@@ -1880,7 +2023,14 @@ namespace CentroSenderos_2026_BD.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CentroSenderos_2026_BD.Datos.Entity.PagoLiquidacion", "PagoOriginal")
+                        .WithMany()
+                        .HasForeignKey("PagoOriginalId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Liquidacion");
+
+                    b.Navigation("PagoOriginal");
                 });
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.PagoLiquidacionDetalleImputacion", b =>
@@ -2215,6 +2365,8 @@ namespace CentroSenderos_2026_BD.Migrations
 
             modelBuilder.Entity("CentroSenderos_2026_BD.Datos.Entity.DetalleLiquidacion", b =>
                 {
+                    b.Navigation("DetalleLiquidacionTurnos");
+
                     b.Navigation("Turnos");
                 });
 

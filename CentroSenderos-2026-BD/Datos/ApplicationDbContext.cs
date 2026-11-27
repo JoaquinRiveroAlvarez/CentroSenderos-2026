@@ -27,6 +27,7 @@ namespace CentroSenderos_2026_BD
         public DbSet<SerieTurno> SeriesTurnos { get; set; }
         public DbSet<TipoObraSocial> TipoObraSociales { get; set; }
         public DbSet<DetalleLiquidacion> DetalleLiquidaciones { get; set; }
+        public DbSet<DetalleLiquidacionTurno> DetalleLiquidacionTurnos { get; set; }
         public DbSet<Liquidacion> Liquidaciones { get; set; }
         public DbSet<Gasto> Gastos { get; set; }
         public DbSet<GastoComprobante> GastoComprobantes { get; set; }
@@ -50,6 +51,43 @@ namespace CentroSenderos_2026_BD
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Liquidacion>()
+                .HasOne(l => l.Socios)
+                .WithMany()
+                .HasForeignKey(l => l.SocioId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DetalleLiquidacionTurno>()
+                .HasOne(dt => dt.DetalleLiquidacion)
+                .WithMany(d => d.DetalleLiquidacionTurnos)
+                .HasForeignKey(dt => dt.DetalleLiquidacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DetalleLiquidacionTurno>()
+                .HasOne(dt => dt.Turno)
+                .WithMany()
+                .HasForeignKey(dt => dt.TurnoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DetalleLiquidacionTurno>()
+                .HasOne(dt => dt.Paciente)
+                .WithMany()
+                .HasForeignKey(dt => dt.PacienteId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DetalleLiquidacionTurno>()
+                .HasIndex(dt => new { dt.DetalleLiquidacionId, dt.TurnoId, dt.PacienteId });
+
+            modelBuilder.Entity<PagoLiquidacion>()
+                .HasOne(p => p.PagoOriginal)
+                .WithMany()
+                .HasForeignKey(p => p.PagoOriginalId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Caja no tiene profesional; los socios habituales sí.
             modelBuilder.Entity<Socio>()
                 .HasOne(socio => socio.Profesionales)
