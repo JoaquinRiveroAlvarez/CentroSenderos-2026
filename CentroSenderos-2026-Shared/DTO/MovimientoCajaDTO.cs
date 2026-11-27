@@ -8,7 +8,8 @@ namespace CentroSenderos_2026_Shared.DTO
         Anulacion,
         PagoGasto,
         Reintegro,
-        AnulacionGasto
+        AnulacionGasto,
+        ReversionReintegro
     }
 
     public class MovimientoCajaDTO
@@ -25,6 +26,7 @@ namespace CentroSenderos_2026_Shared.DTO
     public class GastoMovimientoCajaDTO
     {
         public int GastoId { get; set; }
+        public bool Revertido { get; set; }
         public string Descripcion { get; set; } = string.Empty;
         public decimal Monto { get; set; }
     }

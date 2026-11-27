@@ -631,9 +631,9 @@ button:focus-visible {
     font-weight: 600;
 }
 
-.anulacion-campo textarea {
+.anulacion-campo textarea,
+.anulacion-campo select {
     width: 100%;
-    min-height: 78px;
     padding: 9px 11px;
     resize: vertical;
     border: 1px solid #ddc3bc;
@@ -643,7 +643,22 @@ button:focus-visible {
     font: inherit;
 }
 
-.anulacion-campo textarea:focus-visible {
+.anulacion-campo textarea {
+    min-height: 78px;
+}
+
+.anulacion-campo select {
+    min-height: 40px;
+    resize: none;
+}
+
+.anulacion-reintegros {
+    margin: 0 0 4px;
+    padding-inline-start: 20px;
+}
+
+.anulacion-campo textarea:focus-visible,
+.anulacion-campo select:focus-visible {
     outline: 2px solid #923d32;
     outline-offset: 2px;
 }

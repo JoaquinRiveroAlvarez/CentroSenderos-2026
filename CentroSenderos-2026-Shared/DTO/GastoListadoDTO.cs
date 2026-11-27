@@ -21,6 +21,8 @@ namespace CentroSenderos_2026_Shared.DTO
         public DateTime? FechaAnulacion { get; set; }
         public string? UsuarioAnulacion { get; set; }
         public string? MotivoAnulacion { get; set; }
+        public MotivoReversionReintegro? MotivoReversion { get; set; }
+        public Dictionary<int, decimal> ReintegrosRevertidos { get; set; } = new();
         public bool AnulacionBloqueada { get; set; }
         public List<int> ReintegrosQueBloqueanAnulacion { get; set; } = new();
         [System.Text.Json.Serialization.JsonIgnore(

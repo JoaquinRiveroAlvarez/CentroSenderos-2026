@@ -107,8 +107,8 @@
                     <div class="filter-field">
                         <label for="filtroEstadoGasto">Estado del gasto</label>
                         <select id="filtroEstadoGasto" @bind="estadoGasto" @bind:after="ActualizarFiltroEstado">
-                            <option value="activos">Activos</option>
                             <option value="todos">Todos los estados</option>
+                            <option value="activos">Activos</option>
                             <option value="anulados">Anulados</option>
                         </select>
                     </div>
@@ -576,7 +576,7 @@
     private bool volverAlDetalle;
     private bool ordenDescendente = true;
     private GastoListadoDTO? gastoOrigenBorrador;
-    private string estadoGasto = "activos";
+    private string estadoGasto = "todos";
     private bool anulados => estadoGasto == "anulados";
     private EstadoReintegroGasto? estadoReintegro;
     private EstadoComprobanteGasto? estadoComprobante;
@@ -618,7 +618,7 @@
     private IEnumerable<GastoSocioListadoDTO> SociosDisponibles => consulta.Pagadores;
 
     private bool HayFiltros => tipoSeleccionadoId > 0 || socioSeleccionadoId > 0 ||
-        estadoGasto != "activos" || !string.IsNullOrWhiteSpace(busqueda) || estadoReintegro.HasValue ||
+        estadoGasto != "todos" || !string.IsNullOrWhiteSpace(busqueda) || estadoReintegro.HasValue ||
         estadoComprobante.HasValue || socioPendienteId > 0;
 
     private string NombrePeriodo
@@ -746,7 +746,7 @@
     {
         tipoSeleccionadoId = 0;
         socioSeleccionadoId = 0;
-        estadoGasto = "activos";
+        estadoGasto = "todos";
         estadoReintegro = null;
         estadoComprobante = null;
         socioPendienteId = 0;

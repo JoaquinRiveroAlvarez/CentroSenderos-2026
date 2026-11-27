@@ -688,9 +688,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             };
         }
 
-        public async Task<string?> AnularGasto(int id, string motivo, string usuarioId)
+        public async Task<string?> AnularGasto(int id, AnularGastoDTO solicitud, string usuarioId)
         {
-            motivo = motivo.Trim();
+            var motivo = solicitud.Motivo?.Trim() ?? string.Empty;
             if (motivo.Length is 0 or > 500)
                 throw new ApplicationException("Ingresá un motivo de hasta 500 caracteres.");
 
@@ -707,13 +707,23 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var version = await SelectDetalleGasto(id)
                 ?? throw new ApplicationException("No se pudo recuperar el detalle del gasto.");
             var anterior = JsonSerializer.Serialize(version);
-            var reintegros = version.GastoReintegros.Select(r => r.ReintegroSocioId).Distinct().OrderBy(r => r).ToList();
+            var detalles = await context.ReintegrosSociosDetalles
+                .Where(d => d.GastoId == id && d.EstadoRegistro == EnumEstadoRegistro.activo &&
+                    d.ReintegroSocio!.EstadoRegistro == EnumEstadoRegistro.activo)
+                .ToListAsync();
+            var reintegros = detalles.GroupBy(d => d.ReintegroSocioId)
+                .ToDictionary(grupo => grupo.Key, grupo => grupo.Sum(d => d.Monto));
+            var confirmados = solicitud.ReintegrosConfirmados ?? new();
+            var coinciden = confirmados.Count == reintegros.Count &&
+                reintegros.All(r => confirmados.TryGetValue(r.Key, out var monto) && monto == r.Value);
+            var bloqueado = !coinciden || (reintegros.Count > 0 &&
+                solicitud.MotivoReversion is not (MotivoReversionReintegro.RegistroErroneo or MotivoReversionReintegro.DineroDevuelto));
             var fecha = DateTime.UtcNow;
             var nombre = usuario.UserName ?? usuario.Email ?? usuario.Id;
-            if (reintegros.Count > 0)
+            if (bloqueado)
             {
                 version.AnulacionBloqueada = true;
-                version.ReintegrosQueBloqueanAnulacion = reintegros;
+                version.ReintegrosQueBloqueanAnulacion = reintegros.Keys.Order().ToList();
             }
             else
             {
@@ -722,6 +732,15 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 version.FechaAnulacion = fecha;
                 version.UsuarioAnulacion = nombre;
                 version.MotivoAnulacion = motivo;
+                if (reintegros.Count > 0)
+                {
+                    foreach (var detalle in detalles)
+                        detalle.EstadoRegistro = EnumEstadoRegistro.anulado;
+
+                    version.MotivoReversion = solicitud.MotivoReversion;
+                    version.ReintegrosRevertidos = reintegros;
+                    version.GastoReintegros.Clear();
+                }
             }
 
             context.GastoHistoriales.Add(new GastoHistorial
@@ -737,8 +756,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             await context.SaveChangesAsync();
             await transaccion.CommitAsync();
 
-            return reintegros.Count > 0
-                ? $"No podés anular este gasto porque tiene reintegros asociados: #{string.Join(", #", reintegros)}."
+            return bloqueado
+                ? "Revisá los reintegros vigentes y confirmá que se registraron por error o que el dinero ya fue devuelto."
                 : null;
         }
 
@@ -1183,11 +1202,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 var evento = await context.GastoHistoriales.AsNoTracking()
                     .Where(h => h.GastoId == id)
                     .OrderByDescending(h => h.FechaCambio).ThenByDescending(h => h.Id)
-                    .Select(h => new { h.FechaCambio, h.NombreUsuario, h.Motivo })
+                    .Select(h => new { h.FechaCambio, h.NombreUsuario, h.Motivo, h.DatosNuevos })
                     .FirstOrDefaultAsync();
                 detalle.FechaAnulacion = evento?.FechaCambio;
                 detalle.UsuarioAnulacion = evento?.NombreUsuario;
                 detalle.MotivoAnulacion = evento?.Motivo;
+                if (evento is not null && JsonSerializer.Deserialize<GastoListadoDTO>(evento.DatosNuevos) is { } version)
+                {
+                    detalle.ReintegrosRevertidos = version.ReintegrosRevertidos;
+                    detalle.MotivoReversion = version.MotivoReversion;
+                }
             }
 
             return detalle;

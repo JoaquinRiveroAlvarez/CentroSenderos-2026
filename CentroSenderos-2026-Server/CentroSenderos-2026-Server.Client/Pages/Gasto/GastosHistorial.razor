@@ -97,6 +97,17 @@
                         <div class="history-reason">
                             <span>Motivo</span>
                             <p>@cambio.Motivo</p>
+                            @if (cambio.DatosNuevos.ReintegrosRevertidos.Count > 0)
+                            {
+                                <p>@(cambio.DatosNuevos.MotivoReversion == MotivoReversionReintegro.DineroDevuelto
+                                    ? "Dinero devuelto a Caja." : "Reintegro registrado por error.")</p>
+                                <ul>
+                                    @foreach (var reintegro in cambio.DatosNuevos.ReintegrosRevertidos.OrderBy(r => r.Key))
+                                    {
+                                        <li>Se revirtieron @Moneda(reintegro.Value) del reintegro #@reintegro.Key aplicado a este gasto.</li>
+                                    }
+                                </ul>
+                            }
                             @if (cambio.DatosNuevos.AnulacionBloqueada)
                             {
                                 <p>Reintegros asociados: #@string.Join(", #", cambio.DatosNuevos.ReintegrosQueBloqueanAnulacion)</p>

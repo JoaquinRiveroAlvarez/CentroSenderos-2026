@@ -55,6 +55,17 @@
                                 <dd>@anulado.MotivoAnulacion</dd>
                             </div>
                         }
+                        @if (anulado.ReintegrosRevertidos.Count > 0)
+                        {
+                            <div class="gasto-anulado-motivo">
+                                <dt>Reintegros revertidos</dt>
+                                <dd>@NombreMotivoReversion(anulado.MotivoReversion)</dd>
+                                @foreach (var reintegro in anulado.ReintegrosRevertidos.OrderBy(r => r.Key))
+                                {
+                                    <dd>Reintegro #@reintegro.Key · @Moneda(reintegro.Value)</dd>
+                                }
+                            </div>
+                        }
                     </dl>
                 </section>
             }
@@ -68,6 +79,25 @@
                             <p>Se conservará el gasto en el historial. Si Caja aportó, se registrará la reversión.</p>
                         </div>
                     </div>
+                    @if (gasto.GastoReintegros.Count > 0)
+                    {
+                        <div class="anulacion-campo">
+                            <strong>Reintegros a revertir · @Moneda(gasto.GastoReintegros.Sum(r => r.Monto))</strong>
+                            <ul class="anulacion-reintegros">
+                                @foreach (var reintegro in gasto.GastoReintegros.GroupBy(r => r.ReintegroSocioId))
+                                {
+                                    <li>Reintegro #@reintegro.Key · @Moneda(reintegro.Sum(r => r.Monto))</li>
+                                }
+                            </ul>
+                            <label for="motivo-reversion">¿Qué pasó con el dinero?</label>
+                            <select id="motivo-reversion" @bind="motivoReversion" disabled="@anulando">
+                                <option value="">Elegí una opción</option>
+                                <option value="@MotivoReversionReintegro.RegistroErroneo">Se registró por error y Caja no pagó</option>
+                                <option value="@MotivoReversionReintegro.DineroDevuelto">El socio ya devolvió todo el importe indicado</option>
+                            </select>
+                            <small>Si todavía falta devolver dinero, conservá el gasto.</small>
+                        </div>
+                    }
                     <div class="anulacion-campo">
                         <label for="motivo-anulacion">Motivo de la anulación</label>
                         <textarea id="motivo-anulacion" maxlength="500" rows="3"
@@ -84,8 +114,8 @@
                         <button type="button" class="secondary-button mantener-gasto-button" disabled="@anulando"
                                 @onclick="OcultarAnulacion">Conservar gasto</button>
                         <button type="button" class="secondary-button confirmar-anulacion-button"
-                                disabled="@(anulando || string.IsNullOrWhiteSpace(motivoAnulacion))" @onclick="AnularGasto">
-                            @(anulando ? "Anulando…" : "Confirmar anulación")
+                                disabled="@(anulando || string.IsNullOrWhiteSpace(motivoAnulacion) || (gasto.GastoReintegros.Count > 0 && !motivoReversion.HasValue))" @onclick="AnularGasto">
+                            @(anulando ? "Anulando…" : gasto.GastoReintegros.Count > 0 ? "Anular y revertir reintegros" : "Confirmar anulación")
                         </button>
                     </div>
                 </section>
@@ -154,6 +184,10 @@
                                         <span>@item.Descripcion</span>
                                     </button>
                                     <strong class="aporte-amount">@Moneda(item.Monto)</strong>
+                                    @if (item.Revertido)
+                                    {
+                                        <span class="badge text-bg-secondary">Revertido</span>
+                                    }
                                 </div>
                             }
                         </div>
@@ -480,12 +514,18 @@
         TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
     private bool mostrarAnulacion;
     private bool anulando;
+    private MotivoReversionReintegro? motivoReversion;
+
+    private static string NombreMotivoReversion(MotivoReversionReintegro? motivo) =>
+        motivo == MotivoReversionReintegro.DineroDevuelto ? "Dinero devuelto a Caja" : "Registro incorrecto";
+
     private string motivoAnulacion = string.Empty;
     private string errorAnulacion = string.Empty;
 
     private void OcultarAnulacion()
     {
         mostrarAnulacion = false;
+        motivoReversion = null;
         motivoAnulacion = string.Empty;
         errorAnulacion = string.Empty;
     }
@@ -499,15 +539,23 @@
         errorAnulacion = string.Empty;
         try
         {
-            var respuesta = await Http.Post<string, RespuestaDTO>($"api/gasto/{GastoId}/anular", motivoAnulacion);
+            var solicitud = new AnularGastoDTO
+            {
+                Motivo = motivoAnulacion,
+                MotivoReversion = motivoReversion,
+                ReintegrosConfirmados = gasto.GastoReintegros.GroupBy(r => r.ReintegroSocioId)
+                    .ToDictionary(grupo => grupo.Key, grupo => grupo.Sum(r => r.Monto))
+            };
+            var respuesta = await Http.Post<AnularGastoDTO, RespuestaDTO>($"api/gasto/{GastoId}/anular", solicitud);
             if (respuesta.Error)
             {
                 errorAnulacion = respuesta.ObtenerError();
+                motivoReversion = null;
                 await CargarDetalle();
                 return;
             }
 
-            mostrarAnulacion = false;
+            OcultarAnulacion();
             await CargarDetalle();
             await OnAnulado.InvokeAsync();
         }

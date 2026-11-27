@@ -164,7 +164,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPost("{id:int}/anular")]
-        public async Task<IActionResult> AnularGasto(int id, [FromBody] string motivo)
+        public async Task<IActionResult> AnularGasto(int id, [FromBody] AnularGastoDTO solicitud)
         {
             var usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrWhiteSpace(usuarioId))
@@ -172,7 +172,7 @@ namespace CentroSenderos_2026_Server.Controllers
 
             try
             {
-                var bloqueo = await repositorio.AnularGasto(id, motivo, usuarioId);
+                var bloqueo = await repositorio.AnularGasto(id, solicitud, usuarioId);
                 return bloqueo is null
                     ? Ok(new RespuestaDTO { mensaje = "Gasto anulado." })
                     : Conflict(new RespuestaDTO { mensaje = bloqueo });
