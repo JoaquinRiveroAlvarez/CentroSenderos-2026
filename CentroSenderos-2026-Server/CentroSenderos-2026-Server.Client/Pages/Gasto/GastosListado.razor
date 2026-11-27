@@ -110,6 +110,9 @@
                             <option value="activos">Activos</option>
                             <option value="anulados">Anulados</option>
                         </select>
+                    </div>
+
+                    <div class="filter-field">
                         <label for="filtroReintegroGasto">Reintegro</label>
                         <select id="filtroReintegroGasto" disabled="@anulados" @bind="estadoReintegro" @bind:after="ActualizarFiltroEstado">
                             <option value="">Todos los estados</option>
@@ -137,33 +140,32 @@
                     <CalendarioGasto Id="fechaFiltroHasta" Etiqueta="Hasta" PermiteLimpiar="true"
                                      @bind-Value="fechaHasta" @bind-Value:after="ActualizarConsulta" />
 
-                    <button type="button"
-                            class="filter-order-button"
-                            title="Cambiar orden por fecha"
-                            @onclick="CambiarOrden">
-                        <i class="bi bi-arrow-down-up"></i>
-                        @(ordenDescendente ? "Más recientes" : "Más antiguos")
-                    </button>
+                    <div class="filter-toolbar">
+                        <div class="filter-search" role="search" aria-label="Búsqueda de gastos">
+                            <input type="search"
+                                   aria-label="Buscar gastos"
+                                   placeholder="Buscar por tipo, descripción o socio..."
+                                   @bind="busqueda"
+                                   @bind:event="oninput"
+                                   @onkeydown="BuscarConTeclado" />
+                        </div>
 
-                    <div class="filter-search" role="search" aria-label="Búsqueda de gastos">
-                        <input type="search"
-                               aria-label="Buscar gastos"
-                               placeholder="Buscar por tipo, descripción o socio..."
-                               @bind="busqueda"
-                               @bind:event="oninput"
-                               @onkeydown="BuscarConTeclado" />
-                        <button type="button" class="buscar-gastos" @onclick="ActualizarConsulta">
-                            <i class="bi bi-search" aria-hidden="true"></i>
-                            Buscar
-                        </button>
+                        <div class="filter-actions">
+                            <button type="button" class="filter-action filter-action-search" @onclick="ActualizarConsulta">
+                                <i class="bi bi-search" aria-hidden="true"></i>
+                                Buscar
+                            </button>
+                            <button type="button" class="filter-action filter-order-button"
+                                    title="Cambiar orden por fecha" @onclick="CambiarOrden">
+                                <i class="bi bi-arrow-down-up" aria-hidden="true"></i>
+                                @(ordenDescendente ? "Más recientes" : "Más antiguos")
+                            </button>
+                            <button type="button" class="filter-action filter-reset-button" @onclick="RestaurarFiltros">
+                                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                                Restaurar filtros
+                            </button>
+                        </div>
                     </div>
-
-                    <button type="button"
-                            class="filter-reset-button"
-                            @onclick="RestaurarFiltros">
-                        <i class="bi bi-arrow-counterclockwise"></i>
-                        Restaurar filtros
-                    </button>
                 </div>
 
                 @if (socioPendienteId > 0)
@@ -326,7 +328,7 @@
                                                 @if (gasto.TieneHistorial)
                                                 {
                                                     <button type="button"
-                                                            class="edit-button"
+                                                            class="edit-button gasto-historial-button"
                                                             title="Ver historial"
                                                             aria-label="@($"Ver historial: {gasto.Descripcion}")"
                                                             @onclick="() => AbrirHistorial(gasto.Id)">

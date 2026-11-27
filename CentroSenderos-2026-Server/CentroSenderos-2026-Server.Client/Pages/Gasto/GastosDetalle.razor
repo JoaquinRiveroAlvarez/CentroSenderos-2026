@@ -39,20 +39,34 @@
             }
             @if (mostrarAnulacion && gasto is { Anulado: false } && !SoloLectura)
             {
-                <section class="alert alert-warning" aria-labelledby="titulo-anulacion">
-                    <h3 id="titulo-anulacion">Confirmar anulación</h3>
-                    <p>Se conservará el gasto en el historial. Si Caja aportó, se registrará la reversión.</p>
-                    <label for="motivo-anulacion">Motivo de la anulación</label>
-                    <textarea id="motivo-anulacion" class="form-control" maxlength="500" rows="3"
-                              @bind="motivoAnulacion" @bind:event="oninput" disabled="@anulando"></textarea>
+                <section class="anulacion-card" aria-labelledby="titulo-anulacion">
+                    <div class="anulacion-encabezado">
+                        <span class="anulacion-icono" aria-hidden="true"><i class="bi bi-slash-circle"></i></span>
+                        <div>
+                            <h3 id="titulo-anulacion">Confirmar anulación</h3>
+                            <p>Se conservará el gasto en el historial. Si Caja aportó, se registrará la reversión.</p>
+                        </div>
+                    </div>
+                    <div class="anulacion-campo">
+                        <label for="motivo-anulacion">Motivo de la anulación</label>
+                        <textarea id="motivo-anulacion" maxlength="500" rows="3"
+                                  placeholder="Escribí por qué anulás este gasto"
+                                  aria-describedby="anulacion-ayuda" required
+                                  @bind="motivoAnulacion" @bind:event="oninput" disabled="@anulando"></textarea>
+                        <small id="anulacion-ayuda">Obligatorio · @motivoAnulacion.Length/500</small>
+                    </div>
                     @if (!string.IsNullOrWhiteSpace(errorAnulacion))
                     {
-                        <p role="alert">@errorAnulacion</p>
+                        <p class="anulacion-error" role="alert">@errorAnulacion</p>
                     }
-                    <button type="button" class="secondary-button" disabled="@anulando"
-                            @onclick="() => mostrarAnulacion = false">Cancelar</button>
-                    <button type="button" class="btn btn-danger" disabled="@(anulando || string.IsNullOrWhiteSpace(motivoAnulacion))"
-                            @onclick="AnularGasto">Confirmar anulación</button>
+                    <div class="anulacion-acciones">
+                        <button type="button" class="secondary-button mantener-gasto-button" disabled="@anulando"
+                                @onclick="OcultarAnulacion">Conservar gasto</button>
+                        <button type="button" class="secondary-button confirmar-anulacion-button"
+                                disabled="@(anulando || string.IsNullOrWhiteSpace(motivoAnulacion))" @onclick="AnularGasto">
+                            @(anulando ? "Anulando…" : "Confirmar anulación")
+                        </button>
+                    </div>
                 </section>
             }
             @if (cargando)
@@ -318,7 +332,7 @@
         <footer class="modal-actions">
             @if (gasto is { Anulado: true, TieneHistorial: true } && OnHistorial.HasDelegate)
             {
-                <button type="button" class="secondary-button" @onclick="AbrirHistorial">Ver historial</button>
+                <button type="button" class="secondary-button historial-gasto-button" @onclick="AbrirHistorial">Ver historial</button>
             }
             @if (!SoloLectura && !mostrarAnulacion &&
                  gasto is { Anulado: false } &&
@@ -348,7 +362,7 @@
                 @if (gasto.TieneHistorial && OnHistorial.HasDelegate)
                 {
                     <button type="button"
-                            class="secondary-button"
+                            class="secondary-button historial-gasto-button"
                             @onclick="AbrirHistorial">
                         <i class="bi bi-clock-history"></i>
                         Ver historial
@@ -356,15 +370,18 @@
                 }
 
                 <button type="button"
-                        class="secondary-button"
+                        class="secondary-button editar-gasto-button"
                         title="@(gasto.GastoReintegros.Count > 0 ? "Editar descripción y tipo de gasto" : "Editar gasto")"
                         @onclick="AbrirEditar">
                     <i class="bi bi-pencil"></i>
                     Editar
                 </button>
 
-                <button type="button" class="secondary-button"
-                        @onclick="() => mostrarAnulacion = true">Anular gasto</button>
+                <button type="button" class="secondary-button anular-gasto-button"
+                        @onclick="() => mostrarAnulacion = true">
+                    <i class="bi bi-slash-circle" aria-hidden="true"></i>
+                    Anular gasto
+                </button>
 
                 @if (gasto.GastoReintegros.Count > 0)
                 {
@@ -444,6 +461,13 @@
     private bool anulando;
     private string motivoAnulacion = string.Empty;
     private string errorAnulacion = string.Empty;
+
+    private void OcultarAnulacion()
+    {
+        mostrarAnulacion = false;
+        motivoAnulacion = string.Empty;
+        errorAnulacion = string.Empty;
+    }
 
     private async Task AnularGasto()
     {
