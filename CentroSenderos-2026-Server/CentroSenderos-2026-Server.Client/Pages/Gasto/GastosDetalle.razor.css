@@ -338,7 +338,7 @@
     padding: 10px 15px;
     border: 1px solid #deded3;
     border-radius: 9px;
-    background: transparent;
+    background: #fffdfa;
     color: #646d5b;
     font-family: inherit;
     font-size: 14px;
@@ -537,20 +537,211 @@ button:focus-visible {
 }
 /* #endregion */
 
-/* #region Acción duplicar gasto */
-.modal-actions .duplicar-gasto-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+/* #region Acciones según el tipo */
+.modal-actions .duplicar-gasto-button,
+.mantener-gasto-button {
     border-color: #cad8c4;
     background: #eef3eb;
     color: #40563b;
+}
+
+.modal-actions .duplicar-gasto-button:hover:not(:disabled),
+.mantener-gasto-button:hover:not(:disabled) {
+    background: #e1ebdd;
+}
+
+.modal-actions .editar-gasto-button {
+    border-color: #cbd8e0;
+    background: #edf3f7;
+    color: #3c576a;
+}
+
+.modal-actions .editar-gasto-button:hover:not(:disabled) {
+    background: #dce8f0;
+}
+
+.modal-actions .historial-gasto-button {
+    border-color: #ded4e8;
+    background: #eeeaf4;
+    color: #59456b;
+}
+
+.modal-actions .historial-gasto-button:hover:not(:disabled) {
+    background: #e4dbed;
+}
+
+.modal-actions .anular-gasto-button {
+    border-color: #e3bfb8;
+    background: #f8eae7;
+    color: #8a352c;
+}
+
+.modal-actions .anular-gasto-button:hover:not(:disabled) {
+    background: #f0d9d4;
+}
+/* #endregion */
+
+/* #region Confirmar anulación */
+.anulacion-card {
+    display: grid;
+    gap: 16px;
+    margin: 18px 0;
+    padding: clamp(14px, 4vw, 22px);
+    border: 1px solid #e8cbc4;
+    border-radius: 16px;
+    background: #fff9f7;
+    color: #4c3832;
+}
+
+.anulacion-encabezado {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.anulacion-icono {
+    display: grid;
+    flex: 0 0 40px;
+    height: 40px;
+    place-items: center;
+    border-radius: 11px;
+    background: #f4e0dc;
+    color: #923d32;
+}
+
+.anulacion-encabezado h3 {
+    margin: 0 0 4px;
+    color: #71392f;
+    font-size: 17px;
+}
+
+.anulacion-encabezado p,
+.anulacion-error {
+    margin: 0;
+    font-size: 13px;
+}
+
+.anulacion-campo {
+    display: grid;
+    gap: 5px;
+    font-size: 13px;
+}
+
+.anulacion-campo label {
     font-weight: 600;
 }
 
-    .modal-actions .duplicar-gasto-button:hover:not(:disabled) {
-        border-color: #a8bca0;
-        background: #e1ebdd;
-    }
+.anulacion-campo textarea,
+.anulacion-campo select {
+    width: 100%;
+    padding: 9px 11px;
+    resize: vertical;
+    border: 1px solid #ddc3bc;
+    border-radius: 10px;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+}
+
+.anulacion-campo textarea {
+    min-height: 78px;
+}
+
+.anulacion-campo select {
+    min-height: 40px;
+    resize: none;
+}
+
+.anulacion-reintegros {
+    margin: 0 0 4px;
+    padding-inline-start: 20px;
+}
+
+.anulacion-campo textarea:focus-visible,
+.anulacion-campo select:focus-visible {
+    outline: 2px solid #923d32;
+    outline-offset: 2px;
+}
+
+.anulacion-campo small {
+    color: #705c54;
+}
+
+.anulacion-error {
+    padding: 9px 11px;
+    border-radius: 8px;
+    background: #f6e3df;
+    color: #7c3027;
+}
+
+.anulacion-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.confirmar-anulacion-button {
+    border-color: #963f34;
+    background: #963f34;
+    color: #fff;
+}
+
+.confirmar-anulacion-button:hover:not(:disabled) {
+    background: #7c3027;
+}
+/* #endregion */
+
+/* #region Resumen de gasto anulado */
+.gasto-anulado-card {
+    margin: 18px 0;
+    padding: clamp(14px, 4vw, 20px);
+    border: 1px solid #e6cbc5;
+    border-inline-start: 4px solid #a85c4e;
+    border-radius: 14px;
+    background: #fff8f6;
+    color: #513a34;
+}
+
+.gasto-anulado-header {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.gasto-anulado-header h3 {
+    margin: 0;
+    font-size: 17px;
+    color: #753f35;
+}
+
+.gasto-anulado-datos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 165px), 1fr));
+    gap: 12px;
+    margin: 14px 0 0;
+}
+
+.gasto-anulado-datos dt {
+    font-size: 12px;
+    color: #74564d;
+}
+
+.gasto-anulado-datos dd {
+    margin: 3px 0 0;
+    overflow-wrap: anywhere;
+    font-size: 14px;
+}
+
+.gasto-anulado-motivo {
+    grid-column: 1 / -1;
+    padding: 10px 12px;
+    border: 1px solid #eedad5;
+    border-radius: 9px;
+    background: #fffdfa;
+}
+
+.gasto-anulado-motivo dd {
+    white-space: pre-wrap;
+}
 /* #endregion */

@@ -11,7 +11,8 @@ namespace CentroSenderos_2026_Shared.Enum
         activo = 1,
         inactivo = 2,
         borrado = 3,
-        EnGrabacion = 4
+        EnGrabacion = 4,
+        anulado = 5
     }
     public enum ResultadoOperacionSeguridad
     {

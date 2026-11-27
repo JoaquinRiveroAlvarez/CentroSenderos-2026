@@ -17,6 +17,14 @@ namespace CentroSenderos_2026_Shared.DTO
 
     public class GastoListadoDTO
     {
+        public bool Anulado { get; set; }
+        public DateTime? FechaAnulacion { get; set; }
+        public string? UsuarioAnulacion { get; set; }
+        public string? MotivoAnulacion { get; set; }
+        public MotivoReversionReintegro? MotivoReversion { get; set; }
+        public Dictionary<int, decimal> ReintegrosRevertidos { get; set; } = new();
+        public bool AnulacionBloqueada { get; set; }
+        public List<int> ReintegrosQueBloqueanAnulacion { get; set; } = new();
         [System.Text.Json.Serialization.JsonIgnore(
             Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public List<string>? ComprobantesModificados { get; set; }

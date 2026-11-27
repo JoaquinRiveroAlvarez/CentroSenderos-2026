@@ -105,8 +105,17 @@
                     </div>
 
                     <div class="filter-field">
+                        <label for="filtroEstadoGasto">Estado del gasto</label>
+                        <select id="filtroEstadoGasto" @bind="estadoGasto" @bind:after="ActualizarFiltroEstado">
+                            <option value="todos">Todos los estados</option>
+                            <option value="activos">Activos</option>
+                            <option value="anulados">Anulados</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-field">
                         <label for="filtroReintegroGasto">Reintegro</label>
-                        <select id="filtroReintegroGasto" @bind="estadoReintegro" @bind:after="ActualizarFiltroEstado">
+                        <select id="filtroReintegroGasto" disabled="@anulados" @bind="estadoReintegro" @bind:after="ActualizarFiltroEstado">
                             <option value="">Todos los estados</option>
                             @foreach (var estado in Enum.GetValues<EstadoReintegroGasto>())
                             {
@@ -132,33 +141,32 @@
                     <CalendarioGasto Id="fechaFiltroHasta" Etiqueta="Hasta" PermiteLimpiar="true"
                                      @bind-Value="fechaHasta" @bind-Value:after="ActualizarConsulta" />
 
-                    <button type="button"
-                            class="filter-order-button"
-                            title="Cambiar orden por fecha"
-                            @onclick="CambiarOrden">
-                        <i class="bi bi-arrow-down-up"></i>
-                        @(ordenDescendente ? "Más recientes" : "Más antiguos")
-                    </button>
+                    <div class="filter-toolbar">
+                        <div class="filter-search" role="search" aria-label="Búsqueda de gastos">
+                            <input type="search"
+                                   aria-label="Buscar gastos"
+                                   placeholder="Buscar por tipo, descripción o socio..."
+                                   @bind="busqueda"
+                                   @bind:event="oninput"
+                                   @onkeydown="BuscarConTeclado" />
+                        </div>
 
-                    <div class="filter-search" role="search" aria-label="Búsqueda de gastos">
-                        <input type="search"
-                               aria-label="Buscar gastos"
-                               placeholder="Buscar por tipo, descripción o socio..."
-                               @bind="busqueda"
-                               @bind:event="oninput"
-                               @onkeydown="BuscarConTeclado" />
-                        <button type="button" class="buscar-gastos" @onclick="ActualizarConsulta">
-                            <i class="bi bi-search" aria-hidden="true"></i>
-                            Buscar
-                        </button>
+                        <div class="filter-actions">
+                            <button type="button" class="filter-action filter-action-search" @onclick="ActualizarConsulta">
+                                <i class="bi bi-search" aria-hidden="true"></i>
+                                Buscar
+                            </button>
+                            <button type="button" class="filter-action filter-order-button"
+                                    title="Cambiar orden por fecha" @onclick="CambiarOrden">
+                                <i class="bi bi-arrow-down-up" aria-hidden="true"></i>
+                                @(ordenDescendente ? "Más recientes" : "Más antiguos")
+                            </button>
+                            <button type="button" class="filter-action filter-reset-button" @onclick="RestaurarFiltros">
+                                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                                Restaurar filtros
+                            </button>
+                        </div>
                     </div>
-
-                    <button type="button"
-                            class="filter-reset-button"
-                            @onclick="RestaurarFiltros">
-                        <i class="bi bi-arrow-counterclockwise"></i>
-                        Restaurar filtros
-                    </button>
                 </div>
 
                 @if (socioPendienteId > 0)
@@ -227,7 +235,7 @@
                                         : ImportePendiente(gasto);
 
                                     <tr @key="gasto.Id"
-                                        class="@(TieneReintegroPendiente(gasto) ? "gasto-row reintegro-pendiente" : "gasto-row")"
+                                        class="@(!gasto.Anulado && TieneReintegroPendiente(gasto) ? "gasto-row reintegro-pendiente" : "gasto-row")"
                                         @onclick="() => AbrirDetalle(gasto.Id)">
                                         <td class="date-cell" data-label="Fecha">
                                             @gasto.Fecha.ToString("dd/MM/yyyy")
@@ -286,12 +294,19 @@
                                         </td>
 
                                         <td class="gasto-estado-reintegro" data-label="Reintegro">
-                                            <span class="@ClaseEstadoReintegro(estado)">@NombreEstadoReintegro(estado)</span>
-                                            @if (pendiente > 0m)
+                                            @if (gasto.Anulado)
+                                            {
+                                                <span class="badge text-bg-secondary">Anulado</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="@ClaseEstadoReintegro(estado)">@NombreEstadoReintegro(estado)</span>
+                                            }
+                                            @if (!gasto.Anulado && pendiente > 0m)
                                             {
                                                 <small>@Moneda(pendiente) por devolver</small>
                                             }
-                                            else if (estado == EstadoReintegroGasto.PorRevisar)
+                                            else if (!gasto.Anulado && estado == EstadoReintegroGasto.PorRevisar)
                                             {
                                                 <small>@MotivoRevision(gasto)</small>
                                             }
@@ -300,18 +315,21 @@
                                         <td class="actions-column" data-label="Acciones">
                                             <div class="gasto-actions"
                                                  @onclick:stopPropagation="true">
-                                                <button type="button"
-                                                        class="edit-button"
-                                                        title="Editar gasto"
-                                                        aria-label="@($"Editar: {gasto.Descripcion}")"
-                                                        @onclick="() => AbrirEditar(gasto.Id)">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
+                                                @if (!gasto.Anulado)
+                                                {
+                                                    <button type="button"
+                                                            class="edit-button"
+                                                            title="Editar gasto"
+                                                            aria-label="@($"Editar: {gasto.Descripcion}")"
+                                                            @onclick="() => AbrirEditar(gasto.Id)">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                }
 
                                                 @if (gasto.TieneHistorial)
                                                 {
                                                     <button type="button"
-                                                            class="edit-button"
+                                                            class="edit-button gasto-historial-button"
                                                             title="Ver historial"
                                                             aria-label="@($"Ver historial: {gasto.Descripcion}")"
                                                             @onclick="() => AbrirHistorial(gasto.Id)">
@@ -532,6 +550,7 @@
                        GastoId="gastoDetalleId"
                        IrAComprobantes="irAComprobantesDetalle"
                        OnCerrar="CerrarDetalle"
+                       OnAnulado="CargarGastos"
                        OnEditar="AbrirEditar"
                        OnDuplicar="AbrirBorrador"
                        OnHistorial="AbrirHistorial"
@@ -557,6 +576,8 @@
     private bool volverAlDetalle;
     private bool ordenDescendente = true;
     private GastoListadoDTO? gastoOrigenBorrador;
+    private string estadoGasto = "todos";
+    private bool anulados => estadoGasto == "anulados";
     private EstadoReintegroGasto? estadoReintegro;
     private EstadoComprobanteGasto? estadoComprobante;
     private int socioPendienteId;
@@ -597,7 +618,7 @@
     private IEnumerable<GastoSocioListadoDTO> SociosDisponibles => consulta.Pagadores;
 
     private bool HayFiltros => tipoSeleccionadoId > 0 || socioSeleccionadoId > 0 ||
-        !string.IsNullOrWhiteSpace(busqueda) || estadoReintegro.HasValue ||
+        estadoGasto != "todos" || !string.IsNullOrWhiteSpace(busqueda) || estadoReintegro.HasValue ||
         estadoComprobante.HasValue || socioPendienteId > 0;
 
     private string NombrePeriodo
@@ -725,6 +746,7 @@
     {
         tipoSeleccionadoId = 0;
         socioSeleccionadoId = 0;
+        estadoGasto = "todos";
         estadoReintegro = null;
         estadoComprobante = null;
         socioPendienteId = 0;
@@ -781,7 +803,7 @@
         {
             var parametros = $"pagina={pagina}&tipoId={tipoSeleccionadoId}&pagadorId={socioSeleccionadoId}" +
                 $"&desde={fechaDesde:yyyy-MM-dd}&hasta={fechaHasta:yyyy-MM-dd}" +
-                $"&descendente={ordenDescendente}&estadoReintegro={estadoReintegro}&socioPendienteId={socioPendienteId}" +
+                $"&anulados={anulados}&incluirAnulados={estadoGasto == "todos"}&descendente={ordenDescendente}&estadoReintegro={estadoReintegro}&socioPendienteId={socioPendienteId}" +
                 $"&estadoComprobante={estadoComprobante}&texto={Uri.EscapeDataString(busqueda)}";
             var respuesta = await Http.Get<GastosPaginaDTO>($"api/gasto/consulta?{parametros}");
 

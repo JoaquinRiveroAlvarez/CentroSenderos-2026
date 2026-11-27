@@ -8,6 +8,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
 {
     public interface IGastoRepositorio : IRepositorio<Gasto>
     {
+        Task<string?> AnularGasto(int id, AnularGastoDTO solicitud, string usuarioId);
         Task<int> InsertarGasto(GastoCrearDTO dto);
         Task<List<GastoListadoDTO>> SelectListaGastos();
         Task<GastosPaginaDTO> ConsultarGastos(FiltroGastosDTO filtro);

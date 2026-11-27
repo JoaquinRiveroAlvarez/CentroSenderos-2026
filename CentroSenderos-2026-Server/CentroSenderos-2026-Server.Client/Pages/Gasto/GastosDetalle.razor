@@ -26,6 +26,100 @@
         </header>
 
         <div class="detalle-contenido">
+            @if (gasto is { Anulado: true } anulado)
+            {
+                <section class="gasto-anulado-card" aria-labelledby="titulo-gasto-anulado">
+                    <header class="gasto-anulado-header">
+                        <span class="anulacion-icono" aria-hidden="true"><i class="bi bi-slash-circle"></i></span>
+                        <h3 id="titulo-gasto-anulado">Gasto anulado</h3>
+                    </header>
+                    <dl class="gasto-anulado-datos">
+                        @if (anulado.FechaAnulacion is DateTime fecha)
+                        {
+                            <div>
+                                <dt>Fecha y hora</dt>
+                                <dd>@TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(fecha, DateTimeKind.Utc), ZonaArgentina).ToString("dd/MM/yyyy · HH:mm")</dd>
+                            </div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(anulado.UsuarioAnulacion))
+                        {
+                            <div>
+                                <dt>Anulado por</dt>
+                                <dd>@anulado.UsuarioAnulacion</dd>
+                            </div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(anulado.MotivoAnulacion))
+                        {
+                            <div class="gasto-anulado-motivo">
+                                <dt>Motivo</dt>
+                                <dd>@anulado.MotivoAnulacion</dd>
+                            </div>
+                        }
+                        @if (anulado.ReintegrosRevertidos.Count > 0)
+                        {
+                            <div class="gasto-anulado-motivo">
+                                <dt>Reintegros revertidos</dt>
+                                <dd>@NombreMotivoReversion(anulado.MotivoReversion)</dd>
+                                @foreach (var reintegro in anulado.ReintegrosRevertidos.OrderBy(r => r.Key))
+                                {
+                                    <dd>Reintegro #@reintegro.Key · @Moneda(reintegro.Value)</dd>
+                                }
+                            </div>
+                        }
+                    </dl>
+                </section>
+            }
+            @if (mostrarAnulacion && gasto is { Anulado: false } && !SoloLectura)
+            {
+                <section class="anulacion-card" aria-labelledby="titulo-anulacion">
+                    <div class="anulacion-encabezado">
+                        <span class="anulacion-icono" aria-hidden="true"><i class="bi bi-slash-circle"></i></span>
+                        <div>
+                            <h3 id="titulo-anulacion">Confirmar anulación</h3>
+                            <p>Se conservará el gasto en el historial. Si Caja aportó, se registrará la reversión.</p>
+                        </div>
+                    </div>
+                    @if (gasto.GastoReintegros.Count > 0)
+                    {
+                        <div class="anulacion-campo">
+                            <strong>Reintegros a revertir · @Moneda(gasto.GastoReintegros.Sum(r => r.Monto))</strong>
+                            <ul class="anulacion-reintegros">
+                                @foreach (var reintegro in gasto.GastoReintegros.GroupBy(r => r.ReintegroSocioId))
+                                {
+                                    <li>Reintegro #@reintegro.Key · @Moneda(reintegro.Sum(r => r.Monto))</li>
+                                }
+                            </ul>
+                            <label for="motivo-reversion">¿Qué pasó con el dinero?</label>
+                            <select id="motivo-reversion" @bind="motivoReversion" disabled="@anulando">
+                                <option value="">Elegí una opción</option>
+                                <option value="@MotivoReversionReintegro.RegistroErroneo">Se registró por error y Caja no pagó</option>
+                                <option value="@MotivoReversionReintegro.DineroDevuelto">El socio ya devolvió todo el importe indicado</option>
+                            </select>
+                            <small>Si todavía falta devolver dinero, conservá el gasto.</small>
+                        </div>
+                    }
+                    <div class="anulacion-campo">
+                        <label for="motivo-anulacion">Motivo de la anulación</label>
+                        <textarea id="motivo-anulacion" maxlength="500" rows="3"
+                                  placeholder="Escribí por qué anulás este gasto"
+                                  aria-describedby="anulacion-ayuda" required
+                                  @bind="motivoAnulacion" @bind:event="oninput" disabled="@anulando"></textarea>
+                        <small id="anulacion-ayuda">Obligatorio · @motivoAnulacion.Length/500</small>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(errorAnulacion))
+                    {
+                        <p class="anulacion-error" role="alert">@errorAnulacion</p>
+                    }
+                    <div class="anulacion-acciones">
+                        <button type="button" class="secondary-button mantener-gasto-button" disabled="@anulando"
+                                @onclick="OcultarAnulacion">Conservar gasto</button>
+                        <button type="button" class="secondary-button confirmar-anulacion-button"
+                                disabled="@(anulando || string.IsNullOrWhiteSpace(motivoAnulacion) || (gasto.GastoReintegros.Count > 0 && !motivoReversion.HasValue))" @onclick="AnularGasto">
+                            @(anulando ? "Anulando…" : gasto.GastoReintegros.Count > 0 ? "Anular y revertir reintegros" : "Confirmar anulación")
+                        </button>
+                    </div>
+                </section>
+            }
             @if (cargando)
             {
                 <div class="state-card" role="status">
@@ -90,6 +184,10 @@
                                         <span>@item.Descripcion</span>
                                     </button>
                                     <strong class="aporte-amount">@Moneda(item.Monto)</strong>
+                                    @if (item.Revertido)
+                                    {
+                                        <span class="badge text-bg-secondary">Revertido</span>
+                                    }
                                 </div>
                             }
                         </div>
@@ -125,7 +223,7 @@
                             </div>
                             <div class="resumen-pendiente">
                                 <dt>Pendiente de reintegrar</dt>
-                                <dd>@(compatible ? Moneda(pendiente) : "Por revisar")</dd>
+                                <dd>@(gasto.Anulado ? "No corresponde" : compatible ? Moneda(pendiente) : "Por revisar")</dd>
                             </div>
                         </dl>
 
@@ -287,8 +385,12 @@
         </div>
 
         <footer class="modal-actions">
-            @if (!SoloLectura &&
-                 gasto != null &&
+            @if (gasto is { Anulado: true, TieneHistorial: true } && OnHistorial.HasDelegate)
+            {
+                <button type="button" class="secondary-button historial-gasto-button" @onclick="AbrirHistorial">Ver historial</button>
+            }
+            @if (!SoloLectura && !mostrarAnulacion &&
+                 gasto is { Anulado: false } &&
                  !cargando &&
                  string.IsNullOrWhiteSpace(mensajeError))
             {
@@ -312,10 +414,10 @@
                     </button>
                 }
 
-                @if (gasto.TieneHistorial)
+                @if (gasto.TieneHistorial && OnHistorial.HasDelegate)
                 {
                     <button type="button"
-                            class="secondary-button"
+                            class="secondary-button historial-gasto-button"
                             @onclick="AbrirHistorial">
                         <i class="bi bi-clock-history"></i>
                         Ver historial
@@ -323,11 +425,17 @@
                 }
 
                 <button type="button"
-                        class="secondary-button"
+                        class="secondary-button editar-gasto-button"
                         title="@(gasto.GastoReintegros.Count > 0 ? "Editar descripción y tipo de gasto" : "Editar gasto")"
                         @onclick="AbrirEditar">
                     <i class="bi bi-pencil"></i>
                     Editar
+                </button>
+
+                <button type="button" class="secondary-button anular-gasto-button"
+                        @onclick="() => mostrarAnulacion = true">
+                    <i class="bi bi-slash-circle" aria-hidden="true"></i>
+                    Anular gasto
                 </button>
 
                 @if (gasto.GastoReintegros.Count > 0)
@@ -398,6 +506,68 @@
 
     private readonly CultureInfo cultura =
         CultureInfo.GetCultureInfo("es-AR");
+
+    [Parameter]
+    public EventCallback OnAnulado { get; set; }
+
+    private static readonly TimeZoneInfo ZonaArgentina =
+        TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
+    private bool mostrarAnulacion;
+    private bool anulando;
+    private MotivoReversionReintegro? motivoReversion;
+
+    private static string NombreMotivoReversion(MotivoReversionReintegro? motivo) =>
+        motivo == MotivoReversionReintegro.DineroDevuelto ? "Dinero devuelto a Caja" : "Registro incorrecto";
+
+    private string motivoAnulacion = string.Empty;
+    private string errorAnulacion = string.Empty;
+
+    private void OcultarAnulacion()
+    {
+        mostrarAnulacion = false;
+        motivoReversion = null;
+        motivoAnulacion = string.Empty;
+        errorAnulacion = string.Empty;
+    }
+
+    private async Task AnularGasto()
+    {
+        if (SoloLectura || gasto is not { Anulado: false } || anulando)
+            return;
+
+        anulando = true;
+        errorAnulacion = string.Empty;
+        try
+        {
+            var solicitud = new AnularGastoDTO
+            {
+                Motivo = motivoAnulacion,
+                MotivoReversion = motivoReversion,
+                ReintegrosConfirmados = gasto.GastoReintegros.GroupBy(r => r.ReintegroSocioId)
+                    .ToDictionary(grupo => grupo.Key, grupo => grupo.Sum(r => r.Monto))
+            };
+            var respuesta = await Http.Post<AnularGastoDTO, RespuestaDTO>($"api/gasto/{GastoId}/anular", solicitud);
+            if (respuesta.Error)
+            {
+                errorAnulacion = respuesta.ObtenerError();
+                motivoReversion = null;
+                await CargarDetalle();
+                return;
+            }
+
+            OcultarAnulacion();
+            await CargarDetalle();
+            await OnAnulado.InvokeAsync();
+        }
+        catch (Exception)
+        {
+            errorAnulacion = "No pudimos confirmar la anulación. Volvé a intentar.";
+        }
+        finally
+        {
+            anulando = false;
+        }
+    }
 
     private GastoListadoDTO? gasto;
 
@@ -556,6 +726,7 @@
 
     private async Task Cerrar()
     {
-        await OnCerrar.InvokeAsync();
+        if (!anulando)
+            await OnCerrar.InvokeAsync();
     }
 }

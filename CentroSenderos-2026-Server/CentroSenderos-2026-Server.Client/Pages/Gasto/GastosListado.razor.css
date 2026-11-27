@@ -154,7 +154,7 @@
 /* Distribución de controles */
 .gastos-filters {
     display: grid;
-    grid-template-columns: repeat(3, minmax(92px, 1fr)) repeat(2, minmax(112px, 1fr)) auto;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     align-items: end;
     gap: 12px;
     padding: 20px;
@@ -177,10 +177,11 @@
         font-weight: 500;
     }
 
-    .filter-field select {
+    .filter-field select,
+.gastos-filters ::deep .periodo-fecha-selector {
         width: 100%;
         min-width: 0;
-        height: 38px;
+        height: 40px;
         padding: 0 10px;
         border: 1px solid #dedbd4;
         border-radius: 20px;
@@ -190,58 +191,93 @@
         cursor: pointer;
     }
 
-/* Buscador */
-.filter-search {
-    grid-column: 1 / -2;
+/* Buscador y acciones */
+.filter-toolbar {
+    grid-column: 1 / -1;
     display: flex;
-    align-items: center;
-    gap: 10px;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-search {
+    flex: 1 1 16rem;
+    display: flex;
     min-width: 0;
-    min-height: 46px;
-    padding: 3px 4px 3px 14px;
+    min-height: 40px;
     border: 1px solid #dedbd4;
     border-radius: 20px;
     background: #fff;
-    color: #647b5b;
 }
 
-    .filter-search input {
-        width: 100%;
-        min-width: 0;
-        padding: 9px 0;
-        border: 0;
-        outline: none;
-        background: transparent;
-        color: #444;
-        font-size: 13px;
-    }
+.filter-search input {
+    width: 100%;
+    min-width: 0;
+    padding: 0 14px;
+    border: 0;
+    border-radius: inherit;
+    outline: none;
+    background: transparent;
+    color: #444;
+    font: inherit;
+    font-size: 13px;
+}
 
-        .filter-search input::placeholder {
-            color: #92958e;
-        }
+.filter-actions {
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
 
-/* Orden y restauración */
-.filter-order-button,
-.filter-reset-button {
+.filter-action {
+    flex: 1 1 auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    min-height: 38px;
-    padding: 8px 12px;
-    border: 1px solid #dedbd4;
+    gap: 7px;
+    min-height: 40px;
+    padding: 6px 12px;
+    border: 1px solid var(--filter-border);
     border-radius: 20px;
-    background: #fff;
-    color: #556f4f;
+    background: var(--filter-bg);
+    color: var(--filter-text);
+    font: inherit;
     font-size: 12px;
-    line-height: 1.3;
-    cursor: pointer;
+    font-weight: 600;
 }
 
-    .filter-order-button:hover,
-    .filter-reset-button:hover {
-        background: #dfe5dc;
-    }
+.filter-action:hover {
+    background: var(--filter-hover);
+}
+
+.filter-action-search {
+    --filter-bg: #556f4f;
+    --filter-border: #556f4f;
+    --filter-text: #fff;
+    --filter-hover: #40583b;
+}
+
+.filter-order-button {
+    --filter-bg: #edf3e9;
+    --filter-border: #ced9c9;
+    --filter-text: #40583b;
+    --filter-hover: #dfe9da;
+}
+
+.filter-reset-button {
+    --filter-bg: #f4ece1;
+    --filter-border: #e4d6c3;
+    --filter-text: #6d5132;
+    --filter-hover: #ebddca;
+}
+
+.filter-field select:disabled {
+    background: #f2f0eb;
+    color: #66675d;
+    cursor: not-allowed;
+}
 
 /* #endregion */
 
@@ -908,8 +944,7 @@
 .new-button:focus-visible,
 .success-message > button:focus-visible,
 .filter-field select:focus-visible,
-.filter-order-button:focus-visible,
-.filter-reset-button:focus-visible,
+.filter-action:focus-visible,
 .gasto-detail-link:focus-visible,
 .edit-button:focus-visible,
 .retry-button:focus-visible {
@@ -945,9 +980,6 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .filter-search {
-        grid-column: 1 / -1;
-    }
 }
 
 /* Encabezado compacto */
@@ -1407,7 +1439,6 @@ button.panel-filtro:hover, .panel-filtro.activo {
 
 /* #region Búsqueda, paginación y movimientos de Caja */
 
-.buscar-gastos,
 .gastos-paginacion button {
     display: inline-flex;
     align-items: center;
@@ -1423,20 +1454,6 @@ button.panel-filtro:hover, .panel-filtro.activo {
     font-weight: 600;
     cursor: pointer;
 }
-
-.buscar-gastos {
-    flex-shrink: 0;
-    min-height: 38px;
-    padding-inline: 14px;
-    border-color: #556f4f;
-    border-radius: 18px;
-    background: #556f4f;
-    color: #fff;
-}
-
-    .buscar-gastos:hover {
-        background: #435e3d;
-    }
 
 .gastos-paginacion button:not(:disabled):hover {
     background: #eaf1e6;
@@ -1475,7 +1492,6 @@ button.panel-filtro:hover, .panel-filtro.activo {
         text-decoration: underline;
     }
 
-    .buscar-gastos:focus-visible,
     .gastos-paginacion button:focus-visible,
     .caja-movimientos-enlace:focus-visible {
         outline: 2px solid #556f4f;
@@ -1716,5 +1732,17 @@ button.panel-filtro:hover, .panel-filtro.activo {
 .reintegros-antiguos.panel-card .pendiente-gasto-link:hover {
     border-color: #b6c6af;
     background: #f2f5ef;
+}
+/* #endregion */
+
+/* #region Acciones del listado */
+.gasto-actions .gasto-historial-button {
+    background: #eeeaf4;
+    border-color: #ded4e8;
+    color: #59456b;
+}
+
+.gasto-actions .gasto-historial-button:hover {
+    background: #e4dbed;
 }
 /* #endregion */

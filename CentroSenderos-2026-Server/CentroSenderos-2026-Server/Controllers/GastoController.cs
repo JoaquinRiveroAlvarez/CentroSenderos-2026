@@ -163,6 +163,35 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
+        [HttpPost("{id:int}/anular")]
+        public async Task<IActionResult> AnularGasto(int id, [FromBody] AnularGastoDTO solicitud)
+        {
+            var usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(usuarioId))
+                return Unauthorized();
+
+            try
+            {
+                var bloqueo = await repositorio.AnularGasto(id, solicitud, usuarioId);
+                return bloqueo is null
+                    ? Ok(new RespuestaDTO { mensaje = "Gasto anulado." })
+                    : Conflict(new RespuestaDTO { mensaje = bloqueo });
+            }
+            catch (ApplicationException ex)
+            {
+                return BadRequest(new RespuestaDTO { mensaje = ex.Message });
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "40001")
+            {
+                return Conflict(new RespuestaDTO { mensaje = "El gasto cambió durante la operación. Volvé a intentar." });
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+                when (ex.InnerException is Npgsql.PostgresException { SqlState: "40001" })
+            {
+                return Conflict(new RespuestaDTO { mensaje = "El gasto cambió durante la operación. Volvé a intentar." });
+            }
+        }
+
         [HttpGet("{id:int}/historial")]
         public async Task<ActionResult<List<GastoHistorialDTO>>> GetHistorialGasto(int id)
         {
