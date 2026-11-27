@@ -108,6 +108,7 @@
                         <label for="filtroEstadoGasto">Estado del gasto</label>
                         <select id="filtroEstadoGasto" @bind="estadoGasto" @bind:after="ActualizarFiltroEstado">
                             <option value="activos">Activos</option>
+                            <option value="todos">Todos los estados</option>
                             <option value="anulados">Anulados</option>
                         </select>
                     </div>
@@ -617,7 +618,7 @@
     private IEnumerable<GastoSocioListadoDTO> SociosDisponibles => consulta.Pagadores;
 
     private bool HayFiltros => tipoSeleccionadoId > 0 || socioSeleccionadoId > 0 ||
-        anulados || !string.IsNullOrWhiteSpace(busqueda) || estadoReintegro.HasValue ||
+        estadoGasto != "activos" || !string.IsNullOrWhiteSpace(busqueda) || estadoReintegro.HasValue ||
         estadoComprobante.HasValue || socioPendienteId > 0;
 
     private string NombrePeriodo
@@ -802,7 +803,7 @@
         {
             var parametros = $"pagina={pagina}&tipoId={tipoSeleccionadoId}&pagadorId={socioSeleccionadoId}" +
                 $"&desde={fechaDesde:yyyy-MM-dd}&hasta={fechaHasta:yyyy-MM-dd}" +
-                $"&anulados={anulados}&descendente={ordenDescendente}&estadoReintegro={estadoReintegro}&socioPendienteId={socioPendienteId}" +
+                $"&anulados={anulados}&incluirAnulados={estadoGasto == "todos"}&descendente={ordenDescendente}&estadoReintegro={estadoReintegro}&socioPendienteId={socioPendienteId}" +
                 $"&estadoComprobante={estadoComprobante}&texto={Uri.EscapeDataString(busqueda)}";
             var respuesta = await Http.Get<GastosPaginaDTO>($"api/gasto/consulta?{parametros}");
 

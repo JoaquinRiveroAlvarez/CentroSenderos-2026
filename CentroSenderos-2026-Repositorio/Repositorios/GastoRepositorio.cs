@@ -837,17 +837,20 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             const int cantidadPorPagina = 25;
             var resultado = new GastosPaginaDTO { CajaId = await ObtenerCajaId() };
-            var activos = filtro.Anulados
+            var porEstado = filtro.Anulados
                 ? context.Gastos.AsNoTracking().Where(gasto => gasto.EstadoRegistro == EnumEstadoRegistro.anulado)
-                : GastosActivos();
+                : filtro.IncluirAnulados
+                    ? context.Gastos.AsNoTracking().Where(gasto =>
+                        gasto.EstadoRegistro == EnumEstadoRegistro.activo || gasto.EstadoRegistro == EnumEstadoRegistro.anulado)
+                    : GastosActivos();
             resultado.Tipos = await context.TipoGastos.AsNoTracking()
                 .Where(tipo => tipo.EstadoRegistro == EnumEstadoRegistro.activo ||
-                    activos.Any(gasto => gasto.TipoGastoId == tipo.Id))
+                    porEstado.Any(gasto => gasto.TipoGastoId == tipo.Id))
                 .OrderBy(tipo => tipo.Tipo)
                 .Select(tipo => new TipoListadoDTO { Id = tipo.Id, Tipo = tipo.Tipo })
                 .ToListAsync();
 
-            resultado.Pagadores = await activos.SelectMany(gasto => gasto.GastoSocios)
+            resultado.Pagadores = await porEstado.SelectMany(gasto => gasto.GastoSocios)
                 .Where(aporte => aporte.EstadoRegistro == EnumEstadoRegistro.activo)
                 .Select(aporte => new GastoSocioListadoDTO
                 {
@@ -859,7 +862,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             if (filtro.Desde?.Date > filtro.Hasta?.Date)
                 return resultado;
 
-            var consulta = activos;
+            var consulta = porEstado;
             if (filtro.Desde.HasValue)
             {
                 var desde = DateTime.SpecifyKind(filtro.Desde.Value.Date, DateTimeKind.Utc);
@@ -915,14 +918,15 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 return resultado;
             }
 
-            var validos = gastos.Where(gasto => gasto.EsCompatibleConCaja(resultado.CajaId)).ToList();
+            var activos = gastos.Where(gasto => !gasto.Anulado).ToList();
+            var validos = activos.Where(gasto => gasto.EsCompatibleConCaja(resultado.CajaId)).ToList();
             var pendientes = validos.Where(gasto => gasto.SaldoSocio(resultado.CajaId) < 0).ToList();
             var idsValidos = validos.Select(gasto => gasto.Id).ToHashSet();
             resultado.Pendientes = pendientes.Count;
-            resultado.PorRevisar = gastos.Count - validos.Count;
+            resultado.PorRevisar = activos.Count - validos.Count;
             resultado.Saldados = validos.Count(gasto =>
                 gasto.SaldoSocio(resultado.CajaId) == 0 && gasto.GastoReintegros.Count > 0);
-            resultado.TotalSeleccion = gastos.Sum(gasto => gasto.Monto);
+            resultado.TotalSeleccion = activos.Sum(gasto => gasto.Monto);
             resultado.Reintegrado = validos.Sum(gasto => gasto.GastoReintegros.Sum(reintegro => reintegro.Monto));
             resultado.PagadoCaja = validos.Sum(gasto => gasto.GastoSocios
                 .Where(aporte => aporte.SocioId == resultado.CajaId).Sum(aporte => aporte.Monto));
@@ -947,8 +951,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             var filtrados = filtro.EstadoReintegro switch
             {
                 EstadoReintegroGasto.ConSaldoPendiente => pendientes,
-                { } estado => gastos.Where(gasto => gasto.ObtenerEstadoReintegro(resultado.CajaId) == estado).ToList(),
-                null when filtro.PorRevisar => gastos.Where(gasto => !idsValidos.Contains(gasto.Id)).ToList(),
+                { } estado => activos.Where(gasto => gasto.ObtenerEstadoReintegro(resultado.CajaId) == estado).ToList(),
+                null when filtro.PorRevisar => activos.Where(gasto => !idsValidos.Contains(gasto.Id)).ToList(),
                 null when filtro.Pendientes => pendientes,
                 _ => gastos
             };
@@ -960,8 +964,8 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                     && gasto.SaldoSocio(filtro.SocioPendienteId) > 0m).ToList();
             }
             resultado.Cantidad = filtrados.Count;
-            resultado.Total = filtrados.Sum(gasto => gasto.Monto);
-            resultado.TotalesPorMesYTipo = filtrados
+            resultado.Total = filtrados.Where(gasto => !gasto.Anulado).Sum(gasto => gasto.Monto);
+            resultado.TotalesPorMesYTipo = filtrados.Where(gasto => !gasto.Anulado)
                 .GroupBy(gasto => new { gasto.Fecha.Year, gasto.Fecha.Month, gasto.TipoGastoId, gasto.TipoGasto })
                 .OrderByDescending(grupo => grupo.Key.Year)
                 .ThenByDescending(grupo => grupo.Key.Month)

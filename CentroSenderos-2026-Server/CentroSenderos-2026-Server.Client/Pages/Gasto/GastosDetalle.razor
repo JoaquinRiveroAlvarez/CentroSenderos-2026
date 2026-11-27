@@ -28,14 +28,35 @@
         <div class="detalle-contenido">
             @if (gasto is { Anulado: true } anulado)
             {
-                <div class="alert alert-warning">
-                    <strong>Gasto anulado</strong>
-                    @if (anulado.FechaAnulacion is DateTime fecha)
-                    {
-                        <div>@TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(fecha, DateTimeKind.Utc), ZonaArgentina).ToString("dd/MM/yyyy HH:mm") · @anulado.UsuarioAnulacion</div>
-                    }
-                    <div>@anulado.MotivoAnulacion</div>
-                </div>
+                <section class="gasto-anulado-card" aria-labelledby="titulo-gasto-anulado">
+                    <header class="gasto-anulado-header">
+                        <span class="anulacion-icono" aria-hidden="true"><i class="bi bi-slash-circle"></i></span>
+                        <h3 id="titulo-gasto-anulado">Gasto anulado</h3>
+                    </header>
+                    <dl class="gasto-anulado-datos">
+                        @if (anulado.FechaAnulacion is DateTime fecha)
+                        {
+                            <div>
+                                <dt>Fecha y hora</dt>
+                                <dd>@TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(fecha, DateTimeKind.Utc), ZonaArgentina).ToString("dd/MM/yyyy · HH:mm")</dd>
+                            </div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(anulado.UsuarioAnulacion))
+                        {
+                            <div>
+                                <dt>Anulado por</dt>
+                                <dd>@anulado.UsuarioAnulacion</dd>
+                            </div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(anulado.MotivoAnulacion))
+                        {
+                            <div class="gasto-anulado-motivo">
+                                <dt>Motivo</dt>
+                                <dd>@anulado.MotivoAnulacion</dd>
+                            </div>
+                        }
+                    </dl>
+                </section>
             }
             @if (mostrarAnulacion && gasto is { Anulado: false } && !SoloLectura)
             {
