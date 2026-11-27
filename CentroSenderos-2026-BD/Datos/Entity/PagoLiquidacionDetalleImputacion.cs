@@ -17,7 +17,8 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         [Precision(18, 2)]
         public decimal MontoImputado { get; set; } = 0;
 
-        public int CantidadSesiones { get; set; } = 1;
+        [Precision(18, 2)]
+        public decimal CantidadSesiones { get; set; } = 1;
 
         [MaxLength(200)]
         public string? Nota { get; set; }

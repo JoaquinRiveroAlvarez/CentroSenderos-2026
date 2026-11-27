@@ -34,13 +34,16 @@ namespace CentroSenderos_2026_Server.Controllers
 
             var anulaciones = contexto.PagosLiquidaciones
                 .Where(pago => pago.EstadoRegistro == EnumEstadoRegistro.activo &&
-                    pago.Anulado && pago.FechaAnulacion.HasValue)
+                    ((pago.Anulado && pago.FechaAnulacion.HasValue) ||
+                     (pago.Modificado && pago.FechaModificacion.HasValue)))
                 .Select(pago => new MovimientoCajaDTO
                 {
                     Tipo = TipoMovimientoCaja.Anulacion,
                     OrigenId = pago.Id,
-                    Fecha = pago.FechaAnulacion!.Value,
-                    Concepto = Anulacion,
+                    Fecha = pago.Anulado && pago.FechaAnulacion.HasValue
+                        ? pago.FechaAnulacion.Value
+                        : pago.FechaModificacion!.Value,
+                    Concepto = pago.Anulado ? Anulacion : "Modificación de cobro",
                     Referencia = pago.Liquidacion!.NumeroLiquidacion,
                     Importe = -pago.MontoTotal
                 });
@@ -82,7 +85,7 @@ namespace CentroSenderos_2026_Server.Controllers
 
             foreach (var movimiento in movimientos)
             {
-                if (movimiento.Concepto is Cobro or Anulacion)
+                if (movimiento.Tipo is TipoMovimientoCaja.Cobro or TipoMovimientoCaja.Anulacion)
                     movimiento.Fecha = TimeZoneInfo.ConvertTimeFromUtc(movimiento.Fecha, ZonaArgentina);
             }
 

@@ -78,9 +78,9 @@
                 <div class="filter-item">
                     <select class="filter-select" @bind="filtroEstadoPago" @bind:after="AplicarFiltros">
                         <option value="-1">Todos los Estados</option>
-                        <option value="@((int)EnumEstadoPagoLiquidacion.Pendiente)">Pendiente</option>
-                        <option value="@((int)EnumEstadoPagoLiquidacion.Parcial)">Parcial</option>
-                        <option value="@((int)EnumEstadoPagoLiquidacion.Pagado)">Pagado</option>
+                        <option value="@((int)EnumEstadoPagoLiquidacion.Pendiente)">Pendiente de cobro</option>
+                        <option value="@((int)EnumEstadoPagoLiquidacion.Parcial)">Cobro parcial</option>
+                        <option value="@((int)EnumEstadoPagoLiquidacion.Pagado)">Cobrado</option>
                     </select>
                 </div>
 
@@ -150,6 +150,10 @@
                                             <span class="num-liq-pill @(liq.Anulada ? "num-liq-anulada" : "")">
                                                 @liq.NumeroLiquidacion
                                             </span>
+                                            @if (!string.IsNullOrWhiteSpace(liq.UsuarioResponsable))
+                                            {
+                                                <div class="prof-detalles-count" style="margin-top:2px;">Resp: @liq.UsuarioResponsable</div>
+                                            }
                                         </td>
                                         <td>
                                             <div class="prof-name">@liq.ProfesionalNombreCompleto</div>
@@ -188,13 +192,13 @@
                                                 @switch (liq.EstadoPago)
                                                 {
                                                     case EnumEstadoPagoLiquidacion.Pagado:
-                                                        <span class="badge-status badge-pagado">PAGADO</span>
+                                                        <span class="badge-status badge-pagado">Cobrado</span>
                                                         break;
                                                     case EnumEstadoPagoLiquidacion.Parcial:
-                                                        <span class="badge-status badge-parcial">PARCIAL</span>
+                                                        <span class="badge-status badge-parcial">Cobro parcial</span>
                                                         break;
                                                     default:
-                                                        <span class="badge-status badge-pendiente">PENDIENTE</span>
+                                                        <span class="badge-status badge-pendiente">Pendiente de cobro</span>
                                                         break;
                                                 }
                                             }
@@ -322,12 +326,12 @@
             <div class="modal-body-custom">
                 <p>La liquidación <strong>@liquidacionSeleccionada.NumeroLiquidacion</strong> de <strong>@liquidacionSeleccionada.ProfesionalNombreCompleto</strong> registra pagos abonados al centro.</p>
                 <div class="box-warning-details">
-                    <div>Estado actual: <strong>@liquidacionSeleccionada.EstadoPago</strong></div>
+                    <div>Estado actual: <strong>@(FormatearEstadoPago(liquidacionSeleccionada.EstadoPago))</strong></div>
                     <div>Total retención centro: <strong>$@liquidacionSeleccionada.TotalRetencion.ToString("N0")</strong></div>
                     <div>Total abonado: <strong>$@liquidacionSeleccionada.TotalAbonado.ToString("N0")</strong></div>
                     <div>Saldo restante: <strong>$@liquidacionSeleccionada.TotalSaldo.ToString("N0")</strong></div>
                 </div>
-                <p class="text-sm text-muted mt-2">Para anular o eliminar esta liquidación, primero debe revertir los cobros en el Historial de Pagos.</p>
+                <p class="text-sm text-muted mt-2">Para anular o eliminar esta liquidación, primero debe anular los cobros vigentes desde el Historial de Cobros.</p>
             </div>
             <div class="modal-footer-custom">
                 <button type="button" class="btn-secondary-custom" @onclick="() => mostrarModalBloqueoPagos = false">Entendido</button>
@@ -986,6 +990,7 @@
                     NumeroLiquidacion = l.NumeroLiquidacion,
                     ProfesionalId = l.ProfesionalId,
                     ProfesionalNombreCompleto = l.ProfesionalNombreCompleto,
+                    UsuarioResponsable = l.UsuarioResponsable ?? "",
                     FechaDesde = l.FechaDesde,
                     FechaHasta = l.FechaHasta,
                     TotalFacturacion = l.TotalFacturacion,
@@ -993,13 +998,19 @@
                     TotalSaldo = l.TotalSaldo,
                     CantidadDetalles = l.CantidadDetalles,
                     EstadoPago = l.EstadoPago,
-                    Modalidades = l.Modalidades != null && l.Modalidades.Count > 0 ? l.Modalidades : new List<string> { "Particular" },
+                    Modalidades = l.Modalidades ?? new List<string>(),
+                    FacturacionPorModalidad = l.FacturacionPorModalidad ?? new Dictionary<string, decimal>(),
                     Anulada = l.Anulada
                 }).ToList();
             }
             else
             {
                 todasLiquidaciones = new List<LiquidacionItemView>();
+                if (resLiq.Error)
+                {
+                    mensajeAlerta = "Error cargando liquidaciones: " + resLiq.ObtenerError();
+                    esErrorAlerta = true;
+                }
             }
 
             AplicarFiltros();
@@ -1030,14 +1041,22 @@
         if (!string.IsNullOrWhiteSpace(busquedaTexto))
         {
             var b = busquedaTexto.Trim().ToLower();
-            query = query.Where(l => l.ProfesionalNombreCompleto.ToLower().Contains(b) || l.NumeroLiquidacion.ToLower().Contains(b));
+            query = query.Where(l =>
+                l.ProfesionalNombreCompleto.ToLower().Contains(b) ||
+                l.NumeroLiquidacion.ToLower().Contains(b) ||
+                l.UsuarioResponsable.ToLower().Contains(b));
         }
 
         if (filtroModalidad != "todas")
             query = query.Where(l => l.Modalidades.Any(m => m.Equals(filtroModalidad, StringComparison.OrdinalIgnoreCase)));
 
         if (filtroEstadoPago >= 0)
-            query = query.Where(l => (int)l.EstadoPago == filtroEstadoPago);
+        {
+            if (filtroEstadoPago == (int)EnumEstadoPagoLiquidacion.Pendiente)
+                query = query.Where(l => l.EstadoPago == EnumEstadoPagoLiquidacion.Pendiente || l.EstadoPago == EnumEstadoPagoLiquidacion.EnProceso);
+            else
+                query = query.Where(l => (int)l.EstadoPago == filtroEstadoPago);
+        }
 
         query = query.Where(l => l.FechaDesde <= fechaHasta && l.FechaHasta >= fechaDesde);
 
@@ -1050,12 +1069,19 @@
         totalIngresoCentroMensual = baseTotales.Sum(l => l.TotalRetencion);
         totalSaldoPendienteMensual = baseTotales.Sum(l => l.TotalSaldo);
 
-        totalModulos = baseTotales.Where(l => l.Modalidades.Contains("Módulos")).Sum(l => l.TotalFacturacion * 0.35m);
-        totalParticular = baseTotales.Where(l => l.Modalidades.Contains("Particular")).Sum(l => l.TotalFacturacion * 0.30m);
-        totalObraSocial = baseTotales.Where(l => l.Modalidades.Contains("Obra Social")).Sum(l => l.TotalFacturacion * 0.20m);
-        totalTaller = baseTotales.Where(l => l.Modalidades.Contains("Taller")).Sum(l => l.TotalFacturacion * 0.10m);
-        totalPorHora = baseTotales.Where(l => l.Modalidades.Contains("Por Hora")).Sum(l => l.TotalFacturacion * 0.05m);
+        totalModulos = baseTotales.Sum(l => l.ObtenerFacturacionModalidad("Módulos"));
+        totalParticular = baseTotales.Sum(l => l.ObtenerFacturacionModalidad("Particular"));
+        totalObraSocial = baseTotales.Sum(l => l.ObtenerFacturacionModalidad("Obra Social"));
+        totalTaller = baseTotales.Sum(l => l.ObtenerFacturacionModalidad("Taller"));
+        totalPorHora = baseTotales.Sum(l => l.ObtenerFacturacionModalidad("Por Hora"));
     }
+
+    private static string FormatearEstadoPago(EnumEstadoPagoLiquidacion estado) => estado switch
+    {
+        EnumEstadoPagoLiquidacion.Pagado => "Cobrado",
+        EnumEstadoPagoLiquidacion.Parcial => "Cobro parcial",
+        _ => "Pendiente de cobro"
+    };
 
     private void AlternarOrden()
     {
@@ -1091,15 +1117,22 @@
         try
         {
             var res = await Http.Put<object, object>($"api/liquidacion/{liquidacionSeleccionada.Id}/anular", new { });
-            liquidacionSeleccionada.Anulada = true;
-            mensajeAlerta = $"Liquidación {liquidacionSeleccionada.NumeroLiquidacion} anulada con éxito.";
-            esErrorAlerta = false;
+            if (!res.Error)
+            {
+                liquidacionSeleccionada.Anulada = true;
+                mensajeAlerta = $"Liquidación {liquidacionSeleccionada.NumeroLiquidacion} anulada con éxito. Los turnos fueron liberados a pendientes.";
+                esErrorAlerta = false;
+            }
+            else
+            {
+                mensajeAlerta = "No se pudo anular la liquidación: " + res.ObtenerError();
+                esErrorAlerta = true;
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            liquidacionSeleccionada.Anulada = true;
-            mensajeAlerta = $"Liquidación {liquidacionSeleccionada.NumeroLiquidacion} marcada como anulada.";
-            esErrorAlerta = false;
+            mensajeAlerta = "Error al anular la liquidación: " + ex.Message;
+            esErrorAlerta = true;
         }
         finally
         {
@@ -1115,9 +1148,17 @@
         try
         {
             var res = await Http.Delete($"api/liquidacion/{liquidacionSeleccionada.Id}");
-            todasLiquidaciones.RemoveAll(l => l.Id == liquidacionSeleccionada.Id);
-            mensajeAlerta = $"Liquidación {liquidacionSeleccionada.NumeroLiquidacion} eliminada definitivamente.";
-            esErrorAlerta = false;
+            if (!res.Error)
+            {
+                todasLiquidaciones.RemoveAll(l => l.Id == liquidacionSeleccionada.Id);
+                mensajeAlerta = $"Liquidación {liquidacionSeleccionada.NumeroLiquidacion} eliminada definitivamente.";
+                esErrorAlerta = false;
+            }
+            else
+            {
+                mensajeAlerta = "No se pudo eliminar: " + res.ObtenerError();
+                esErrorAlerta = true;
+            }
         }
         catch (Exception ex)
         {
@@ -1138,6 +1179,7 @@
         public string NumeroLiquidacion { get; set; } = "";
         public int ProfesionalId { get; set; }
         public string ProfesionalNombreCompleto { get; set; } = "";
+        public string UsuarioResponsable { get; set; } = "";
         public DateTime FechaDesde { get; set; }
         public DateTime FechaHasta { get; set; }
         public decimal TotalFacturacion { get; set; }
@@ -1148,6 +1190,17 @@
         public decimal TotalAbonado => TotalRetencion - TotalSaldo;
         public EnumEstadoPagoLiquidacion EstadoPago { get; set; }
         public List<string> Modalidades { get; set; } = new();
+        public Dictionary<string, decimal> FacturacionPorModalidad { get; set; } = new();
         public bool Anulada { get; set; }
+
+        public decimal ObtenerFacturacionModalidad(string modalidad)
+        {
+            foreach (var kv in FacturacionPorModalidad)
+            {
+                if (kv.Key.Equals(modalidad, StringComparison.OrdinalIgnoreCase))
+                    return kv.Value;
+            }
+            return 0m;
+        }
     }
 }

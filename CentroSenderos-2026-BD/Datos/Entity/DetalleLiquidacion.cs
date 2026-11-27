@@ -64,7 +64,47 @@ namespace CentroSenderos_2026_BD.Datos.Entity
         [MaxLength(500)]
         public string? Observaciones { get; set; }
 
-        // Lista de turnos que componen este detalle específico (Sesiones 1, 2, 3...)
+        // Snapshot de valores originales (agenda / prestación) para persistir diferencias y resaltado al volver a editar
+        public int? TipoModalidadIdOriginal { get; set; }
+        public int? TipoPrestacionIdOriginal { get; set; }
+
+        [MaxLength(150)]
+        public string? TipoPrestacionNombreOriginal { get; set; }
+
+        public int? TipoObraSocialIdOriginal { get; set; }
+
+        [MaxLength(150)]
+        public string? TipoObraSocialNombreOriginal { get; set; }
+
+        public int? PacienteIdOriginal { get; set; }
+
+        [MaxLength(150)]
+        public string? PacienteNombreOriginal { get; set; }
+
+        [Precision(18, 2)]
+        public decimal? MontoUnitarioOriginal { get; set; }
+
+        public int? CantidadOriginal { get; set; }
+
+        [Precision(18, 2)]
+        public decimal? MontoModuloCompletoOriginal { get; set; }
+        public int? CantidadModuloCompletoOriginal { get; set; }
+
+        [Precision(18, 2)]
+        public decimal? MontoMedioModuloOriginal { get; set; }
+        public int? CantidadMedioModuloOriginal { get; set; }
+
+        [Precision(18, 2)]
+        public decimal? PorcentajeOriginal { get; set; }
+
+        public bool ValoresModificadosManualmente { get; set; } = false;
+        public bool SinCoincidenciaAgenda { get; set; } = false;
+
+        [MaxLength(1000)]
+        public string? ResumenCambiosManuales { get; set; }
+
+        // Lista de turnos que componen este detalle específico (compatibilidad legado + relación por paciente)
         public List<Turno> Turnos { get; set; } = new();
+        public List<DetalleLiquidacionTurno> DetalleLiquidacionTurnos { get; set; } = new();
     }
 }
