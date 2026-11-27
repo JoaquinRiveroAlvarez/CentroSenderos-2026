@@ -105,8 +105,13 @@
                     </div>
 
                     <div class="filter-field">
+                        <label for="filtroEstadoGasto">Estado del gasto</label>
+                        <select id="filtroEstadoGasto" @bind="estadoGasto" @bind:after="ActualizarFiltroEstado">
+                            <option value="activos">Activos</option>
+                            <option value="anulados">Anulados</option>
+                        </select>
                         <label for="filtroReintegroGasto">Reintegro</label>
-                        <select id="filtroReintegroGasto" @bind="estadoReintegro" @bind:after="ActualizarFiltroEstado">
+                        <select id="filtroReintegroGasto" disabled="@anulados" @bind="estadoReintegro" @bind:after="ActualizarFiltroEstado">
                             <option value="">Todos los estados</option>
                             @foreach (var estado in Enum.GetValues<EstadoReintegroGasto>())
                             {
@@ -227,7 +232,7 @@
                                         : ImportePendiente(gasto);
 
                                     <tr @key="gasto.Id"
-                                        class="@(TieneReintegroPendiente(gasto) ? "gasto-row reintegro-pendiente" : "gasto-row")"
+                                        class="@(!gasto.Anulado && TieneReintegroPendiente(gasto) ? "gasto-row reintegro-pendiente" : "gasto-row")"
                                         @onclick="() => AbrirDetalle(gasto.Id)">
                                         <td class="date-cell" data-label="Fecha">
                                             @gasto.Fecha.ToString("dd/MM/yyyy")
@@ -286,12 +291,19 @@
                                         </td>
 
                                         <td class="gasto-estado-reintegro" data-label="Reintegro">
-                                            <span class="@ClaseEstadoReintegro(estado)">@NombreEstadoReintegro(estado)</span>
-                                            @if (pendiente > 0m)
+                                            @if (gasto.Anulado)
+                                            {
+                                                <span class="badge text-bg-secondary">Anulado</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="@ClaseEstadoReintegro(estado)">@NombreEstadoReintegro(estado)</span>
+                                            }
+                                            @if (!gasto.Anulado && pendiente > 0m)
                                             {
                                                 <small>@Moneda(pendiente) por devolver</small>
                                             }
-                                            else if (estado == EstadoReintegroGasto.PorRevisar)
+                                            else if (!gasto.Anulado && estado == EstadoReintegroGasto.PorRevisar)
                                             {
                                                 <small>@MotivoRevision(gasto)</small>
                                             }
@@ -300,13 +312,16 @@
                                         <td class="actions-column" data-label="Acciones">
                                             <div class="gasto-actions"
                                                  @onclick:stopPropagation="true">
-                                                <button type="button"
-                                                        class="edit-button"
-                                                        title="Editar gasto"
-                                                        aria-label="@($"Editar: {gasto.Descripcion}")"
-                                                        @onclick="() => AbrirEditar(gasto.Id)">
-                                                    <i class="bi bi-pencil"></i>
-                                                </button>
+                                                @if (!gasto.Anulado)
+                                                {
+                                                    <button type="button"
+                                                            class="edit-button"
+                                                            title="Editar gasto"
+                                                            aria-label="@($"Editar: {gasto.Descripcion}")"
+                                                            @onclick="() => AbrirEditar(gasto.Id)">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                }
 
                                                 @if (gasto.TieneHistorial)
                                                 {
@@ -532,6 +547,7 @@
                        GastoId="gastoDetalleId"
                        IrAComprobantes="irAComprobantesDetalle"
                        OnCerrar="CerrarDetalle"
+                       OnAnulado="CargarGastos"
                        OnEditar="AbrirEditar"
                        OnDuplicar="AbrirBorrador"
                        OnHistorial="AbrirHistorial"
@@ -557,6 +573,8 @@
     private bool volverAlDetalle;
     private bool ordenDescendente = true;
     private GastoListadoDTO? gastoOrigenBorrador;
+    private string estadoGasto = "activos";
+    private bool anulados => estadoGasto == "anulados";
     private EstadoReintegroGasto? estadoReintegro;
     private EstadoComprobanteGasto? estadoComprobante;
     private int socioPendienteId;
@@ -597,7 +615,7 @@
     private IEnumerable<GastoSocioListadoDTO> SociosDisponibles => consulta.Pagadores;
 
     private bool HayFiltros => tipoSeleccionadoId > 0 || socioSeleccionadoId > 0 ||
-        !string.IsNullOrWhiteSpace(busqueda) || estadoReintegro.HasValue ||
+        anulados || !string.IsNullOrWhiteSpace(busqueda) || estadoReintegro.HasValue ||
         estadoComprobante.HasValue || socioPendienteId > 0;
 
     private string NombrePeriodo
@@ -725,6 +743,7 @@
     {
         tipoSeleccionadoId = 0;
         socioSeleccionadoId = 0;
+        estadoGasto = "activos";
         estadoReintegro = null;
         estadoComprobante = null;
         socioPendienteId = 0;
@@ -781,7 +800,7 @@
         {
             var parametros = $"pagina={pagina}&tipoId={tipoSeleccionadoId}&pagadorId={socioSeleccionadoId}" +
                 $"&desde={fechaDesde:yyyy-MM-dd}&hasta={fechaHasta:yyyy-MM-dd}" +
-                $"&descendente={ordenDescendente}&estadoReintegro={estadoReintegro}&socioPendienteId={socioPendienteId}" +
+                $"&anulados={anulados}&descendente={ordenDescendente}&estadoReintegro={estadoReintegro}&socioPendienteId={socioPendienteId}" +
                 $"&estadoComprobante={estadoComprobante}&texto={Uri.EscapeDataString(busqueda)}";
             var respuesta = await Http.Get<GastosPaginaDTO>($"api/gasto/consulta?{parametros}");
 

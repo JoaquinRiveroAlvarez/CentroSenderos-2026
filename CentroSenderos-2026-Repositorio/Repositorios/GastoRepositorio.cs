@@ -688,6 +688,60 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             };
         }
 
+        public async Task<string?> AnularGasto(int id, string motivo, string usuarioId)
+        {
+            motivo = motivo.Trim();
+            if (motivo.Length is 0 or > 500)
+                throw new ApplicationException("Ingresá un motivo de hasta 500 caracteres.");
+
+            await using var transaccion = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+            var gasto = await context.Gastos.SingleOrDefaultAsync(g => g.Id == id &&
+                (g.EstadoRegistro == EnumEstadoRegistro.activo || g.EstadoRegistro == EnumEstadoRegistro.anulado));
+            if (gasto is null)
+                throw new ApplicationException("El gasto no está disponible.");
+            if (gasto.EstadoRegistro == EnumEstadoRegistro.anulado)
+                return null;
+
+            var usuario = await context.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == usuarioId)
+                ?? throw new ApplicationException("No se pudo identificar a la persona que solicitó la anulación.");
+            var version = await SelectDetalleGasto(id)
+                ?? throw new ApplicationException("No se pudo recuperar el detalle del gasto.");
+            var anterior = JsonSerializer.Serialize(version);
+            var reintegros = version.GastoReintegros.Select(r => r.ReintegroSocioId).Distinct().OrderBy(r => r).ToList();
+            var fecha = DateTime.UtcNow;
+            var nombre = usuario.UserName ?? usuario.Email ?? usuario.Id;
+            if (reintegros.Count > 0)
+            {
+                version.AnulacionBloqueada = true;
+                version.ReintegrosQueBloqueanAnulacion = reintegros;
+            }
+            else
+            {
+                gasto.EstadoRegistro = EnumEstadoRegistro.anulado;
+                version.Anulado = true;
+                version.FechaAnulacion = fecha;
+                version.UsuarioAnulacion = nombre;
+                version.MotivoAnulacion = motivo;
+            }
+
+            context.GastoHistoriales.Add(new GastoHistorial
+            {
+                GastoId = id,
+                UsuarioId = usuario.Id,
+                NombreUsuario = nombre,
+                FechaCambio = fecha,
+                Motivo = motivo,
+                DatosAnteriores = anterior,
+                DatosNuevos = JsonSerializer.Serialize(version)
+            });
+            await context.SaveChangesAsync();
+            await transaccion.CommitAsync();
+
+            return reintegros.Count > 0
+                ? $"No podés anular este gasto porque tiene reintegros asociados: #{string.Join(", #", reintegros)}."
+                : null;
+        }
+
         private IQueryable<Gasto> GastosActivos() =>
             context.Gastos.AsNoTracking()
                 .Where(gasto => gasto.EstadoRegistro == EnumEstadoRegistro.activo);
@@ -701,6 +755,7 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
             consulta.Select(gasto => new GastoListadoDTO
             {
                 Id = gasto.Id,
+                Anulado = gasto.EstadoRegistro == EnumEstadoRegistro.anulado,
                 CantidadComprobantes = context.GastoComprobantes.Count(
                         comprobante => comprobante.GastoId == gasto.Id),
                 Fecha = gasto.Fecha,
@@ -782,7 +837,9 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             const int cantidadPorPagina = 25;
             var resultado = new GastosPaginaDTO { CajaId = await ObtenerCajaId() };
-            var activos = GastosActivos();
+            var activos = filtro.Anulados
+                ? context.Gastos.AsNoTracking().Where(gasto => gasto.EstadoRegistro == EnumEstadoRegistro.anulado)
+                : GastosActivos();
             resultado.Tipos = await context.TipoGastos.AsNoTracking()
                 .Where(tipo => tipo.EstadoRegistro == EnumEstadoRegistro.activo ||
                     activos.Any(gasto => gasto.TipoGastoId == tipo.Id))
@@ -848,6 +905,16 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                 ? consulta.OrderByDescending(gasto => gasto.Fecha).ThenByDescending(gasto => gasto.Id)
                 : consulta.OrderBy(gasto => gasto.Fecha).ThenBy(gasto => gasto.Id);
             var gastos = await ProyectarGastos(consulta).ToListAsync();
+            if (filtro.Anulados)
+            {
+                resultado.Cantidad = gastos.Count;
+                resultado.Paginas = Math.Max(1, (int)Math.Ceiling(gastos.Count / (decimal)cantidadPorPagina));
+                resultado.Pagina = Math.Clamp(filtro.Pagina, 1, resultado.Paginas);
+                resultado.Gastos = gastos.Skip((resultado.Pagina - 1) * cantidadPorPagina)
+                    .Take(cantidadPorPagina).ToList();
+                return resultado;
+            }
+
             var validos = gastos.Where(gasto => gasto.EsCompatibleConCaja(resultado.CajaId)).ToList();
             var pendientes = validos.Where(gasto => gasto.SaldoSocio(resultado.CajaId) < 0).ToList();
             var idsValidos = validos.Select(gasto => gasto.Id).ToHashSet();
@@ -1028,15 +1095,15 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
         {
             var cajaId = await ObtenerCajaId();
 
-            return await context.Gastos
+            var detalle = await context.Gastos
                 .AsNoTracking()
-                .Where(gasto =>
-                    gasto.Id == id &&
-                    gasto.EstadoRegistro == EnumEstadoRegistro.activo)
+                .Where(gasto => gasto.Id == id &&
+                    (gasto.EstadoRegistro == EnumEstadoRegistro.activo || gasto.EstadoRegistro == EnumEstadoRegistro.anulado))
                 .Select(gasto => new GastoListadoDTO
                 {
                     Id = gasto.Id,
                     CajaId = cajaId,
+                    Anulado = gasto.EstadoRegistro == EnumEstadoRegistro.anulado,
                     Fecha = gasto.Fecha,
                     TipoGastoId = gasto.TipoGastoId,
                     TipoGasto = gasto.TipoGastos != null
@@ -1106,6 +1173,20 @@ namespace CentroSenderos_2026_Repositorio.Repositorios
                         .ToList()
                 })
                 .FirstOrDefaultAsync();
+
+            if (detalle is { Anulado: true })
+            {
+                var evento = await context.GastoHistoriales.AsNoTracking()
+                    .Where(h => h.GastoId == id)
+                    .OrderByDescending(h => h.FechaCambio).ThenByDescending(h => h.Id)
+                    .Select(h => new { h.FechaCambio, h.NombreUsuario, h.Motivo })
+                    .FirstOrDefaultAsync();
+                detalle.FechaAnulacion = evento?.FechaCambio;
+                detalle.UsuarioAnulacion = evento?.NombreUsuario;
+                detalle.MotivoAnulacion = evento?.Motivo;
+            }
+
+            return detalle;
         }
     }
 }

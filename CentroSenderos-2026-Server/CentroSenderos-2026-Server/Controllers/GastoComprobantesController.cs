@@ -65,10 +65,10 @@ public sealed class GastoComprobantesController(ApplicationDbContext context) : 
 
     private IQueryable<GastoComprobante> ComprobantesDelGasto(int gastoId) =>
         context.GastoComprobantes.AsNoTracking()
-            .Where(item => item.GastoId == gastoId && item.Gasto.EstadoRegistro == EnumEstadoRegistro.activo);
+            .Where(item => item.GastoId == gastoId && (item.Gasto.EstadoRegistro == EnumEstadoRegistro.activo || item.Gasto.EstadoRegistro == EnumEstadoRegistro.anulado));
 
     private Task<bool> ExisteGasto(int gastoId, CancellationToken cancellationToken) =>
         context.Gastos.AnyAsync(
-            gasto => gasto.Id == gastoId && gasto.EstadoRegistro == EnumEstadoRegistro.activo,
+            gasto => gasto.Id == gastoId && (gasto.EstadoRegistro == EnumEstadoRegistro.activo || gasto.EstadoRegistro == EnumEstadoRegistro.anulado),
             cancellationToken);
 }

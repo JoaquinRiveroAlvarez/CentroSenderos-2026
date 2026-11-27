@@ -285,15 +285,15 @@ else if (seleccionado is { Tipo: not TipoMovimientoCaja.PagoGasto } movimientoSe
         }
 
         seleccionado = movimiento;
-        if (movimiento.Tipo == TipoMovimientoCaja.PagoGasto)
+        if (movimiento.Tipo is TipoMovimientoCaja.PagoGasto or TipoMovimientoCaja.AnulacionGasto)
             gastoDetalleId = movimiento.OrigenId;
     }
 
     private static string EtiquetaOrigen(MovimientoCajaDTO movimiento) => movimiento.Tipo switch
     {
-        TipoMovimientoCaja.PagoGasto when movimiento.OrigenId > 0 => $"Gasto #{movimiento.OrigenId}",
+        TipoMovimientoCaja.PagoGasto or TipoMovimientoCaja.AnulacionGasto when movimiento.OrigenId > 0 => $"Gasto #{movimiento.OrigenId}",
         TipoMovimientoCaja.Reintegro when movimiento.OrigenId > 0 => $"Reintegro #{movimiento.OrigenId}",
-        TipoMovimientoCaja.PagoGasto => "Gasto",
+        TipoMovimientoCaja.PagoGasto or TipoMovimientoCaja.AnulacionGasto => "Gasto",
         TipoMovimientoCaja.Reintegro => "Reintegro",
         _ => "Liquidación"
     };

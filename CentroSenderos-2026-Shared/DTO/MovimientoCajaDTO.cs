@@ -7,7 +7,8 @@ namespace CentroSenderos_2026_Shared.DTO
         Cobro,
         Anulacion,
         PagoGasto,
-        Reintegro
+        Reintegro,
+        AnulacionGasto
     }
 
     public class MovimientoCajaDTO

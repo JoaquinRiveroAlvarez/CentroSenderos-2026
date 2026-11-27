@@ -83,7 +83,8 @@
 
                     <details class="history-card" @key="cambio.Id">
                         <summary class="history-toggle">
-                            <strong class="history-summary">@(campos.Count > 0 ? string.Join(" · ", campos) : "Sin diferencias visibles")</strong>
+                            <strong class="history-summary">@(cambio.DatosNuevos.AnulacionBloqueada ? "Intento de anulación bloqueado" :
+                                cambio.DatosNuevos.Anulado ? "Gasto anulado" : campos.Count > 0 ? string.Join(" · ", campos) : "Sin diferencias visibles")</strong>
                             <span class="history-header">
                                 <span class="history-user">
                                     <i class="bi bi-person" aria-hidden="true"></i>
@@ -94,8 +95,12 @@
                         </summary>
 
                         <div class="history-reason">
-                            <span>Motivo de la modificación</span>
+                            <span>Motivo</span>
                             <p>@cambio.Motivo</p>
+                            @if (cambio.DatosNuevos.AnulacionBloqueada)
+                            {
+                                <p>Reintegros asociados: #@string.Join(", #", cambio.DatosNuevos.ReintegrosQueBloqueanAnulacion)</p>
+                            }
                         </div>
 
                         <div class="history-comparison">
@@ -254,6 +259,9 @@
         var anterior = cambio.DatosAnteriores;
         var nuevo = cambio.DatosNuevos;
         var filas = new List<(string Dato, string Antes, string Despues)>();
+
+        if (anterior.Anulado != nuevo.Anulado)
+            filas.Add(("Estado", "Activo", "Anulado"));
 
         if (anterior.Fecha.Date != nuevo.Fecha.Date)
             filas.Add(("Fecha", anterior.Fecha.ToString("dd/MM/yyyy"), nuevo.Fecha.ToString("dd/MM/yyyy")));

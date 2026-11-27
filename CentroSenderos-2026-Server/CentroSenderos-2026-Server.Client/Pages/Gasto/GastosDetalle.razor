@@ -26,6 +26,35 @@
         </header>
 
         <div class="detalle-contenido">
+            @if (gasto is { Anulado: true } anulado)
+            {
+                <div class="alert alert-warning">
+                    <strong>Gasto anulado</strong>
+                    @if (anulado.FechaAnulacion is DateTime fecha)
+                    {
+                        <div>@TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(fecha, DateTimeKind.Utc), ZonaArgentina).ToString("dd/MM/yyyy HH:mm") · @anulado.UsuarioAnulacion</div>
+                    }
+                    <div>@anulado.MotivoAnulacion</div>
+                </div>
+            }
+            @if (mostrarAnulacion && gasto is { Anulado: false } && !SoloLectura)
+            {
+                <section class="alert alert-warning" aria-labelledby="titulo-anulacion">
+                    <h3 id="titulo-anulacion">Confirmar anulación</h3>
+                    <p>Se conservará el gasto en el historial. Si Caja aportó, se registrará la reversión.</p>
+                    <label for="motivo-anulacion">Motivo de la anulación</label>
+                    <textarea id="motivo-anulacion" class="form-control" maxlength="500" rows="3"
+                              @bind="motivoAnulacion" @bind:event="oninput" disabled="@anulando"></textarea>
+                    @if (!string.IsNullOrWhiteSpace(errorAnulacion))
+                    {
+                        <p role="alert">@errorAnulacion</p>
+                    }
+                    <button type="button" class="secondary-button" disabled="@anulando"
+                            @onclick="() => mostrarAnulacion = false">Cancelar</button>
+                    <button type="button" class="btn btn-danger" disabled="@(anulando || string.IsNullOrWhiteSpace(motivoAnulacion))"
+                            @onclick="AnularGasto">Confirmar anulación</button>
+                </section>
+            }
             @if (cargando)
             {
                 <div class="state-card" role="status">
@@ -125,7 +154,7 @@
                             </div>
                             <div class="resumen-pendiente">
                                 <dt>Pendiente de reintegrar</dt>
-                                <dd>@(compatible ? Moneda(pendiente) : "Por revisar")</dd>
+                                <dd>@(gasto.Anulado ? "No corresponde" : compatible ? Moneda(pendiente) : "Por revisar")</dd>
                             </div>
                         </dl>
 
@@ -287,8 +316,12 @@
         </div>
 
         <footer class="modal-actions">
-            @if (!SoloLectura &&
-                 gasto != null &&
+            @if (gasto is { Anulado: true, TieneHistorial: true } && OnHistorial.HasDelegate)
+            {
+                <button type="button" class="secondary-button" @onclick="AbrirHistorial">Ver historial</button>
+            }
+            @if (!SoloLectura && !mostrarAnulacion &&
+                 gasto is { Anulado: false } &&
                  !cargando &&
                  string.IsNullOrWhiteSpace(mensajeError))
             {
@@ -312,7 +345,7 @@
                     </button>
                 }
 
-                @if (gasto.TieneHistorial)
+                @if (gasto.TieneHistorial && OnHistorial.HasDelegate)
                 {
                     <button type="button"
                             class="secondary-button"
@@ -329,6 +362,9 @@
                     <i class="bi bi-pencil"></i>
                     Editar
                 </button>
+
+                <button type="button" class="secondary-button"
+                        @onclick="() => mostrarAnulacion = true">Anular gasto</button>
 
                 @if (gasto.GastoReintegros.Count > 0)
                 {
@@ -398,6 +434,47 @@
 
     private readonly CultureInfo cultura =
         CultureInfo.GetCultureInfo("es-AR");
+
+    [Parameter]
+    public EventCallback OnAnulado { get; set; }
+
+    private static readonly TimeZoneInfo ZonaArgentina =
+        TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
+    private bool mostrarAnulacion;
+    private bool anulando;
+    private string motivoAnulacion = string.Empty;
+    private string errorAnulacion = string.Empty;
+
+    private async Task AnularGasto()
+    {
+        if (SoloLectura || gasto is not { Anulado: false } || anulando)
+            return;
+
+        anulando = true;
+        errorAnulacion = string.Empty;
+        try
+        {
+            var respuesta = await Http.Post<string, RespuestaDTO>($"api/gasto/{GastoId}/anular", motivoAnulacion);
+            if (respuesta.Error)
+            {
+                errorAnulacion = respuesta.ObtenerError();
+                await CargarDetalle();
+                return;
+            }
+
+            mostrarAnulacion = false;
+            await CargarDetalle();
+            await OnAnulado.InvokeAsync();
+        }
+        catch (Exception)
+        {
+            errorAnulacion = "No pudimos confirmar la anulación. Volvé a intentar.";
+        }
+        finally
+        {
+            anulando = false;
+        }
+    }
 
     private GastoListadoDTO? gasto;
 
@@ -556,6 +633,7 @@
 
     private async Task Cerrar()
     {
-        await OnCerrar.InvokeAsync();
+        if (!anulando)
+            await OnCerrar.InvokeAsync();
     }
 }
