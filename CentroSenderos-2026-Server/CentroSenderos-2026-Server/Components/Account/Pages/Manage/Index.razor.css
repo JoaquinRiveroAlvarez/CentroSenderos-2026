@@ -1,0 +1,328 @@
+/* #region Cabecera */
+.perfil-resumen {
+    --perfil-verde: #556f4f;
+    --perfil-texto: #344331;
+    --perfil-suave: #596555;
+    --perfil-borde: #e7e3dc;
+    color: var(--perfil-texto);
+    container-type: inline-size;
+}
+
+.perfil-identidad {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(14px, 2.5vw, 24px);
+    margin-bottom: 20px;
+    padding: clamp(20px, 3.5vw, 36px);
+    border: 1px solid #d6dfd1;
+    border-radius: 22px;
+    background: radial-gradient(ellipse at top right, #f5f5ec, transparent 70%), #dfe5dc;
+}
+
+.perfil-avatar {
+    display: grid;
+    flex: 0 0 clamp(3.5rem, 7vw, 5rem);
+    aspect-ratio: 1;
+    place-items: center;
+    align-self: center;
+    border: 3px solid #fff9;
+    border-radius: 50%;
+    background: #f0e0db;
+    color: #694b44;
+    font-size: clamp(1.25rem, 2.5vw, 1.85rem);
+    font-weight: 700;
+}
+
+.perfil-identificacion {
+    flex: 1 1 13rem;
+    min-width: 0;
+}
+
+.perfil-identidad .perfil-identificacion h2 {
+    margin: 0;
+    color: #2f422b;
+    font-size: clamp(1.25rem, 3vw, 1.9rem);
+}
+
+.perfil-identidad p {
+    margin: 5px 0 0;
+    color: var(--perfil-suave);
+}
+
+.perfil-rol {
+    display: inline-block;
+    margin-top: 9px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #f6f8f3;
+    font-size: .85rem;
+    font-weight: 650;
+}
+/* #endregion */
+
+/* #region Columnas y tarjetas */
+.perfil-contenido,
+.perfil-columna {
+    display: grid;
+    align-items: start;
+    gap: 16px;
+    min-width: 0;
+}
+
+.perfil-ajustes {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+
+.perfil-con-ficha .perfil-ajustes {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.perfil-tarjeta {
+    min-width: 0;
+    padding: clamp(16px, 2.5vw, 24px);
+    border: 1px solid var(--perfil-borde);
+    border-radius: 18px;
+    background: #fffdfa;
+    box-shadow: 0 5px 16px #29352609;
+}
+
+.perfil-titulo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 14px;
+    margin-bottom: 16px;
+}
+
+.perfil-tarjeta h3 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 0 16px;
+    font-size: 1.12rem;
+}
+
+.perfil-titulo h3 {
+    margin: 0;
+}
+
+.perfil-tarjeta h4 {
+    margin: 18px 0 8px;
+    font-size: .95rem;
+}
+
+.perfil-tarjeta h3 i {
+    display: grid;
+    flex: 0 0 32px;
+    height: 32px;
+    place-items: center;
+    border-radius: 9px;
+    background: #edf1e9;
+    color: var(--perfil-verde);
+    font-size: .95rem;
+}
+
+.perfil-datos,
+.perfil-prestaciones {
+    margin: 0;
+    padding: 0;
+}
+
+    .perfil-datos > div + div,
+    .perfil-prestaciones li + li {
+        border-top: 1px solid var(--perfil-borde);
+    }
+
+    .perfil-datos > div + div {
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+
+    .perfil-datos dt,
+    .perfil-etiqueta {
+        color: var(--perfil-suave);
+        font-size: .875rem;
+        font-weight: 600;
+    }
+
+    .perfil-datos dd {
+        margin: 3px 0 0;
+    }
+
+.perfil-prestaciones {
+    list-style: none;
+}
+
+    .perfil-prestaciones li {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 4px 12px;
+        padding: 8px 0;
+    }
+
+.perfil-matricula {
+    padding: 3px 9px;
+    border-radius: 8px;
+    background: #f5f3ef;
+    color: var(--perfil-suave);
+    font-size: .85rem;
+}
+
+.perfil-vacio {
+    margin: 0 0 6px;
+    color: var(--perfil-suave);
+}
+
+.perfil-proximo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+}
+
+    .perfil-proximo p {
+        margin: 3px 0;
+        font-weight: 650;
+    }
+
+.perfil-fecha {
+    display: grid;
+    flex: 0 0 58px;
+    place-content: center;
+    min-height: 62px;
+    border-radius: 12px;
+    background: #edf1e9;
+    color: var(--perfil-texto);
+    line-height: 1.2;
+    text-align: center;
+}
+
+    .perfil-fecha strong {
+        font-size: 1.4rem;
+    }
+/* #endregion */
+
+/* #region Acciones y edición */
+.perfil-accion,
+.perfil-enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 42px;
+    font-size: .9rem;
+    font-weight: 650;
+}
+
+.perfil-accion {
+    justify-content: center;
+    padding: 8px 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    text-decoration: none;
+}
+
+.perfil-accion-principal {
+    background: var(--perfil-verde);
+    color: white;
+}
+
+    .perfil-accion-principal:hover {
+        background: #435b3d;
+        color: white;
+    }
+
+.perfil-enlace {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #425b3c;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+    .perfil-enlace:hover {
+        color: #273e22;
+    }
+
+summary.perfil-enlace {
+    cursor: pointer;
+}
+
+.perfil-edicion[open] {
+    margin-top: 10px;
+    padding: 0 12px 12px;
+    border: 1px solid var(--perfil-borde);
+    border-radius: 12px;
+    background: #faf8f5;
+}
+
+.perfil-edicion label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.perfil-edicion ::deep .form-control {
+    border-color: #d8ddd2;
+    border-radius: 9px;
+}
+
+.perfil-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-top: 10px;
+}
+
+/* #endregion */
+
+/* #region Pantallas anchas */
+@container (min-width: 640px) {
+    .perfil-con-ficha .perfil-contenido {
+        grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    }
+}
+/* #endregion */
+
+/* #region Ficha profesional emergente */
+.perfil-ficha-resumen {
+    position: fixed;
+    inset: 0;
+    width: min(34rem, calc(100% - 2rem));
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    padding: clamp(16px, 4vw, 28px);
+    overflow: auto;
+    overflow-wrap: anywhere;
+    overscroll-behavior: contain;
+    border: 1px solid var(--perfil-borde);
+    border-radius: 18px;
+    background: #fffdfa;
+    color: var(--perfil-texto);
+    box-shadow: 0 20px 60px #29352630;
+}
+
+    .perfil-ficha-resumen::backdrop {
+        background: #27342450;
+        backdrop-filter: blur(3px);
+    }
+
+.perfil-ficha-cerrar {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--perfil-borde);
+    border-radius: 10px;
+    background: #faf8f5;
+    color: var(--perfil-texto);
+}
+
+    .perfil-ficha-cerrar:hover {
+        background: #eaf0e6;
+    }
+/* #endregion */

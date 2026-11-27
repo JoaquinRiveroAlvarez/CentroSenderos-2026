@@ -30,26 +30,11 @@ namespace CentroSenderos_2026_Server.Controllers
             this.context = context;
         }
 
-        private IQueryable<Turno> TurnosPermitidos(bool incluirMixtos = false)
-        {
-            if (AlcanceProfesional.TieneAccesoCompleto(User))
-                return context.Turnos;
+        private IQueryable<Turno> TurnosPermitidos(bool incluirMixtos = false) =>
+            AlcanceProfesional.TurnosPermitidos(context, User, incluirMixtos);
 
-            var ids = AlcanceProfesional.Profesionales(context, User);
-            var habituales = context.Turnos.Where(t => t.TurnoProfesionales.Any()
-                && t.TurnoProfesionales.All(p => ids.Contains(p.ProfesionalId)));
-            return incluirMixtos ? habituales.Union(TurnosMixtosPropios()) : habituales;
-        }
-
-        private IQueryable<Turno> TurnosMixtosPropios()
-        {
-            var equipo = AlcanceProfesional.PorRol(context, "EQUIPO");
-            var externos = AlcanceProfesional.PorRol(context, "PROFESIONAL");
-            var propios = AlcanceProfesional.Propios(context, User);
-            return context.Turnos.Where(t => t.TurnoProfesionales.Any(p => propios.Contains(p.ProfesionalId))
-                && t.TurnoProfesionales.Any(p => equipo.Contains(p.ProfesionalId))
-                && t.TurnoProfesionales.Any(p => externos.Contains(p.ProfesionalId)));
-        }
+        private IQueryable<Turno> TurnosMixtosPropios() =>
+            AlcanceProfesional.TurnosMixtosPropios(context, User);
 
         private async Task<bool> PuedeGestionarTurno(int id, bool serie = false, bool incluirMixtos = true)
         {
@@ -208,7 +193,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put(int id,[FromBody] TurnoDTO dto)
+        public async Task<IActionResult> Put(int id, [FromBody] TurnoDTO dto)
         {
             try
             {
@@ -495,7 +480,7 @@ namespace CentroSenderos_2026_Server.Controllers
             }
         }
 
-        private ObjectResult ErrorInterno(Exception exception,string operacion,string mensaje)
+        private ObjectResult ErrorInterno(Exception exception, string operacion, string mensaje)
         {
             logger.LogError(
                 exception,
@@ -513,7 +498,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPut("{id:int}/estado")]
-        public async Task<IActionResult> CambiarEstado(int id,[FromBody]CentroSenderos_2026_Shared.Enum.EnumEstadoTurno estado)
+        public async Task<IActionResult> CambiarEstado(int id, [FromBody] CentroSenderos_2026_Shared.Enum.EnumEstadoTurno estado)
         {
             try
             {
@@ -554,7 +539,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPut("{id:int}/cancelar")]
-        public async Task<IActionResult> CancelarTurnos(int id,[FromQuery] bool cancelarSiguientes = false)
+        public async Task<IActionResult> CancelarTurnos(int id, [FromQuery] bool cancelarSiguientes = false)
         {
             try
             {
@@ -591,7 +576,7 @@ namespace CentroSenderos_2026_Server.Controllers
         }
 
         [HttpPut("{turnoId:int}/pacientes/{pacienteId:int}/asistencia")]
-        public async Task<IActionResult> CambiarAsistenciaPaciente(int turnoId,int pacienteId,[FromBody] TurnoPacienteAsistenciaDTO dto)
+        public async Task<IActionResult> CambiarAsistenciaPaciente(int turnoId, int pacienteId, [FromBody] TurnoPacienteAsistenciaDTO dto)
         {
             try
             {

@@ -410,7 +410,8 @@
 
                                 <span class="turno-grilla-cabecera">
 
-                                    <strong class="turno-hora-destacada"><i class="bi bi-clock" aria-hidden="true"></i>
+                                    <strong class="turno-hora-destacada">
+                                        <i class="bi bi-clock" aria-hidden="true"></i>
                                         @turno.FechaInicio.ToString("HH:mm")
                                         -
                                         @turno.FechaFin.ToString("HH:mm")
@@ -584,7 +585,8 @@
 
                     <div class="detalle-nuevo-contexto-item">
                         <span>Horario</span>
-                        <strong class="turno-hora-destacada"><i class="bi bi-clock" aria-hidden="true"></i>
+                        <strong class="turno-hora-destacada">
+                            <i class="bi bi-clock" aria-hidden="true"></i>
                             @turnoSeleccionado.FechaInicio.ToString("HH:mm")
                             <small>—</small>
                             @turnoSeleccionado.FechaFin.ToString("HH:mm")
@@ -811,10 +813,10 @@
                                 aria-pressed="@(estadoSeleccionado == estado ? "true" : "false")"
                                 disabled="@GuardandoDetalle"
                                 @onclick="() =>
-                                  {
-                                    estadoSeleccionado = estado;
-                                      mensajeEstado = string.Empty;
-                                  }">
+                                                              {
+                                                                  estadoSeleccionado = estado;
+                                                                  mensajeEstado = string.Empty;
+                                                              }">
 
                             <i class="bi @icono" aria-hidden="true"></i>
                             <span>@nombre</span>
@@ -1517,7 +1519,7 @@
         }
     }
 
-    private static string ObtenerMensajeAmigable(string? mensaje,string mensajeAlternativo)
+    private static string ObtenerMensajeAmigable(string? mensaje, string mensajeAlternativo)
     {
         if (string.IsNullOrWhiteSpace(mensaje))
         {
@@ -1622,6 +1624,7 @@
     private bool EstaProfesionalSeleccionado(TurnoListadoDTO turno)
     {
         return profesionalesSeleccionados.Count == 0 ||
+            turno.ProfesionalIds.Any(profesionalesSeleccionados.Contains) ||
             turno.ProfesionalPrestaciones.Any(relacion =>
                 profesionalesSeleccionados.Contains(
                     relacion.ProfesionalId
@@ -1961,18 +1964,16 @@
 
         if (ProfesionalesDesdeUrl is not null)
         {
-            profesionalesSeleccionados = ProfesionalesDesdeUrl
+            var idsProfesionales = ProfesionalesDesdeUrl
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(valor =>
-                    int.TryParse(valor, out var id) ? id : 0
-                )
-                .Where(id =>
-                    id > 0 &&
-                    ProfesionalesDisponibles.Any(profesional =>
-                        profesional.Id == id
-                    )
-                )
+                .Select(valor => int.TryParse(valor, out var id) ? id : 0)
+                .Where(id => id > 0)
                 .ToHashSet();
+
+            var opcionesDisponibles = ProfesionalesDisponibles.Select(profesional => profesional.Id).ToHashSet();
+            profesionalesSeleccionados = idsProfesionales.Count == 1
+                ? idsProfesionales
+                : idsProfesionales.Where(opcionesDisponibles.Contains).ToHashSet();
         }
 
         if (PacientesDesdeUrl is not null)
@@ -1999,7 +2000,8 @@
         {
             tiposSeleccionados.Clear();
         }
-        if (profesionalesSeleccionados.SetEquals(ProfesionalesDisponibles.Select(opcion => opcion.Id)))
+        if (profesionalesSeleccionados.Count > 1 &&
+            profesionalesSeleccionados.SetEquals(ProfesionalesDisponibles.Select(opcion => opcion.Id)))
         {
             profesionalesSeleccionados.Clear();
         }
@@ -2298,7 +2300,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private static string ObtenerResumenPersonas(List<string> nombres,string textoVacio)
+    private static string ObtenerResumenPersonas(List<string> nombres, string textoVacio)
     {
         if (nombres.Count == 0)
         {

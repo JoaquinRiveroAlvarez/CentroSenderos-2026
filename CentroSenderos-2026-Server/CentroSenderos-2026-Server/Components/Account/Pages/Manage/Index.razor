@@ -1,41 +1,215 @@
 @page "/Account/Manage"
 
 @using System.ComponentModel.DataAnnotations
+@using System.Globalization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using CentroSenderos_2026_Repositorio.Repositorios
+@using CentroSenderos_2026_Server.Controllers
+@using CentroSenderos_2026_Shared.DTO
+@using CentroSenderos_2026_Shared.Enum
 @using Microsoft.AspNetCore.Identity
 @using CentroSenderos_2026_BD
 
 @inject UserManager<MiUsuario> UserManager
 @inject SignInManager<MiUsuario> SignInManager
 @inject IdentityRedirectManager RedirectManager
+@inject ApplicationDbContext Context
+@inject IProfesionalRepositorio Profesionales
+@inject IAuthorizationService Autorizacion
 
-<PageTitle>Perfil</PageTitle>
+<PageTitle>Mi cuenta</PageTitle>
 
-<h2>Perfil</h2>
-<StatusMessage />
+<div class="perfil-resumen @(ficha is null ? "" : "perfil-con-ficha")">
+    <StatusMessage Message="@errorGuardado" />
 
-<div class="row">
-    <div class="col-xl-6">
-        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <input type="text" value="@username" id="username" class="form-control" placeholder="Nombre de usuario" disabled />
-                <label for="username" class="form-label">Usuario</label>
+    <header class="perfil-identidad">
+        <span class="perfil-avatar" aria-hidden="true">@Iniciales</span>
+        <div class="perfil-identificacion">
+            <h2>@NombreVisible</h2>
+            @if (!string.IsNullOrWhiteSpace(correo) && !string.Equals(correo, NombreVisible, StringComparison.OrdinalIgnoreCase))
+            {
+                <p>@correo</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(roles))
+            {
+                <span class="perfil-rol">@roles</span>
+            }
+        </div>
+        @if (ficha is not null)
+        {
+            <a class="perfil-accion perfil-accion-principal" href="@UrlAgenda">
+                <i class="bi bi-calendar3" aria-hidden="true"></i> Ver mi agenda
+            </a>
+        }
+    </header>
+
+    <div class="perfil-contenido">
+        @if (ficha is not null)
+        {
+            <div class="perfil-columna">
+                <section class="perfil-tarjeta" aria-labelledby="perfil-ficha">
+                    <div class="perfil-titulo">
+                        <h3 id="perfil-ficha"><i class="bi bi-person-vcard" aria-hidden="true"></i> Mi ficha profesional</h3>
+                        <button type="button" class="perfil-enlace" popovertarget="perfil-ficha-resumen">
+                            Ver mi ficha <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <dl class="perfil-datos">
+                        <div>
+                            <dt>Área</dt>
+                            <dd>@(string.IsNullOrWhiteSpace(ficha.Area) ? "Sin área registrada" : ficha.Area)</dd>
+                        </div>
+                    </dl>
+                    <div id="perfil-ficha-resumen" class="perfil-ficha-resumen" popover="auto"
+                         role="dialog" aria-labelledby="perfil-ficha-resumen-titulo">
+                        <div class="perfil-titulo">
+                            <h3 id="perfil-ficha-resumen-titulo">Mi ficha profesional</h3>
+                            <button type="button" class="perfil-ficha-cerrar" popovertarget="perfil-ficha-resumen"
+                                    popovertargetaction="hide" aria-label="Cerrar ficha" autofocus>
+                                <i class="bi bi-x-lg" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <dl class="perfil-datos">
+                            <div>
+                                <dt>Nombre</dt>
+                                <dd>@ficha.Nombre</dd>
+                            </div>
+                            <div>
+                                <dt>Área</dt>
+                                <dd>@(string.IsNullOrWhiteSpace(ficha.Area) ? "Sin área registrada" : ficha.Area)</dd>
+                            </div>
+                        </dl>
+                        <h4>Prestaciones</h4>
+                        @if (ficha.TipoPrestacionIds.Count == 0)
+                        {
+                            <p class="perfil-vacio">Todavía no tenés prestaciones registradas.</p>
+                        }
+                        else
+                        {
+                            <ul class="perfil-prestaciones">
+                                @foreach (var (id, nombre) in ficha.TipoPrestacionIds.Zip(ficha.TipoPrestacionNombres))
+                                {
+                                    <li>
+                                        <span>@nombre</span>
+                                        @if (ficha.MatriculasPorPrestacion.TryGetValue(id, out var matricula) && !string.IsNullOrWhiteSpace(matricula))
+                                        {
+                                            <span class="perfil-matricula">Matrícula @matricula</span>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        @if (puedeEditarFicha)
+                        {
+                            <div class="perfil-acciones">
+                                <a class="perfil-accion perfil-accion-principal" href="@($"profesionales/editar/{ficha.Id}")">
+                                    <i class="bi bi-pencil" aria-hidden="true"></i> Editar ficha
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </section>
+
+                <section class="perfil-tarjeta" aria-labelledby="perfil-agenda">
+                    <div class="perfil-titulo">
+                        <h3 id="perfil-agenda"><i class="bi bi-calendar3" aria-hidden="true"></i> Mi agenda</h3>
+                    </div>
+                    @if (proximoTurno is { } turno)
+                    {
+                        var inicio = DateTime.SpecifyKind(turno.Inicio, DateTimeKind.Unspecified);
+                        var fechaConZona = new DateTimeOffset(inicio, ZonaAgenda.GetUtcOffset(inicio));
+                        <div class="perfil-proximo">
+                            <div class="perfil-fecha" aria-hidden="true">
+                                <strong>@inicio.Day</strong>
+                                <span>@inicio.ToString("MMM", Cultura)</span>
+                            </div>
+                            <div>
+                                <span class="perfil-etiqueta">Próximo turno</span>
+                                <p><time datetime="@fechaConZona.ToString("O")">@inicio.ToString("dddd d 'de' MMMM", Cultura) · @inicio.ToString("HH:mm")</time></p>
+                                @if (!string.IsNullOrWhiteSpace(turno.Consultorio))
+                                {
+                                    <span>@turno.Consultorio</span>
+                                }
+                            </div>
+                        </div>
+                        <a class="perfil-enlace" href="@($"{UrlAgenda}&fecha={inicio.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}")">Abrir ese día <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+                    }
+                    else
+                    {
+                        <p class="perfil-vacio">No tenés turnos reservados próximos.</p>
+                    }
+                </section>
             </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" class="form-control" placeholder="Ingresá tu teléfono" />
-                <label for="Input.PhoneNumber" class="form-label">Teléfono</label>
-                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Guardar cambios</button>
-        </EditForm>
+        }
+
+        <div class="perfil-columna perfil-ajustes">
+            <section class="perfil-tarjeta" aria-labelledby="perfil-datos">
+                <h3 id="perfil-datos"><i class="bi bi-person" aria-hidden="true"></i> Mis datos</h3>
+                <dl class="perfil-datos">
+                    <div>
+                        <dt>Correo electrónico</dt>
+                        <dd>@(correo ?? "Sin correo registrado")</dd>
+                    </div>
+                    <div>
+                        <dt>Teléfono de la cuenta</dt>
+                        <dd>@(string.IsNullOrWhiteSpace(phoneNumber) ? "Sin teléfono registrado" : phoneNumber)</dd>
+                    </div>
+                </dl>
+
+                <details class="perfil-edicion" open="@(HttpMethods.IsPost(HttpContext.Request.Method))">
+                    <summary class="perfil-enlace"><i class="bi bi-pencil" aria-hidden="true"></i> Editar teléfono</summary>
+                    <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+                        <DataAnnotationsValidator />
+                        <label for="Input.PhoneNumber">Teléfono</label>
+                        <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" class="form-control"
+                                   type="tel" autocomplete="tel" />
+                        <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
+                        <div class="perfil-acciones">
+                            <button type="submit" class="perfil-accion perfil-accion-principal">Guardar teléfono</button>
+                            <a class="perfil-enlace" href="Account/Manage">Cancelar</a>
+                        </div>
+                    </EditForm>
+                </details>
+            </section>
+
+            <section class="perfil-tarjeta" aria-labelledby="perfil-seguridad">
+                <h3 id="perfil-seguridad"><i class="bi bi-shield-lock" aria-hidden="true"></i> Seguridad</h3>
+                <p class="perfil-vacio">Contraseña de acceso</p>
+                <a class="perfil-enlace" href="@($"Account/Manage/{(tieneContrasena ? "ChangePassword" : "SetPassword")}")">
+                    @(tieneContrasena ? "Cambiar contraseña" : "Crear contraseña") <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </a>
+            </section>
+        </div>
     </div>
 </div>
 
 @code {
+    private static readonly TimeZoneInfo ZonaAgenda = TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
+    private static readonly CultureInfo Cultura = CultureInfo.GetCultureInfo("es-AR");
     private MiUsuario? user;
     private string? username;
     private string? phoneNumber;
+    private string? correo;
+    private string? roles;
+    private bool tieneContrasena;
+    private string? errorGuardado;
+    private ProfesionalDTO? ficha;
+    private bool puedeEditarFicha;
+    private ProximoTurno? proximoTurno;
+
+    private string NombreVisible => ficha?.Nombre ?? username ?? correo ?? "Tu perfil";
+    private string UrlAgenda => $"turnos?vista=ampliada&profesionales={ficha?.Id}";
+
+    private string Iniciales
+    {
+        get
+        {
+            var identificador = NombreVisible.Split('@', 2)[0];
+            var partes = identificador.Split(new[] { ' ', '.', '-', '_' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            return partes.Length == 0 ? "MC" : string.Concat(partes.Take(2).Select(parte => char.ToUpperInvariant(parte[0])));
+        }
+    }
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -55,9 +229,62 @@
         }
 
         username = await UserManager.GetUserNameAsync(user);
+        correo = user.Email;
+        roles = string.Join(" · ", HttpContext.User.Identities
+            .Where(identidad => identidad.IsAuthenticated)
+            .SelectMany(identidad => identidad.FindAll(identidad.RoleClaimType))
+            .Select(rol => rol.Value)
+            .Distinct());
+        tieneContrasena = await UserManager.HasPasswordAsync(user);
         phoneNumber = await UserManager.GetPhoneNumberAsync(user);
 
-        Input.PhoneNumber ??= phoneNumber;
+        if (!HttpMethods.IsPost(HttpContext.Request.Method))
+        {
+            Input.PhoneNumber = phoneNumber;
+        }
+
+        var permisoProfesional = await Autorizacion.AuthorizeAsync(HttpContext.User, "EsProfesional");
+        if (!permisoProfesional.Succeeded)
+        {
+            return;
+        }
+
+        var cancelacion = HttpContext.RequestAborted;
+        var ids = await AlcanceProfesional.Propios(Context, HttpContext.User)
+            .Take(2)
+            .ToListAsync(cancelacion);
+        if (ids.Count != 1)
+        {
+            return;
+        }
+
+        var profesionalId = ids[0];
+        if (!await AlcanceProfesional.Profesionales(Context, HttpContext.User).ContainsAsync(profesionalId, cancelacion))
+        {
+            return;
+        }
+
+        ficha = await Profesionales.SelectPorId(profesionalId);
+        if (ficha is null)
+        {
+            return;
+        }
+
+        puedeEditarFicha = (await Autorizacion.AuthorizeAsync(HttpContext.User, "EsAdmin")).Succeeded;
+
+        var horaLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ZonaAgenda);
+        // Los turnos se guardan con la hora de agenda y el tipo UTC.
+        var ahora = DateTime.SpecifyKind(horaLocal, DateTimeKind.Utc);
+        proximoTurno = await AlcanceProfesional.TurnosPermitidos(Context, HttpContext.User, incluirMixtos: true)
+            .Where(turno => turno.EstadoRegistro == EnumEstadoRegistro.activo
+                && turno.EstadoTurno == EnumEstadoTurno.reservado
+                && turno.FechaInicio >= ahora
+                && turno.TurnoProfesionales.Any(asignacion => asignacion.ProfesionalId == profesionalId))
+            .OrderBy(turno => turno.FechaInicio)
+            .ThenBy(turno => turno.Id)
+            .Select(turno => new ProximoTurno(turno.FechaInicio,
+                turno.TipoConsultorios == null ? null : turno.TipoConsultorios.Tipo))
+            .FirstOrDefaultAsync(cancelacion);
     }
 
     private async Task OnValidSubmitAsync()
@@ -73,14 +300,16 @@
             var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
             if (!setPhoneResult.Succeeded)
             {
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: No pudimos guardar el teléfono.", HttpContext);
+                errorGuardado = "Error: No pudimos guardar el teléfono. Intentá nuevamente.";
                 return;
             }
         }
 
         await SignInManager.RefreshSignInAsync(user);
-        RedirectManager.RedirectToCurrentPageWithStatus("Perfil actualizado.", HttpContext);
+        RedirectManager.RedirectToCurrentPageWithStatus("Teléfono actualizado.", HttpContext);
     }
+
+    private sealed record ProximoTurno(DateTime Inicio, string? Consultorio);
 
     private sealed class InputModel
     {
