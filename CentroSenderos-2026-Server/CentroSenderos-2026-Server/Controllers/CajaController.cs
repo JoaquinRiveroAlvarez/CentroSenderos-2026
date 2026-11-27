@@ -56,7 +56,7 @@ namespace CentroSenderos_2026_Server.Controllers
                     {
                         Tipo = TipoMovimientoCaja.PagoGasto,
                         OrigenId = gasto.Id,
-                        LiquidacionId = null,
+                        LiquidacionId = 0,
                         Fecha = gasto.Fecha,
                         Concepto = "Pago directo de Caja",
                         Referencia = gasto.Descripcion,
@@ -70,7 +70,7 @@ namespace CentroSenderos_2026_Server.Controllers
                 {
                     Tipo = TipoMovimientoCaja.Reintegro,
                     OrigenId = reintegro.Id,
-                    LiquidacionId = null,
+                    LiquidacionId = 0,
                     Fecha = reintegro.Fecha,
                     Concepto = "Reintegro a socio",
                     Referencia = reintegro.SocioReceptor!.Profesionales!.Nombre,
