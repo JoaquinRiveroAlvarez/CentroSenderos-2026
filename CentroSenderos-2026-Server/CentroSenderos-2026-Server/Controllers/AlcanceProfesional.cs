@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using CentroSenderos_2026_BD;
+using CentroSenderos_2026_BD.Datos.Entity;
 using CentroSenderos_2026_Shared.Enum;
-using Microsoft.EntityFrameworkCore;
 
 namespace CentroSenderos_2026_Server.Controllers;
 
@@ -36,5 +36,26 @@ internal static class AlcanceProfesional
                join cuenta in context.Users on profesional.Email.ToUpper() equals cuenta.NormalizedEmail
                where cuenta.Id == cuentaId && profesional.EstadoRegistro == EnumEstadoRegistro.activo
                select profesional.Id;
+    }
+
+    public static IQueryable<Turno> TurnosPermitidos(ApplicationDbContext context, ClaimsPrincipal usuario, bool incluirMixtos = false)
+    {
+        if (TieneAccesoCompleto(usuario))
+            return context.Turnos;
+
+        var ids = Profesionales(context, usuario);
+        var habituales = context.Turnos.Where(t => t.TurnoProfesionales.Any()
+            && t.TurnoProfesionales.All(p => ids.Contains(p.ProfesionalId)));
+        return incluirMixtos ? habituales.Union(TurnosMixtosPropios(context, usuario)) : habituales;
+    }
+
+    public static IQueryable<Turno> TurnosMixtosPropios(ApplicationDbContext context, ClaimsPrincipal usuario)
+    {
+        var equipo = PorRol(context, "EQUIPO");
+        var externos = PorRol(context, "PROFESIONAL");
+        var propios = Propios(context, usuario);
+        return context.Turnos.Where(t => t.TurnoProfesionales.Any(p => propios.Contains(p.ProfesionalId))
+            && t.TurnoProfesionales.Any(p => equipo.Contains(p.ProfesionalId))
+            && t.TurnoProfesionales.Any(p => externos.Contains(p.ProfesionalId)));
     }
 }
