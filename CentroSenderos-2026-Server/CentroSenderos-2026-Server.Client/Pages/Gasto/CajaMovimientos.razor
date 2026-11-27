@@ -6,6 +6,7 @@
 @using CentroSenderos_2026_Servicio.ServiciosHttp
 @using System.Globalization
 @inject IHttpServicio Http
+@inject NavigationManager Navigation
 
 <PageTitle>Movimientos de Caja Senderos</PageTitle>
 
@@ -136,18 +137,32 @@
                                     <tr class="@(ReferenceEquals(movimiento, seleccionado) ? "caja-seleccionado" : null)"
                                         @onclick="() => SeleccionarMovimiento(movimiento)">
                                         <td class="caja-fecha">@movimiento.Fecha.ToString("dd/MM/yyyy")</td>
+                                        <td>@movimiento.Concepto</td>
                                         <td>
-                                            <button type="button" class="caja-detalle-enlace"
-                                                    aria-label="@($"{movimiento.Concepto}, {movimiento.Referencia}, {movimiento.Fecha:dd/MM/yyyy}, {Moneda(movimiento.Importe)}")"
-                                                    @onclick="() => SeleccionarMovimiento(movimiento)"
-                                                    @onclick:stopPropagation="true">
-                                                @movimiento.Concepto
-                                                <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                                            </button>
-                                        </td>
-                                        <td>
-                                            @movimiento.Referencia
-                                            <small>#@movimiento.OrigenId</small>
+                                            @if (movimiento.LiquidacionId is > 0)
+                                            {
+                                                <a class="caja-detalle-enlace" href="@($"/liquidaciones/editar/{movimiento.LiquidacionId}")"
+                                                   aria-label="@($"Abrir liquidación {movimiento.Referencia}")"
+                                                   @onclick:stopPropagation="true">
+                                                    @EtiquetaOrigen(movimiento)
+                                                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                                                </a>
+                                            }
+                                            else if (movimiento.OrigenId > 0)
+                                            {
+                                                <button type="button" class="caja-detalle-enlace"
+                                                        aria-label="@($"Ver {EtiquetaOrigen(movimiento)}: {movimiento.Referencia}")"
+                                                        @onclick="() => SeleccionarMovimiento(movimiento)"
+                                                        @onclick:stopPropagation="true">
+                                                    @EtiquetaOrigen(movimiento)
+                                                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span>@EtiquetaOrigen(movimiento)</span>
+                                            }
+                                            <small>@movimiento.Referencia</small>
                                         </td>
                                         <td class="@(movimiento.Importe < 0 ? "caja-importe salida" : "caja-importe ingreso")">
                                             @(movimiento.Importe > 0 ? "+" : string.Empty)@Moneda(movimiento.Importe)
@@ -260,10 +275,28 @@ else if (seleccionado is { Tipo: not TipoMovimientoCaja.PagoGasto } movimientoSe
 
     private void SeleccionarMovimiento(MovimientoCajaDTO movimiento)
     {
+        if (movimiento.OrigenId <= 0 && movimiento.LiquidacionId is not > 0)
+            return;
+
+        if (movimiento.LiquidacionId is > 0)
+        {
+            Navigation.NavigateTo($"/liquidaciones/editar/{movimiento.LiquidacionId}");
+            return;
+        }
+
         seleccionado = movimiento;
         if (movimiento.Tipo == TipoMovimientoCaja.PagoGasto)
             gastoDetalleId = movimiento.OrigenId;
     }
+
+    private static string EtiquetaOrigen(MovimientoCajaDTO movimiento) => movimiento.Tipo switch
+    {
+        TipoMovimientoCaja.PagoGasto when movimiento.OrigenId > 0 => $"Gasto #{movimiento.OrigenId}",
+        TipoMovimientoCaja.Reintegro when movimiento.OrigenId > 0 => $"Reintegro #{movimiento.OrigenId}",
+        TipoMovimientoCaja.PagoGasto => "Gasto",
+        TipoMovimientoCaja.Reintegro => "Reintegro",
+        _ => "Liquidación"
+    };
 
     private void CerrarMovimiento() => seleccionado = null;
 
